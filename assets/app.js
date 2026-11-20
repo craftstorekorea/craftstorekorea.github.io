@@ -33,13 +33,18 @@
   var L = S.links;
   var linkMap = {
     "register-link": L.register, "register-link-2": L.register, "foot-form": L.register,
-    "cta-newsletter": L.newsletter, "archive-link": L.newsletter,
+    "cta-newsletter": L.newsletter,
     "foot-newsletter": L.newsletter, "foot-insta": L.instagram,
     "foot-sites": L.sites, "foot-sheet": L.sheet, "sheet-link": L.sheet
   };
   Object.keys(linkMap).forEach(function (id) {
     var n = document.getElementById(id);
     if (n) n.href = linkMap[id];
+  });
+  var ARC = window.ARCHIVE;
+  ["arc-doc", "arc-home-doc"].forEach(function (id) {
+    var n = document.getElementById(id);
+    if (n && ARC) n.href = ARC.docUrl;
   });
 
   /* ---------------- counts ---------------- */
@@ -67,6 +72,7 @@
     "<span><i>●</i>업데이트 " + md(S.updated) + "</span>",
     "<span>소식 <b>" + total + "</b>건</span>",
     "<span>등록 공방 <b>" + counts.workshops + "</b>곳</span>",
+    "<span>아카이브 <b>" + (window.ARCHIVE ? window.ARCHIVE.total : 0) + "</b>건</span>",
     "<span>매주 금요일 오전</span>"
   ].join("");
 
@@ -219,6 +225,195 @@
       '<a href="' + esc(it.url) + '" target="_blank" rel="noopener">인터뷰 읽기 <svg width="12" height="12" aria-hidden="true"><use href="#i-ext"/></svg></a></div>';
     ivg.appendChild(card);
   });
+
+  /* ---------------- archive (2024–2026) ---------------- */
+  var A = window.ARCHIVE;
+
+  function arcIssueById(id) {
+    if (!A) return null;
+    for (var i = 0; i < A.issues.length; i++) if (A.issues[i].id === id) return A.issues[i];
+    return null;
+  }
+
+  var arcState = { issue: "all", corner: "전체", q: "" };
+
+  function arcCornerCount(c) {
+    return A.items.filter(function (it) { return it.corner === c; }).length;
+  }
+
+  function renderArcStats() {
+    var box = $("#arc-stats");
+    if (!box) return;
+    var first = A.issues[0].first.replace(/-/g, ".");
+    var last = A.issues[A.issues.length - 1].last.replace(/-/g, ".");
+    box.innerHTML =
+      "<div><b>" + A.total + "<i>건</i></b><span>아카이브 기사</span></div>" +
+      "<div><b>" + A.issues.length + "<i>개 호</i></b><span>① 24년 ~ ⑧ " + A.issues[A.issues.length - 1].label + "</span></div>" +
+      "<div><b>" + A.corners.length + "<i>개 코너</i></b><span>소개 " + arcCornerCount("소개") + " · 뉴스 " + arcCornerCount("뉴스") +
+      " · 인터뷰 " + arcCornerCount("인터뷰") + " · 정보 " + arcCornerCount("정보") + "</span></div>" +
+      "<div><b>3<i>년</i></b><span>" + first + " – " + last + " 수집</span></div>";
+  }
+
+  function renderArcHomeStats() {
+    var box = $("#arc-home-stats");
+    if (!box || !A) return;
+    box.innerHTML = [
+      [A.total, "건", "아카이브 기사"],
+      [A.issues.length, "개", "호 (24년~26년 11월)"],
+      [A.corners.length, "개", "소개·뉴스·인터뷰·정보"],
+      [3, "년", "2023.12 – 2026.11"]
+    ].map(function (s) {
+      return "<li><b>" + s[0] + "<i>" + s[1] + "</i></b><span>" + s[2] + "</span></li>";
+    }).join("");
+  }
+
+  function renderArcFilters() {
+    var iBox = $("#arc-issues"), cBox = $("#arc-corners");
+    if (!iBox || !cBox) return;
+
+    var all = el("button", "arc-chip");
+    all.type = "button";
+    all.dataset.issue = "all";
+    all.setAttribute("aria-pressed", "true");
+    all.innerHTML = "전체 호 <i>" + A.total + "</i>";
+    all.addEventListener("click", function () { setArc("issue", "all"); });
+    iBox.appendChild(all);
+
+    A.issues.forEach(function (is) {
+      var b = el("button", "arc-chip");
+      b.type = "button";
+      b.dataset.issue = is.id;
+      b.setAttribute("aria-pressed", "false");
+      b.title = is.title + " · " + is.range;
+      b.innerHTML = '<span class="no">' + is.no + "</span>" + esc(is.label) + " <i>" + is.count + "</i>";
+      b.addEventListener("click", function () { setArc("issue", is.id); });
+      iBox.appendChild(b);
+    });
+
+    var cAll = el("button", "arc-chip");
+    cAll.type = "button";
+    cAll.dataset.corner = "전체";
+    cAll.setAttribute("aria-pressed", "true");
+    cAll.innerHTML = "전체 코너 <i>" + A.total + "</i>";
+    cAll.addEventListener("click", function () { setArc("corner", "전체"); });
+    cBox.appendChild(cAll);
+
+    A.corners.forEach(function (c) {
+      var b = el("button", "arc-chip");
+      b.type = "button";
+      b.dataset.corner = c;
+      b.setAttribute("aria-pressed", "false");
+      b.innerHTML = esc(c) + " <i>" + arcCornerCount(c) + "</i>";
+      b.addEventListener("click", function () { setArc("corner", c); });
+      cBox.appendChild(b);
+    });
+  }
+
+  function setArc(kind, value) {
+    arcState[kind] = value;
+    renderArc();
+  }
+
+  function arcMatch(it) {
+    if (arcState.issue !== "all" && it.issue !== arcState.issue) return false;
+    if (arcState.corner !== "전체" && it.corner !== arcState.corner) return false;
+    var q = arcState.q.trim().toLowerCase();
+    if (!q) return true;
+    var issue = arcIssueById(it.issue) || {};
+    var hay = [it.title, it.summary, it.source, it.date, it.corner, issue.label, issue.title, it.url]
+      .join(" ").toLowerCase();
+    return hay.indexOf(q) >= 0;
+  }
+
+  function arcCard(it, showIssue) {
+    var issue = arcIssueById(it.issue) || { no: "", label: "" };
+    var card = el("article", "acard");
+    card.innerHTML =
+      '<div class="acard-top">' +
+      '<span class="chip arc-corner" data-c="' + esc(it.corner) + '">' + esc(it.corner) + "</span>" +
+      (showIssue ? '<span class="issue-badge">' + issue.no + " " + esc(issue.short) + "</span>" : "") +
+      '<span class="date">' + esc(it.date) + "</span></div>" +
+      '<h4><a href="' + esc(it.url) + '" target="_blank" rel="noopener">' + esc(it.title) + "</a></h4>" +
+      "<p>" + esc(it.summary) + "</p>" +
+      '<div class="acard-foot"><span class="src">' + esc(it.source) + "</span>" +
+      '<a href="' + esc(it.url) + '" target="_blank" rel="noopener">원문 <svg width="11" height="11" aria-hidden="true"><use href="#i-ext"/></svg></a></div>';
+    return card;
+  }
+
+  function renderArc() {
+    var list = $("#arc-list");
+    if (!list || !A) return;
+
+    [].forEach.call(document.querySelectorAll("#arc-issues .arc-chip"), function (b) {
+      b.setAttribute("aria-pressed", b.dataset.issue === arcState.issue ? "true" : "false");
+    });
+    [].forEach.call(document.querySelectorAll("#arc-corners .arc-chip"), function (b) {
+      b.setAttribute("aria-pressed", b.dataset.corner === arcState.corner ? "true" : "false");
+    });
+
+    var rows = A.items.filter(arcMatch);
+    $("#arc-count").innerHTML = (rows.length === A.total
+      ? "전체 <b>" + A.total + "</b>건 · " + A.issues.length + "개 호"
+      : "전체 " + A.total + "건 중 <b>" + rows.length + "</b>건");
+
+    var lead = $("#arc-lead");
+    var cur = arcState.issue === "all" ? null : arcIssueById(arcState.issue);
+    if (cur && lead) {
+      lead.hidden = false;
+      lead.innerHTML = "<b>" + cur.no + " " + esc(cur.title) + " · " + esc(cur.range) + " · " + cur.count + "건</b><p>" + esc(cur.lead) + "</p>";
+    } else if (lead) {
+      lead.hidden = true;
+      lead.innerHTML = "";
+    }
+
+    list.innerHTML = "";
+    if (!rows.length) {
+      list.appendChild(el("div", "empty", "해당하는 기사가 없습니다. 호·코너 필터나 검색어를 바꿔 보세요."));
+      return;
+    }
+
+    var groups = arcState.issue === "all"
+      ? A.issues.map(function (is) {
+          return { issue: is, items: rows.filter(function (it) { return it.issue === is.id; }) };
+        }).filter(function (g) { return g.items.length; })
+      : [{ issue: cur, items: rows }];
+
+    groups.forEach(function (g) {
+      var box = el("section", "arc-group");
+      if (arcState.issue === "all") {
+        box.appendChild(el("div", "arc-group-head",
+          '<h3><span class="no">' + g.issue.no + "</span>" + esc(g.issue.title) + "</h3>" +
+          '<span class="range">' + esc(g.issue.range) + "</span>" +
+          '<span class="n"><b>' + g.items.length + "</b>건" + (g.items.length !== g.issue.count ? " / " + g.issue.count + "건" : "") + "</span>"));
+      }
+      var cards = el("div", "arc-cards");
+      g.items.forEach(function (it) { cards.appendChild(arcCard(it, arcState.issue === "all")); });
+      box.appendChild(cards);
+      list.appendChild(box);
+    });
+  }
+
+  function initArc() {
+    if (!A || !$("#arc-list")) return;
+    renderArcStats();
+    renderArcHomeStats();
+    renderArcFilters();
+    renderArc();
+
+    var q = $("#arc-q");
+    var qc = $("#arc-q-clear");
+    q.addEventListener("input", function () {
+      arcState.q = q.value;
+      qc.classList.toggle("show", !!q.value);
+      renderArc();
+    });
+    qc.addEventListener("click", function () {
+      q.value = ""; arcState.q = ""; qc.classList.remove("show"); q.focus(); renderArc();
+    });
+
+    var lead = $("#archive-lead");
+    if (lead) lead.textContent = "8개 호 " + A.total + "건의 소개·뉴스·인터뷰·정보를 한 번에 볼 수 있습니다.";
+  }
 
   /* ---------------- info ---------------- */
   function dueState(due) {
@@ -671,12 +866,13 @@
   });
 
   /* ---------------- routing ---------------- */
-  var VIEWS = ["home", "workshops", "news", "interview", "info", "map"];
+  var VIEWS = ["home", "workshops", "news", "interview", "archive", "info", "map"];
   var TITLES = {
     home: "전국공방 — 우리 동네 공방의 이번 주 소식",
     workshops: "공방 소개 — 전국공방",
     news: "공방 뉴스 — 전국공방",
     interview: "작가 인터뷰 — 전국공방",
+    archive: "아카이브 (2024–2026) 151건 — 전국공방",
     info: "지원·공모 정보 — 전국공방",
     map: "전국 공방 지도 & 등록 게시판 — 전국공방"
   };
@@ -715,5 +911,6 @@
   renderRegions();
   renderBoard();
   loadSheet();
+  initArc();
   route(false);
 })();

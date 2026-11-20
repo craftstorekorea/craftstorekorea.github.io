@@ -16,6 +16,7 @@ GitHub Pages로 배포합니다.
 | 공방 소개 | 등록·확인된 공방 카드, 공예 분야, 소개 코너 기사 |
 | 공방 뉴스 | 이번 주 검증된 공방·공예 뉴스 원문 링크 |
 | 작가 인터뷰 | 확인된 인터뷰 인용과 원문 링크 |
+| 아카이브 (2024–2026) | 뉴스레터 아카이브 8개 호·4개 코너 151건, 호/코너 필터 + 키워드 검색 |
 | 지원·공모 | 마감일 기준 정렬, 분야 필터, D-day 자동 계산 |
 | 지도·게시판 | 시·도 SVG 지도 + 공개 시트 연동 검색·필터 게시판 |
 
@@ -26,6 +27,7 @@ index.html                한 페이지, 6개 탭(해시 라우팅)
 assets/styles.css         디자인 토큰과 전체 레이아웃
 assets/app.js             렌더링·검색·필터·지도
 assets/data.js            이번 주 소식·공방·정보 데이터 (여기만 고치면 됩니다)
+assets/archive.js         뉴스레터 아카이브 2024–2026 (8개 호, 151건) 데이터
 assets/korea-paths.js     시·도 경계 SVG 좌표 (KOSTAT 2013 단순화 데이터)
 assets/hero-*.webp|jpg    대표 이미지
 ```
@@ -44,6 +46,17 @@ assets/hero-*.webp|jpg    대표 이미지
 1. `assets/data.js`의 `news` / `interviews` / `info` 배열을 이번 주 자료로 교체
 2. `updated`, `weekFrom`, `weekTo` 수정
 3. 커밋 후 push (GitHub Pages가 자동 배포)
+
+### 아카이브 갱신
+
+- 원본: 구글 독스 `우리동네공방_뉴스레터_아카이브_정리_2024-2026`
+  (`1GKTEYBFJAvM0vybZJ3w9p5ZAguBMkyzoy9etiaIyFtY`)
+- 독스의 호 제목(①~⑧) · 코너(소개/뉴스/인터뷰/정보) · `•` 줄 항목을 그대로 옮겨
+  `assets/archive.js`의 `issues`(호)와 `items`(기사)를 만듭니다. 항목 하나는
+  제목 · 매체 · 알리미 수신일 · 한 줄 요약 · 원문 URL을 가집니다.
+- 새 호를 추가할 때는 `issues`에 호를 넣고 `count`를 맞춘 뒤, 홈·아카이브의
+  건수 문구(151건 등)를 함께 바꿉니다.
+- 검증: `python3 check_archive.py` (카드 151건, 호·코너 필터, 검색, 콘솔 에러 0건)
 
 ## 등록
 

@@ -50,6 +50,7 @@
       <button class="tab" role="tab" data-view="workshops" aria-selected="false">공방 소개</button>
       <button class="tab" role="tab" data-view="news" aria-selected="false">공방 뉴스</button>
       <button class="tab" role="tab" data-view="interview" aria-selected="false">작가 인터뷰</button>
+      <button class="tab" role="tab" data-view="archive" aria-selected="false" aria-label="아카이브 2024–2026">아카이브<em>2024–2026</em></button>
       <button class="tab" role="tab" data-view="info" aria-selected="false">지원·공모</button>
       <button class="tab" role="tab" data-view="map" aria-selected="false">지도·게시판</button>
     </nav>
@@ -113,6 +114,23 @@
 
     <section class="stats">
       <div class="stats-in" id="stats"></div>
+    </section>
+
+    <section class="section tight arc-home">
+      <div class="wrap">
+        <div class="arc-banner">
+          <div class="arc-banner-main">
+            <p class="eyebrow">아카이브 · 2024–2026</p>
+            <h2>지난 3년, <em>151건</em>의 공방 소식을 모았습니다</h2>
+            <p>우리동네공방 뉴스레터 8개 호의 소개·뉴스·인터뷰·정보를 한곳에 모았습니다. 호별·코너별로 걸러 보고 키워드로 찾아 원문까지 바로 갈 수 있습니다.</p>
+            <div class="arc-banner-actions">
+              <a class="btn btn-primary" href="#/archive">아카이브 열기 <svg width="15" height="15" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+              <a class="link-more" id="arc-home-doc" href="#" target="_blank" rel="noopener">정리 문서 원본 <svg width="14" height="14" aria-hidden="true"><use href="#i-ext"/></svg></a>
+            </div>
+          </div>
+          <ul class="arc-banner-stats" id="arc-home-stats"></ul>
+        </div>
+      </div>
     </section>
 
     <section class="cta-band">
@@ -183,11 +201,58 @@
         <div class="iv-grid" id="iv-grid"></div>
         <div class="archive">
           <div>
-            <b>우리동네공방 뉴스레터 아카이브</b>
-            <p>지난 호의 소개·뉴스·인터뷰·정보를 한 번에 볼 수 있습니다.</p>
+            <b>우리동네공방 뉴스레터 아카이브 · 2024–2026</b>
+            <p id="archive-lead">지난 호의 소개·뉴스·인터뷰·정보를 한 번에 볼 수 있습니다.</p>
           </div>
-          <a class="btn btn-ghost btn-sm" id="archive-link" href="#" target="_blank" rel="noopener">아카이브 열기 <svg width="14" height="14" aria-hidden="true"><use href="#i-ext"/></svg></a>
+          <a class="btn btn-ghost btn-sm" href="#/archive">아카이브 열기 <svg width="14" height="14" aria-hidden="true"><use href="#i-arrow"/></svg></a>
         </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ ARCHIVE ============ -->
+  <div class="view" id="view-archive" role="tabpanel" aria-labelledby="tab-archive" hidden>
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head row">
+          <div>
+            <p class="eyebrow">아카이브 · ARCHIVE</p>
+            <h2>지난 3년의 공방 소식,<br><em class="ink-em">151건</em>을 한자리에</h2>
+            <p>2023년 12월부터 2026년 11월까지 구글 알리미로 모은 1,150여 통의 메일에서 공방·공예 기사 151건을 골라 8개 호, 네 코너로 정리했습니다. 호와 코너로 걸러 보거나 키워드로 찾아보세요. 기사 제목을 누르면 원문으로 이동합니다.</p>
+          </div>
+          <a class="link-more" id="arc-doc" href="#" target="_blank" rel="noopener">정리 문서 원본 <svg width="14" height="14" aria-hidden="true"><use href="#i-ext"/></svg></a>
+        </div>
+
+        <div class="arc-stats" id="arc-stats"></div>
+
+        <div class="arc-controls">
+          <div class="arc-filter">
+            <span class="arc-filter-label">호</span>
+            <div class="arc-chips" id="arc-issues" role="group" aria-label="호 선택"></div>
+          </div>
+          <div class="arc-filter">
+            <span class="arc-filter-label">코너</span>
+            <div class="arc-chips" id="arc-corners" role="group" aria-label="코너 선택"></div>
+          </div>
+          <div class="arc-filter arc-filter-q">
+            <span class="arc-filter-label">검색</span>
+            <label class="search arc-search">
+              <svg width="17" height="17" aria-hidden="true"><use href="#i-search"/></svg>
+              <span class="sr-only">아카이브 검색</span>
+              <input type="search" id="arc-q" placeholder="제목, 요약, 매체, 지역으로 검색" autocomplete="off">
+              <button class="clear" id="arc-q-clear" type="button" aria-label="검색어 지우기">×</button>
+            </label>
+          </div>
+        </div>
+
+        <div class="arc-lead" id="arc-lead" hidden></div>
+
+        <div class="arc-bar">
+          <span class="arc-count" id="arc-count" aria-live="polite"></span>
+          <span class="arc-hint">기사 151건 · 8개 호 · 소개 35 · 뉴스 39 · 인터뷰 28 · 정보 49</span>
+        </div>
+
+        <div class="arc-list" id="arc-list"></div>
       </div>
     </section>
   </div>
@@ -301,7 +366,7 @@
         <ul>
           <li><a href="#/map" data-goto="map">공방 등록 신청</a></li>
           <li><a id="foot-form" href="#" target="_blank" rel="noopener">등록 신청서 열기</a></li>
-          <li><a id="foot-newsletter" href="#" target="_blank" rel="noopener">뉴스레터 아카이브</a></li>
+          <li><a href="#/archive">뉴스레터 아카이브 (151건)</a></li>
           <li><a id="foot-insta" href="#" target="_blank" rel="noopener">인스타그램 @craftstore.kr</a></li>
         </ul>
       </div>
@@ -310,6 +375,7 @@
         <ul>
           <li><a id="foot-sites" href="#" target="_blank" rel="noopener">구글 사이트 버전</a></li>
           <li><a id="foot-sheet" href="#" target="_blank" rel="noopener">등록 데이터베이스</a></li>
+          <li><a id="foot-newsletter" href="#" target="_blank" rel="noopener">스티비 뉴스레터 아카이브</a></li>
         </ul>
       </div>
     </div>
@@ -331,6 +397,7 @@
 </noscript>
 
 <script src="assets/data.js"></script>
+<script src="assets/archive.js"></script>
 <script src="assets/korea-paths.js"></script>
 <script src="assets/app.js"></script>
 </body>
