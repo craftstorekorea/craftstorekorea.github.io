@@ -5,7 +5,7 @@ window.CRAFT_SUPABASE = {
   anonKey: "sb_publishable_h_LulYLMWm80M6ZfqMdc9w_jncYNhDe",
   // 로그인 모달에 노출할 로그인 수단. 준비된 것만 넣습니다. (비우면 전부 노출)
   // 구글·카카오를 연결하면 ["google", "kakao", "email"] 처럼 추가하세요.
-  providers: ["email"],
+  providers: ["google", "email"],
   // 네이버 로그인 브리지 (Supabase Edge Function) — 배포 후 주소를 넣습니다
   naverAuthUrl: ""
 };
