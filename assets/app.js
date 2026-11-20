@@ -158,37 +158,8 @@
       "<b>" + esc(c.name) + "<i>" + c.count + "곳</i></b><p>" + esc(c.desc) + "</p>"));
   });
 
-  /* ---------------- 소개 코너 기사 ---------------- */
-  var INTRO = [
-    {
-      title: "부산진구 20개 공방 연합 전시 《모두의 작업실》",
-      source: "부산진구청", date: "2026-11-19",
-      desc: "동천문화홀에서 11/19~12/2. 시민 체험 재료비는 1,000~2,000원입니다.",
-      url: "https://www.busanjin.go.kr/lll/board/view.busanjin?boardId=BBS_0000010&dataSid=3981784&menuCd=DOM_000000206001000000",
-      region: "부산", tag: "전시"
-    },
-    {
-      title: "횡성목재문화체험장, 11/24~12/18 시범운영",
-      source: "연합뉴스", date: "2026-11-19",
-      desc: "목공 11종을 무료로 체험. 화~금 하루 2회, 전화 예약(033-342-7150)으로 신청합니다.",
-      url: "https://www.yna.co.kr/view/AKR20261119052000062",
-      region: "강원", tag: "체험"
-    },
-    {
-      title: "망미동 골목 네 칸의 캠퍼스 — 가죽공방 본",
-      source: "부산진", date: "2026-11-16",
-      desc: "사회복지사 출신 서경원 대표가 원데이클래스, 청각장애인 수업, 업사이클링을 함께 운영합니다.",
-      url: "https://busanzine.com/8937",
-      region: "부산", tag: "공방"
-    },
-    {
-      title: "동두천 두두리공방 승경란 작가, 국가무형유산 ‘입사장’ 보유자 인정",
-      source: "경기일보", date: "2026-11-13",
-      desc: "보산동 디자인아트빌리지의 체험·플리마켓과 지역 축제를 연계할 계획입니다.",
-      url: "https://www.kyeonggi.com/article/20261113580143",
-      region: "경기", tag: "사람"
-    }
-  ];
+  /* ---------------- 소개 코너 기사 (data.js 의 intro) ---------------- */
+  var INTRO = S.intro || [];
 
   function newsRow(it, i) {
     var row = el("article", "news-item");
