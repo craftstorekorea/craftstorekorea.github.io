@@ -171,6 +171,20 @@
       "</div>";
     document.body.appendChild(modal);
 
+    // auth-config.js 의 providers 목록에 있는 로그인만 노출합니다. (없거나 비면 전부 노출)
+    var only = (CFG.providers && CFG.providers.length) ? CFG.providers : null;
+    if (only) {
+      [].forEach.call(modal.querySelectorAll(".auth-social[data-provider]"), function (b) {
+        if (only.indexOf(b.dataset.provider) < 0 && b.parentNode) b.parentNode.removeChild(b);
+      });
+      if (!modal.querySelector(".auth-social")) {
+        var socBox = modal.querySelector(".auth-socials");
+        var orLine = modal.querySelector(".auth-or");
+        if (socBox && socBox.parentNode) socBox.parentNode.removeChild(socBox);
+        if (orLine && orLine.parentNode) orLine.parentNode.removeChild(orLine);
+      }
+    }
+
     msgBox = $("#auth-msg", modal);
     form = $("#auth-form", modal);
 
