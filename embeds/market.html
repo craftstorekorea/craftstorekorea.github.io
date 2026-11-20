@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta name="robots" content="noindex,nofollow"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Market & Cases — K-Social Bridge</title><style>@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap');
+*{box-sizing:border-box}
+body{margin:0;padding:20px 16px 30px;background:#F6F8F7;color:#1B2B28;
+font-family:Inter,Pretendard,"Apple SD Gothic Neo","Malgun Gothic",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:13.8px;line-height:1.68}
+.wrap{max-width:980px;margin:0 auto}
+.eyebrow{font-size:10.5px;letter-spacing:.14em;font-weight:800;color:#4C8C7D;margin:0 0 4px}
+h1{margin:0 0 6px;font-size:23px;line-height:1.3;letter-spacing:-.015em}
+.lead{margin:0 0 16px;font-size:13.5px;color:#5E7570}
+h2{margin:26px 0 8px;font-size:16px;letter-spacing:-.01em;padding-bottom:6px;border-bottom:2px solid #E3EDEA}
+h2 span{display:block;font-size:11px;font-weight:700;color:#84A09A;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+h3{margin:16px 0 5px;font-size:13.5px}
+p{margin:0 0 8px}
+.kr{font-size:12.5px;color:#5E7570;background:#F1F6F5;border-left:3px solid #A8C7BE;padding:7px 11px;border-radius:0 7px 7px 0;margin:8px 0 10px}
+.grid{display:grid;gap:9px}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g2{grid-template-columns:repeat(2,1fr)}
+@media(max-width:760px){.g4,.g3,.g2{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.g4,.g3,.g2{grid-template-columns:1fr}}
+.kpi{background:#fff;border:1px solid #DDE8E5;border-radius:11px;padding:11px 13px}
+.kpi b{display:block;font-size:19px;line-height:1.25;color:#14483C;letter-spacing:-.02em}
+.kpi span{display:block;font-size:11px;color:#7D968F;line-height:1.45;margin-top:3px}
+.box{background:#fff;border:1px solid #DDE8E5;border-radius:11px;padding:13px 15px;margin:10px 0}
+.box h3{margin-top:0}
+.box.tint{background:#FBFDFC}
+ul,ol{margin:0 0 8px;padding-left:18px}
+li{margin:0 0 4px}
+li b{color:#14483C}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #DDE8E5;border-radius:10px;overflow:hidden;font-size:12.2px}
+th{background:#EFF5F3;text-align:left;padding:7px 9px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#41615A;border-bottom:1px solid #DDE8E5;white-space:nowrap}
+td{padding:7px 9px;border-bottom:1px solid #EDF3F1;vertical-align:top}
+tr:last-child td{border-bottom:0}
+tr:nth-child(even) td{background:#FCFDFD}
+.pill{display:inline-block;border-radius:999px;padding:1px 8px;font-size:10.5px;font-weight:800;letter-spacing:.03em}
+.p-a{background:#E7F2EF;color:#1B5C4D}
+.p-b{background:#EEF3F8;color:#34527E}
+.p-n{background:#FDF1DE;color:#A66A16}
+.case{background:#fff;border:1px solid #DDE8E5;border-radius:11px;padding:12px 14px;margin:0 0 8px}
+.case h3{margin:0 0 3px;font-size:14px}
+.case .num{font-size:11.5px;color:#2E7D6A;font-weight:800;letter-spacing:.03em}
+.case .lesson{margin-top:7px;font-size:12.2px;color:#415C57;background:#F6FAF9;border-left:3px solid #A8C7BE;padding:6px 10px;border-radius:0 6px 6px 0}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;background:#fff;border:1px solid #DDE8E5;border-radius:11px;padding:12px;margin:10px 0}
+.flow .n{background:#F1F6F5;border-radius:8px;padding:6px 10px;font-size:11.8px;text-align:center;line-height:1.45}
+.flow .n b{display:block;font-size:12.6px;color:#14483C}
+.flow .ar{color:#8FB3AA;font-weight:800}
+.note{font-size:11.5px;color:#84A09A;border-top:1px solid #E3EDEA;padding-top:10px;margin-top:20px;line-height:1.65}
+.tag{display:inline-block;background:#EFF5F3;color:#41615A;border-radius:6px;padding:1px 7px;font-size:10.8px;font-weight:700;margin:0 3px 3px 0}
+a{color:#1B5C4D}
+
+/* ---- responsive hardening ---- */
+html,body{max-width:100%;overflow-x:hidden}
+img,iframe,video{max-width:100%;height:auto}
+.table-wrap{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:10px 0}
+.table-wrap table{margin:0}
+table{max-width:100%}
+.frow,.stats,.links,.flow{flex-wrap:wrap}
+@media(max-width:640px){
+.g4,.g3,.g2{grid-template-columns:1fr !important}
+.grid{gap:8px}
+h1,h2{font-size:18px !important;line-height:1.35}
+body{padding:14px 11px 22px !important;font-size:13px}
+.kpi b{font-size:17px}
+.card{padding:11px 12px}
+.search{padding:10px 12px;font-size:14px}
+.chip{padding:6px 11px;font-size:12px}
+table{min-width:480px;font-size:12px}
+th,td{padding:6px 8px}
+.flow{justify-content:flex-start}
+.flow .n{flex:1 1 100%;text-align:left}
+.flow .ar{display:none}
+}
+body,button,input,select,textarea,h1,h2,h3,p,span,td,th,dt,dd,a{font-family:'Nanum Gothic','나눔고딕',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+</style></head><body><div class="wrap">
+<p class="eyebrow">MARKET RESEARCH · CASES · 2026.11</p>
+<h1>The demand became a specification. Korea’s supply side has to answer in that format.</h1>
+<p class="lead">Regulation, buyer behaviour and public budgets have already decided that impact data travels with the product. This page collects the measured market data, the eight models that work abroad, and five Korean exports with the reason each one stayed small. 규제·시장·정책 근거와 국내외 사례를 한 페이지에 정리했습니다.</p>
+
+<div class="grid g4">
+<div class="kpi"><b>2029-07-26</b><span>EU CSDDD applies (Directive 2024/1760, as amended by Omnibus I).<br>EU 공급망 실사 지침 적용일</span></div>
+<div class="kpi"><b>175,000</b><span>companies rated by EcoVadis, linked to USD 2.5tn of purchasing spend.<br>EcoVadis 공급사 실사 평가 기업 수</span></div>
+<div class="kpi"><b>GBP 864.4m</b><span>spent with social enterprises by 36 corporates (UK, 2016–2025).<br>영국 Buy Social Corporate Challenge 누적 지출</span></div>
+<div class="kpi"><b>KRW 7.28tn</b><span>annual revenue of 3,766 certified Korean social enterprises.<br>국내 인증 사회적기업 3,766개소 매출</span></div>
+</div>
+
+<h2><span>01 · Regulation</span>EU supply-chain due diligence — the deadline is 2029, the demand arrives now</h2>
+<p>The legal basis is <b>Directive (EU) 2024/1760</b>, in force since 25 July 2024, revised by the Omnibus I package (deferral directive 2025/794; content directive 2026/470, published 26 February 2026 and in force 18 March 2026).</p>
+<ul>
+<li><b>Who is covered</b> — EU companies with more than 5,000 employees and worldwide net turnover above EUR 1.5bn; non-EU companies with EU net turnover above EUR 1.5bn.</li>
+<li><b>Timetable</b> — Member States transpose by 26 July 2028; obligations apply from <b>26 July 2029</b>; Art. 16 reporting starts with financial years beginning on or after 1 January 2030.</li>
+<li><b>Scope shrank, pressure did not</b> — the covered population is about 70% smaller than the original proposal (1,000 employees / EUR 450m). EU-wide civil liability was removed, penalties capped at 3% of worldwide net turnover.</li>
+<li><b>Why suppliers still feel it</b> — information may be requested from suppliers below 5,000 employees only when it cannot be obtained another way. That standardises the format and scope large buyers use, so a supplier holding a ready impact card and due-diligence pack is the one that gets chosen.</li>
+</ul>
+<div class="kr">규제 대상이 아니라는 말은 곧 요구가 없다는 뜻이 아닙니다. 대기업이 협력사에 요청하는 정보의 형식이 정형화되면서, 표준화된 임팩트 카드·실사 양식을 미리 갖춘 공급사가 선택됩니다.</div>
+
+<h2><span>02 · Data market</span>Supplier due diligence is already an industry</h2>
+<ul>
+<li>EcoVadis has rated <b>175,000 companies</b> in 180+ countries and screens 3 million suppliers; 25,852 companies joined in 2025 alone.</li>
+<li>About <b>1,400 purchasing organisations</b> use the rating as a selection criterion, covering <b>USD 2.5tn</b> of spend. <b>84%</b> of rated companies have 25–999 employees — the SME segment is already institutionalised.</li>
+<li><b>Korea:</b> assessments grew <b>56% year on year in 2025</b> (860+ cases).</li>
+<li>Implication: align our impact card fields with the EcoVadis questionnaire (environment, labour, ethics, sustainable procurement) so a supplier answers once and owns a due-diligence record.</li>
+</ul>
+
+<h2><span>03 · Social procurement</span>Buy Social: proof that purchase budgets move</h2>
+<div class="grid g2">
+<div class="box">
+<h3>Buy Social Corporate Challenge (UK, SEUK × government)</h3>
+<p>36 corporates, target of GBP 1bn to social enterprises. Cumulative spend 2016–2025: <b>GBP 864.4m</b>; in 2025 alone <b>GBP 209.3m</b>. 2,583 social enterprises have traded (1,349 in 2025, +19%). 20 suppliers hold contracts over GBP 1m a year; 21 trade with 10+ corporates. <b>GBP 78m</b> reinvested, <b>7,863 jobs</b> created; 68% of participants report greater supply-chain diversity. Phase 2 (BSCC v2.0) begins in 2027.</p>
+</div>
+<div class="box">
+<h3>Buy Social Canada</h3>
+<p>Certified Social Enterprise mark + directory + buyer network; certification fee, no transaction commission. 2024 survey: 182 certified enterprises, <b>CAD 5.9bn</b> revenue, 12,215 jobs (over half held by people facing barriers). 2026 survey: 347 organisations / 404 social enterprises. 19% of enterprises bid on tenders that award points for CSE certification.</p>
+</div>
+</div>
+<div class="kr">사회적 조달은 '착한 구매'가 아니라 구매 담당자의 KPI입니다. 인증 배지와 구매 리포트는 내부 결재를 통과시키는 도구로 작동합니다.</div>
+
+<h2><span>04 · Certification</span>Fairtrade in numbers (2024)</h2>
+<p>1,824 certified producer organisations and <b>1,871,272</b> farmers and workers (about 1.87 million, 90% farmers). Premiums paid to producers in 2024: <b>EUR 201.6m</b> (over EUR 1bn in five years). 1.5 million tonnes of certified volume sold; top premiums cocoa EUR 73.4m, coffee EUR 57.6m, banana EUR 36.4m. The number of certified organisations fell from 1,930 (2020) to 1,824 (2024) — the certification market is maturing and differentiation has moved to <b>how the trade is done</b>.</p>
+<div class="kr">인증 보유만으로는 부족합니다. 인증을 '거래 가능한 스펙'으로 번역하는 레이어가 가치를 만듭니다.</div>
+
+<h2><span>05 · Korea policy</span>Domestic policy is pushing in the same direction</h2>
+<ul>
+<li><b>Social Economy Development Plan</b> (30 June 2026, 20 ministries): 3 strategies, 15 tasks. Target: social economy from <b>0.8% to 10% of GDP by 2035</b> (employment 1.8% → 10%); leading companies from ~250 (2024) to 1,000 by 2030 and 2,000 by 2035. Average social-economy organisation today: KRW 588m revenue, 10.2 staff.</li>
+<li><b>Certified social enterprises</b> (Dec 2025): 3,766 enterprises, 71,950 jobs (46,385 held by vulnerable groups), KRW 7.285tn revenue; 33.9% rated 'excellent/outstanding' on the Social Value Index; KRW 283.9bn reinvested.</li>
+<li><b>Export vouchers 2026</b> (MSS/KOSME): budget <b>KRW 150.2bn</b> (+KRW 22.6bn). Limits KRW 30m (domestic/beginner) to KRW 100m (small champion); government funding 50–70%; up to KRW 150m with the tariff-response package; international transport up to KRW 60m.</li>
+<li><b>KOTRA Social Economy Global Leap</b> (new 2026): export marketing, investment, ESG, talent — free; ESG track runs Click ESG self-diagnosis → EcoVadis response seminars → disclosure report support.</li>
+<li><b>Other channels:</b> Social Enterprise Promotion Agency growth support (up to KRW 40m per company), digital export brand marketing (10 companies), Gyeongbuk global market programme, e-store 36.5 / Value Marketplace (0% commission), buyKOREA social-enterprise pavilion.</li>
+</ul>
+<div class="box tint">
+<h3>The shared limit of public programmes</h3>
+<p>Most fund <b>activities</b> and <b>consultations</b>. None provides a standing desk that quotes, samples, inspects, ships and settles after the contract. Cohorts are small (10, 15, 25 companies), so a company that is not selected waits a year. The platform's role is not to replace these programmes but to <b>convert the contacts they create into recurring trade</b>.</p>
+<p class="kr">지원사업은 '활동비'와 '상담'을 지원합니다. 계약 이후의 견적·샘플·검품·선적·정산을 상시 대행하는 창구가 비어 있는 지점이 우리의 자리입니다.</p>
+</div>
+
+<h2><span>06 · Benchmarks</span>Eight models that already work</h2>
+<div class="table-wrap"><table>
+<tr><th>Model</th><th>Structure</th><th>Scale</th><th>Fee / terms</th><th>What we take</th></tr>
+<tr><td><b>Buy Social Corporate Challenge</b><br>UK, SEUK</td><td>Campaign converting corporate purchase budgets to social enterprises</td><td>36 corporates · GBP 864.4m · 2,583 suppliers</td><td>No platform fee</td><td>Sell to the organisation, not the individual: buyer-side report templates</td></tr>
+<tr><td><b>Buy Social Canada</b><br>Canada, non-profit</td><td>CSE certification + directory + buyer network</td><td>404 social enterprises (2026 survey)</td><td>Certification fee, no commission</td><td>Certification as a badge that passes internal approval</td></tr>
+<tr><td><b>WFTO</b><br>84 countries</td><td>Member network; directory-level matching</td><td>1m+ livelihoods</td><td>Membership fees</td><td>Certify the enterprise, spec the product — a two-layer trust model</td></tr>
+<tr><td><b>GoCoop / GoSwadeshi</b><br>India</td><td>Marketplace operating catalogue, inspection, logistics, escrow itself</td><td>350+ cooperatives · 120,000 products · 180,000 buyers</td><td>5–15% on completed sales</td><td>Small suppliers survive on 'one bundle of everything' — never split the service</td></tr>
+<tr><td><b>Faire</b><br>US/EU</td><td>Wholesale marketplace, no inventory</td><td>100,000+ brands · 700,000+ retailers</td><td>15% + USD 10 on new-customer orders; payment 1.9–3.5%</td><td>Buyer pays nothing, supplier carries cost — design fees the same way</td></tr>
+<tr><td><b>Ankorstore</b><br>EU</td><td>Wholesale marketplace; model switch 2025-12-10</td><td>European brands and retailers</td><td><b>0% brand commission</b> + 3% payment; EUR 49 one-off introduction</td><td>When commission goes to zero, only service and data remain as revenue</td></tr>
+<tr><td><b>NOVICA</b><br>US</td><td>Artisan-set prices; platform handles shipping and customs</td><td>21,000+ artisans · 25 countries</td><td>Free to join</td><td>Story as evidence on the product page, not as marketing copy</td></tr>
+<tr><td><b>Made Trade</b><br>US</td><td>Curation: brands must meet 2 of 8 values</td><td>135–200+ brands</td><td>Curation model</td><td>Publish the admission criteria — trust becomes the product</td></tr>
+</table></div>
+
+<h2><span>07 · Korean cases</span>Five exports, and what actually blocked them</h2>
+<div class="case">
+<h3>Donggubat 동구밭 — employment story turned into an export spec</h3>
+<p class="num">USD 140,000 to US · JP · CN · IN (2018) · KRW 12bn revenue (2021) · 90 staff, half with developmental disabilities</p>
+<p>Eco-friendly soap made by people with developmental disabilities. Buyers included Amorepacific, LG H&amp;H and CJ Olive Young; listed at E-mart. The purchase reason abroad was the product plus the employment story — but the channel depended on fairs, consultants and corporate partnerships.</p>
+<div class="lesson"><b>Lesson</b> — a social story opens the conversation; the product and volume have to stand on their own.</div>
+</div>
+<div class="case">
+<h3>119REO 119레오 — specifications opened a B2B component market</h3>
+<p class="num">KRW 715m revenue (2025) · ~KRW 200m donated cumulatively</p>
+<p>Upcycled fire-suits into bags and wallets, 50% of operating profit donated to firefighters. KOTRA's consumer-goods export fair in 2019 produced the first Japanese order. Later, recycled aramid fibre became a lithium-battery fire-containment bag supplied to 9 Korean airlines.</p>
+<div class="lesson"><b>Lesson</b> — 'eco' is the entry ticket; the standard is the contract. Certification and specs move a craft brand into safety-critical B2B.</div>
+</div>
+<div class="case">
+<h3>KOIRO × 5 social enterprises — joint booth, joint export</h3>
+<p class="num">EUR 4,400 exported · stock sold out · Milan, ARTIGIANO IN FIERA 2025</p>
+<p>Five social enterprises shared one booth and one export agent. Individually, booth cost, interpretation and logistics would have sunk each of them.</p>
+<div class="lesson"><b>Lesson</b> — the first export happens when someone carries the shared cost. The size stays small without a repeat mechanism.</div>
+</div>
+<div class="case">
+<h3>Gyeongbuk buyer meeting — 74 consultations, 46 MOUs, USD 15,000 signed</h3>
+<p class="num">2026-10 · 25 local companies · 15 overseas buyers · consultations worth USD 81,740</p>
+<p>The gap between consultation value and signed contracts is the whole problem. MOUs are abundant; after-signature execution is not.</p>
+<div class="lesson"><b>Lesson</b> — the bottleneck is quotation, sampling, documents and logistics. This is exactly the platform's first product.</div>
+</div>
+<div class="case">
+<h3>Marco Roho 마르코로호 — demand for export support is real</h3>
+<p class="num">8 years without an overseas channel (2023 interview) · 60%+ of revenue from a single leaf ring</p>
+<p>A social venture in Sangju making accessories with elderly knot artisans, donating 20% of the sale price. Good product and story, no route abroad.</p>
+<div class="lesson"><b>Lesson</b> — the barrier is procedure, not will. A guided first order beats another brochure.</div>
+</div>
+
+<h2><span>08 · What it means for us</span>Ten design decisions this research settled</h2>
+<ul>
+<li><b>Buyers free, suppliers carry cost</b> — the common structure of Faire, Ankorstore and GoCoop.</li>
+<li><b>Commission at 5–10%</b> (Track A): below Faire's 15% and GoCoop's 5–15%; against Ankorstore's 0% we compete on service value.</li>
+<li><b>Consolidated export as its own track</b> (Track B): solves low-volume, many-SKU demand and protects margin.</li>
+<li><b>Published admission criteria</b> (Made Trade, WFTO): enterprise-level certification, product-level spec.</li>
+<li><b>Impact card aligned to EcoVadis</b> fields so one input serves every due-diligence request.</li>
+<li><b>One standard spec set</b> — MOQ, FOB, lead time, Incoterms, HS code — in the same order on every screen.</li>
+<li><b>RFQ answered within 18 hours</b>: the execution bottleneck turned into a service level.</li>
+<li><b>Escrow settlement and pre-shipment inspection</b> as the trust layer for Track A.</li>
+<li><b>Public channels bring leads; the platform converts them</b> — not a replacement for support programmes.</li>
+<li><b>Category sequence</b>: crafts, living, fabric, upcycled goods first; food and cosmetics after licensing and logistics are stable.</li>
+</ul>
+
+<p class="note"><b>Data note.</b> Figures are measured values from public sources checked in November 2026 (European Commission; KPMG and Clifford Chance analyses of Omnibus I; EcoVadis Purpose Report 2025; SEUK Year 10 Report 2026; Buy Social Canada 2025; WFTO; GoCoop; Faire; Ankorstore; NOVICA; Made Trade; Korean Ministry of the Interior and Safety plan of 30 June 2026; MSS 2026 export support notice; KOTRA; Social Enterprise Promotion Agency; KITA). Fee rates, conversion and margin figures for our own model are planning assumptions, marked as such on the Trading House page.<br>
+<b>출처</b>: 유럽연합 지침 2024/1760 및 Omnibus I(2025/794·2026/470), EcoVadis Purpose Report 2025, Social Enterprise UK Year 10 Report(2026), Buy Social Canada(2025), WFTO, GoCoop, Faire, Ankorstore(2025.12 모델 전환), NOVICA, Made Trade, 행정안전부 「사회연대경제 발전 종합계획」(2026.6.30), 중소벤처기업부 2026년 수출지원사업 공고, KOTRA, 한국사회적기업진흥원, 한국무역협회. 경북일보(2026.10.18)·한국경제(2025.12.23)·헤럴드경제(2026.4.30)·시사저널e(2022.4.20)·중앙일보 비크닉(2023.3.1) 사례 보도. 수치는 2026년 11월 확인 기준입니다.</p>
+
+</div></body></html>

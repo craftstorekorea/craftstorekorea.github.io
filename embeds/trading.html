@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta name="robots" content="noindex,nofollow"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trading House — K-Social Bridge</title><style>@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap');
+*{box-sizing:border-box}
+body{margin:0;padding:20px 16px 30px;background:#F6F8F7;color:#1B2B28;
+font-family:Inter,Pretendard,"Apple SD Gothic Neo","Malgun Gothic",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:13.8px;line-height:1.68}
+.wrap{max-width:980px;margin:0 auto}
+.eyebrow{font-size:10.5px;letter-spacing:.14em;font-weight:800;color:#4C8C7D;margin:0 0 4px}
+h1{margin:0 0 6px;font-size:23px;line-height:1.3;letter-spacing:-.015em}
+.lead{margin:0 0 16px;font-size:13.5px;color:#5E7570}
+h2{margin:26px 0 8px;font-size:16px;letter-spacing:-.01em;padding-bottom:6px;border-bottom:2px solid #E3EDEA}
+h2 span{display:block;font-size:11px;font-weight:700;color:#84A09A;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+h3{margin:16px 0 5px;font-size:13.5px}
+p{margin:0 0 8px}
+.kr{font-size:12.5px;color:#5E7570;background:#F1F6F5;border-left:3px solid #A8C7BE;padding:7px 11px;border-radius:0 7px 7px 0;margin:8px 0 10px}
+.grid{display:grid;gap:9px}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g2{grid-template-columns:repeat(2,1fr)}
+@media(max-width:760px){.g4,.g3,.g2{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.g4,.g3,.g2{grid-template-columns:1fr}}
+.kpi{background:#fff;border:1px solid #DDE8E5;border-radius:11px;padding:11px 13px}
+.kpi b{display:block;font-size:19px;line-height:1.25;color:#14483C;letter-spacing:-.02em}
+.kpi span{display:block;font-size:11px;color:#7D968F;line-height:1.45;margin-top:3px}
+.box{background:#fff;border:1px solid #DDE8E5;border-radius:11px;padding:13px 15px;margin:10px 0}
+.box h3{margin-top:0}
+.box.tint{background:#FBFDFC}
+ul,ol{margin:0 0 8px;padding-left:18px}
+li{margin:0 0 4px}
+li b{color:#14483C}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #DDE8E5;border-radius:10px;overflow:hidden;font-size:12.2px}
+th{background:#EFF5F3;text-align:left;padding:7px 9px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#41615A;border-bottom:1px solid #DDE8E5;white-space:nowrap}
+td{padding:7px 9px;border-bottom:1px solid #EDF3F1;vertical-align:top}
+tr:last-child td{border-bottom:0}
+tr:nth-child(even) td{background:#FCFDFD}
+.pill{display:inline-block;border-radius:999px;padding:1px 8px;font-size:10.5px;font-weight:800;letter-spacing:.03em}
+.p-a{background:#E7F2EF;color:#1B5C4D}
+.p-b{background:#EEF3F8;color:#34527E}
+.p-n{background:#FDF1DE;color:#A66A16}
+.case{background:#fff;border:1px solid #DDE8E5;border-radius:11px;padding:12px 14px;margin:0 0 8px}
+.case h3{margin:0 0 3px;font-size:14px}
+.case .num{font-size:11.5px;color:#2E7D6A;font-weight:800;letter-spacing:.03em}
+.case .lesson{margin-top:7px;font-size:12.2px;color:#415C57;background:#F6FAF9;border-left:3px solid #A8C7BE;padding:6px 10px;border-radius:0 6px 6px 0}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;background:#fff;border:1px solid #DDE8E5;border-radius:11px;padding:12px;margin:10px 0}
+.flow .n{background:#F1F6F5;border-radius:8px;padding:6px 10px;font-size:11.8px;text-align:center;line-height:1.45}
+.flow .n b{display:block;font-size:12.6px;color:#14483C}
+.flow .ar{color:#8FB3AA;font-weight:800}
+.note{font-size:11.5px;color:#84A09A;border-top:1px solid #E3EDEA;padding-top:10px;margin-top:20px;line-height:1.65}
+.tag{display:inline-block;background:#EFF5F3;color:#41615A;border-radius:6px;padding:1px 7px;font-size:10.8px;font-weight:700;margin:0 3px 3px 0}
+a{color:#1B5C4D}
+
+/* ---- responsive hardening ---- */
+html,body{max-width:100%;overflow-x:hidden}
+img,iframe,video{max-width:100%;height:auto}
+.table-wrap{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:10px 0}
+.table-wrap table{margin:0}
+table{max-width:100%}
+.frow,.stats,.links,.flow{flex-wrap:wrap}
+@media(max-width:640px){
+.g4,.g3,.g2{grid-template-columns:1fr !important}
+.grid{gap:8px}
+h1,h2{font-size:18px !important;line-height:1.35}
+body{padding:14px 11px 22px !important;font-size:13px}
+.kpi b{font-size:17px}
+.card{padding:11px 12px}
+.search{padding:10px 12px;font-size:14px}
+.chip{padding:6px 11px;font-size:12px}
+table{min-width:480px;font-size:12px}
+th,td{padding:6px 8px}
+.flow{justify-content:flex-start}
+.flow .n{flex:1 1 100%;text-align:left}
+.flow .ar{display:none}
+}
+body,button,input,select,textarea,h1,h2,h3,p,span,td,th,dt,dd,a{font-family:'Nanum Gothic','나눔고딕',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+</style></head><body><div class="wrap">
+<p class="eyebrow">DIGITAL TRADING COMPANY · MODEL v1.1</p>
+<h1>Beyond brokerage: buy, consolidate, and ship on one invoice.</h1>
+<p class="lead">A listing platform leaves MOQ and documents where they were. A trading company absorbs both. Two tracks — commission agency and consolidated purchase — plus the institutional steps that can be taken now and the ones that open with a track record. 디지털 무역상사 모델(Track A/B)과 실행 조건을 정리했습니다.</p>
+
+<div class="grid g3">
+<div class="kpi"><b>Track A · 5–10%</b><span>Commission agent — the supplier contracts, we execute.<br>커미션 에이전트형</span></div>
+<div class="kpi"><b>Track B · 15–25%</b><span>We buy, consolidate and sell on one invoice.<br>직접 매입·합적 수출형</span></div>
+<div class="kpi"><b>KRW 0.8–2.5m</b><span>Per agency package (sample, inspection, documents, freight).<br>대행 패키지·공공 위탁</span></div>
+</div>
+
+<h2><span>01 · Why a trading company</span>A directory leaves both barriers standing</h2>
+<p>Two things stop a ten-person social enterprise from exporting: (1) MOQ and small-batch, many-SKU orders; (2) export documents, customs and logistics. A listing platform answers neither. Every benchmark that works — GoCoop, NOVICA, Faire — actually earns its money on <b>execution</b>. In Korea that function has a legal form: a trading company (무역상사).</p>
+<div class="kr">사경기업의 두 장벽은 MOQ·소량 다품종 대응과 수출서류·통관·물류입니다. 목록만 제공하면 두 장벽은 그대로 남습니다.</div>
+
+<h2><span>02 · The two tracks</span></h2>
+<div class="table-wrap"><table>
+<tr><th></th><th>Track A — commission agent</th><th>Track B — buy &amp; consolidate</th></tr>
+<tr><td><b>Contract</b></td><td>Supplier ↔ buyer direct; we act as agent</td><td>We purchase domestically (tax invoice) and sell to the buyer on a single invoice</td></tr>
+<tr><td><b>What we do</b></td><td>English sales and quotation, invoice and packing list, HS classification, shipping and logistics booking</td><td>Consolidation of many small lots — e.g. 100 soaps + 100 ceramics + 50 bags in one shipment</td></tr>
+<tr><td><b>Revenue</b></td><td><b>5–10%</b> of the completed value</td><td><b>15–25%</b> margin over purchase price</td></tr>
+<tr><td><b>Risk</b></td><td>No inventory, FX or receivables risk; lower margin; the supplier carries the credit</td><td>Working capital and inventory risk; we gain margin and buyer data</td></tr>
+<tr><td><b>When</b></td><td>Default track for the first 6–12 months</td><td>Once repeat orders and a buyer base exist</td></tr>
+</table></div>
+
+<h3>What consolidation looks like</h3>
+<div class="flow">
+<div class="n"><b>Soap ×100</b>eco-soap workshop</div><div class="ar">+</div>
+<div class="n"><b>Ceramics ×100</b>pottery cooperative</div><div class="ar">+</div>
+<div class="n"><b>Bags ×50</b>upcycled goods studio</div><div class="ar">→</div>
+<div class="n"><b>K-Social Bridge</b>consolidate · inspect · document</div><div class="ar">→</div>
+<div class="n"><b>1 invoice · 1 shipment</b>FOB Busan</div><div class="ar">→</div>
+<div class="n"><b>Boutique, Rotterdam</b>one order, three suppliers</div>
+</div>
+<p>Buyers want range without volume, on one document. Consolidation is how a buyer places a first order with three Korean workshops without opening three supplier files.</p>
+
+<h2><span>03 · Revenue lines</span>Three, not one</h2>
+<div class="table-wrap"><table>
+<tr><th>Line</th><th>Basis</th><th>Role</th></tr>
+<tr><td><b>Track A commission</b></td><td>5–10% of completed value</td><td>Volume and trust in year one; no capital needed</td></tr>
+<tr><td><b>Track B margin</b></td><td>15–25% over purchase price</td><td>Margin and buyer data; requires working capital</td></tr>
+<tr><td><b>Agency package &amp; public programmes</b></td><td>KRW 0.8–2.5m per case (sample, inspection, documents, freight); municipal market programmes and fair pavilion operation on consignment</td><td>Cash flow that does not depend on a completed export</td></tr>
+</table></div>
+
+<h2><span>04 · Playbook</span>What can be set up now, what opens with a track record</h2>
+<div class="grid g2">
+<div class="box">
+<h3>1. Institution — trade business code</h3>
+<p>Any individual or company with a business registration can apply to KITA (online or in person) and receives the trade business code (무역업 고유번호) on receipt, under Article 24 of the Foreign Trade Management Regulations. No separate licence or capital requirement; with the number you can file export declarations. KITA members receive it automatically. Documents: copy of business registration; representative's ID for in-person; power of attorney for an agent. Trade call centre 1566-5114.</p>
+</div>
+<div class="box">
+<h3>2. Money — T/T in advance</h3>
+<p>First trades: 50% deposit, 50% before shipment. L/C and Net 60 only from year two, after a credit check (K-SURE credit enquiry). Write a shipment-hold clause for unpaid balances into the contract.</p>
+</div>
+<div class="box">
+<h3>3. Category order</h3>
+<p>First: crafts, living, fabric, upcycled goods — import licensing is simple and inspection criteria can be documented. Second: food and cosmetics, which need FDA / CPNP and labelling work. The contracts signed at Gyeongbuk and Milan were in bags and fabric, which supports this order.</p>
+</div>
+<div class="box">
+<h3>4. Expansion — public channels</h3>
+<p>Accumulate export records, then apply as a <b>professional trading company</b> (전문무역상사): at least USD 1m in export records for the previous year or the 3-year average, and 20%+ of exports must be products of other SMEs. Applications once a year (April–May), designation for 3 years, no fee. <b>Export voucher service provider</b>: suppliers then pay for our marketing and logistics with their own voucher. Municipal joint-export agency and a shared pavilion at fairs.</p>
+</div>
+</div>
+<div class="box tint">
+<h3>Cooperatives have a separate door</h3>
+<p>Under Article 7② of the Foreign Trade Management Regulations, a cooperative can apply with a recommendation from its supervising ministry. This matters for a social-economy cooperative structure: the recommendation route does not require the corporate export record that a company needs.</p>
+<p class="kr">협동조합은 주무부처 장관 추천으로 전문무역상사 신청이 가능한 별도 트랙이 있습니다(대외무역관리규정 제7조②).</p>
+</div>
+
+<h2><span>05 · Unit economics</span>Track B, stated as an assumption</h2>
+<div class="table-wrap"><table>
+<tr><th>Item</th><th>Assumption</th></tr>
+<tr><td>Purchase per case</td><td>KRW 5.0m</td></tr>
+<tr><td>Sale per case</td><td>KRW 6.0–6.25m (20–25% margin)</td></tr>
+<tr><td>Cases per year</td><td>40</td></tr>
+<tr><td>Working capital needed</td><td>~KRW 100m (2–3 turns per year)</td></tr>
+<tr><td>Buyer terms</td><td>T/T 50/50 in year one; escrow for first orders</td></tr>
+</table></div>
+<p class="note">These are planning assumptions, not results. Track B margin 15–25% is stated as a design range; the table above uses the middle of it.</p>
+
+<h2><span>06 · Risk control</span>Four rules before the first container</h2>
+<ol>
+<li><b>Buy only against a confirmed order</b> — no speculative purchasing in year one.</li>
+<li><b>T/T 50/50</b> — no L/C, no Net 60 without verified buyer credit.</li>
+<li><b>Written inspection criteria per category</b> agreed with the supplier before production, not after the claim.</li>
+<li><b>Return and claim clauses</b> in every supplier contract, and a shipment-hold clause for unpaid balances.</li>
+</ol>
+
+<p class="note"><b>Data note.</b> Institutional requirements (trade business code, professional trading company criteria, voucher service provider) are from KITA and the 2026 notices; they are conditions, not guarantees of designation. Fee rates, margin ranges and working-capital figures are planning assumptions of the K-Social Bridge model (v1.1, November 2026) and are labelled as such.<br>
+<b>근거</b>: 한국무역협회 무역업고유번호 안내(대외무역관리규정 제24조), 전문무역상사 모집 FAQ(2026, 대외무역관리규정 제7조), 중소벤처기업부 2026년 수출바우처 공고, 무역보험공사 신용조사. 수수료율·마진·운전자본은 기획 가정치입니다.</p>
+
+</div></body></html>
