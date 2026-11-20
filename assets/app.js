@@ -68,7 +68,7 @@
     "<span>소식 <b>" + total + "</b>건</span>",
     "<span>등록 공방 <b>" + counts.workshops + "</b>곳</span>",
     "<span>매주 금요일 오전</span>"
-  ].join('<span class="dot"></span>');
+  ].join("");
 
   /* keywords */
   var kw = $("#keywords");
@@ -238,14 +238,20 @@
     var list = $("#info-list");
     list.innerHTML = "";
     var items = S.info.slice();
-    // upcoming by due asc, then past by due desc, then no due
+    // open items by due asc, then no-deadline, then closed by due desc
+    var nowMs = Date.now();
+    function dueMs(it) {
+      if (!it.due) return null;
+      return new Date(it.due.length <= 10 ? it.due + "T23:59:59" : it.due).getTime();
+    }
     items.sort(function (a, b) {
-      var ad = a.due ? new Date(a.due.length <= 10 ? a.due + "T23:59:59" : a.due) : null;
-      var bd = b.due ? new Date(b.due.length <= 10 ? b.due + "T23:59:59" : b.due) : null;
-      if (ad && bd) return ad - bd;
-      if (ad) return -1;
-      if (bd) return 1;
-      return 0;
+      var ad = dueMs(a), bd = dueMs(b);
+      var ao = ad === null ? 1 : (ad < nowMs ? 2 : 0);
+      var bo = bd === null ? 1 : (bd < nowMs ? 2 : 0);
+      if (ao !== bo) return ao - bo;
+      if (ao === 2) return bd - ad;
+      if (ad === null || bd === null) return ad === null ? 1 : -1;
+      return ad - bd;
     });
     var shown = items.filter(function (it) { return infoState.kind === "전체" || it.kind === infoState.kind; });
     if (!shown.length) { list.appendChild(el("div", "empty", "해당하는 정보가 없습니다.")); return; }
@@ -339,6 +345,13 @@
     svg.setAttribute("viewBox", "0 0 " + K.w + " " + K.h);
     var gP = $("#map-provinces"), gL = $("#map-labels");
     var labelSkip = { "세종": 1, "인천": 1, "대전": 1, "광주": 1, "대구": 1, "울산": 1 };
+    // labels are dropped where a workshop pin sits, so names do not collide
+    var pinPts = board.map(function (b) {
+      return (b.lat && b.lng) ? xy(b.lat, b.lng) : provinceCenter(b.region);
+    }).filter(Boolean);
+    function crowded(c) {
+      return pinPts.some(function (p) { return Math.hypot(p[0] - c[0], p[1] - c[1]) < 30; });
+    }
     K.provinces.forEach(function (p) {
       var path = document.createElementNS(NS, "path");
       path.setAttribute("d", p.d);
@@ -352,10 +365,10 @@
       });
       gP.appendChild(path);
 
-      if (!labelSkip[p.name]) {
+      if (!labelSkip[p.name] && !crowded(p.c)) {
         var t = document.createElementNS(NS, "text");
         t.setAttribute("x", p.c[0]);
-        t.setAttribute("y", p.c[1] + 3);
+        t.setAttribute("y", p.c[1] + (p.name === "서울" ? -12 : 3));
         t.setAttribute("class", "plabel");
         t.dataset.name = p.name;
         t.textContent = p.name;
@@ -383,17 +396,18 @@
       grp.dataset.name = b.name;
       grp.setAttribute("transform", "translate(" + pos[0].toFixed(1) + "," + pos[1].toFixed(1) + ")");
       var halo = document.createElementNS(NS, "circle");
-      halo.setAttribute("r", "9"); halo.setAttribute("class", "halo");
+      halo.setAttribute("r", "15"); halo.setAttribute("class", "halo");
       var core = document.createElementNS(NS, "circle");
-      core.setAttribute("r", "4.4"); core.setAttribute("class", "core");
+      core.setAttribute("r", "7"); core.setAttribute("class", "core");
       var ttl = document.createElementNS(NS, "title");
       ttl.textContent = b.name + " · " + b.region + (b.lat && b.lng ? "" : " (지역 중심)");
       grp.appendChild(ttl); grp.appendChild(halo); grp.appendChild(core);
       if (b.lat && b.lng) {
         var t = document.createElementNS(NS, "text");
-        var anchor = pos[0] > K.w - 70 ? "end" : (pos[0] < 60 ? "start" : "middle");
-        t.setAttribute("text-anchor", anchor);
-        t.setAttribute("y", "-11");
+        var anchor = pos[0] > K.w - 120 ? "end" : "start";
+        t.style.textAnchor = anchor;
+        t.setAttribute("x", anchor === "end" ? "-13" : "13");
+        t.setAttribute("y", "3.5");
         t.textContent = b.name.replace(/\s*\(.*$/, "");
         grp.appendChild(t);
       }
@@ -438,20 +452,34 @@
     board.forEach(function (b) { regionCounts[b.region] = (regionCounts[b.region] || 0) + 1; });
     var entries = Object.keys(regionCounts).map(function (k) { return [k, regionCounts[k]]; })
       .sort(function (a, b) { return b[1] - a[1] || a[0].localeCompare(b[0]); });
-    var max = entries.length ? entries[0][1] : 1;
+    var totaln = board.length || 1;
     entries.forEach(function (e) {
       var b = el("button", "rbar");
       b.type = "button";
       b.dataset.region = e[0];
       b.setAttribute("aria-pressed", boardState.region === e[0] ? "true" : "false");
       b.innerHTML = "<span>" + esc(e[0]) + '</span><span class="track"><i style="width:' +
-        Math.max(12, Math.round(e[1] / max * 100)) + '%"></i></span><b>' + e[1] + "</b>";
+        Math.max(10, Math.round(e[1] / totaln * 100)) + '%"></i></span><b>' + e[1] + "</b>";
       b.addEventListener("click", function () {
         setRegion(boardState.region === e[0] ? "" : e[0], false);
       });
       box.appendChild(b);
     });
     if (!entries.length) box.appendChild(el("div", "empty", "아직 등록된 공방이 없습니다."));
+    renderRegionStats();
+  }
+
+  function renderRegionStats() {
+    var box = $("#region-stats");
+    if (!box) return;
+    var oneday = board.filter(function (b) { return /^(예|가능|운영)/.test(String(b.oneday || "")); }).length;
+    var crafts = {};
+    board.forEach(function (b) { if (b.craft) crafts[b.craft] = 1; });
+    var regions = Object.keys(regionCounts).length;
+    box.innerHTML =
+      "<div><b>" + board.length + "<i>곳</i></b><span>등록 공방</span></div>" +
+      "<div><b>" + oneday + "<i>곳</i></b><span>원데이 가능</span></div>" +
+      "<div><b>" + Object.keys(crafts).length + "<i>개</i></b><span>분야 · " + regions + "개 지역</span></div>";
   }
 
   function setRegion(r, syncMap) {
@@ -576,7 +604,7 @@
   function setStatus(mode, text) {
     var box = $("#sheet-status");
     box.classList.remove("live", "off");
-    box.classList.add(mode);
+    if (mode) box.classList.add(mode);
     $("#sheet-status-text").innerHTML = text;
   }
 
@@ -674,6 +702,13 @@
     if (scroll !== false) window.scrollTo({ top: 0, behavior: "auto" });
   }
   window.addEventListener("hashchange", function () { route(true); });
+  [].forEach.call(document.querySelectorAll(".tabs .tab"), function (t) {
+    t.addEventListener("click", function () {
+      var v = t.dataset.view;
+      if (("#/" + v) === location.hash) { route(true); return; }
+      location.hash = "#/" + v;
+    });
+  });
 
   /* ---------------- init ---------------- */
   fillSelects();
