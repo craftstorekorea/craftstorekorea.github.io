@@ -148,6 +148,7 @@
       '<button class="mini" type="button" data-map="' + esc(w.name) + '"><svg width="13" height="13" aria-hidden="true"><use href="#i-map"/></svg>지도에서 보기</button>' +
       '<a class="mini" href="' + esc(w.url) + '" target="_blank" rel="noopener">자료 <svg width="12" height="12" aria-hidden="true"><use href="#i-ext"/></svg></a>' +
       "</span></div>";
+    if (window.CRAFT_AUTH) window.CRAFT_AUTH.attachBookmark(card, w.name);
     wg.appendChild(card);
   });
 
@@ -739,6 +740,7 @@
         "<p>" + esc(b.desc) + "</p>" +
         '<div class="bcard-foot"><a href="' + esc(b.url) + '" target="_blank" rel="noopener">자료 보기 <svg width="12" height="12" aria-hidden="true"><use href="#i-ext"/></svg></a>' +
         '<span class="coords">' + esc(coords) + "</span></div>";
+      if (window.CRAFT_AUTH) window.CRAFT_AUTH.attachBookmark(card, b.name);
       grid.appendChild(card);
     });
   }
