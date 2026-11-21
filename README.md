@@ -30,7 +30,17 @@ assets/data.js            이번 주 소식·공방·정보 데이터 (여기만
 assets/archive.js         뉴스레터 아카이브 2024–2026 (8개 호, 151건) 데이터
 assets/korea-paths.js     시·도 경계 SVG 좌표 (KOSTAT 2013 단순화 데이터)
 assets/hero-*.webp|jpg    대표 이미지
+admin.html                관리자 페이지(로그인 게이트 + 회원·찜·등록 현황 대시보드, noindex)
+assets/admin.js           관리자 로직(Supabase 세션·is_admin·시트/D-day 집계)
+assets/admin.css          관리자 화면 전용 레이아웃(모바일 카드형 표 포함)
 ```
+
+## 관리자 페이지
+
+- 주소: https://craftstorekorea.github.io/admin.html (푸터 "더 보기 → 관리자")
+- `craftstore.kr@gmail.com` 계정으로 로그인하면 회원·찜·등록 현황이 보입니다.
+- 관리자 판별과 데이터 접근은 Supabase RLS(`is_admin()` + `profiles_select_admin` / `bookmarks_select_admin`)가 서버에서 처리합니다.
+  자세한 설정·검증 기록은 `../supabase/06_admin_page.md`.
 
 ## 게시판 데이터
 
