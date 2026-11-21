@@ -19,7 +19,7 @@ GitHub Pages로 배포합니다.
 | 아카이브 (2024–2026) | 뉴스레터 아카이브 8개 호·4개 코너 151건, 호/코너 필터 + 키워드 검색 |
 | 지원·공모 | 마감일 기준 정렬, 분야 필터, D-day 자동 계산 |
 | 지도·게시판 | 시·도 SVG 지도 + 공개 시트 연동 검색·필터 게시판 |
-| 직접 만든 페이지 | `#/page/<slug>` — 제목·부제·본문·여러 이미지 갤러리 (관리자에서 생성) |
+| 직접 만든 페이지 | `#/page/<slug>` — 제목·부제·본문·여러 이미지 + **hunmin 블록**(최신글·지도·구독/제보 폼·갤러리·텍스트)을 순서대로 조립 (관리자에서 생성) |
 | 직접 만든 게시판 | `#/board/<slug>` — 게시판별 페이지당 글 수·댓글 정책 (관리자에서 생성) |
 | 업무 관리 | `#/tasks` — 로그인한 회원의 3칸 업무 보드(할 일·진행 중·완료). **로그아웃 상태에서는 메뉴에 나타나지 않고**, 주소로 들어가도 로그인 안내만 보입니다 |
 
@@ -46,6 +46,8 @@ assets/admin.css          관리자 화면 전용 레이아웃(모바일 카드�
 assets/cms.js             Supabase 문구·글 불러오기, 댓글 버튼·드로어
 assets/i18n.js            한국어/영어 사전과 KO|EN 스위치 (localStorage 'craft-lang')
 assets/tasks.js           업무 관리 화면 (#/tasks) — 로그인·등급 게이트, 보드 CRUD
+assets/hunmin.js          hunmin 블록 — 사이트 렌더(최신글·지도·폼·갤러리·텍스트) + 관리자 편집기
+sitemap.xml | rss.xml     검색엔진·구독용 피드 (../build_feeds.py 가 Supabase 공개 데이터로 생성)
 ```
 
 ## 관리자 CMS · 댓글
@@ -68,6 +70,15 @@ assets/tasks.js           업무 관리 화면 (#/tasks) — 로그인·등급 �
 - 헤더·푸터·head 설정은 `site_contents` 의 `header_*` · `footer_*` · `custom_head_html` 키에 저장됩니다.
   `custom_head_html` 은 사이트를 열 때 `<head>` 로 주입되며(중복 태그는 건너뜀), 메뉴 항목은 `header_menu_items` JSON(관리자 화면에서 편집)입니다.
 - 공개 게시판 카드(소개·뉴스·인터뷰·정보·아카이브)에는 `No. N` 순번 배지가 붙습니다.
+- **테마 프리셋**: 헤더 · 푸터 · Head 탭 맨 위 **테마 · 디자인** 의 카드 3장(매거진형 · 공방/쇼케이스형 · 기관 소개형).
+  `site_contents.theme.preset` 에 저장되고 `<body data-theme="…">` 로 색·모서리·목록 레이아웃이 바뀝니다.
+- **hunmin 블록**: 페이지 편집기에서 `[최신글]`·`[지도]`·`[구독/제보 폼]`·`[이미지 갤러리]`·`[텍스트·배너]` 를
+  추가하고 ↑/↓ 로 순서를 바꿉니다. 최신글은 공개 글을 실시간으로, 폼은 `rpc submit_form` 으로 접수합니다
+  (관리자 페이지 탭의 **hunmin 폼 접수** 에서 확인).
+- **휴지통 · 수정 이력**: 글·페이지의 `삭제` 는 휴지통(`deleted_at`)으로 옮기고, `🗑 휴지통 보기` 에서 복구·영구 삭제합니다.
+  저장할 때마다 직전 상태가 `revisions` 에 남아 편집기의 **수정 이력 → 이 버전으로 복원** 으로 되돌릴 수 있습니다(관리자 전용).
+- **sitemap.xml · rss.xml**: 사이트 루트의 정적 파일. `cd .. && python3 build_feeds.py` 로 갱신하거나
+  관리자 페이지 탭의 **검색엔진** 에서 미리보기·내려받기 합니다.
 - **직접 만든 페이지**: `/admin` → 페이지 텍스트·이미지 탭의 **직접 만든 페이지**에서 제목·부제·본문과
   여러 장의 이미지(설명 포함)를 만들고 순서를 바꾸거나 지웁니다. 헤더 · 푸터 · Head 탭의 메뉴에서
   연결 대상에 `page/<slug>` 를 넣으면 메뉴에 나타납니다.
@@ -81,9 +92,9 @@ assets/tasks.js           업무 관리 화면 (#/tasks) — 로그인·등급 �
   응답에 정답 글자가 남지 않습니다. 확인·저장은 `submit_guest_comment()` RPC가 합니다.
 - 모든 글·공방 카드에 `💬 댓글` 버튼이 붙습니다. 읽기는 누구나, 쓰기·본인 삭제는 로그인 회원(또는 캡차를 통과한 비회원),
   숨김·삭제 관리는 관리자 — 판단은 전부 Supabase RLS와 RPC가 합니다.
-- 설정·검증 기록: `../supabase/07_cms.md` · `../supabase/08_grades_lang_tasks.md`, DB 파일 `../supabase/03_cms_comments.sql` · `../supabase/04_header_footer_head.sql` · `../supabase/05_cms_plus.sql` · `../supabase/06_pages_boards_captcha.sql` · `../supabase/07_grades_lang_tasks.sql`,
-  테스트 `cd .. && CMS_TEST_MODE=user|admin|brand|plus|v2|v3|v3admin python3 cms_test.py`,
-  서버 검증 `cd ../supabase && SUPABASE_MGMT_TOKEN=… python3 06_check.py` · `python3 07_check.py`.
+- 설정·검증 기록: `../supabase/07_cms.md` · `../supabase/08_grades_lang_tasks.md` · `../supabase/08_sbpress.md`, DB 파일 `../supabase/03_cms_comments.sql` · `../supabase/04_header_footer_head.sql` · `../supabase/05_cms_plus.sql` · `../supabase/06_pages_boards_captcha.sql` · `../supabase/07_grades_lang_tasks.sql` · `../supabase/08_themes_hunmin_trash_revisions.sql`,
+  테스트 `cd .. && CMS_TEST_MODE=user|admin|brand|plus|v2|v3|v3admin|v4 python3 cms_test.py`,
+  서버 검증 `cd ../supabase && SUPABASE_MGMT_TOKEN=… python3 06_check.py` · `python3 07_check.py` · `python3 08_check.py`.
 
 ## 관리자 페이지
 

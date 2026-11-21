@@ -19,6 +19,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap">
 <link rel="stylesheet" href="assets/styles.css">
+<link rel="alternate" type="application/rss+xml" title="전국공방 새 소식 (RSS)" href="/rss.xml">
+<link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml">
 <!-- GA4: 전국공방 (Google Sites + GitHub Pages) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-L7820HKGET"></script>
 <script>
@@ -26,7 +28,7 @@ window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);
 gtag('js',new Date());gtag('config','G-L7820HKGET');
 </script>
 </head>
-<body>
+<body data-theme="magazine">
 <a class="skip" href="#main">본문으로 바로가기</a>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
@@ -419,6 +421,7 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
         <h1 class="page-title" id="page-title"></h1>
         <p class="page-sub" id="page-sub"></p>
         <div class="page-gallery" id="page-gallery"></div>
+        <div class="page-blocks" id="page-blocks" hidden></div>
         <div class="page-body" id="page-body"></div>
         <p class="page-empty" id="page-empty" hidden>페이지를 찾을 수 없습니다. 주소를 확인해 주세요.</p>
       </div>
@@ -496,6 +499,7 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
 <script src="assets/archive.js"></script>
 <script src="assets/korea-paths.js"></script>
 <script src="assets/cms.js"></script>
+<script src="assets/hunmin.js"></script>
 <script src="assets/app.js"></script>
 <script src="assets/tasks.js"></script>
 

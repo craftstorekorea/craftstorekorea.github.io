@@ -204,10 +204,39 @@
             <tbody></tbody>
           </table>
         </div>
+        <div class="trash-bar">
+          <button type="button" class="btn btn-ghost btn-sm" id="page-trash-toggle" aria-pressed="false">🗑 휴지통 보기</button>
+          <span class="trash-note" id="page-trash-note"></span>
+        </div>
       </section>
 
       <div class="cms-groups" id="pages-list"></div>
       <p class="cms-toast" id="pages-msg" role="status" aria-live="polite"></p>
+
+      <section class="cms-group" id="feed-group">
+        <h2>검색엔진 · sitemap.xml / rss.xml</h2>
+        <p class="cms-hint">지금 공개 중인 게시판·페이지·글로 <b>sitemap.xml</b>(검색엔진용 주소 지도)과 <b>rss.xml</b>(구독용 최신 글)을 그 자리에서 만듭니다. 내려받은 파일은 사이트 폴더에 올리면 <code>https://craftstorekorea.github.io/sitemap.xml</code>·<code>/rss.xml</code> 로 열립니다. 휴지통에 있는 글은 빠집니다.</p>
+        <div class="feed-actions">
+          <button type="button" class="btn btn-ghost btn-sm" id="feed-sitemap-view">sitemap.xml 미리보기</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="feed-sitemap-dl">sitemap.xml 내려받기</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="feed-rss-view">rss.xml 미리보기</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="feed-rss-dl">rss.xml 내려받기</button>
+        </div>
+        <pre class="feed-preview" id="feed-preview" hidden></pre>
+        <p class="cms-toast" id="feed-msg" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="cms-group" id="form-sub-group">
+        <h2>hunmin 폼 접수</h2>
+        <p class="cms-hint">페이지의 <code>[구독/제보 폼]</code> 블록으로 들어온 뉴스레터 구독·공방 등록·제보 내역입니다(최근 100건).</p>
+        <div class="table-wrap">
+          <table class="admin-table" id="form-sub-table">
+            <thead><tr><th>접수</th><th>종류</th><th>이메일·이름</th><th>내용</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="cms-toast" id="form-sub-msg" role="status" aria-live="polite"></p>
+      </section>
     </div>
 
     <!-- ============ 헤더 · 푸터 · Head ============ -->
@@ -227,6 +256,14 @@
       <p class="cms-toast" id="brand-msg" role="status" aria-live="polite"></p>
 
       <div class="cms-groups">
+        <section class="cms-group" id="theme-group">
+          <h2>테마 · 디자인</h2>
+          <p class="cms-hint">한 번 누르면 사이트 전체의 모양(여백·괘선·카드·제목 글꼴)이 바뀌고 바로 저장됩니다. 글·사진·메뉴는 그대로입니다.</p>
+          <div class="theme-picks" id="theme-picks"></div>
+          <p class="cms-hint" id="theme-now"></p>
+          <p class="cms-toast" id="theme-msg" role="status" aria-live="polite"></p>
+        </section>
+
         <section class="cms-group">
           <h2>헤더 로고 · 이름</h2>
           <div class="cms-img-row">
@@ -335,6 +372,7 @@
         <select id="posts-state" class="admin-select" aria-label="상태 필터">
           <option value="">상태 전체</option><option value="pub">발행</option><option value="hidden">숨김</option>
         </select>
+        <button type="button" class="btn btn-ghost btn-sm" id="posts-trash-toggle" aria-pressed="false">🗑 휴지통 보기</button>
         <span class="panel-tag" id="posts-count"></span>
       </div>
       <p class="cms-toast" id="posts-msg" role="status" aria-live="polite"></p>
@@ -521,7 +559,8 @@
         </div>
         <p class="cms-toast" id="pf-msg" role="status" aria-live="polite"></p>
         <div class="cms-modal-foot">
-          <button type="button" class="btn btn-ghost btn-sm danger" id="post-delete" hidden>삭제</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="post-history" hidden>수정 이력</button>
+          <button type="button" class="btn btn-ghost btn-sm danger" id="post-delete" hidden>휴지통으로</button>
           <span class="spacer"></span>
           <button type="button" class="btn btn-ghost btn-sm" id="post-cancel">취소</button>
           <button type="submit" class="btn btn-primary btn-sm" id="post-save">저장</button>
@@ -544,7 +583,11 @@
         </div>
         <label class="cms-field"><span>제목 *</span><input id="pg-title" maxlength="120"></label>
         <label class="cms-field"><span>부제 <em>선택</em></span><input id="pg-subtitle" maxlength="200"></label>
-        <label class="cms-field"><span>본문 <em>줄바꿈 그대로 표시</em></span><textarea id="pg-body" rows="8"></textarea></label>
+        <label class="cms-field"><span>본문 <em>줄바꿈 그대로 표시</em></span><textarea id="pg-body" rows="6"></textarea></label>
+        <div class="cms-field hm-editor-field">
+          <span>hunmin 블록 <em>본문 위에 순서대로 조립 — 최신글·지도·구독/제보 폼·갤러리·텍스트</em></span>
+          <div class="hm-editor" id="pg-blocks"></div>
+        </div>
         <div class="cms-field">
           <span>이미지 <em>여러 장 · 위에서부터 순서대로</em></span>
           <div class="page-img-list" id="pg-images"></div>
@@ -561,7 +604,8 @@
         </label>
         <p class="cms-toast" id="pg-msg" role="status" aria-live="polite"></p>
         <div class="cms-modal-foot">
-          <button type="button" class="btn btn-ghost btn-sm danger" id="page-delete" hidden>삭제</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="page-history" hidden>수정 이력</button>
+          <button type="button" class="btn btn-ghost btn-sm danger" id="page-delete" hidden>휴지통으로</button>
           <span class="spacer"></span>
           <button type="button" class="btn btn-ghost btn-sm" id="page-cancel">취소</button>
           <button type="submit" class="btn btn-primary btn-sm" id="page-save">저장</button>
@@ -611,6 +655,19 @@
 
 </main>
 
+<!-- ============ 수정 이력 드로어 ============ -->
+<div class="rev-drawer" id="rev-drawer" hidden>
+  <div class="rev-panel" role="dialog" aria-modal="true" aria-labelledby="rev-title">
+    <header class="rev-head">
+      <h2 id="rev-title">수정 이력</h2>
+      <button type="button" class="cms-modal-x" id="rev-close" aria-label="닫기">×</button>
+    </header>
+    <p class="rev-sub" id="rev-sub"></p>
+    <div class="rev-list" id="rev-list"></div>
+    <p class="cms-toast" id="rev-msg" role="status" aria-live="polite"></p>
+  </div>
+</div>
+
 <footer class="admin-footer">
   <div class="admin-footer-in">
     <span>© 2026 전국공방 · 관리자</span>
@@ -622,6 +679,7 @@
 <script src="/assets/auth-config.js"></script>
 <script src="/assets/data.js"></script>
 <script src="/assets/archive.js"></script>
+<script src="/assets/hunmin.js"></script>
 <script src="/assets/admin.js"></script>
 </body>
 </html>

@@ -159,6 +159,145 @@
     loadedPosts = true;
   }
 
+  /* ---------------- hunmin 블록 · 피드가 쓰는 글 목록 ----------------
+     board = 'all' 이면 게시판 전체(소개·뉴스·인터뷰·정보 + 직접 만든 게시판)에서 최신순. */
+  function boardSlugOfCategory(cat) {
+    for (var i = 0; i < boards.length; i++) if (boardKey(boards[i]) === cat) return boards[i].slug;
+    return ("intro news interview info".split(" ")).filter(function (k) { return CAT_ALIAS[k] === cat; })[0] || "";
+  }
+  function boardNameOfCategory(cat) {
+    for (var i = 0; i < boards.length; i++) if (boardKey(boards[i]) === cat) return boards[i].name;
+    return cat;
+  }
+  function rowDate(p) { return String(p.published_at || p.created_at || "").slice(0, 10); }
+  function postCard(p) {
+    var m = p.meta || {};
+    return {
+      slug: p.slug, title: p.title, summary: num(p.summary || p.body),
+      date: rowDate(p), image: p.image_url || "", url: num(p.source_url),
+      category: p.category, boardSlug: boardSlugOfCategory(p.category),
+      boardName: boardNameOfCategory(p.category), tag: m.tag || p.category,
+      pinned: !!p.is_pinned, sort: p.sort_order || 0
+    };
+  }
+  function isPublicPost(p) {
+    if (!p || p.deleted_at) return false;
+    if (!p.is_published) return false;
+    if (p.publish_at && new Date(p.publish_at).getTime() > Date.now()) return false;
+    return true;
+  }
+  function recentPosts(slug, limit) {
+    var n = Math.max(1, Math.min(12, parseInt(limit, 10) || 3));
+    var rows = postsAll.filter(isPublicPost);
+    if (slug && slug !== "all") {
+      var b = boardBySlug(slug);
+      if (!b) return [];
+      var key = boardKey(b);
+      rows = rows.filter(function (p) { return p.category === key; });
+    }
+    rows = rows.slice().sort(function (a, b) {
+      if (!!a.is_pinned !== !!b.is_pinned) return a.is_pinned ? -1 : 1;
+      var da = rowDate(a), db = rowDate(b);
+      if (da !== db) return da < db ? 1 : -1;
+      return (a.sort_order || 0) - (b.sort_order || 0);
+    });
+    return rows.slice(0, n).map(postCard);
+  }
+
+  /* ---------------- sitemap.xml · rss.xml (관리자 미리보기/다운로드) ---------------- */
+  var FEED_BASE = "https://craftstorekorea.github.io";
+  function xml(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" }[c];
+    });
+  }
+  function rfc822(iso) {
+    var d = iso ? new Date(iso) : new Date();
+    if (isNaN(d.getTime())) d = new Date();
+    return d.toUTCString();
+  }
+  function feedPayload() {
+    var posts = postsAll.filter(isPublicPost).slice().sort(function (a, b) {
+      return rowDate(a) < rowDate(b) ? 1 : -1;
+    });
+    var pages = customPages.filter(function (p) { return p.is_published; });
+    var active = boards.filter(function (b) { return b.is_active !== false; });
+    var latest = "";
+    posts.concat(pages).forEach(function (x) {
+      var d = String(x.updated_at || x.published_at || x.created_at || "").slice(0, 10);
+      if (d > latest) latest = d;
+    });
+    return {
+      base: FEED_BASE,
+      title: cval("seo_title") || "전국공방 — 우리 동네 공방의 이번 주 소식",
+      description: cval("seo_description") || "전국 방방곡곡 공방의 이번 주 소식",
+      latest: latest || new Date().toISOString().slice(0, 10),
+      boards: active.map(function (b) {
+        var last = "";
+        posts.forEach(function (p) { if (boardKey(b) === p.category && rowDate(p) > last) last = rowDate(p); });
+        return { slug: b.slug, name: b.name, description: b.description || "", url: FEED_BASE + "/#/board/" + b.slug, lastmod: last };
+      }),
+      pages: pages.map(function (p) {
+        return {
+          slug: p.slug, title: p.title, url: FEED_BASE + "/#/page/" + encodeURIComponent(p.slug),
+          lastmod: String(p.updated_at || p.created_at || "").slice(0, 10)
+        };
+      }),
+      posts: posts.slice(0, 30).map(function (p) {
+        var c = postCard(p);
+        return {
+          title: p.title, url: (/^https?:/i.test(c.url) ? c.url : FEED_BASE + "/#/board/" + (c.boardSlug || "news")),
+          summary: c.summary, category: c.boardName, date: rowDate(p), updated: String(p.updated_at || "").slice(0, 10), slug: p.slug
+        };
+      })
+    };
+  }
+  function feedSitemap(data) {
+    var d = data || feedPayload();
+    var urls = [
+      { loc: d.base + "/", lastmod: d.latest, pri: "1.0", freq: "daily" },
+      { loc: d.base + "/#/workshops", lastmod: d.latest, pri: "0.8", freq: "weekly" },
+      { loc: d.base + "/#/news", lastmod: d.latest, pri: "0.9", freq: "daily" },
+      { loc: d.base + "/#/interview", lastmod: d.latest, pri: "0.7", freq: "weekly" },
+      { loc: d.base + "/#/info", lastmod: d.latest, pri: "0.7", freq: "weekly" },
+      { loc: d.base + "/#/archive", lastmod: d.latest, pri: "0.6", freq: "monthly" },
+      { loc: d.base + "/#/map", lastmod: d.latest, pri: "0.8", freq: "weekly" }
+    ];
+    d.boards.forEach(function (b) {
+      urls.push({ loc: b.url, lastmod: b.lastmod || d.latest, pri: "0.7", freq: "weekly" });
+    });
+    d.pages.forEach(function (p) {
+      urls.push({ loc: p.url, lastmod: p.lastmod || d.latest, pri: "0.6", freq: "monthly" });
+    });
+    urls.push({ loc: d.base + "/privacy", lastmod: "2026-11-21", pri: "0.2", freq: "yearly" });
+    urls.push({ loc: d.base + "/terms", lastmod: "2026-11-21", pri: "0.2", freq: "yearly" });
+    var body = urls.map(function (u) {
+      return "  <url>\n    <loc>" + xml(u.loc) + "</loc>\n    <lastmod>" + xml(u.lastmod) + "</lastmod>\n" +
+        "    <changefreq>" + u.freq + "</changefreq>\n    <priority>" + u.pri + "</priority>\n  </url>";
+    }).join("\n");
+    return '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + body + "\n</urlset>\n";
+  }
+  function feedRss(data) {
+    var d = data || feedPayload();
+    var items = d.posts.map(function (p) {
+      var link = p.url;
+      return "    <item>\n      <title>" + xml(p.title) + "</title>\n      <link>" + xml(link) + "</link>\n" +
+        '      <guid isPermaLink="false">' + xml(d.base + "/#/post/" + (p.slug || p.title)) + "</guid>\n" +
+        "      <pubDate>" + rfc822(p.date) + "</pubDate>\n      <category>" + xml(p.category) + "</category>\n" +
+        "      <description>" + xml(p.summary || p.title) + "</description>\n    </item>";
+    }).join("\n");
+    return '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n  <channel>\n' +
+      "    <title>" + xml(d.title) + "</title>\n" +
+      "    <link>" + xml(d.base + "/") + "</link>\n" +
+      "    <description>" + xml(d.description) + "</description>\n" +
+      "    <language>ko-KR</language>\n" +
+      "    <lastBuildDate>" + rfc822(d.latest) + "</lastBuildDate>\n" +
+      '    <atom:link href="' + xml(d.base + "/rss.xml") + '" rel="self" type="application/rss+xml"/>\n' +
+      (items ? items + "\n" : "") + "  </channel>\n</rss>\n";
+  }
+
   /* ---------------- boards · pages 공개 읽기 ---------------- */
   function applyBoards(rows) {
     boards = (rows || []).slice().sort(function (a, b) {
@@ -294,6 +433,18 @@
     var th = document.querySelector('meta[name="theme-color"]');
     if (th) th.setAttribute("content", hex);
     return hex;
+  }
+
+  /* ---------------- 테마 프리셋 (site_contents.theme.preset) ----------------
+     magazine = 매거진형 / craft = 공방·쇼케이스형 / org = 기관 소개형
+     <body data-theme="…"> 로 styles.css 가 모양을 바꿉니다. */
+  var THEMES = { magazine: 1, craft: 1, org: 1 };
+  function applyPreset() {
+    var v = cval("theme.preset");
+    if (!THEMES[v]) v = "magazine";
+    document.body.setAttribute("data-theme", v);
+    window.CRAFT_THEME = v;
+    return v;
   }
 
   /* ---------------- SEO · OG · 파비콘 ---------------- */
@@ -899,7 +1050,7 @@
       rest("site_contents?select=key,value,image_url").catch(function () { return null; }),
       rest("posts?select=*&is_published=eq.true&order=category.asc,is_pinned.desc,sort_order.asc,published_at.desc&limit=500").catch(function () { return null; }),
       rest("boards?select=slug,name,description,per_page,comment_policy,sort_order&order=sort_order").catch(function () { return null; }),
-      rest("pages?select=slug,title,subtitle,body,images,sort_order&is_published=eq.true&order=sort_order").catch(function () { return null; })
+      rest("pages?select=slug,title,subtitle,body,images,blocks,sort_order,updated_at&is_published=eq.true&order=sort_order").catch(function () { return null; })
     ]).then(function (res) {
       var rows = res[0], posts = res[1], boardRows = res[2], pageRows = res[3];
       if (rows) {
@@ -911,6 +1062,7 @@
       if (posts && posts.length) { applyPosts(posts); }
       applyContents();
       applyFooter();
+      applyPreset();
       applyTheme();
       applySeo();
       applyPopup();
@@ -938,6 +1090,12 @@
     },
     countFor: function (slug) { return postsForBoard(slug).length; },
     postsFor: function (slug) { return postsForBoard(slug); },
+    recentPosts: recentPosts,
+    allPosts: function () { return postsAll.slice(); },
+    feedPayload: feedPayload,
+    feedSitemap: feedSitemap,
+    feedRss: feedRss,
+    theme: function () { return window.CRAFT_THEME || "magazine"; },
     pageList: function () { return customPages.slice(); },
     pageBySlug: function (slug) {
       for (var i = 0; i < customPages.length; i++) if (customPages[i].slug === slug) return customPages[i];

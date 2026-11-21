@@ -639,7 +639,7 @@
   var CMS = {
     tab: "dash",
     pages: [], posts: [], comments: [], media: [], postIndex: [],
-    customPages: [], boardRows: [], editingPage: null, editingBoard: null, pageImages: [],
+    customPages: [], boardRows: [], editingPage: null, editingBoard: null, pageImages: [], pageBlocks: [],
     loaded: { pages: false, posts: false, comments: false, brand: false, media: false, boards: false, grade: false, tasks: false },
     editing: null, commentCounts: {}, brand: null
   };
@@ -676,9 +676,9 @@
       var p = document.getElementById("tab-" + t);
       if (p) p.hidden = (t !== name);
     });
-    if (name === "pages") { if (!CMS.loaded.pages) loadPages(); loadPageManager(); }
+    if (name === "pages") { if (!CMS.loaded.pages) loadPages(); loadPageManager(); loadFormSubs(); }
     if (name === "brand" && !CMS.loaded.brand) loadBrand();
-    if (name === "brand") loadGrade();
+    if (name === "brand") { loadGrade(); loadTheme(); }
     if (name === "posts") { if (!CMS.loaded.posts) loadPosts(); loadBoards(); }
     if (name === "tasks") loadTasksAdmin();
     if (name === "media") loadMedia();
@@ -1086,6 +1086,7 @@
       if (ao !== bo) return ao - bo;
       return (a.sort_order || 0) - (b.sort_order || 0);
     }).filter(function (p) {
+      if (trashPosts ? !p.deleted_at : !!p.deleted_at) return false;
       if (cat && p.category !== cat) return false;
       if (st === "pub" && !p.is_published) return false;
       if (st === "hidden" && p.is_published) return false;
@@ -1093,9 +1094,11 @@
       return [p.title, p.source_name, p.region, p.slug, p.summary].join(" ").toLowerCase().indexOf(q) >= 0;
     });
     var tag = $("#posts-count");
-    if (tag) tag.textContent = rows.length === CMS.posts.length ? "전체 " + CMS.posts.length + "건" : rows.length + " / " + CMS.posts.length + "건";
+    if (tag) tag.textContent = (trashPosts ? "휴지통 " : "") +
+      (rows.length === CMS.posts.length ? "전체 " + CMS.posts.length + "건" : rows.length + " / " + CMS.posts.length + "건");
     if (!rows.length) {
-      body.innerHTML = '<tr class="empty-row"><td colspan="9">' + (CMS.posts.length ? "조건에 맞는 글이 없습니다." : "아직 글이 없습니다. ‘새 글 쓰기’로 시작해 보세요.") + "</td></tr>";
+      body.innerHTML = '<tr class="empty-row"><td colspan="9">' +
+        (trashPosts ? "휴지통이 비어 있습니다." : (CMS.posts.length ? "조건에 맞는 글이 없습니다." : "아직 글이 없습니다. ‘새 글 쓰기’로 시작해 보세요.")) + "</td></tr>";
       return;
     }
     body.innerHTML = rows.map(function (p) {
@@ -1113,11 +1116,24 @@
         '<td class="muted" data-th="발행일">' + esc(p.published_at || "–") + "</td>" +
         '<td class="muted" data-th="마감">' + esc(p.deadline || "–") + "</td>" +
         '<td class="num" data-th="댓글">' + (n ? "<b>" + n + "</b>" : "0") + "</td>" +
-        '<td><button type="button" class="rowlink cms-edit" data-id="' + esc(p.id) + '">수정</button></td>' +
-        "</tr>";
+        '<td class="row-actions">' + (p.deleted_at
+          ? '<button type="button" class="rowlink row-restore" data-id="' + esc(p.id) + '">복구</button>' +
+            '<button type="button" class="rowlink danger row-purge" data-id="' + esc(p.id) + '">영구 삭제</button>'
+          : '<button type="button" class="rowlink cms-edit" data-id="' + esc(p.id) + '">수정</button>') +
+        "</td></tr>";
     }).join("");
     [].forEach.call(body.querySelectorAll(".cms-edit"), function (b) {
       b.addEventListener("click", function () { openPostEditor(b.getAttribute("data-id")); });
+    });
+    [].forEach.call(body.querySelectorAll(".row-restore"), function (b) {
+      b.addEventListener("click", function () { restorePost(b.getAttribute("data-id")); });
+    });
+    [].forEach.call(body.querySelectorAll(".row-purge"), function (b) {
+      b.addEventListener("click", function () {
+        var id = b.getAttribute("data-id");
+        var p = CMS.posts.filter(function (x) { return x.id === id; })[0];
+        purgePost(id, p ? p.title : "이 글");
+      });
     });
   }
 
@@ -1184,6 +1200,7 @@
     $("#pf-img-msg").textContent = "";
     $("#pf-msg").textContent = "";
     $("#post-delete").hidden = !p;
+    $("#post-history").hidden = !p;
     syncPostFields();
     $("#post-modal").hidden = false;
     document.body.classList.add("cms-lock");
@@ -1274,13 +1291,38 @@
   function deletePost() {
     var p = CMS.editing;
     if (!p) return;
-    if (!window.confirm("‘" + p.title + "’ 글을 삭제할까요?\n삭제하면 되돌릴 수 없습니다.")) return;
-    $("#pf-msg").textContent = "삭제하는 중…";
-    sb.from("posts").delete().eq("id", p.id).then(function (r) {
-      if (r.error) { $("#pf-msg").textContent = "삭제 실패: " + r.error.message; return; }
+    if (!window.confirm("‘" + p.title + "’ 글을 휴지통으로 옮길까요?\n공개 사이트에서는 바로 사라지고, 게시판 관리의 ‘휴지통 보기’에서 복구할 수 있습니다.")) return;
+    $("#pf-msg").textContent = "휴지통으로 옮기는 중…";
+    sb.from("posts").update({ deleted_at: new Date().toISOString() }).eq("id", p.id).then(function (r) {
+      if (r.error) { $("#pf-msg").textContent = "휴지통 이동 실패: " + r.error.message; return; }
       closePostEditor();
       CMS.loaded.posts = false;
-      loadPosts().then(function () { cmsMsg("posts-msg", "글을 삭제했습니다.", "ok"); });
+      loadPosts().then(function () { cmsMsg("posts-msg", "글을 휴지통으로 옮겼습니다. ‘휴지통 보기’에서 복구할 수 있습니다.", "ok"); });
+    });
+  }
+
+  /* ---------------- 휴지통 (게시판) ---------------- */
+  var trashPosts = false;
+  function togglePostsTrash() {
+    trashPosts = !trashPosts;
+    var btn = $("#posts-trash-toggle");
+    if (btn) {
+      btn.setAttribute("aria-pressed", trashPosts ? "true" : "false");
+      btn.textContent = trashPosts ? "← 게시판으로" : "🗑 휴지통 보기";
+    }
+    renderPosts();
+  }
+  function restorePost(id) {
+    sb.from("posts").update({ deleted_at: null }).eq("id", id).then(function (r) {
+      if (r.error) { cmsMsg("posts-msg", "복구 실패: " + r.error.message, "err"); return; }
+      loadPosts().then(function () { cmsMsg("posts-msg", "글을 복구했습니다. 공개 사이트에 다시 나타납니다.", "ok"); });
+    });
+  }
+  function purgePost(id, title) {
+    if (!window.confirm("‘" + title + "’ 글을 영구 삭제할까요?\n휴지통에서도 사라지며 되돌릴 수 없습니다.")) return;
+    sb.from("posts").delete().eq("id", id).then(function (r) {
+      if (r.error) { cmsMsg("posts-msg", "영구 삭제 실패: " + r.error.message, "err"); return; }
+      loadPosts().then(function () { cmsMsg("posts-msg", "글을 영구 삭제했습니다.", "ok"); });
     });
   }
 
@@ -1428,23 +1470,73 @@
   function renderPageTable() {
     var body = $("#page-table tbody");
     if (!body) return;
-    if (!CMS.customPages.length) {
-      body.innerHTML = '<tr class="empty-row"><td colspan="6">아직 직접 만든 페이지가 없습니다. ‘+ 새 페이지’로 시작해 보세요.</td></tr>';
+    var rows = CMS.customPages.filter(function (p) { return trashPages ? !!p.deleted_at : !p.deleted_at; });
+    var note = $("#page-trash-note");
+    if (note) {
+      var tCount = CMS.customPages.filter(function (p) { return !!p.deleted_at; }).length;
+      note.textContent = trashPages
+        ? (rows.length ? "휴지통 " + rows.length + "건 · 복구하거나 영구 삭제할 수 있습니다." : "휴지통이 비어 있습니다.")
+        : (tCount ? "휴지통 " + tCount + "건" : "");
+    }
+    if (!rows.length) {
+      body.innerHTML = '<tr class="empty-row"><td colspan="6">' + (trashPages
+        ? "휴지통이 비어 있습니다."
+        : "아직 직접 만든 페이지가 없습니다. ‘+ 새 페이지’로 시작해 보세요.") + "</td></tr>";
       return;
     }
-    body.innerHTML = CMS.customPages.map(function (p) {
+    body.innerHTML = rows.map(function (p) {
       return "<tr>" +
         '<td class="num" data-th="순서">' + (p.sort_order || 0) + "</td>" +
         '<td data-th="주소"><code>' + esc(p.slug) + "</code>" +
-          ' <a class="rowlink" href="/#/page/' + esc(encodeURIComponent(p.slug)) + '" target="_blank" rel="noopener">보기</a></td>' +
+          (p.deleted_at ? "" : ' <a class="rowlink" href="/#/page/' + esc(encodeURIComponent(p.slug)) + '" target="_blank" rel="noopener">보기</a>') + "</td>" +
         '<td class="ellip" data-th="제목" title="' + esc(p.title) + '">' + esc(p.title) + "</td>" +
         '<td class="num" data-th="이미지">' + pageImgCount(p) + "</td>" +
-        '<td data-th="상태"><span class="badge ' + (p.is_published ? "b-ok" : "b-off") + '">' + (p.is_published ? "발행" : "숨김") + "</span></td>" +
-        '<td><button type="button" class="rowlink page-edit" data-slug="' + esc(p.slug) + '">수정</button></td>' +
-        "</tr>";
+        '<td data-th="상태">' + (p.deleted_at
+          ? '<span class="badge b-off">휴지통</span>'
+          : '<span class="badge ' + (p.is_published ? "b-ok" : "b-off") + '">' + (p.is_published ? "발행" : "숨김") + "</span>") + "</td>" +
+        '<td class="row-actions">' + (p.deleted_at
+          ? '<button type="button" class="rowlink page-restore" data-slug="' + esc(p.slug) + '">복구</button>' +
+            '<button type="button" class="rowlink danger page-purge" data-slug="' + esc(p.slug) + '">영구 삭제</button>'
+          : '<button type="button" class="rowlink page-edit" data-slug="' + esc(p.slug) + '">수정</button>') +
+        "</td></tr>";
     }).join("");
     [].forEach.call(body.querySelectorAll(".page-edit"), function (b) {
       b.addEventListener("click", function () { openPageEditor(b.getAttribute("data-slug")); });
+    });
+    [].forEach.call(body.querySelectorAll(".page-restore"), function (b) {
+      b.addEventListener("click", function () { restorePage(b.getAttribute("data-slug")); });
+    });
+    [].forEach.call(body.querySelectorAll(".page-purge"), function (b) {
+      b.addEventListener("click", function () {
+        var slug = b.getAttribute("data-slug");
+        var p = pageBySlugAdmin(slug);
+        purgePage(slug, p ? p.title : slug);
+      });
+    });
+  }
+
+  /* ---------------- 휴지통 (페이지) ---------------- */
+  var trashPages = false;
+  function togglePagesTrash() {
+    trashPages = !trashPages;
+    var btn = $("#page-trash-toggle");
+    if (btn) {
+      btn.setAttribute("aria-pressed", trashPages ? "true" : "false");
+      btn.textContent = trashPages ? "← 페이지 목록으로" : "🗑 휴지통 보기";
+    }
+    renderPageTable();
+  }
+  function restorePage(slug) {
+    sb.from("pages").update({ deleted_at: null }).eq("slug", slug).then(function (r) {
+      if (r.error) { cmsMsg("page-msg", "복구 실패: " + r.error.message, "err"); return; }
+      loadPageManager().then(function () { cmsMsg("page-msg", "페이지를 복구했습니다: " + slug, "ok"); });
+    });
+  }
+  function purgePage(slug, title) {
+    if (!window.confirm("‘" + title + "’ 페이지를 영구 삭제할까요?\n휴지통에서도 사라지며 되돌릴 수 없습니다.")) return;
+    sb.from("pages").delete().eq("slug", slug).then(function (r) {
+      if (r.error) { cmsMsg("page-msg", "영구 삭제 실패: " + r.error.message, "err"); return; }
+      loadPageManager().then(function () { cmsMsg("page-msg", "페이지를 영구 삭제했습니다: " + slug, "ok"); });
     });
   }
 
@@ -1472,10 +1564,34 @@
     $("#pg-img-msg").textContent = "";
     $("#pg-msg").textContent = "";
     $("#page-delete").hidden = !p;
+    $("#page-history").hidden = !p;
+    CMS.pageBlocks = (window.CRAFT_HUNMIN && window.CRAFT_HUNMIN.normalizeList)
+      ? window.CRAFT_HUNMIN.normalizeList(p ? p.blocks : [])
+      : [];
     renderPageImages();
     $("#page-modal").hidden = false;
     document.body.classList.add("cms-lock");
+    mountHunmin();
     setTimeout(function () { $("#pg-title").focus(); }, 50);
+  }
+
+  /* hunmin 블록 편집기 — 게시판 목록이 필요하므로 먼저 불러오고 그립니다. */
+  function mountHunmin() {
+    var box = $("#pg-blocks");
+    if (!box || !window.CRAFT_HUNMIN) return;
+    var draw = function () {
+      window.CRAFT_HUNMIN.editor.mount(box, CMS.pageBlocks, {
+        boards: CMS.boardRows,
+        upload: function (file) { return uploadSiteImage(file, "pages/blocks"); },
+        onChange: function (list) { CMS.pageBlocks = list; }
+      });
+    };
+    if (!CMS.boardRows.length) {
+      sb.from("boards").select("slug,name,sort_order").order("sort_order").then(function (r) {
+        if (r.data && r.data.length) CMS.boardRows = r.data;
+        draw();
+      }, draw);
+    } else draw();
   }
 
   function closePageEditor() {
@@ -1536,6 +1652,8 @@
       images: CMS.pageImages.filter(function (im) { return im.url; }).map(function (im) {
         return { url: im.url, caption: (im.caption || "").trim() };
       }),
+      blocks: (window.CRAFT_HUNMIN && window.CRAFT_HUNMIN.normalizeList)
+        ? window.CRAFT_HUNMIN.normalizeList(CMS.pageBlocks) : [],
       is_published: $("#pg-published").checked,
       sort_order: parseInt($("#pg-sort").value || "0", 10) || 0
     };
@@ -1561,12 +1679,12 @@
   function deletePage() {
     var p = CMS.editingPage;
     if (!p) return;
-    if (!window.confirm("‘" + p.title + "’ 페이지를 삭제할까요?\n이미지 파일은 미디어 라이브러리에 남습니다. 되돌릴 수 없습니다.")) return;
-    $("#pg-msg").textContent = "삭제하는 중…";
-    sb.from("pages").delete().eq("slug", p.slug).then(function (r) {
-      if (r.error) { $("#pg-msg").textContent = "삭제 실패: " + r.error.message; return; }
+    if (!window.confirm("‘" + p.title + "’ 페이지를 휴지통으로 옮길까요?\n공개 사이트에서는 바로 사라지고, ‘휴지통 보기’에서 복구할 수 있습니다.")) return;
+    $("#pg-msg").textContent = "휴지통으로 옮기는 중…";
+    sb.from("pages").update({ deleted_at: new Date().toISOString() }).eq("slug", p.slug).then(function (r) {
+      if (r.error) { $("#pg-msg").textContent = "휴지통 이동 실패: " + r.error.message; return; }
       closePageEditor();
-      cmsMsg("page-msg", "페이지를 삭제했습니다: " + p.slug, "ok");
+      cmsMsg("page-msg", "페이지를 휴지통으로 옮겼습니다. ‘휴지통 보기’에서 복구할 수 있습니다: " + p.slug, "ok");
       loadPageManager();
     });
   }
@@ -1764,6 +1882,378 @@
     sel.value = val || (sel.options[0] ? sel.options[0].value : "");
   }
 
+  /* =============================================================
+     SBPress — 테마 프리셋 · 휴지통 · 수정 이력 · 피드 · 폼 접수
+     ============================================================= */
+  var THEME_PRESETS = [
+    {
+      key: "magazine", name: "매거진형", en: "Magazine",
+      desc: "편집 그리드 · 또렷한 괘선 · 명조 제목",
+      tags: ["괘선", "명조", "각진 모서리"]
+    },
+    {
+      key: "craft", name: "공방/쇼케이스형", en: "Craft",
+      desc: "따뜻한 작업실 카드 · 둥근 모서리 · 사진 강조",
+      tags: ["카드", "둥글게", "따뜻한 색"]
+    },
+    {
+      key: "org", name: "기관 소개형", en: "Organization",
+      desc: "차분한 기관·협동조합형 · 구조적 카드 · 뚜렷한 위계",
+      tags: ["구조", "차분한 색", "위계"]
+    }
+  ];
+  var CMS_THEME = "magazine";
+
+  function themeDef(key) {
+    for (var i = 0; i < THEME_PRESETS.length; i++) if (THEME_PRESETS[i].key === key) return THEME_PRESETS[i];
+    return THEME_PRESETS[0];
+  }
+
+  function renderThemePicks() {
+    var box = $("#theme-picks");
+    if (!box) return;
+    box.innerHTML = THEME_PRESETS.map(function (t) {
+      var on = t.key === CMS_THEME;
+      return '<button type="button" class="theme-pick tp-' + t.key + '" data-theme="' + t.key + '" aria-pressed="' + on + '">' +
+        '<span class="tp-thumb" aria-hidden="true">' +
+          '<span class="tp-bar"></span>' +
+          '<span class="tp-hero"></span>' +
+          '<span class="tp-row"></span>' +
+          '<span class="tp-row"></span>' +
+          '<span class="tp-row short"></span>' +
+        "</span>" +
+        '<span class="tp-body">' +
+          '<span class="tp-name">' + esc(t.name) + (on ? ' <em class="tp-on">사용 중</em>' : "") + "</span>" +
+          '<span class="tp-desc">' + esc(t.desc) + "</span>" +
+          '<span class="tp-tags">' + t.tags.map(function (x) { return "<i>" + esc(x) + "</i>"; }).join("") + "</span>" +
+        "</span></button>";
+    }).join("");
+    [].forEach.call(box.querySelectorAll(".theme-pick"), function (b) {
+      b.addEventListener("click", function () { setThemePreset(b.getAttribute("data-theme")); });
+    });
+    var now = $("#theme-now");
+    if (now) now.innerHTML = "지금 적용 중: <b>" + esc(themeDef(CMS_THEME).name) + "</b> · 저장 위치 <code>site_contents.theme.preset</code>";
+  }
+
+  function loadTheme() {
+    if (!sb) return Promise.resolve();
+    return sb.from("site_contents").select("key,value").eq("key", "theme.preset").then(function (r) {
+      if (r.error) { cmsMsg("theme-msg", "테마를 불러오지 못했습니다: " + r.error.message, "err"); return; }
+      var row = (r.data || [])[0];
+      var v = row ? String(row.value || "").trim() : "";
+      CMS_THEME = /^(magazine|craft|org)$/.test(v) ? v : "magazine";
+      renderThemePicks();
+    });
+  }
+
+  function setThemePreset(key) {
+    if (!sb) return;
+    var def = themeDef(key);
+    if (key === CMS_THEME) { cmsMsg("theme-msg", "이미 ‘" + def.name + "’을 쓰고 있습니다.", "ok"); return; }
+    cmsMsg("theme-msg", "‘" + def.name + "’ 저장 중…");
+    sb.from("site_contents").upsert(
+      { key: "theme.preset", section: "테마 · 디자인",
+        label: "테마 프리셋 (magazine = 매거진형 / craft = 공방·쇼케이스형 / org = 기관 소개형)",
+        value: key, image_url: null },
+      { onConflict: "key" }
+    ).then(function (r) {
+      if (r.error) { cmsMsg("theme-msg", "저장 실패: " + r.error.message, "err"); return; }
+      CMS_THEME = key;
+      renderThemePicks();
+      cmsMsg("theme-msg", "‘" + def.name + "’ 테마로 저장했습니다. 사이트를 새로 고치면 바로 그 모양으로 열립니다.", "ok");
+    }).catch(function (e) {
+      cmsMsg("theme-msg", "저장 실패: " + (e.message || "알 수 없는 오류"), "err");
+    });
+  }
+
+  /* ---------------- 수정 이력 드로어 ---------------- */
+  var revState = { type: "", id: "", rows: [] };
+
+  function fmtRevTime(iso) {
+    if (!iso) return "";
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return String(iso).slice(0, 16).replace("T", " ");
+    return d.toLocaleString("ko-KR", {
+      timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit"
+    });
+  }
+
+  function openHistory(type, id, title) {
+    if (!sb || !id) return;
+    revState = { type: type, id: id, rows: [] };
+    $("#rev-drawer").hidden = false;
+    document.body.classList.add("cms-lock");
+    $("#rev-title").textContent = "수정 이력 · " + (type === "page" ? "페이지" : "글");
+    $("#rev-sub").textContent = (title || id) + " — 저장할 때마다 직전 상태를 한 칸씩 남깁니다.";
+    $("#rev-list").innerHTML = '<p class="rev-empty">불러오는 중…</p>';
+    cmsMsg("rev-msg", "");
+    sb.from("revisions").select("id,entity_type,entity_id,snapshot,note,created_at")
+      .eq("entity_type", type).eq("entity_id", id)
+      .order("created_at", { ascending: false }).limit(30)
+      .then(function (r) {
+        if (r.error) { $("#rev-list").innerHTML = '<p class="rev-empty">불러오지 못했습니다: ' + esc(r.error.message) + "</p>"; return; }
+        revState.rows = r.data || [];
+        renderRevisions();
+      });
+  }
+
+  function renderRevisions() {
+    var box = $("#rev-list");
+    if (!box) return;
+    if (!revState.rows.length) {
+      box.innerHTML = '<p class="rev-empty">아직 수정 이력이 없습니다. 이 글을 한 번 저장하면 그 전 상태가 여기에 쌓입니다.</p>';
+      return;
+    }
+    box.innerHTML = revState.rows.map(function (rv, i) {
+      var sn = rv.snapshot || {};
+      var label = rv.note || "수정";
+      var extra = revState.type === "page"
+        ? (sn.is_published ? "발행" : "숨김")
+        : [sn.category, sn.is_published ? "발행" : "숨김"].filter(Boolean).join(" · ");
+      return '<article class="rev-item">' +
+        '<div class="rev-when"><b>' + esc(fmtRevTime(rv.created_at)) + "</b><span>" + esc(label) + "</span></div>" +
+        '<div class="rev-what"><strong>' + esc(sn.title || "(제목 없음)") + "</strong><span>" + esc(extra) + "</span>" +
+          (sn.subtitle ? "<em>" + esc(sn.subtitle) + "</em>" : "") +
+        '</div>' +
+        '<button type="button" class="btn btn-ghost btn-sm rev-restore" data-i="' + i + '">이 버전으로 복원</button>' +
+        "</article>";
+    }).join("");
+    [].forEach.call(box.querySelectorAll(".rev-restore"), function (b) {
+      b.addEventListener("click", function () { restoreRevision(+b.getAttribute("data-i")); });
+    });
+  }
+
+  function closeHistory() {
+    $("#rev-drawer").hidden = true;
+    document.body.classList.remove("cms-lock");
+  }
+
+  var POST_RESTORE_FIELDS = ["slug", "category", "title", "summary", "body", "region", "source_name",
+    "source_url", "image_url", "deadline", "published_at", "is_published", "is_pinned", "publish_at",
+    "sort_order", "meta"];
+  var PAGE_RESTORE_FIELDS = ["title", "subtitle", "body", "images", "blocks", "is_published", "sort_order"];
+
+  function pick(obj, fields) {
+    var out = {};
+    fields.forEach(function (k) { if (obj && obj[k] !== undefined) out[k] = obj[k]; });
+    return out;
+  }
+
+  function restoreRevision(i) {
+    var rv = revState.rows[i];
+    if (!rv) return;
+    var sn = rv.snapshot || {};
+    var when = fmtRevTime(rv.created_at);
+    if (!window.confirm("이 버전(" + when + ")으로 되돌릴까요?\n지금 상태는 수정 이력에 한 칸 더 남으니 다시 되돌릴 수 있습니다.")) return;
+    cmsMsg("rev-msg", "복원하는 중…");
+    var req;
+    if (revState.type === "page") {
+      var body = pick(sn, PAGE_RESTORE_FIELDS);
+      if (body.blocks && window.CRAFT_HUNMIN) body.blocks = window.CRAFT_HUNMIN.normalizeList(body.blocks);
+      req = sb.from("pages").update(body).eq("slug", revState.id);
+    } else {
+      req = sb.from("posts").update(pick(sn, POST_RESTORE_FIELDS)).eq("slug", revState.id);
+    }
+    req.then(function (r) {
+      if (r.error) { cmsMsg("rev-msg", "복원 실패: " + r.error.message, "err"); return; }
+      cmsMsg("rev-msg", "이 버전으로 복원했습니다.", "ok");
+      if (revState.type === "page") {
+        loadPageManager();
+        if (!$("#page-modal").hidden) closePageEditor();
+      } else {
+        CMS.loaded.posts = false;
+        loadPosts();
+        if (!$("#post-modal").hidden) closePostEditor();
+      }
+      setTimeout(closeHistory, 700);
+    });
+  }
+
+  /* ---------------- sitemap.xml · rss.xml ---------------- */
+  var FEED_BASE = "https://craftstorekorea.github.io";
+
+  function xesc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" }[c];
+    });
+  }
+  function rfc822(iso) {
+    var d = iso ? new Date(iso) : new Date();
+    if (isNaN(d.getTime())) d = new Date();
+    return d.toUTCString();
+  }
+  var CAT_BOARD = { "소개": "intro", "뉴스": "news", "인터뷰": "interview", "정보": "info" };
+
+  function feedSource() {
+    return Promise.all([
+      sb.from("site_contents").select("key,value").in("key", ["seo_title", "seo_description"]),
+      sb.from("boards").select("slug,name,description,is_active,sort_order").order("sort_order"),
+      sb.from("pages").select("slug,title,updated_at,created_at,is_published").eq("is_published", true),
+      sb.from("posts").select("slug,title,summary,category,published_at,updated_at,created_at,source_url,is_published,is_pinned,publish_at,sort_order,deleted_at")
+        .eq("is_published", true).order("published_at", { ascending: false }).limit(80)
+    ]).then(function (res) {
+      var err = (res[0] && res[0].error) || (res[1] && res[1].error) || (res[2] && res[2].error) || (res[3] && res[3].error);
+      if (err) throw new Error(err.message);
+      var c = {};
+      (res[0].data || []).forEach(function (r) { c[r.key] = r.value || ""; });
+      var now = Date.now();
+      var posts = (res[3].data || []).filter(function (p) {
+        if (p.deleted_at) return false;
+        if (p.publish_at && new Date(p.publish_at).getTime() > now) return false;
+        return true;
+      });
+      return {
+        title: c.seo_title || "전국공방 — 우리 동네 공방의 이번 주 소식",
+        description: c.seo_description || "전국 방방곡곡 공방의 이번 주 소식",
+        boards: (res[1].data || []).filter(function (b) { return b.is_active !== false; }),
+        pages: res[2].data || [],
+        posts: posts
+      };
+    });
+  }
+
+  function latestOf(posts, pages) {
+    var latest = "";
+    (posts || []).concat(pages || []).forEach(function (x) {
+      var d = String(x.updated_at || x.published_at || x.created_at || "").slice(0, 10);
+      if (d > latest) latest = d;
+    });
+    return latest || new Date().toISOString().slice(0, 10);
+  }
+
+  function buildSitemap(src) {
+    var latest = latestOf(src.posts, src.pages);
+    var urls = [
+      { loc: FEED_BASE + "/", lastmod: latest, pri: "1.0", freq: "daily" },
+      { loc: FEED_BASE + "/#/workshops", lastmod: latest, pri: "0.8", freq: "weekly" },
+      { loc: FEED_BASE + "/#/news", lastmod: latest, pri: "0.9", freq: "daily" },
+      { loc: FEED_BASE + "/#/interview", lastmod: latest, pri: "0.7", freq: "weekly" },
+      { loc: FEED_BASE + "/#/info", lastmod: latest, pri: "0.7", freq: "weekly" },
+      { loc: FEED_BASE + "/#/archive", lastmod: latest, pri: "0.6", freq: "monthly" },
+      { loc: FEED_BASE + "/#/map", lastmod: latest, pri: "0.8", freq: "weekly" }
+    ];
+    src.boards.forEach(function (b) {
+      var last = "";
+      src.posts.forEach(function (p) {
+        var key = CAT_BOARD[p.category] || p.category;
+        if (key === b.slug && String(p.published_at).slice(0, 10) > last) last = String(p.published_at).slice(0, 10);
+      });
+      urls.push({ loc: FEED_BASE + "/#/board/" + b.slug, lastmod: last || latest, pri: "0.7", freq: "weekly" });
+    });
+    src.pages.forEach(function (p) {
+      urls.push({
+        loc: FEED_BASE + "/#/page/" + encodeURIComponent(p.slug),
+        lastmod: String(p.updated_at || p.created_at || latest).slice(0, 10), pri: "0.6", freq: "monthly"
+      });
+    });
+    urls.push({ loc: FEED_BASE + "/privacy", lastmod: "2026-11-21", pri: "0.2", freq: "yearly" });
+    urls.push({ loc: FEED_BASE + "/terms", lastmod: "2026-11-21", pri: "0.2", freq: "yearly" });
+    return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+      urls.map(function (u) {
+        return "  <url>\n    <loc>" + xesc(u.loc) + "</loc>\n    <lastmod>" + xesc(u.lastmod) +
+          "</lastmod>\n    <changefreq>" + u.freq + "</changefreq>\n    <priority>" + u.pri + "</priority>\n  </url>";
+      }).join("\n") + "\n</urlset>\n";
+  }
+
+  function buildRss(src) {
+    var latest = latestOf(src.posts, src.pages);
+    var items = src.posts.slice(0, 30).map(function (p) {
+      var boardSlug = CAT_BOARD[p.category] || p.category;
+      var link = /^https?:/i.test(p.source_url || "") ? p.source_url : FEED_BASE + "/#/board/" + boardSlug;
+      return "    <item>\n      <title>" + xesc(p.title) + "</title>\n      <link>" + xesc(link) + "</link>\n" +
+        '      <guid isPermaLink="false">' + xesc(FEED_BASE + "/#/post/" + (p.slug || p.title)) + "</guid>\n" +
+        "      <pubDate>" + rfc822(p.published_at || p.created_at) + "</pubDate>\n" +
+        "      <category>" + xesc(p.category) + "</category>\n" +
+        "      <description>" + xesc(p.summary || p.title) + "</description>\n    </item>";
+    }).join("\n");
+    return '<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n  <channel>\n' +
+      "    <title>" + xesc(src.title) + "</title>\n    <link>" + xesc(FEED_BASE + "/") + "</link>\n" +
+      "    <description>" + xesc(src.description) + "</description>\n    <language>ko-KR</language>\n" +
+      "    <lastBuildDate>" + rfc822(latest) + "</lastBuildDate>\n" +
+      '    <atom:link href="' + xesc(FEED_BASE + "/rss.xml") + '" rel="self" type="application/rss+xml"/>\n' +
+      (items ? items + "\n" : "") + "  </channel>\n</rss>\n";
+  }
+
+  function showFeed(kind) {
+    var pre = $("#feed-preview");
+    if (!pre || !sb) return;
+    cmsMsg("feed-msg", "만드는 중…");
+    feedSource().then(function (src) {
+      var xml = kind === "rss" ? buildRss(src) : buildSitemap(src);
+      pre.textContent = xml;
+      pre.hidden = false;
+      var urls = (xml.match(/<loc>/g) || []).length;
+      var items = (xml.match(/<item>/g) || []).length;
+      cmsMsg("feed-msg", kind === "rss"
+        ? "rss.xml · 글 " + items + "건"
+        : "sitemap.xml · 주소 " + urls + "개", "ok");
+    }).catch(function (e) {
+      cmsMsg("feed-msg", "만들지 못했습니다: " + (e.message || "알 수 없는 오류"), "err");
+    });
+  }
+
+  function downloadFeed(kind) {
+    if (!sb) return;
+    cmsMsg("feed-msg", "내려받는 중…");
+    feedSource().then(function (src) {
+      var xml = kind === "rss" ? buildRss(src) : buildSitemap(src);
+      var blob = new Blob([xml], { type: "application/xml;charset=utf-8" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = kind === "rss" ? "rss.xml" : "sitemap.xml";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+      cmsMsg("feed-msg", (kind === "rss" ? "rss.xml" : "sitemap.xml") + " 내려받기를 시작했습니다. 사이트 폴더에 올리면 바로 열립니다.", "ok");
+    }).catch(function (e) {
+      cmsMsg("feed-msg", "내려받지 못했습니다: " + (e.message || "알 수 없는 오류"), "err");
+    });
+  }
+
+  /* ---------------- hunmin 폼 접수 ---------------- */
+  function loadFormSubs() {
+    var body = $("#form-sub-table tbody");
+    if (!body || !sb) return Promise.resolve();
+    body.innerHTML = '<tr class="empty-row"><td colspan="5">불러오는 중…</td></tr>';
+    return sb.from("form_submissions").select("id,kind,email,name,payload,page_slug,created_at")
+      .order("created_at", { ascending: false }).limit(100)
+      .then(function (r) {
+        if (r.error) {
+          body.innerHTML = '<tr class="empty-row"><td colspan="5">불러오지 못했습니다: ' + esc(r.error.message) + "</td></tr>";
+          return;
+        }
+        var rows = r.data || [];
+        if (!rows.length) {
+          body.innerHTML = '<tr class="empty-row"><td colspan="5">아직 접수된 내용이 없습니다.</td></tr>';
+          return;
+        }
+        body.innerHTML = rows.map(function (s) {
+          var p = s.payload || {};
+          var detail = s.kind === "newsletter"
+            ? "뉴스레터 구독"
+            : [p.title, p.region, p.craft, p.phone, p.desc].filter(Boolean).join(" · ");
+          return "<tr>" +
+            '<td class="muted" data-th="접수">' + esc(fmtRevTime(s.created_at)) + "</td>" +
+            '<td data-th="종류"><span class="badge ' + (s.kind === "newsletter" ? "b-ok" : "b-wait") + '">' +
+              (s.kind === "newsletter" ? "구독" : "등록·제보") + "</span></td>" +
+            '<td data-th="이메일·이름">' + esc([s.email, s.name].filter(Boolean).join(" / ") || "–") + "</td>" +
+            '<td class="ellip" data-th="내용" title="' + esc(detail) + '">' + esc(detail || "–") + "</td>" +
+            '<td><button type="button" class="rowlink danger form-sub-del" data-id="' + esc(s.id) + '">삭제</button></td>' +
+            "</tr>";
+        }).join("");
+        [].forEach.call(body.querySelectorAll(".form-sub-del"), function (b) {
+          b.addEventListener("click", function () {
+            if (!window.confirm("이 접수 내용을 지울까요? 되돌릴 수 없습니다.")) return;
+            sb.from("form_submissions").delete().eq("id", b.getAttribute("data-id")).then(function () {
+              loadFormSubs();
+              cmsMsg("form-sub-msg", "접수 내용을 지웠습니다.", "ok");
+            });
+          });
+        });
+      });
+  }
+
   function initCms() {
     [].forEach.call(document.querySelectorAll(".admin-tab"), function (b) {
       b.addEventListener("click", function () { activateTab(b.getAttribute("data-tab")); });
@@ -1919,6 +2409,40 @@
     var adminTs = $("#tasks-admin-status");
     if (adminTs) adminTs.addEventListener("change", renderTasksAdmin);
 
+    /* --- hunmin 폼 접수 · 검색엔진 피드 --- */
+    var sv = $("#feed-sitemap-view");
+    if (sv) sv.addEventListener("click", function () { showFeed("sitemap"); });
+    var sd = $("#feed-sitemap-dl");
+    if (sd) sd.addEventListener("click", function () { downloadFeed("sitemap"); });
+    var rv = $("#feed-rss-view");
+    if (rv) rv.addEventListener("click", function () { showFeed("rss"); });
+    var rd = $("#feed-rss-dl");
+    if (rd) rd.addEventListener("click", function () { downloadFeed("rss"); });
+
+    /* --- 휴지통 · 수정 이력 --- */
+    var ptt = $("#posts-trash-toggle");
+    if (ptt) ptt.addEventListener("click", togglePostsTrash);
+    var gtt = $("#page-trash-toggle");
+    if (gtt) gtt.addEventListener("click", togglePagesTrash);
+    var ph = $("#post-history");
+    if (ph) ph.addEventListener("click", function () {
+      if (CMS.editing) openHistory("post", CMS.editing.slug || CMS.editing.id, CMS.editing.title);
+    });
+    var gh = $("#page-history");
+    if (gh) gh.addEventListener("click", function () {
+      if (CMS.editingPage) openHistory("page", CMS.editingPage.slug, CMS.editingPage.title);
+    });
+    var revClose = $("#rev-close");
+    if (revClose) revClose.addEventListener("click", closeHistory);
+    var revBack = $("#rev-drawer");
+    if (revBack) revBack.addEventListener("click", function (e) {
+      if (e.target === revBack) closeHistory();
+    });
+
+    /* --- 테마 프리셋 --- */
+    renderThemePicks();
+
+    /* --- 관리자 검색/필터 --- */
     var pq = $("#posts-q");
     if (pq) pq.addEventListener("input", renderPosts);
     ["#posts-cat", "#posts-state"].forEach(function (sel) {
@@ -1994,7 +2518,8 @@
     if (cr) cr.addEventListener("click", function () { CMS.loaded.comments = false; loadComments(); });
     document.addEventListener("keydown", function (e) {
       if (e.key !== "Escape") return;
-      if (!$("#post-modal").hidden) closePostEditor();
+      if (!$("#rev-drawer").hidden) closeHistory();
+      else if (!$("#post-modal").hidden) closePostEditor();
       else if (!$("#page-modal").hidden) closePageEditor();
       else if (!$("#board-modal").hidden) closeBoardEditor();
     });

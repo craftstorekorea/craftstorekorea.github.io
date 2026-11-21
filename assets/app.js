@@ -1087,13 +1087,13 @@
           " · <a href='#' id='reload'>다시 불러오기</a>");
         var rl = $("#reload");
         if (rl) rl.addEventListener("click", function (e) { e.preventDefault(); loadSheet(); });
-        fillSelects(); renderRegions(); renderPins(); renderBoard();
+        fillSelects(); renderRegions(); renderPins(); renderBoard(); refreshPageBlocks();
       })
       .catch(function () {
         setStatus("off", "시트에 연결하지 못해 저장된 목록을 표시합니다(" + board.length + "곳) · <a href='#' id='reload'>다시 시도</a>");
         var rl = $("#reload");
         if (rl) rl.addEventListener("click", function (e) { e.preventDefault(); loadSheet(); });
-        fillSelects(); renderRegions(); renderBoard();
+        fillSelects(); renderRegions(); renderBoard(); refreshPageBlocks();
       });
   }
 
@@ -1166,6 +1166,10 @@
       $("#page-gallery").innerHTML = "";
       $("#page-body").textContent = "";
       $("#page-body").hidden = true;
+      var bb = $("#page-blocks");
+      if (bb) { bb.innerHTML = ""; bb.hidden = true; }
+      var pv = $("#view-page .page-view");
+      if (pv) pv.classList.remove("has-blocks");
       if (empty) empty.hidden = false;
       return;
     }
@@ -1187,6 +1191,25 @@
     var body = $("#page-body");
     body.textContent = page.body || "";
     body.hidden = !page.body;
+
+    /* hunmin 블록 — 순서대로 제목·부제 아래에 조립합니다. */
+    var blockBox = $("#page-blocks");
+    var view = $("#view-page .page-view");
+    if (blockBox) {
+      blockBox.innerHTML = "";
+      blockBox.hidden = true;
+      var usesPageImages = (page.blocks || []).some(function (b) {
+        return b && b.type === "gallery" && b.source !== "own";
+      });
+      gal.hidden = usesPageImages && gal.children.length > 0;
+      var drawn = (window.CRAFT_HUNMIN && window.CRAFT_HUNMIN.render)
+        ? window.CRAFT_HUNMIN.render(blockBox, page) : 0;
+      if (view) view.classList.toggle("has-blocks", drawn > 0);
+      if (drawn && (page.body || "").trim()) {
+        // 블록이 있으면 본문은 블록 아래에 이어서 보여 줍니다.
+        body.classList.add("page-body-after");
+      }
+    }
   }
 
   /* ---------------- 직접 만든 게시판 (#/board/<slug>) ---------------- */
@@ -1347,5 +1370,14 @@
     renderBoardSwitch();
     if (window.CRAFT_CMS) window.CRAFT_CMS.recount();
   }
-  window.CRAFT_APP = { refresh: refreshAll };
+  /* hunmin 블록이 등록 공방 목록을 쓸 수 있게 지도 데이터를 내줍니다. */
+  function refreshPageBlocks() {
+    var r = parseRoute();
+    if (r.name === "page") renderPageView(r.arg);
+  }
+  window.CRAFT_APP = {
+    refresh: refreshAll,
+    mapPlaces: function () { return board.slice(); },
+    refreshPageBlocks: refreshPageBlocks
+  };
 })();
