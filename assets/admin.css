@@ -273,6 +273,39 @@
 .cms-img-tools .admin-input{flex:1;min-width:180px}
 .cms-img-dot{font-size:.62rem;font-weight:800;color:var(--accent-d);background:var(--accent-s);border-radius:4px;padding:1px 5px;margin-left:4px}
 
+/* ---------- 헤더 · 푸터 · Head ---------- */
+.logo-prev{width:190px;height:96px;background:#fff}
+.logo-prev img{width:100%;height:100%;object-fit:contain;padding:6px}
+.menu-rows{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.menu-row{
+  display:grid;grid-template-columns:24px minmax(110px,1fr) minmax(130px,1.2fr) minmax(80px,.7fr) auto auto;
+  gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;
+}
+.menu-row .menu-idx{
+  display:grid;place-items:center;width:23px;height:23px;border-radius:50%;
+  background:var(--bg-2);color:var(--ink-3);font-size:.72rem;font-weight:800;
+}
+.menu-row .admin-input{min-width:0;padding:8px 10px;font-size:.84rem}
+.menu-vis{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;font-weight:700;color:var(--ink-2);white-space:nowrap}
+.menu-vis input{width:16px;height:16px;accent-color:var(--accent)}
+.menu-btns{display:inline-flex;gap:4px;white-space:nowrap}
+.menu-btns .mini{padding:5px 9px;font-size:.78rem;border-radius:8px}
+.menu-btns .mini[disabled]{opacity:.35;cursor:not-allowed}
+.menu-btns .menu-del{color:#A8482B;border-color:#E7C6B9}
+.menu-btns .menu-del:hover{background:#FCF1EC;border-color:#A8482B;color:#8E3A20}
+.menu-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+#head-html{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82rem;line-height:1.65}
+@media (max-width:860px){
+  .menu-row{grid-template-columns:22px 1fr auto;grid-template-areas:"idx label vis" "idx target btns" "idx note btns";row-gap:6px}
+  .menu-row .menu-idx{grid-area:idx;align-self:start}
+  .menu-row .menu-label{grid-area:label}
+  .menu-row .menu-target{grid-area:target}
+  .menu-row .menu-note{grid-area:note}
+  .menu-row .menu-vis{grid-area:vis;justify-self:end}
+  .menu-row .menu-btns{grid-area:btns;justify-self:end;align-self:center}
+  .logo-prev{width:100%}
+}
+
 /* ---------- 글 편집기 ---------- */
 body.cms-lock{overflow:hidden}
 .cms-modal{position:fixed;inset:0;z-index:130;background:rgba(38,28,22,.5);display:flex;align-items:center;justify-content:center;padding:18px}

@@ -40,12 +40,15 @@ assets/cms.js             Supabase 문구·글 불러오기, 댓글 버튼·드�
 
 - 사이트의 **문구·이미지**(`site_contents`), **게시판 글**(`posts`), **회원 댓글**(`comments`)은 Supabase에 있습니다.
   `assets/cms.js` 가 페이지를 열 때 읽어 반영하고, Supabase에 연결하지 못하면 `data.js` 기본값으로 보입니다.
-- `/admin.html` 탭: **페이지 텍스트·이미지**(문구 수정·이미지 업로드) · **게시판 관리**(글 작성·수정·발행/숨김·삭제) ·
-  **댓글 관리**(숨김/공개·삭제). 이미지는 Storage `site-media` 버킷에 올라갑니다.
+- `/admin.html` 탭: **페이지 텍스트·이미지**(문구 수정·이미지 업로드) · **헤더 · 푸터 · Head**(로고·브랜드 이름·메뉴 순서/숨김/외부링크, 푸터 회사 정보·SNS, `<head>` 코드) ·
+  **게시판 관리**(글 작성·수정·발행/숨김·삭제, 글 번호 `No. N`) · **댓글 관리**(숨김/공개·삭제). 이미지는 Storage `site-media` 버킷에 올라갑니다.
+- 헤더·푸터·head 설정은 `site_contents` 의 `header_*` · `footer_*` · `custom_head_html` 키에 저장됩니다.
+  `custom_head_html` 은 사이트를 열 때 `<head>` 로 주입되며(중복 태그는 건너뜀), 메뉴 항목은 `header_menu_items` JSON(관리자 화면에서 편집)입니다.
+- 공개 게시판 카드(소개·뉴스·인터뷰·정보·아카이브)에는 `No. N` 순번 배지가 붙습니다.
 - 모든 글·공방 카드에 `💬 댓글` 버튼이 붙습니다. 읽기는 누구나, 쓰기·본인 삭제는 로그인 회원,
   숨김·삭제 관리는 관리자 — 판단은 전부 Supabase RLS가 합니다.
-- 설정·검증 기록: `../supabase/07_cms.md`, DB 파일 `../supabase/03_cms_comments.sql`,
-  테스트 `cd .. && CMS_TEST_MODE=user python3 cms_test.py`.
+- 설정·검증 기록: `../supabase/07_cms.md`, DB 파일 `../supabase/03_cms_comments.sql` · `../supabase/04_header_footer_head.sql`,
+  테스트 `cd .. && CMS_TEST_MODE=user|admin|brand python3 cms_test.py`.
 
 ## 관리자 페이지
 

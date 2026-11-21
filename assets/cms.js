@@ -165,6 +165,115 @@
     }
   }
 
+  /* ---------------- 푸터 : 회사 정보 · SNS · 저작권 ---------------- */
+  function cval(key) {
+    var r = contents[key];
+    return r && r.value != null ? String(r.value).trim() : "";
+  }
+
+  var SNS_DEFS = [
+    { key: "footer_sns_instagram", label: "인스타그램", icon: '<rect x="4" y="4" width="16" height="16" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/>' },
+    { key: "footer_sns_youtube", label: "유튜브", icon: '<rect x="3" y="6" width="18" height="12" rx="4"/><path d="m11 9.4 4 2.6-4 2.6z" fill="currentColor" stroke="none"/>' },
+    { key: "footer_sns_blog", label: "블로그", icon: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 8.5h3.1a2.1 2.1 0 0 1 0 4.2H9zM9 12.7h3.4a2.1 2.1 0 0 1 0 4.2H9z" stroke-linejoin="round"/>' },
+    { key: "footer_sns_facebook", label: "페이스북", icon: '<path d="M14.6 21v-6.9h2.3l.4-2.8h-2.7V9.5c0-.8.2-1.4 1.4-1.4h1.4V5.6c-.3 0-1.1-.1-2-.1-2 0-3.4 1.2-3.4 3.6v2.2H9.6v2.8H12V21z" fill="currentColor" stroke="none"/>' },
+    { key: "footer_sns_x", label: "X(트위터)", icon: '<path d="M5.5 5.5l13 13M18.5 5.5l-13 13"/>' }
+  ];
+
+  function wrapItems(list) {
+    return list.map(function (t) { return '<span class="fc-item">' + t + "</span>"; }).join("<i>·</i>");
+  }
+
+  function applyFooter() {
+    var firm = $("#foot-company");
+    if (firm) {
+      var rows = [];
+      var company = cval("footer_company_name"), ceo = cval("footer_ceo"), biz = cval("footer_biz_no");
+      var addr = cval("footer_address"), email = cval("footer_email"), phone = cval("footer_phone");
+      var first = [];
+      if (company) first.push(esc(company));
+      if (ceo) first.push("대표 " + esc(ceo));
+      if (biz) first.push("사업자등록번호 " + esc(biz));
+      if (first.length) rows.push('<span class="fc-line">' + wrapItems(first) + "</span>");
+      if (addr) rows.push('<span class="fc-line"><span class="fc-item">' + esc(addr) + "</span></span>");
+      var contact = [];
+      if (email) contact.push('<a href="mailto:' + esc(email) + '">' + esc(email) + "</a>");
+      if (phone) contact.push('<a href="tel:' + esc(phone.replace(/[^\d+]/g, "")) + '">' + esc(phone) + "</a>");
+      if (contact.length) rows.push('<span class="fc-line">' + wrapItems(contact) + "</span>");
+      firm.hidden = !rows.length;
+      firm.innerHTML = rows.join("");
+    }
+
+    var sns = $("#foot-sns");
+    if (sns) {
+      var links = SNS_DEFS.map(function (d) {
+        var url = cval(d.key);
+        if (!url) return "";
+        return '<li><a href="' + esc(url) + '" target="_blank" rel="noopener" aria-label="' + esc(d.label) + '">' +
+          '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">' + d.icon + "</svg>" +
+          "<span>" + esc(d.label) + "</span></a></li>";
+      }).join("");
+      sns.hidden = !links;
+      sns.innerHTML = links;
+    }
+
+    var copy = $("#foot-copy");
+    var text = cval("footer_copyright");
+    if (copy && text) copy.textContent = text;
+  }
+
+  /* ---------------- <head> 코드 주입 ---------------- */
+  var headDone = false;
+
+  function attrSig(node) {
+    var tag = node.tagName ? node.tagName.toLowerCase() : "";
+    if (tag === "meta") {
+      var k = node.getAttribute("name") || node.getAttribute("property") ||
+        node.getAttribute("http-equiv") || node.getAttribute("charset") || "";
+      return "meta|" + k.toLowerCase() + "|" + (node.getAttribute("content") || "");
+    }
+    if (tag === "link") return "link|" + (node.getAttribute("rel") || "").toLowerCase() + "|" + (node.getAttribute("href") || "");
+    if (tag === "script") return "script|" + (node.getAttribute("src") || (node.textContent || "").replace(/\s+/g, " ").trim());
+    return tag + "|" + (node.textContent || "").replace(/\s+/g, " ").trim();
+  }
+
+  function isDup(node) {
+    var tag = node.tagName.toLowerCase();
+    var sig = attrSig(node);
+    var list = document.head.querySelectorAll(tag);
+    for (var i = 0; i < list.length; i++) if (attrSig(list[i]) === sig) return true;
+    return false;
+  }
+
+  function injectHead() {
+    if (headDone) return;
+    headDone = true;
+    var row = contents["custom_head_html"];
+    var html = row && row.value ? String(row.value).trim() : "";
+    if (!html) return;
+    var tpl = document.createElement("template");
+    tpl.innerHTML = html;
+    [].slice.call(tpl.content.childNodes).forEach(function (node) {
+      if (!node || node.nodeType !== 1) return;   // 텍스트·주석은 무시
+      var tag = node.tagName.toLowerCase();
+      if (["meta", "link", "style", "script", "noscript", "base"].indexOf(tag) < 0) return;
+      if (isDup(node)) return;                    // 같은 태그가 이미 있으면 건너뜀
+      var fresh = document.createElement(tag);
+      [].forEach.call(node.attributes, function (a) { fresh.setAttribute(a.name, a.value); });
+      if (tag === "script") {
+        if (node.getAttribute("src")) {
+          if (node.hasAttribute("async")) fresh.async = true;
+          if (node.hasAttribute("defer")) fresh.defer = true;
+        } else {
+          fresh.textContent = node.textContent;   // 새 script 노드는 붙이는 순간 실행됩니다
+        }
+      } else if (tag === "style" || tag === "noscript" || tag === "base") {
+        if (tag !== "base") fresh.textContent = node.textContent;
+      }
+      fresh.setAttribute("data-head-cms", "1");
+      document.head.appendChild(fresh);
+    });
+  }
+
   /* ---------------- 댓글 개수 ---------------- */
   function loadCounts() {
     return rest("comments?select=post_key&limit=5000").then(function (rows) {
@@ -422,8 +531,11 @@
     ]).then(function (res) {
       var rows = res[0], posts = res[1];
       if (rows) { rows.forEach(function (r) { contents[r.key] = r; }); }
-      if (posts && posts.length) { applyPosts(posts); refresh(); }
+      if (posts && posts.length) { applyPosts(posts); }
       applyContents();
+      applyFooter();
+      injectHead();
+      if (window.CRAFT_APP && window.CRAFT_APP.refresh) window.CRAFT_APP.refresh();
       loadCounts();
       paintButtons();
     });
@@ -434,7 +546,8 @@
     recount: paintButtons,
     open: openDrawer,
     contents: function () { return contents; },
-    postsLoaded: function () { return loadedPosts; }
+    postsLoaded: function () { return loadedPosts; },
+    headInjected: function () { return headDone; }
   };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);

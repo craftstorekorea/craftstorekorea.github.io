@@ -71,6 +71,94 @@
     if (window.CRAFT_CMS && key) window.CRAFT_CMS.attach(node, key, title, image);
   }
 
+  /* ---------------- 헤더 (로고 · 브랜드 · 메뉴) ----------------
+     site_contents 의 header_logo_url / header_brand_text / header_menu_items 를 읽어 그립니다.
+     값이 없으면 index.html 의 기본 마크·메뉴를 그대로 씁니다. */
+  var VIEW_KEYS = ["home", "workshops", "news", "interview", "archive", "info", "map"];
+  var DEFAULT_MARK =
+    '<svg viewBox="0 0 32 32" fill="none"><path d="M8 22c0-4.5 3.4-5.6 8-5.6s8-1.2 8-5.4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="8" cy="22" r="2.4" fill="#C86D44"/></svg>';
+
+  function cmsRow(key) {
+    var C = window.CRAFT_CMS;
+    if (!C || !C.contents) return null;
+    return C.contents()[key] || null;
+  }
+
+  function menuItems() {
+    var row = cmsRow("header_menu_items");
+    var raw = row && row.value ? String(row.value) : "";
+    if (!raw.trim()) return null;
+    var list = null;
+    try { list = JSON.parse(raw); } catch (e) { return null; }
+    if (!Array.isArray(list)) return null;
+    list = list.filter(function (it) { return it && typeof it === "object"; });
+    return list.length ? list : null;
+  }
+
+  function paintSelected() {
+    var v = (location.hash || "#/home").replace(/^#\/?/, "") || "home";
+    [].forEach.call(document.querySelectorAll(".tabs .tab"), function (t) {
+      t.setAttribute("aria-selected", t.getAttribute("data-view") === v ? "true" : "false");
+    });
+  }
+
+  function renderMenu() {
+    var tabs = $("#tabs");
+    if (!tabs) return;
+    var items = menuItems();
+    if (!items) { paintSelected(); return; }
+    var html = items.map(function (it) {
+      if (it.visible === false) return "";
+      var label = String(it.label || "").trim();
+      if (!label) return "";
+      var note = String(it.note || "").trim();
+      var noteHtml = note ? "<em>" + esc(note) + "</em>" : "";
+      var target = String(it.target || "").trim();
+      if (/^(https?:)?\/\//i.test(target) || /^mailto:/i.test(target)) {
+        return '<a class="tab tab-ext" href="' + esc(target) + '" target="_blank" rel="noopener">' +
+          esc(label) + noteHtml + ' <svg width="11" height="11" aria-hidden="true"><use href="#i-ext"/></svg></a>';
+      }
+      var view = target.replace(/^#\/?/, "").replace(/\/$/, "") || "home";
+      if (VIEW_KEYS.indexOf(view) < 0) view = "home";
+      return '<button class="tab" role="tab" type="button" data-view="' + esc(view) + '" aria-selected="false">' +
+        esc(label) + noteHtml + "</button>";
+    }).join("");
+    if (tabs.innerHTML !== html) tabs.innerHTML = html;
+    paintSelected();
+  }
+
+  function renderHeader() {
+    var brandRow = cmsRow("header_brand_text");
+    var brandBox = $("#header-brand");
+    var brandName = "전국공방";
+    if (brandBox && brandRow && brandRow.value != null && String(brandRow.value).trim() !== "") {
+      var lines = String(brandRow.value).replace(/\r/g, "").split("\n");
+      brandName = (lines[0] || "").trim() || "전국공방";
+      var sub = (lines[1] || "").trim();
+      brandBox.innerHTML = esc(brandName) + (sub ? "<small>" + esc(sub) + "</small>" : "");
+    }
+    var logoLink = $("#header-logo");
+    if (logoLink) logoLink.setAttribute("aria-label", brandName + " 홈");
+
+    var mark = $("#header-logo-mark");
+    if (mark) {
+      var logoRow = cmsRow("header_logo_url");
+      var url = logoRow && logoRow.image_url ? String(logoRow.image_url).trim() : "";
+      if (url) {
+        if (mark.getAttribute("data-img") !== url) {
+          mark.innerHTML = '<img class="logo-img" src="' + esc(url) + '" alt="">';
+          mark.setAttribute("data-img", url);
+        }
+        mark.classList.add("has-img");
+      } else if (mark.getAttribute("data-img")) {
+        mark.innerHTML = DEFAULT_MARK;
+        mark.removeAttribute("data-img");
+        mark.classList.remove("has-img");
+      }
+    }
+    renderMenu();
+  }
+
   /* ---------------- hero ---------------- */
   function renderHeroMeta() {
     $("#hero-meta").innerHTML = [
@@ -183,7 +271,7 @@
   function newsRow(it, i) {
     var row = el("article", "news-item");
     row.innerHTML =
-      '<div class="news-num">' + String(i + 1).padStart(2, "0") + "</div>" +
+      '<div class="news-num"><span class="post-no">No. ' + (i + 1) + "</span></div>" +
       '<div class="news-body"><h3><a href="' + esc(it.url) + '" target="_blank" rel="noopener">' + esc(it.title) + "</a></h3>" +
       "<p>" + esc(it.desc) + "</p>" +
       '<div class="news-tags">' + (it.tag ? '<span class="chip">' + esc(it.tag) + "</span>" : "") +
@@ -219,10 +307,11 @@
     var ivg = $("#iv-grid");
     if (!ivg) return;
     ivg.innerHTML = "";
-    S.interviews.forEach(function (it) {
+    S.interviews.forEach(function (it, i) {
       var card = el("article", "iv");
       var who = String(it.person || "·").charAt(0);
       card.innerHTML =
+        '<div class="iv-top"><span class="post-no">No. ' + (i + 1) + '</span></div>' +
         '<span class="qmark" aria-hidden="true">“</span>' +
         "<blockquote>" + esc(it.quote) + "</blockquote>" +
         "<p>" + esc(it.desc) + "</p>" +
@@ -335,11 +424,12 @@
     return hay.indexOf(q) >= 0;
   }
 
-  function arcCard(it, showIssue) {
+  function arcCard(it, showIssue, no) {
     var issue = arcIssueById(it.issue) || { no: "", label: "" };
     var card = el("article", "acard");
     card.innerHTML =
       '<div class="acard-top">' +
+      '<span class="post-no">No. ' + (no || 1) + "</span>" +
       '<span class="chip arc-corner" data-c="' + esc(it.corner) + '">' + esc(it.corner) + "</span>" +
       (showIssue ? '<span class="issue-badge">' + issue.no + " " + esc(issue.short) + "</span>" : "") +
       '<span class="date">' + esc(it.date) + "</span></div>" +
@@ -397,7 +487,7 @@
           '<span class="n"><b>' + g.items.length + "</b>건" + (g.items.length !== g.issue.count ? " / " + g.issue.count + "건" : "") + "</span>"));
       }
       var cards = el("div", "arc-cards");
-      g.items.forEach(function (it) { cards.appendChild(arcCard(it, arcState.issue === "all")); });
+      g.items.forEach(function (it, i) { cards.appendChild(arcCard(it, arcState.issue === "all", i + 1)); });
       box.appendChild(cards);
       list.appendChild(box);
     });
@@ -460,11 +550,11 @@
     });
     var shown = items.filter(function (it) { return infoState.kind === "전체" || it.kind === infoState.kind; });
     if (!shown.length) { list.appendChild(el("div", "empty", "해당하는 정보가 없습니다.")); return; }
-    shown.forEach(function (it) {
+    shown.forEach(function (it, i) {
       var st = dueState(it.due);
       var row = el("article", "info-item");
       row.innerHTML =
-        '<div class="info-date"><b' + (it.due ? "" : ' class="loose"') + ">" + (it.due ? md(it.due) : "상시") + "</b>" +
+        '<div class="info-date"><span class="post-no">No. ' + (i + 1) + "</span><b" + (it.due ? "" : ' class="loose"') + ">" + (it.due ? md(it.due) : "상시") + "</b>" +
         '<span class="dday ' + st.cls + '">' + st.label + "</span></div>" +
         '<div class="info-body"><h3>' + esc(it.title) + "</h3>" +
         '<div class="meta"><span class="kind">' + esc(it.kind) + "</span><span>" + esc(it.org) + "</span><span>" + esc(it.period) + "</span><span data-cmt></span></div>" +
@@ -907,22 +997,26 @@
       }
     });
     [].forEach.call(document.querySelectorAll(".tabs .tab"), function (t) {
-      t.setAttribute("aria-selected", t.dataset.view === v ? "true" : "false");
+      t.setAttribute("aria-selected", t.getAttribute("data-view") === v ? "true" : "false");
     });
     document.title = TITLES[v] || TITLES.home;
     if (v === "map") { buildMap(); }
     if (scroll !== false) window.scrollTo({ top: 0, behavior: "auto" });
   }
   window.addEventListener("hashchange", function () { route(true); });
-  [].forEach.call(document.querySelectorAll(".tabs .tab"), function (t) {
-    t.addEventListener("click", function () {
-      var v = t.dataset.view;
-      if (("#/" + v) === location.hash) { route(true); return; }
-      location.hash = "#/" + v;
-    });
+  // 헤더 메뉴는 관리자에서 바뀌므로 위임(delegation)으로 처리합니다.
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest ? e.target.closest("#tabs .tab") : null;
+    if (!t || t.tagName === "A") return;   // 외부·직접 링크는 브라우저 기본 동작
+    var v = t.getAttribute("data-view");
+    if (!v) return;
+    e.preventDefault();
+    if (("#/" + v) === location.hash) { route(true); return; }
+    location.hash = "#/" + v;
   });
 
   /* ---------------- init ---------------- */
+  renderHeader();
   fillSelects();
   renderRegions();
   renderBoard();
@@ -933,6 +1027,7 @@
   /* ---------------- 관리자 CMS(cms.js) 가 글·문구를 받아온 뒤 다시 그리기 ---------------- */
   function refreshAll() {
     recomputeCounts();
+    renderHeader();
     renderHeroMeta();
     renderCorners();
     renderStats();

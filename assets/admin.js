@@ -492,8 +492,8 @@
   var CMS = {
     tab: "dash",
     pages: [], posts: [], comments: [],
-    loaded: { pages: false, posts: false, comments: false },
-    editing: null, commentCounts: {}
+    loaded: { pages: false, posts: false, comments: false, brand: false },
+    editing: null, commentCounts: {}, brand: null
   };
 
   function cmsMsg(id, text, kind) {
@@ -508,11 +508,12 @@
     [].forEach.call(document.querySelectorAll(".admin-tab"), function (b) {
       b.setAttribute("aria-selected", b.getAttribute("data-tab") === name ? "true" : "false");
     });
-    ["dash", "pages", "posts", "comments"].forEach(function (t) {
+    ["dash", "pages", "brand", "posts", "comments"].forEach(function (t) {
       var p = document.getElementById("tab-" + t);
       if (p) p.hidden = (t !== name);
     });
     if (name === "pages" && !CMS.loaded.pages) loadPages();
+    if (name === "brand" && !CMS.loaded.brand) loadBrand();
     if (name === "posts" && !CMS.loaded.posts) loadPosts();
     if (name === "comments" && !CMS.loaded.comments) loadComments();
     try { window.scrollTo({ top: 0, behavior: "auto" }); } catch (e) { /* noop */ }
@@ -545,7 +546,8 @@
           box.innerHTML = '<p class="panel-msg error">불러오지 못했습니다: ' + esc(res.error.message) + "</p>";
           return;
         }
-        CMS.pages = (res.data || []).map(function (r) { return { key: r.key, section: r.section || "기타", label: r.label || r.key, value: r.value || "", image_url: r.image_url || "", _v: r.value || "", _i: r.image_url || "" }; });
+        CMS.pages = (res.data || []).map(function (r) { return { key: r.key, section: r.section || "기타", label: r.label || r.key, value: r.value || "", image_url: r.image_url || "", _v: r.value || "", _i: r.image_url || "" }; })
+          .filter(function (p) { return p.section !== BRAND_SECTION; });   // 헤더·푸터·head 는 전용 탭에서 편집합니다
         CMS.loaded.pages = true;
         renderPages();
         var note = $("#pages-note");
@@ -666,14 +668,14 @@
   /* ---------------- 2. 게시판 관리 ---------------- */
   function loadPosts() {
     var body = $("#posts-table tbody");
-    if (body) body.innerHTML = '<tr class="empty-row"><td colspan="8">불러오는 중…</td></tr>';
+    if (body) body.innerHTML = '<tr class="empty-row"><td colspan="9">불러오는 중…</td></tr>';
     return Promise.all([
       sb.from("posts").select("*").order("category").order("sort_order").limit(1000),
       sb.from("comments").select("post_key").limit(5000)
     ]).then(function (res) {
       var list = res[0], cmts = res[1];
       if (list.error) {
-        if (body) body.innerHTML = '<tr class="empty-row"><td colspan="8">불러오지 못했습니다: ' + esc(list.error.message) + "</td></tr>";
+        if (body) body.innerHTML = '<tr class="empty-row"><td colspan="9">불러오지 못했습니다: ' + esc(list.error.message) + "</td></tr>";
         return;
       }
       CMS.posts = list.data || [];
@@ -688,11 +690,27 @@
     });
   }
 
+  function postNoMap() {
+    var order = { "소개": 0, "뉴스": 1, "인터뷰": 2, "정보": 3 };
+    var sorted = CMS.posts.slice().sort(function (a, b) {
+      var ao = order[a.category] != null ? order[a.category] : 9, bo = order[b.category] != null ? order[b.category] : 9;
+      if (ao !== bo) return ao - bo;
+      return (a.sort_order || 0) - (b.sort_order || 0);
+    });
+    var counts = {}, map = {};
+    sorted.forEach(function (p) {
+      counts[p.category] = (counts[p.category] || 0) + 1;
+      map[p.slug || p.id] = counts[p.category];
+    });
+    return map;
+  }
+
   function renderPosts() {
     var body = $("#posts-table tbody");
     if (!body) return;
     var q = ($("#posts-q").value || "").trim().toLowerCase();
     var cat = $("#posts-cat").value, st = $("#posts-state").value;
+    var noMap = postNoMap();
     var rows = CMS.posts.slice().sort(function (a, b) {
       var order = { "소개": 0, "뉴스": 1, "인터뷰": 2, "정보": 3 };
       var ao = order[a.category] != null ? order[a.category] : 9, bo = order[b.category] != null ? order[b.category] : 9;
@@ -708,12 +726,14 @@
     var tag = $("#posts-count");
     if (tag) tag.textContent = rows.length === CMS.posts.length ? "전체 " + CMS.posts.length + "건" : rows.length + " / " + CMS.posts.length + "건";
     if (!rows.length) {
-      body.innerHTML = '<tr class="empty-row"><td colspan="8">' + (CMS.posts.length ? "조건에 맞는 글이 없습니다." : "아직 글이 없습니다. ‘새 글 쓰기’로 시작해 보세요.") + "</td></tr>";
+      body.innerHTML = '<tr class="empty-row"><td colspan="9">' + (CMS.posts.length ? "조건에 맞는 글이 없습니다." : "아직 글이 없습니다. ‘새 글 쓰기’로 시작해 보세요.") + "</td></tr>";
       return;
     }
     body.innerHTML = rows.map(function (p) {
       var n = CMS.commentCounts[p.slug] || 0;
+      var no = noMap[p.slug || p.id];
       return "<tr>" +
+        '<td class="num" data-th="No."><span class="post-no">No. ' + (no || "–") + "</span></td>" +
         '<td data-th="상태"><span class="badge ' + (p.is_published ? "b-ok" : "b-off") + '">' + (p.is_published ? "발행" : "숨김") + "</span></td>" +
         '<td data-th="분류">' + esc(p.category) + "</td>" +
         '<td class="ellip" data-th="제목" title="' + esc(p.title) + '">' + esc(p.title) + (p.image_url ? ' <span class="cms-img-dot" title="이미지 있음">IMG</span>' : "") + "</td>" +
@@ -978,6 +998,69 @@
     if (saveBtn) saveBtn.addEventListener("click", savePages);
     var reload = $("#pages-reload");
     if (reload) reload.addEventListener("click", function () { CMS.loaded.pages = false; loadPages(); });
+
+    /* --- 헤더 · 푸터 · Head --- */
+    var brandSave = $("#brand-save");
+    if (brandSave) brandSave.addEventListener("click", saveBrand);
+    var brandReload = $("#brand-reload");
+    if (brandReload) brandReload.addEventListener("click", function () { CMS.loaded.brand = false; loadBrand(); });
+    var logoFile = $("#logo-file");
+    if (logoFile) logoFile.addEventListener("change", function () {
+      var f = logoFile.files && logoFile.files[0];
+      if (!f) return;
+      $("#logo-msg").textContent = "올리는 중…";
+      uploadSiteImage(f, "header/logo").then(function (url) {
+        $("#logo-url").value = url;
+        paintLogo(url);
+        $("#logo-msg").textContent = "업로드 완료 — ‘변경 저장’을 누르면 사이트에 반영됩니다.";
+      }).catch(function (e) { $("#logo-msg").textContent = "업로드 실패: " + (e.message || "알 수 없는 오류"); });
+    });
+    var logoUrl = $("#logo-url");
+    if (logoUrl) logoUrl.addEventListener("input", function () { paintLogo(logoUrl.value.trim()); });
+    var logoClear = $("#logo-clear");
+    if (logoClear) logoClear.addEventListener("click", function () {
+      $("#logo-url").value = "";
+      paintLogo("");
+      $("#logo-msg").textContent = "기본 마크로 돌아갑니다 — ‘변경 저장’을 눌러 주세요.";
+    });
+    var headTa = $("#head-html");
+    if (headTa) headTa.addEventListener("input", paintHeadCount);
+    var menuAdd = $("#menu-add");
+    if (menuAdd) menuAdd.addEventListener("click", function () {
+      syncMenuModel();
+      if (!CMS.brand) return;
+      CMS.brand.menu.push({ label: "", target: "home", note: "", visible: true });
+      renderMenuRows();
+      var rows = document.querySelectorAll("#menu-rows .menu-row");
+      var last = rows[rows.length - 1];
+      var inp = last && last.querySelector('[data-f="label"]');
+      if (inp) inp.focus();
+    });
+    var menuReset = $("#menu-reset");
+    if (menuReset) menuReset.addEventListener("click", function () {
+      if (!CMS.brand) return;
+      if (!window.confirm("헤더 메뉴를 기본 7개 메뉴로 되돌릴까요? ‘변경 저장’을 눌러야 사이트에 반영됩니다.")) return;
+      CMS.brand.menu = DEFAULT_MENU.map(normMenu);
+      renderMenuRows();
+    });
+    var mrows = $("#menu-rows");
+    if (mrows) mrows.addEventListener("click", function (e) {
+      var btn = e.target.closest("button[data-move],button[data-del]");
+      if (!btn) return;
+      syncMenuModel();
+      var row = btn.closest(".menu-row");
+      var i = row ? +row.getAttribute("data-i") : -1;
+      if (i < 0 || !CMS.brand) return;
+      var list = CMS.brand.menu;
+      if (btn.hasAttribute("data-del")) list.splice(i, 1);
+      else {
+        var j = i + (+btn.getAttribute("data-move"));
+        if (j < 0 || j >= list.length) return;
+        var tmp = list[i]; list[i] = list[j]; list[j] = tmp;
+      }
+      renderMenuRows();
+    });
+
     var pq = $("#posts-q");
     if (pq) pq.addEventListener("input", renderPosts);
     ["#posts-cat", "#posts-state"].forEach(function (sel) {
@@ -1030,6 +1113,220 @@
         if (el && n != null) el.textContent = n ? String(n) : "";
       });
     }
+  }
+
+  /* ---------------- 4. 헤더 · 푸터 · Head ---------------- */
+  var BRAND_SECTION = "헤더 · 푸터 · Head";
+  var VIEW_TARGETS = ["home", "workshops", "news", "interview", "archive", "info", "map"];
+  var DEFAULT_MENU = [
+    { label: "홈", target: "home", visible: true, note: "" },
+    { label: "공방 소개", target: "workshops", visible: true, note: "" },
+    { label: "공방 뉴스", target: "news", visible: true, note: "" },
+    { label: "작가 인터뷰", target: "interview", visible: true, note: "" },
+    { label: "아카이브", target: "archive", visible: true, note: "2024–2026" },
+    { label: "지원·공모", target: "info", visible: true, note: "" },
+    { label: "지도·게시판", target: "map", visible: true, note: "" }
+  ];
+  var BRAND_FIELDS = [
+    ["footer_company_name", "푸터 · 회사명", "#ft-company"],
+    ["footer_ceo", "푸터 · 대표자", "#ft-ceo"],
+    ["footer_biz_no", "푸터 · 사업자등록번호", "#ft-biz"],
+    ["footer_address", "푸터 · 주소", "#ft-address"],
+    ["footer_email", "푸터 · 이메일", "#ft-email"],
+    ["footer_phone", "푸터 · 전화번호", "#ft-phone"],
+    ["footer_copyright", "푸터 · 저작권 문구", "#ft-copy"],
+    ["footer_sns_instagram", "SNS · 인스타그램 주소", "#sns-instagram"],
+    ["footer_sns_youtube", "SNS · 유튜브 주소", "#sns-youtube"],
+    ["footer_sns_blog", "SNS · 블로그 주소", "#sns-blog"],
+    ["footer_sns_facebook", "SNS · 페이스북 주소", "#sns-facebook"],
+    ["footer_sns_x", "SNS · X(트위터) 주소", "#sns-x"]
+  ];
+  var BRAND_KEYS = ["header_logo_url", "header_brand_text", "header_menu_items", "custom_head_html"].concat(
+    BRAND_FIELDS.map(function (f) { return f[0]; }));
+
+  function normMenu(it) {
+    return {
+      label: String((it && it.label) || ""),
+      target: String((it && it.target) || ""),
+      note: String((it && it.note) || ""),
+      visible: !(it && it.visible === false)
+    };
+  }
+  function parseMenu(raw) {
+    if (raw) {
+      try {
+        var a = JSON.parse(raw);
+        if (Array.isArray(a) && a.length) return a.map(normMenu);
+      } catch (e) { /* 잘못된 JSON 은 기본값으로 */ }
+    }
+    return DEFAULT_MENU.map(normMenu);
+  }
+
+  function paintLogo(url) {
+    var box = $("#logo-prev");
+    if (!box) return;
+    box.innerHTML = url
+      ? '<img src="' + esc(url) + '" alt="로고 미리보기">'
+      : '<span>기본 마크</span>';
+  }
+
+  function paintHeadCount() {
+    var el = $("#head-count");
+    var ta = $("#head-html");
+    if (!el || !ta) return;
+    var n = (ta.value || "").length;
+    el.textContent = n ? n.toLocaleString("ko-KR") + "자 · 저장하면 사이트 <head> 에 들어갑니다." : "비어 있으면 아무것도 넣지 않습니다.";
+  }
+
+  function loadBrand() {
+    if (!sb) return Promise.resolve();
+    cmsMsg("brand-msg", "불러오는 중…");
+    return sb.from("site_contents").select("key,value,image_url").in("key", BRAND_KEYS)
+      .then(function (res) {
+        if (res.error) { cmsMsg("brand-msg", "불러오지 못했습니다: " + res.error.message, "err"); return; }
+        var map = {};
+        (res.data || []).forEach(function (r) { map[r.key] = r; });
+        var brandRow = map["header_brand_text"];
+        var lines = String((brandRow && brandRow.value) || "").replace(/\r/g, "").split("\n");
+        var fields = {};
+        BRAND_FIELDS.forEach(function (f) { fields[f[0]] = (map[f[0]] && map[f[0]].value) || ""; });
+        CMS.brand = {
+          logo: (map["header_logo_url"] && map["header_logo_url"].image_url) || "",
+          name: (lines[0] || "").trim(),
+          sub: (lines[1] || "").trim(),
+          menu: parseMenu(map["header_menu_items"] && map["header_menu_items"].value),
+          head: (map["custom_head_html"] && map["custom_head_html"].value) || "",
+          fields: fields
+        };
+        CMS.loaded.brand = true;
+        renderBrand();
+        cmsMsg("brand-msg", "");
+        var note = $("#brand-note");
+        if (note) note.innerHTML = "Supabase <code>site_contents</code> · 헤더·푸터·head " + BRAND_KEYS.length + "개 항목 · 공개 읽기 / 관리자만 수정";
+        var stamp = $("#brand-stamp");
+        if (stamp) stamp.textContent = "불러옴 " + new Date().toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit" });
+      });
+  }
+
+  function renderBrand() {
+    var B = CMS.brand;
+    if (!B) return;
+    var url = $("#logo-url");
+    if (url) url.value = B.logo || "";
+    paintLogo(B.logo || "");
+    var nm = $("#brand-name"); if (nm) nm.value = B.name || "";
+    var sub = $("#brand-sub"); if (sub) sub.value = B.sub || "";
+    BRAND_FIELDS.forEach(function (f) {
+      var n = $(f[2]);
+      if (n) n.value = (B.fields && B.fields[f[0]]) || "";
+    });
+    var head = $("#head-html");
+    if (head) head.value = B.head || "";
+    paintHeadCount();
+    renderMenuRows();
+  }
+
+  function renderMenuRows() {
+    var box = $("#menu-rows");
+    if (!box || !CMS.brand) return;
+    var list = CMS.brand.menu || [];
+    if (!list.length) {
+      box.innerHTML = '<p class="cms-hint">메뉴가 없습니다. ‘+ 메뉴 추가’로 추가하세요.</p>';
+      return;
+    }
+    box.innerHTML = list.map(function (it, i) {
+      return '<div class="menu-row" data-i="' + i + '">' +
+        '<span class="menu-idx" aria-hidden="true">' + (i + 1) + "</span>" +
+        '<input class="admin-input menu-label" data-f="label" value="' + esc(it.label) + '" placeholder="메뉴 이름" aria-label="' + (i + 1) + '번째 메뉴 이름" maxlength="20">' +
+        '<input class="admin-input menu-target" data-f="target" value="' + esc(it.target) + '" placeholder="home 또는 https://" aria-label="' + (i + 1) + '번째 메뉴 연결 대상" maxlength="200">' +
+        '<input class="admin-input menu-note" data-f="note" value="' + esc(it.note) + '" placeholder="작은 표기(선택)" aria-label="' + (i + 1) + '번째 메뉴 작은 표기" maxlength="20">' +
+        '<label class="menu-vis"><input type="checkbox" data-f="visible"' + (it.visible !== false ? " checked" : "") + '><span>표시</span></label>' +
+        '<span class="menu-btns">' +
+          '<button type="button" class="mini" data-move="-1" aria-label="' + (i + 1) + '번째 메뉴 위로"' + (i === 0 ? " disabled" : "") + ">↑</button>" +
+          '<button type="button" class="mini" data-move="1" aria-label="' + (i + 1) + '번째 메뉴 아래로"' + (i === list.length - 1 ? " disabled" : "") + ">↓</button>" +
+          '<button type="button" class="mini menu-del" data-del="1" aria-label="' + (i + 1) + '번째 메뉴 삭제">삭제</button>' +
+        "</span></div>";
+    }).join("");
+  }
+
+  /* 화면의 메뉴 줄을 모델에 반영합니다(검증 없이). */
+  function syncMenuModel() {
+    if (!CMS.brand) return;
+    var rows = [].slice.call(document.querySelectorAll("#menu-rows .menu-row"));
+    if (!rows.length) return;
+    CMS.brand.menu = rows.map(function (row) {
+      return {
+        label: (row.querySelector('[data-f="label"]').value || "").trim(),
+        target: (row.querySelector('[data-f="target"]').value || "").trim(),
+        note: (row.querySelector('[data-f="note"]').value || "").trim(),
+        visible: !!row.querySelector('[data-f="visible"]').checked
+      };
+    });
+  }
+
+  /* 화면에 입력된 값을 그대로 읽어 저장용 객체를 만듭니다. */
+  function collectBrand() {
+    var B = CMS.brand || {};
+    var name = ($("#brand-name").value || "").trim();
+    var sub = ($("#brand-sub").value || "").trim();
+    var logo = ($("#logo-url").value || "").trim();
+    var head = $("#head-html").value || "";
+    var fields = {};
+    BRAND_FIELDS.forEach(function (f) {
+      var n = $(f[2]);
+      fields[f[0]] = n ? (n.value || "").trim() : ((B.fields && B.fields[f[0]]) || "");
+    });
+    var menu = [];
+    var rows = [].slice.call(document.querySelectorAll("#menu-rows .menu-row"));
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      var label = (row.querySelector('[data-f="label"]').value || "").trim();
+      var target = (row.querySelector('[data-f="target"]').value || "").trim();
+      var note = (row.querySelector('[data-f="note"]').value || "").trim();
+      var visible = !!row.querySelector('[data-f="visible"]').checked;
+      if (!label && !target) continue;                       // 빈 줄은 무시
+      if (!label) return { error: (i + 1) + "번째 줄에 메뉴 이름이 없습니다." };
+      if (!target) target = "home";
+      var isUrl = /^(https?:)?\/\//i.test(target) || /^mailto:/i.test(target);
+      var view = target.replace(/^#\/?/, "").replace(/\/$/, "");
+      if (!isUrl && VIEW_TARGETS.indexOf(view) < 0) {
+        return { error: "‘" + label + "’ 의 연결 대상 \"" + target + "\" 을(를) 알 수 없습니다. " + VIEW_TARGETS.join(" · ") + " 또는 https:// 주소를 넣어 주세요." };
+      }
+      if (isUrl && target.indexOf("//") === 0) target = "https:" + target;
+      menu.push({ label: label, target: isUrl ? target : view, note: note, visible: visible });
+    }
+    if (!menu.length) return { error: "메뉴를 최소 한 개는 남겨 주세요." };
+    return { name: name, sub: sub, logo: logo, head: head, fields: fields, menu: menu };
+  }
+
+  function saveBrand() {
+    if (!sb) return;
+    var B = collectBrand();
+    if (B.error) { cmsMsg("brand-msg", B.error, "err"); return; }
+    var brandText = [B.name, B.sub].filter(function (s) { return s !== ""; }).join("\n");
+    var rows = [
+      { key: "header_logo_url", section: BRAND_SECTION, label: "헤더 로고 이미지 (비우면 기본 마크)", value: "", image_url: B.logo || null },
+      { key: "header_brand_text", section: BRAND_SECTION, label: "헤더 브랜드 문구 (첫 줄 이름 / 둘째 줄 작은 글씨)", value: brandText, image_url: null },
+      { key: "header_menu_items", section: BRAND_SECTION, label: "헤더 메뉴 (관리자 화면에서 편집)", value: JSON.stringify(B.menu), image_url: null },
+      { key: "custom_head_html", section: BRAND_SECTION, label: "<head>에 넣을 코드 (meta · link · script · style)", value: B.head, image_url: null }
+    ];
+    BRAND_FIELDS.forEach(function (f) {
+      rows.push({ key: f[0], section: BRAND_SECTION, label: f[1], value: B.fields[f[0]] || "", image_url: null });
+    });
+    cmsMsg("brand-msg", "저장하는 중…");
+    Promise.all(rows.map(function (r) {
+      return sb.from("site_contents").upsert(r, { onConflict: "key" }).then(function (res) {
+        if (res.error) throw new Error(r.key + ": " + res.error.message);
+        return true;
+      });
+    })).then(function () {
+      CMS.brand = { logo: B.logo, name: B.name, sub: B.sub, menu: B.menu, head: B.head, fields: B.fields };
+      cmsMsg("brand-msg", rows.length + "개 항목을 저장했습니다. 사이트를 새로 열면 반영됩니다.", "ok");
+      var stamp = $("#brand-stamp");
+      if (stamp) stamp.textContent = "저장 " + new Date().toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit" });
+    }).catch(function (e) {
+      cmsMsg("brand-msg", "저장 실패: " + (e.message || "권한을 확인해 주세요."), "err");
+    });
   }
 
   /* ---------------- 시작 ---------------- */
