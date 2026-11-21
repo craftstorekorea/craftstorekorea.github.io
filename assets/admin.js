@@ -842,6 +842,20 @@
       if (!groups[p.section]) { groups[p.section] = []; order.push(p.section); }
       groups[p.section].push(p);
     });
+    // 그룹 안에서는 화면에서 다루기 쉬운 순서로 놓습니다.
+    var keyOrder = {
+      seo_title: 0, seo_description: 1, seo_og_image: 2, seo_favicon_url: 3, theme_accent_color: 4,
+      "notice.text": 0, "notice.link_label": 1, "notice.link_url": 2,
+      banner_enabled: 3, banner_start_at: 4, banner_end_at: 5,
+      popup_enabled: 0, popup_title: 1, popup_body: 2, popup_image_url: 3, popup_link: 4, popup_link_label: 5,
+      popup_start_at: 6, popup_end_at: 7
+    };
+    order.forEach(function (sec) {
+      groups[sec].sort(function (a, b) {
+        var ao = keyOrder[a.key] != null ? keyOrder[a.key] : 99, bo = keyOrder[b.key] != null ? keyOrder[b.key] : 99;
+        return ao - bo;
+      });
+    });
     order.sort(function (a, b) {
       var ao = secOrder[a] != null ? secOrder[a] : 9, bo = secOrder[b] != null ? secOrder[b] : 9;
       return ao - bo || a.localeCompare(b, "ko");
