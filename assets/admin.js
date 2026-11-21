@@ -140,6 +140,7 @@
     sb.auth.signInWithPassword({ email: email, password: pass }).then(function (r) {
       b.disabled = false; b.textContent = "로그인";
       if (r.error) { gateMsg("로그인 실패: " + r.error.message, ""); return; }
+      var pw = $("#pw-pass"); if (pw) pw.value = "";   // 비밀번호는 화면에 남기지 않습니다
       gateMsg("로그인했습니다. 권한을 확인합니다…", "ok");
       boot(true);
     });
