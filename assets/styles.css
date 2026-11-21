@@ -1475,3 +1475,14 @@ body[data-theme="craft"] .hm-prov{fill:#F1E0CB}
   .hm-post-img{margin:-18px -18px 0}
   .hm-map-copy .btn{width:100%;justify-content:center}
 }
+
+/* ---------- SBPress 플러그인 위젯 존 (assets/plugins.js) ----------
+   켜진 플러그인이 홈·게시판·푸터의 이름 붙은 자리에 위젯을 넣습니다.
+   위젯이 없으면 자리도 차지하지 않습니다(hidden). */
+.sbp-zone{max-width:var(--wrap);margin:0 auto;padding:0}
+.sbp-zone[hidden]{display:none}
+.sbp-zone.has-widget{display:block}
+.sbp-zone-board{margin-bottom:8px}
+.sbp-zone-footer{margin-bottom:34px}
+.sbp-widget{display:block}
+.tab-sbp{text-decoration:none}

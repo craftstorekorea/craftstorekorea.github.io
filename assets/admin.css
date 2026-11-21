@@ -586,3 +586,55 @@ tr.is-hidden td{opacity:.62}
   .hm-img-row .mini{justify-self:start}
   .rev-item{padding:10px}
 }
+
+/* ---------- 플러그인 · 마켓 (public.plugins) ---------- */
+.plug-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px;margin:14px 0 4px}
+.plug-form .plug-wide{grid-column:1/-1}
+.plug-market-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 4px}
+.plug-market-bar .admin-input{flex:1 1 320px;min-width:220px}
+.plug-market{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;margin-top:14px}
+.plug-card{
+  display:flex;flex-direction:column;gap:6px;padding:16px 18px;border:1px solid var(--line);
+  border-radius:14px;background:#fff;box-shadow:var(--shadow-s);
+}
+.plug-card h3{margin:0;font-size:.95rem;letter-spacing:-.02em;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.plug-card .plug-desc{margin:0;font-size:.8rem;line-height:1.6;color:var(--ink-3);min-height:2.5em}
+.plug-card .plug-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:.72rem;color:var(--ink-3)}
+.plug-card .plug-meta .plug-tag{padding:2px 8px;border-radius:999px;background:var(--bg-2);color:var(--ink-2);font-weight:700}
+.plug-card .plug-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.plug-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font:800 .68rem/1.5 'Nanum Gothic',sans-serif;letter-spacing:.02em}
+.plug-badge.b-builtin{background:#EAF2E6;color:#4E6B42}
+.plug-badge.b-market{background:#F8E9E0;color:#A8542F}
+.plug-badge.b-custom{background:#E9EDF6;color:#42527A}
+.plug-badge.b-on{background:#EAF2E6;color:#3F6B36}
+.plug-badge.b-off{background:#F2EEEA;color:#8A7A6D}
+.plug-switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+.plug-switch input{position:absolute;opacity:0;width:1px;height:1px}
+.plug-switch .plug-slider{
+  position:relative;width:42px;height:24px;border-radius:999px;background:#D9CEC4;transition:background .16s ease;flex:none;
+}
+.plug-switch .plug-slider::after{
+  content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.18);transition:transform .16s ease;
+}
+.plug-switch input:checked + .plug-slider{background:#7C8B6F}
+.plug-switch input:checked + .plug-slider::after{transform:translateX(18px)}
+.plug-switch input:focus-visible + .plug-slider{outline:2px solid var(--accent);outline-offset:2px}
+.plug-switch em{font-style:normal;font-size:.76rem;font-weight:700;color:var(--ink-2)}
+.plug-src{font-size:.74rem;color:var(--ink-3);max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle}
+.plug-empty{padding:18px;color:var(--ink-3);font-size:.85rem}
+@media (max-width:720px){
+  .plug-form{grid-template-columns:1fr}
+  .plug-market{grid-template-columns:1fr}
+}
+
+/* 모바일: 플러그인 표를 읽기 좋은 카드로 (이름·설명은 전체 폭, 긴 주소는 숨김) */
+@media (max-width:720px){
+  #plugin-table td.plug-main{display:block;padding-top:2px}
+  #plugin-table td.plug-main::before{display:none}
+  #plugin-table td.plug-main .plug-id{display:block;font-size:.74rem;margin-top:2px}
+  #plugin-table td.plug-main .plug-sub{display:block;font-size:.76rem;line-height:1.5;margin-top:2px}
+  #plugin-table td.plug-act::before{display:none}
+  #plugin-table td[data-th="JS 주소"],#plugin-table td[data-th="설치일"]{display:none}
+  #plugin-table td[data-th="버전"]::before,#plugin-table td[data-th="출처"]::before{width:40px}
+}

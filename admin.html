@@ -85,6 +85,7 @@
       <button class="admin-tab" role="tab" type="button" data-tab="tasks" aria-selected="false">업무 관리 <span class="tab-n" id="tab-task-count"></span></button>
       <button class="admin-tab" role="tab" type="button" data-tab="media" aria-selected="false">미디어 라이브러리</button>
       <button class="admin-tab" role="tab" type="button" data-tab="comments" aria-selected="false">댓글 관리 <span class="tab-n" id="tab-cmt-count"></span></button>
+      <button class="admin-tab" role="tab" type="button" data-tab="plugins" aria-selected="false">플러그인 · 마켓</button>
     </nav>
 
     <div class="tabpanel" id="tab-dash" role="tabpanel">
@@ -497,6 +498,69 @@
         </table>
       </div>
     </div>
+
+    <!-- ============ 플러그인 · 마켓 ============ -->
+    <div class="tabpanel" id="tab-plugins" role="tabpanel" hidden>
+      <div class="dash-head">
+        <div>
+          <h1>플러그인 · 마켓</h1>
+          <p class="dash-sub">사이트·관리자에 기능을 더하는 브라우저 JS 플러그인을 설치하고 켜고 끕니다. 켜진 플러그인만 방문자의 브라우저에 내려갑니다.</p>
+        </div>
+        <div class="dash-actions">
+          <span class="dash-stamp" id="plugins-stamp"></span>
+          <button type="button" class="btn btn-ghost btn-sm" id="plugins-reload">새로고침</button>
+        </div>
+      </div>
+      <p class="panel-note" id="plugins-note">Supabase <code>plugins</code> · 공개(anon)는 <b>켜진 플러그인만</b> 읽습니다(RLS)</p>
+      <p class="cms-toast" id="plugins-msg" role="status" aria-live="polite"></p>
+
+      <section class="cms-group mgr-group">
+        <div class="mgr-head">
+          <div>
+            <h2>설치된 플러그인</h2>
+            <p class="cms-hint">토글을 끄면 사이트에서 빠집니다(방문자가 새로고침할 때). <b>기본</b>은 사이트에 함께 배포되는 플러그인, <b>마켓</b>은 마켓 목록에서 설치, <b>직접</b>은 외부 URL로 설치한 플러그인입니다.</p>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="admin-table" id="plugin-table">
+            <thead><tr><th>상태</th><th>플러그인</th><th>버전</th><th>출처</th><th>JS 주소</th><th>설치일</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="cms-group">
+        <h2>외부 GitHub URL로 직접 설치</h2>
+        <p class="cms-hint">GitHub raw·jsDelivr·unpkg 등에 올라온 SBPress 플러그인 JS 주소를 그대로 넣어 설치합니다. 그 파일이 <code>SBPress.registerPlugin({...})</code> 을 호출해야 동작하고, 오류가 나도 사이트의 다른 기능은 멈추지 않습니다.</p>
+        <div class="plug-form">
+          <label class="cms-field"><span>ID *</span><input id="plug-id" maxlength="60" placeholder="my-plugin" spellcheck="false"></label>
+          <label class="cms-field"><span>이름 *</span><input id="plug-name" maxlength="80" placeholder="내 플러그인"></label>
+          <label class="cms-field plug-wide"><span>JS URL *</span><input id="plug-url" type="url" maxlength="500" placeholder="https://raw.githubusercontent.com/.../plugin.js" spellcheck="false"></label>
+          <label class="cms-field plug-wide"><span>설명 <em>선택</em></span><input id="plug-desc" maxlength="200" placeholder="무엇을 하는 플러그인인지"></label>
+        </div>
+        <div class="mgr-actions">
+          <button type="button" class="btn btn-ghost btn-sm" id="plug-test">주소 확인</button>
+          <button type="button" class="btn btn-primary btn-sm" id="plug-install">설치하고 켜기</button>
+        </div>
+        <p class="cms-hint" id="plug-form-msg"></p>
+      </section>
+
+      <section class="cms-group">
+        <div class="mgr-head">
+          <div>
+            <h2>플러그인 마켓</h2>
+            <p class="cms-hint">아래 주소에서 <code>plugins.json</code> 목록을 불러옵니다. GitHub raw 주소를 넣으면 그 저장소가 곧 마켓이 됩니다.</p>
+          </div>
+        </div>
+        <div class="plug-market-bar">
+          <input id="plug-market-url" class="admin-input" placeholder="/plugins-market.json 또는 https://raw.githubusercontent.com/.../plugins.json" spellcheck="false">
+          <button type="button" class="btn btn-ghost btn-sm" id="plug-market-save">주소 저장</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="plug-market-reload">목록 새로고침</button>
+        </div>
+        <p class="cms-hint" id="plug-market-msg"></p>
+        <div class="plug-market" id="plug-market"></div>
+      </section>
+    </div>
   </section>
 
   <!-- ============ 글 편집기 ============ -->
@@ -682,5 +746,6 @@
 <script src="/assets/archive.js"></script>
 <script src="/assets/hunmin.js"></script>
 <script src="/assets/admin.js"></script>
+<script src="/assets/plugins.js"></script>
 </body>
 </html>

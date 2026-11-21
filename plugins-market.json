@@ -1,0 +1,48 @@
+{
+  "name": "전국공방 플러그인 마켓",
+  "description": "SBPress 사이트·관리자에 기능을 더하는 브라우저 JS 플러그인 목록입니다. 관리자 > 플러그인 · 마켓에서 한 번에 설치하고 켜고 끌 수 있습니다.",
+  "homepage": "https://craftstorekorea.github.io/",
+  "updated": "2026-11-21",
+  "plugins": [
+    {
+      "id": "reading-time",
+      "name": "읽기 시간 배지",
+      "version": "1.0.0",
+      "description": "글·공방 카드에「약 N분 · N자」배지를 붙여, 긴 글을 고르기 쉽게 합니다.",
+      "author": "전국공방",
+      "script_url": "/assets/plugins/reading-time.js",
+      "source": "builtin",
+      "tags": ["카드 꾸미기", "읽기"]
+    },
+    {
+      "id": "scroll-top",
+      "name": "맨 위로 버튼",
+      "version": "1.0.0",
+      "description": "오른쪽 아래에 '맨 위로' 버튼을 띄웁니다. 400px 이상 스크롤하면 나타납니다.",
+      "author": "전국공방",
+      "script_url": "/assets/plugins/scroll-top.js",
+      "source": "builtin",
+      "tags": ["위젯", "내비게이션"]
+    },
+    {
+      "id": "workshop-spotlight",
+      "name": "추천 공방 스포트라이트",
+      "version": "1.0.0",
+      "description": "홈 맨 위에 이번 주 추천 공방과 마감 임박 공모·체험을 모은 배너를 보여 줍니다.",
+      "author": "전국공방",
+      "script_url": "/assets/plugins/workshop-spotlight.js",
+      "source": "builtin",
+      "tags": ["위젯", "홈"]
+    },
+    {
+      "id": "admin-json-export",
+      "name": "데이터 내보내기",
+      "version": "1.0.0",
+      "description": "관리자 화면에 게시글·페이지를 JSON으로 내려받는 탭을 추가합니다.",
+      "author": "전국공방",
+      "script_url": "/assets/plugins/admin-json-export.js",
+      "source": "builtin",
+      "tags": ["관리자", "백업"]
+    }
+  ]
+}

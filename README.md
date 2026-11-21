@@ -47,6 +47,9 @@ assets/cms.js             Supabase 문구·글 불러오기, 댓글 버튼·드�
 assets/i18n.js            한국어/영어 사전과 KO|EN 스위치 (localStorage 'craft-lang')
 assets/tasks.js           업무 관리 화면 (#/tasks) — 로그인·등급 게이트, 보드 CRUD
 assets/hunmin.js          hunmin 블록 — 사이트 렌더(최신글·지도·폼·갤러리·텍스트) + 관리자 편집기
+assets/plugins.js         SBPress 플러그인 엔진 — 켜진 플러그인을 불러와 메뉴·카드·위젯·관리자 탭 훅을 겁니다
+assets/plugins/*.js       기본 플러그인 4종 (읽기 시간 배지·맨 위로·추천 공방·데이터 내보내기)
+plugins-market.json       플러그인 마켓 목록 (관리자에서 GitHub raw 주소로 바꿀 수 있습니다)
 sitemap.xml | rss.xml     검색엔진·구독용 피드 (../build_feeds.py 가 Supabase 공개 데이터로 생성)
 ```
 
@@ -99,8 +102,20 @@ sitemap.xml | rss.xml     검색엔진·구독용 피드 (../build_feeds.py 가 
 - 모든 글·공방 카드에 `💬 댓글` 버튼이 붙습니다. 읽기는 누구나, 쓰기·본인 삭제는 로그인 회원(또는 캡차를 통과한 비회원),
   숨김·삭제 관리는 관리자 — 판단은 전부 Supabase RLS와 RPC가 합니다.
 - 설정·검증 기록: `../supabase/07_cms.md` · `../supabase/08_grades_lang_tasks.md` · `../supabase/08_sbpress.md`, DB 파일 `../supabase/03_cms_comments.sql` · `../supabase/04_header_footer_head.sql` · `../supabase/05_cms_plus.sql` · `../supabase/06_pages_boards_captcha.sql` · `../supabase/07_grades_lang_tasks.sql` · `../supabase/08_themes_hunmin_trash_revisions.sql`,
-  테스트 `cd .. && CMS_TEST_MODE=user|admin|brand|plus|v2|v3|v3admin|v4 python3 cms_test.py`,
+  테스트 `cd .. && CMS_TEST_MODE=user|admin|brand|plus|v2|v3|v3admin|v4|plugins python3 cms_test.py`,
   서버 검증 `cd ../supabase && SUPABASE_MGMT_TOKEN=… python3 06_check.py` · `python3 07_check.py` · `python3 08_check.py`.
+
+## 플러그인 · 마켓
+
+- `/admin` → **플러그인 · 마켓** 탭에서 브라우저 JS 플러그인을 1클릭으로 설치하고 켜고 끕니다.
+  켜진 플러그인만 방문자의 브라우저에 내려가고, 목록은 Supabase `public.plugins` 에 있습니다.
+- 마켓 목록 주소는 `site_contents.plugins.market_url` (기본 `/plugins-market.json`).
+  GitHub raw 의 `plugins.json` 주소를 넣으면 그 저장소가 곧 마켓이 됩니다.
+- 플러그인이 쓰는 훅: `addMenuItem`(헤더 메뉴) · `decorateCard`(카드) · `addWidget`(위젯 존
+  `home-top`·`home-bottom`·`board-top`·`footer-top`·`floating`) · `addAdminTab`(관리자 탭) · `addCss`.
+  하나가 실패해도 사이트는 멈추지 않고, 실패 내역은 `SBPress.status()` 에 남습니다.
+- 설정·검증 기록: `../supabase/09_plugins_market.md`, DB `../supabase/09_plugins_market.sql`,
+  서버 검증 `cd ../supabase && python3 09_check.py`.
 
 ## 관리자 페이지
 

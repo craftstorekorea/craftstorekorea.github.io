@@ -197,7 +197,7 @@
     var tabs = $("#tabs");
     if (!tabs) return;
     var items = menuItems();
-    if (!items) { syncStaticTabs(); paintSelected(); return; }
+    if (!items) { syncStaticTabs(); paintSelected(); drawPluginMenu(); return; }
     var on = signedIn();
     var html = items.map(function (it) {
       if (it.visible === false) return "";
@@ -208,6 +208,12 @@
     }).join("");
     if (tabs.innerHTML !== html) tabs.innerHTML = html;
     paintSelected();
+    drawPluginMenu();
+  }
+
+  /* 켜진 플러그인이 추가한 메뉴(ctx.addMenuItem)를 헤더 끝에 붙입니다. */
+  function drawPluginMenu() {
+    try { if (window.SBPress && window.SBPress.renderMenu) window.SBPress.renderMenu(); } catch (e) { /* 플러그인 오류는 사이트를 멈추지 않습니다 */ }
   }
 
   /* 메뉴 한 줄의 HTML — 한국어·영어 이름(label_ko · label_en)을 그립니다. */
@@ -360,6 +366,9 @@
   S.workshops.forEach(function (w) {
     var card = el("article", "ws");
     card.dataset.name = w.name;
+    card.setAttribute("data-sbp-card", "");
+    card.setAttribute("data-sbp-type", "workshop");
+    card.__sbpPost = w;
     card.innerHTML =
       '<div class="ws-top"><h3>' + esc(w.name) + "</h3>" +
       '<div class="chips"><span class="chip region">' + esc(w.region) + "</span></div></div>" +
@@ -387,6 +396,9 @@
   /* ---------------- 소개 코너 기사 (data.js 의 intro) ---------------- */
   function newsRow(it, no) {
     var row = el("article", "news-item");
+    row.setAttribute("data-sbp-card", "");
+    row.setAttribute("data-sbp-type", "post");
+    row.__sbpPost = it;
     row.innerHTML =
       '<div class="news-num"><span class="post-no">No. ' + no + "</span></div>" +
       '<div class="news-body"><h3>' + pinBadge(it) + '<a href="' + esc(it.url) + '" target="_blank" rel="noopener">' + esc(it.title) + "</a></h3>" +
@@ -443,6 +455,9 @@
     ivg.innerHTML = "";
     st.rows.forEach(function (it, i) {
       var card = el("article", "iv");
+      card.setAttribute("data-sbp-card", "");
+      card.setAttribute("data-sbp-type", "post");
+      card.__sbpPost = it;
       var who = String(it.person || "·").charAt(0);
       var no = (st.page - 1) * per + i + 1;
       card.innerHTML =
@@ -995,6 +1010,9 @@
     rows.forEach(function (b) {
       var card = el("article", "bcard");
       card.dataset.name = b.name;
+      card.setAttribute("data-sbp-card", "");
+      card.setAttribute("data-sbp-type", "workshop");
+      card.__sbpPost = b;
       var coords = (b.lat && b.lng)
         ? b.lat.toFixed(4) + ", " + b.lng.toFixed(4)
         : "지역 중심 표시";

@@ -91,6 +91,8 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
 
   <!-- ============ HOME ============ -->
   <div class="view" id="view-home" role="tabpanel" aria-labelledby="tab-home">
+    <!-- 플러그인 위젯 존 (home-top) — 켜진 플러그인이 채웁니다 -->
+    <div class="sbp-zone" data-sbp-zone="home-top" hidden></div>
     <section class="hero">
       <div class="hero-media">
         <picture id="hero-picture">
@@ -175,6 +177,9 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
         </div>
       </div>
     </section>
+
+    <!-- 플러그인 위젯 존 (home-bottom) -->
+    <div class="sbp-zone" data-sbp-zone="home-bottom" hidden></div>
   </div>
 
   <!-- ============ WORKSHOPS ============ -->
@@ -317,6 +322,8 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
   <div class="view" id="view-map" role="tabpanel" aria-labelledby="tab-map" hidden>
     <section class="section">
       <div class="wrap">
+        <!-- 플러그인 위젯 존 (board-top) -->
+        <div class="sbp-zone sbp-zone-board" data-sbp-zone="board-top" hidden></div>
         <div class="section-head row">
           <div>
             <p class="eyebrow">전국 공방 지도 · Live Board</p>
@@ -432,6 +439,8 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
 
 <footer class="site-footer">
   <div class="wrap">
+    <!-- 플러그인 위젯 존 (footer-top) -->
+    <div class="sbp-zone sbp-zone-footer" data-sbp-zone="footer-top" hidden></div>
     <div class="foot-grid">
       <div class="foot-brand">
         <a class="logo" href="#/home" data-goto="home">
@@ -502,6 +511,7 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
 <script src="assets/hunmin.js"></script>
 <script src="assets/app.js"></script>
 <script src="assets/tasks.js"></script>
+<script src="assets/plugins.js"></script>
 
 <!-- 댓글 드로어 (assets/cms.js 가 채웁니다) -->
 <div id="cmt-root"></div>

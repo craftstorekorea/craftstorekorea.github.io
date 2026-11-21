@@ -175,6 +175,8 @@
         setWho(session.user.email || "", true);
         show("state-dash");
         loadAll(force);
+        /* /admin#sbp-export 처럼 들어오면 플러그인 탭을 바로 엽니다. */
+        try { if (window.SBPress && window.SBPress.openFromHash) window.SBPress.openFromHash(); } catch (e) { /* noop */ }
       });
     }).catch(function () { renderGate("error"); });
   }
@@ -672,9 +674,9 @@
     [].forEach.call(document.querySelectorAll(".admin-tab"), function (b) {
       b.setAttribute("aria-selected", b.getAttribute("data-tab") === name ? "true" : "false");
     });
-    ["dash", "pages", "brand", "posts", "tasks", "media", "comments"].forEach(function (t) {
-      var p = document.getElementById("tab-" + t);
-      if (p) p.hidden = (t !== name);
+    /* 플러그인이 추가한 탭(.tabpanel-sbp)까지 함께 감춥니다. */
+    [].forEach.call(document.querySelectorAll("#state-dash .tabpanel"), function (p) {
+      p.hidden = p.id !== "tab-" + name;
     });
     if (name === "pages") { if (!CMS.loaded.pages) loadPages(); loadPageManager(); loadFormSubs(); }
     if (name === "brand" && !CMS.loaded.brand) loadBrand();
@@ -683,6 +685,7 @@
     if (name === "tasks") loadTasksAdmin();
     if (name === "media") loadMedia();
     if (name === "comments" && !CMS.loaded.comments) loadComments();
+    if (name === "plugins") loadPlugins();
     try { window.scrollTo({ top: 0, behavior: "auto" }); } catch (e) { /* noop */ }
   }
 
@@ -2258,6 +2261,18 @@
     [].forEach.call(document.querySelectorAll(".admin-tab"), function (b) {
       b.addEventListener("click", function () { activateTab(b.getAttribute("data-tab")); });
     });
+
+    /* --- 플러그인 · 마켓 --- */
+    var plReload = $("#plugins-reload");
+    if (plReload) plReload.addEventListener("click", function () { loadPlugins(); });
+    var plInstall = $("#plug-install");
+    if (plInstall) plInstall.addEventListener("click", installCustom);
+    var plTest = $("#plug-test");
+    if (plTest) plTest.addEventListener("click", testPluginUrl);
+    var plSave = $("#plug-market-save");
+    if (plSave) plSave.addEventListener("click", saveMarketUrl);
+    var plMreload = $("#plug-market-reload");
+    if (plMreload) plMreload.addEventListener("click", loadMarket);
     var saveBtn = $("#pages-save");
     if (saveBtn) saveBtn.addEventListener("click", savePages);
     var reload = $("#pages-reload");
@@ -2901,6 +2916,283 @@
         });
       });
     });
+  }
+
+  /* ---------------- 9. 플러그인 · 마켓 (public.plugins) ---------------- */
+  var PLUG_SRC = { builtin: "기본", market: "마켓", custom: "직접" };
+  var plugRows = [];
+  var plugMarket = { base: "", list: [] };
+  var plugMarketUrl = "/plugins-market.json";
+
+  function plugMsg(text, kind) { cmsMsg("plugins-msg", text, kind); }
+
+  function plugById(id) {
+    for (var i = 0; i < plugRows.length; i++) if (plugRows[i].id === id) return plugRows[i];
+    return null;
+  }
+
+  function loadPlugins(force) {
+    var body = $("#plugin-table tbody");
+    if (!sb || !body) return Promise.resolve();
+    if (force !== false) body.innerHTML = '<tr class="empty-row"><td colspan="7">불러오는 중…</td></tr>';
+    return sb.from("plugins").select("*").order("installed_at", { ascending: true }).then(function (r) {
+      if (r.error) {
+        body.innerHTML = '<tr class="empty-row"><td colspan="7">불러오지 못했습니다: ' + esc(r.error.message) + "</td></tr>";
+        plugMsg("플러그인 목록을 읽지 못했습니다: " + r.error.message, "err");
+        return;
+      }
+      plugRows = r.data || [];
+      renderPlugins();
+      return sb.from("site_contents").select("key,value").eq("key", "plugins.market_url").then(function (r2) {
+        var row = r2 && !r2.error && r2.data && r2.data[0];
+        if (row && row.value) plugMarketUrl = String(row.value);
+        var inp = $("#plug-market-url");
+        if (inp && !inp.value) inp.value = plugMarketUrl;
+        renderPlugins();
+        return loadMarket();
+      });
+    });
+  }
+
+  function renderPlugins() {
+    var body = $("#plugin-table tbody");
+    if (!body) return;
+    var on = plugRows.filter(function (p) { return p.enabled; }).length;
+    var stamp = $("#plugins-stamp");
+    if (stamp) stamp.textContent = "설치 " + plugRows.length + "개 · 켜짐 " + on + "개";
+
+    if (!plugRows.length) {
+      body.innerHTML = '<tr class="empty-row"><td colspan="7">아직 설치된 플러그인이 없습니다. 아래 <b>플러그인 마켓</b>에서 한 번 눌러 설치해 보세요.</td></tr>';
+      renderMarket();
+      return;
+    }
+    body.innerHTML = plugRows.map(function (p) {
+      var src = PLUG_SRC[p.source] || p.source || "마켓";
+      var cls = PLUG_SRC[p.source] ? p.source : "market";
+      return "<tr data-id=\"" + esc(p.id) + "\">" +
+        '<td data-th="상태"><label class="plug-switch"><input type="checkbox" data-plug-toggle="' + esc(p.id) + '"' +
+          (p.enabled ? " checked" : "") + ' aria-label="' + esc(p.name) + ' 켜기"><span class="plug-slider"></span><em>' +
+          (p.enabled ? "켜짐" : "꺼짐") + "</em></label></td>" +
+        '<td data-th="플러그인" class="plug-main"><b>' + esc(p.name) + '</b> <span class="muted plug-id">' + esc(p.id) + "</span>" +
+          (p.description ? '<div class="muted plug-sub">' + esc(p.description) + "</div>" : "") + "</td>" +
+        '<td data-th="버전" class="muted">' + esc(p.version || "1.0.0") + "</td>" +
+        '<td data-th="출처"><span class="plug-badge b-' + cls + '">' + esc(src) + "</span></td>" +
+        '<td data-th="JS 주소"><span class="plug-src" title="' + esc(p.script_url) + '">' + esc(p.script_url) + "</span></td>" +
+        '<td data-th="설치일" class="muted">' + esc(fmtDate(p.installed_at)) + "</td>" +
+        '<td class="plug-act"><button type="button" class="rowlink plug-del" data-id="' + esc(p.id) + '">삭제</button></td>' +
+        "</tr>";
+    }).join("");
+
+    [].forEach.call(body.querySelectorAll("[data-plug-toggle]"), function (cb) {
+      cb.addEventListener("change", function () {
+        setPluginEnabled(cb.getAttribute("data-plug-toggle"), cb.checked, cb);
+      });
+    });
+    [].forEach.call(body.querySelectorAll(".plug-del"), function (b) {
+      b.addEventListener("click", function () { deletePlugin(b.getAttribute("data-id")); });
+    });
+    renderMarket();
+  }
+
+  function setPluginEnabled(id, on, cb) {
+    if (!sb) return;
+    var label = cb ? cb.parentNode.querySelector("em") : null;
+    sb.from("plugins").update({ enabled: !!on }).eq("id", id).then(function (r) {
+      if (r.error) {
+        if (cb) cb.checked = !on;
+        plugMsg("바꾸지 못했습니다: " + r.error.message, "err");
+        return;
+      }
+      var p = plugById(id);
+      if (p) p.enabled = !!on;
+      if (label) label.textContent = on ? "켜짐" : "꺼짐";
+      /* 켠 플러그인은 이 관리자 화면에도 바로 불러와 탭·위젯을 붙입니다(끄기는 새로고침 후 반영). */
+      if (on) reloadEngine();
+      plugMsg("‘" + (p ? p.name : id) + "’를 " + (on ? "켰습니다" : "껐습니다") + ". 사이트를 새로고침하면 반영됩니다.", "ok");
+      var stampOn = plugRows.filter(function (x) { return x.enabled; }).length;
+      var stamp = $("#plugins-stamp");
+      if (stamp) stamp.textContent = "설치 " + plugRows.length + "개 · 켜짐 " + stampOn + "개";
+      renderMarket();
+    });
+  }
+
+  /* 플러그인 엔진에 새 설치를 알려, 관리자 화면에도 탭·위젯이 바로 붙게 합니다. */
+  function reloadEngine() {
+    try { if (window.SBPress && window.SBPress.load) window.SBPress.load(true); } catch (e) { /* noop */ }
+  }
+
+  function deletePlugin(id) {
+    var p = plugById(id);
+    if (!window.confirm("‘" + (p ? p.name : id) + "’ 플러그인을 제거할까요?\n사이트에서도 바로 빠집니다.")) return;
+    sb.from("plugins").delete().eq("id", id).then(function (r) {
+      if (r.error) { plugMsg("제거하지 못했습니다: " + r.error.message, "err"); return; }
+      plugRows = plugRows.filter(function (x) { return x.id !== id; });
+      renderPlugins();
+      plugMsg("‘" + (p ? p.name : id) + "’ 플러그인을 제거했습니다.", "ok");
+    });
+  }
+
+  /* 플러그인 저장 — 없으면 넣고, 같은 ID가 있으면 갱신합니다. */
+  function savePluginRow(payload) {
+    return sb.from("plugins").insert(payload).then(function (r) {
+      if (!r.error) return r;
+      var code = r.error.code || "";
+      var msg = r.error.message || "";
+      if (code === "23505" || /duplicate key|already exists/i.test(msg)) {
+        return sb.from("plugins").update(payload).eq("id", payload.id);
+      }
+      return r;
+    });
+  }
+
+  function installCustom() {
+    var id = ($("#plug-id").value || "").trim().toLowerCase().replace(/[^a-z0-9._-]/g, "-");
+    var name = ($("#plug-name").value || "").trim();
+    var url = ($("#plug-url").value || "").trim();
+    var desc = ($("#plug-desc").value || "").trim();
+    var note = $("#plug-form-msg");
+    if (!id || !name || !url) { if (note) note.textContent = "ID·이름·JS URL 은 꼭 필요합니다."; return; }
+    if (!/^https?:\/\//i.test(url) && url.charAt(0) !== "/") {
+      if (note) note.textContent = "JS URL 은 https:// 주소나 사이트 안 경로(/assets/…)로 넣어 주세요.";
+      return;
+    }
+    if (note) note.textContent = "설치하는 중…";
+    savePluginRow({
+      id: id, name: name, version: "1.0.0", description: desc || null,
+      script_url: url, source: "custom", enabled: true
+    }).then(function (r) {
+      if (r && r.error) {
+        if (note) note.textContent = "설치하지 못했습니다: " + r.error.message;
+        return;
+      }
+      $("#plug-id").value = ""; $("#plug-name").value = ""; $("#plug-url").value = ""; $("#plug-desc").value = "";
+      if (note) note.textContent = "설치하고 켰습니다: " + name + " — 사이트를 새로고침해 확인하세요.";
+      plugMsg("‘" + name + "’ 플러그인을 설치했습니다.", "ok");
+      reloadEngine();
+      loadPlugins(false);
+    });
+  }
+
+  function testPluginUrl() {
+    var url = ($("#plug-url").value || "").trim();
+    var note = $("#plug-form-msg");
+    if (!url) { if (note) note.textContent = "확인할 JS URL 을 먼저 넣어 주세요."; return; }
+    if (note) note.textContent = "주소를 확인하는 중…";
+    fetch(url, { cache: "no-store" }).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.text();
+    }).then(function (t) {
+      var okReg = /registerPlugin\s*\(/.test(t);
+      if (note) note.textContent = okReg
+        ? "플러그인 파일로 보입니다(" + Math.round(t.length / 1024) + "KB, SBPress.registerPlugin 호출 확인)."
+        : "파일은 열리지만 SBPress.registerPlugin 호출이 보이지 않습니다. 설치해도 동작하지 않을 수 있습니다.";
+    }).catch(function (e) {
+      if (note) note.textContent = "주소를 브라우저에서 읽지 못했습니다: " + e.message + " (CORS·404 확인)";
+    });
+  }
+
+  function marketAbs(url) {
+    try { return new URL(url, new URL(plugMarketUrl, location.href).href).href; } catch (e) { return url; }
+  }
+
+  function loadMarket() {
+    var box = $("#plug-market");
+    if (!box) return Promise.resolve();
+    box.innerHTML = '<p class="plug-empty">마켓 목록을 불러오는 중…</p>';
+    var msg = $("#plug-market-msg");
+    return fetch(plugMarketUrl, { cache: "no-store" }).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }).then(function (data) {
+      var list = Array.isArray(data) ? data : (data && Array.isArray(data.plugins) ? data.plugins : []);
+      plugMarket = { base: marketAbs(plugMarketUrl), list: list };
+      if (msg) msg.textContent = "마켓 목록 " + list.length + "개 · " + plugMarket.base;
+      renderMarket();
+    }).catch(function (e) {
+      plugMarket = { base: marketAbs(plugMarketUrl), list: [] };
+      box.innerHTML = '<p class="plug-empty">마켓 목록을 불러오지 못했습니다: ' + esc(e.message) + "</p>";
+      if (msg) msg.textContent = "주소를 확인해 주세요: " + plugMarketUrl;
+    });
+  }
+
+  function renderMarket() {
+    var box = $("#plug-market");
+    if (!box) return;
+    var list = plugMarket.list || [];
+    if (!list.length) {
+      if (!box.querySelector(".plug-empty")) {
+        box.innerHTML = '<p class="plug-empty">마켓에 표시할 플러그인이 없습니다. 위 주소를 확인하거나 새로고침해 보세요.</p>';
+      }
+      return;
+    }
+    box.innerHTML = list.map(function (item) {
+      var own = plugById(item.id);
+      var installed = !!own;
+      var on = !!(own && own.enabled);
+      var tags = (item.tags || []).map(function (t) { return '<span class="plug-tag">' + esc(t) + "</span>"; }).join("");
+      var action;
+      if (!installed) {
+        action = '<button type="button" class="btn btn-primary btn-sm" data-mplug-install="' + esc(item.id) + '">설치 및 켜기</button>';
+      } else {
+        action = '<button type="button" class="btn btn-ghost btn-sm" data-mplug-toggle="' + esc(item.id) + '">' +
+          (on ? "끄기" : "켜기") + "</button>" +
+          '<button type="button" class="btn btn-ghost btn-sm" data-mplug-remove="' + esc(item.id) + '">제거</button>';
+      }
+      return '<article class="plug-card" data-market-id="' + esc(item.id) + '">' +
+        "<h3>" + esc(item.name || item.id) + " " +
+          (installed ? '<span class="plug-badge ' + (on ? "b-on" : "b-off") + '">' + (on ? "설치됨 · 켜짐" : "설치됨 · 꺼짐") + "</span>" : "") + "</h3>" +
+        '<p class="plug-desc">' + esc(item.description || "") + "</p>" +
+        '<div class="plug-meta">' + (item.version ? "<span class=\"plug-tag\">v" + esc(item.version) + "</span>" : "") +
+          (item.author ? "<span>" + esc(item.author) + "</span>" : "") + tags + "</div>" +
+        '<div class="plug-actions">' + action + "</div></article>";
+    }).join("");
+
+    [].forEach.call(box.querySelectorAll("[data-mplug-install]"), function (b) {
+      b.addEventListener("click", function () { installFromMarket(b.getAttribute("data-mplug-install"), b); });
+    });
+    [].forEach.call(box.querySelectorAll("[data-mplug-toggle]"), function (b) {
+      b.addEventListener("click", function () {
+        var id = b.getAttribute("data-mplug-toggle"), p = plugById(id);
+        setPluginEnabled(id, !(p && p.enabled));
+      });
+    });
+    [].forEach.call(box.querySelectorAll("[data-mplug-remove]"), function (b) {
+      b.addEventListener("click", function () { deletePlugin(b.getAttribute("data-mplug-remove")); });
+    });
+  }
+
+  function installFromMarket(id, btn) {
+    var item = null;
+    (plugMarket.list || []).forEach(function (p) { if (p.id === id) item = p; });
+    if (!item) return;
+    if (btn) { btn.disabled = true; btn.textContent = "설치하는 중…"; }
+    savePluginRow({
+      id: item.id, name: item.name || item.id, version: item.version || "1.0.0",
+      description: item.description || null, author: item.author || null,
+      script_url: marketAbs(item.script_url), source: item.source || "market", enabled: true
+    }).then(function (r) {
+      if (r && r.error) {
+        plugMsg("설치하지 못했습니다: " + r.error.message, "err");
+        if (btn) { btn.disabled = false; btn.textContent = "설치 및 켜기"; }
+        return;
+      }
+      plugMsg("‘" + (item.name || item.id) + "’ 플러그인을 설치하고 켰습니다. 사이트를 새로고침해 확인하세요.", "ok");
+      reloadEngine();
+      loadPlugins(false);
+    });
+  }
+
+  function saveMarketUrl() {
+    var v = ($("#plug-market-url").value || "").trim() || "/plugins-market.json";
+    var msg = $("#plug-market-msg");
+    if (!/^https?:\/\//i.test(v) && v.charAt(0) !== "/") { v = "/" + v; }
+    plugMarketUrl = v;
+    sb.from("site_contents").upsert({ key: "plugins.market_url", section: "플러그인 · 마켓", label: "플러그인 마켓 주소 (plugins.json)", value: v }, { onConflict: "key" })
+      .then(function (r) {
+        if (r.error) { if (msg) msg.textContent = "저장하지 못했습니다: " + r.error.message; return; }
+        if (msg) msg.textContent = "마켓 주소를 저장했습니다: " + v;
+        loadMarket();
+      });
   }
 
   /* ---------------- 시작 ---------------- */
