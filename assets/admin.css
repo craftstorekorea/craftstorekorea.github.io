@@ -349,3 +349,46 @@ tr.is-hidden td{opacity:.62}
   .cms-modal{padding:0;align-items:flex-end}
   .cms-modal-card{max-height:94vh;border-radius:16px 16px 0 0}
 }
+
+/* ---------- CMS 확장: 색상·켜기/끄기·고정·미디어 ---------- */
+.cms-color{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:2px}
+.cms-color input[type="color"]{
+  width:56px;height:40px;padding:3px;border:1px solid var(--line-2);border-radius:10px;
+  background:#fff;cursor:pointer;flex:none;
+}
+.cms-color .admin-input{flex:1;min-width:130px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em}
+.cms-check-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:6px}
+.cms-check-row input[type="checkbox"]{
+  width:18px !important;height:18px;flex:none;accent-color:var(--accent);
+}
+.cms-check-row em{font-style:normal;font-size:.76rem;font-weight:400;color:var(--ink-3);line-height:1.5}
+.pin-flag{margin-left:5px;font-size:.82rem;vertical-align:-1px}
+.admin-table .badge + .badge{margin-left:4px}
+#pf-publish-hint{margin-top:-4px}
+
+/* ---------- 미디어 라이브러리 ---------- */
+.media-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));
+  gap:12px;margin-top:12px;
+}
+.media-card{
+  margin:0;background:var(--card);border:1px solid var(--line);border-radius:var(--r-s);
+  overflow:hidden;box-shadow:var(--shadow-s);display:flex;flex-direction:column;min-width:0;
+}
+.media-thumb{
+  display:block;aspect-ratio:4 / 3;background:var(--bg-2);overflow:hidden;
+}
+.media-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .2s ease}
+.media-card:hover .media-thumb img{transform:scale(1.04)}
+.media-card figcaption{display:flex;flex-direction:column;gap:3px;padding:9px 11px 10px;min-width:0}
+.media-card b{
+  font-size:.8rem;font-weight:700;line-height:1.4;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.media-meta{font-size:.72rem;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.media-btns{display:flex;gap:10px;margin-top:3px}
+.media-btns .rowlink{background:transparent;border:0;padding:0;cursor:pointer;font-size:.76rem}
+.media-del{color:#A8482B}
+@media (max-width:720px){
+  .media-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px}
+}

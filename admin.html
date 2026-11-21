@@ -81,6 +81,7 @@
       <button class="admin-tab" role="tab" type="button" data-tab="pages" aria-selected="false">페이지 텍스트·이미지</button>
       <button class="admin-tab" role="tab" type="button" data-tab="brand" aria-selected="false">헤더 · 푸터 · Head</button>
       <button class="admin-tab" role="tab" type="button" data-tab="posts" aria-selected="false">게시판 관리</button>
+      <button class="admin-tab" role="tab" type="button" data-tab="media" aria-selected="false">미디어 라이브러리</button>
       <button class="admin-tab" role="tab" type="button" data-tab="comments" aria-selected="false">댓글 관리 <span class="tab-n" id="tab-cmt-count"></span></button>
     </nav>
 
@@ -152,10 +153,11 @@
           </div>
         </div>
         <p class="panel-note" id="sheet-note">전국공방_등록_및_게시판DB · 구글 시트 실시간 조회</p>
+        <p class="cms-toast" id="sheet-msg" role="status" aria-live="polite"></p>
         <div class="table-wrap">
           <table class="admin-table" id="sheet-table">
             <thead>
-              <tr><th>상태</th><th>공방명</th><th>구분</th><th>분야</th><th>지역</th><th>접수</th><th></th></tr>
+              <tr><th>상태</th><th>공방명</th><th>구분</th><th>분야</th><th>지역</th><th>접수</th><th>게시</th><th></th></tr>
             </thead>
             <tbody></tbody>
           </table>
@@ -303,6 +305,29 @@
       </div>
     </div>
 
+    <!-- ============ 미디어 라이브러리 ============ -->
+    <div class="tabpanel" id="tab-media" role="tabpanel" hidden>
+      <div class="dash-head">
+        <div>
+          <h1>미디어 라이브러리</h1>
+          <p class="dash-sub">Supabase Storage <code>site-media</code> 버킷의 이미지를 폴더별로 모두 보여줍니다. 주소를 복사해 글·페이지 어디에나 붙여 넣을 수 있습니다.</p>
+        </div>
+        <div class="dash-actions">
+          <span class="dash-stamp" id="media-stamp"></span>
+          <input type="file" id="media-file" accept="image/*" class="sr-only">
+          <label for="media-file" class="btn btn-primary btn-sm">이미지 올리기</label>
+          <button type="button" class="btn btn-ghost btn-sm" id="media-reload">새로고침</button>
+        </div>
+      </div>
+      <div class="cms-toolbar">
+        <input type="search" id="media-q" class="admin-input" placeholder="파일 이름·폴더 검색" aria-label="미디어 검색">
+        <select id="media-folder" class="admin-select" aria-label="폴더 선택"><option value="">폴더 전체</option></select>
+        <span class="panel-tag" id="media-count"></span>
+      </div>
+      <p class="cms-toast" id="media-msg" role="status" aria-live="polite"></p>
+      <div class="media-grid" id="media-grid"></div>
+    </div>
+
     <!-- ============ 댓글 관리 ============ -->
     <div class="tabpanel" id="tab-comments" role="tabpanel" hidden>
       <div class="dash-head">
@@ -363,6 +388,13 @@
           <label class="cms-field"><span>마감일 <em>정보</em></span><input id="pf-deadline" type="date"></label>
           <label class="cms-field"><span>정렬 순서</span><input id="pf-sort_order" type="number" min="0" step="1" value="0"></label>
         </div>
+        <div class="cms-grid2">
+          <label class="cms-check cms-field"><span>상단 고정(PIN)</span>
+            <span class="cms-check-row"><input type="checkbox" id="pf-is_pinned"><em>공개 목록 맨 앞에 📌 고정으로 표시됩니다.</em></span>
+          </label>
+          <label class="cms-field"><span>예약 발행 일시 <em>비우면 바로 공개</em></span><input id="pf-publish_at" type="datetime-local"></label>
+        </div>
+        <p class="cms-hint" id="pf-publish-hint"></p>
         <label class="cms-field" id="pf-extra-tag"><span>태그 <em>뉴스·소개</em></span><input id="pf-tag" maxlength="40"></label>
         <div class="cms-grid2" id="pf-extra-iv" hidden>
           <label class="cms-field"><span>인터뷰 인물</span><input id="pf-person" maxlength="40"></label>

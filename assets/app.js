@@ -28,6 +28,9 @@
     return m ? m[2] + "-" + m[3] : "";
   }
   function normal(s) { return String(s || "").replace(/[\s()·\-_.]/g, "").toLowerCase(); }
+  function pinBadge(it) {
+    return it && it.pinned ? '<span class="pin-badge" title="상단 고정">📌 고정</span>' : "";
+  }
 
   /* ---------------- static links ---------------- */
   var L = S.links;
@@ -272,7 +275,7 @@
     var row = el("article", "news-item");
     row.innerHTML =
       '<div class="news-num"><span class="post-no">No. ' + (i + 1) + "</span></div>" +
-      '<div class="news-body"><h3><a href="' + esc(it.url) + '" target="_blank" rel="noopener">' + esc(it.title) + "</a></h3>" +
+      '<div class="news-body"><h3>' + pinBadge(it) + '<a href="' + esc(it.url) + '" target="_blank" rel="noopener">' + esc(it.title) + "</a></h3>" +
       "<p>" + esc(it.desc) + "</p>" +
       '<div class="news-tags">' + (it.tag ? '<span class="chip">' + esc(it.tag) + "</span>" : "") +
       (it.region ? '<span class="chip region">' + esc(it.region) + "</span>" : "") + "</div></div>" +
@@ -311,7 +314,7 @@
       var card = el("article", "iv");
       var who = String(it.person || "·").charAt(0);
       card.innerHTML =
-        '<div class="iv-top"><span class="post-no">No. ' + (i + 1) + '</span></div>' +
+        '<div class="iv-top"><span class="post-no">No. ' + (i + 1) + '</span>' + pinBadge(it) + '</div>' +
         '<span class="qmark" aria-hidden="true">“</span>' +
         "<blockquote>" + esc(it.quote) + "</blockquote>" +
         "<p>" + esc(it.desc) + "</p>" +
@@ -556,7 +559,7 @@
       row.innerHTML =
         '<div class="info-date"><span class="post-no">No. ' + (i + 1) + "</span><b" + (it.due ? "" : ' class="loose"') + ">" + (it.due ? md(it.due) : "상시") + "</b>" +
         '<span class="dday ' + st.cls + '">' + st.label + "</span></div>" +
-        '<div class="info-body"><h3>' + esc(it.title) + "</h3>" +
+        '<div class="info-body"><h3>' + pinBadge(it) + esc(it.title) + "</h3>" +
         '<div class="meta"><span class="kind">' + esc(it.kind) + "</span><span>" + esc(it.org) + "</span><span>" + esc(it.period) + "</span><span data-cmt></span></div>" +
         "<p>" + esc(it.desc) + "</p></div>" +
         '<a class="info-go" href="' + esc(it.url) + '" target="_blank" rel="noopener">자세히 <svg width="13" height="13" aria-hidden="true"><use href="#i-ext"/></svg></a>';
@@ -999,7 +1002,9 @@
     [].forEach.call(document.querySelectorAll(".tabs .tab"), function (t) {
       t.setAttribute("aria-selected", t.getAttribute("data-view") === v ? "true" : "false");
     });
-    document.title = TITLES[v] || TITLES.home;
+    document.title = (v === "home" && window.CRAFT_SEO && window.CRAFT_SEO.title)
+      ? window.CRAFT_SEO.title
+      : (TITLES[v] || TITLES.home);
     if (v === "map") { buildMap(); }
     if (scroll !== false) window.scrollTo({ top: 0, behavior: "auto" });
   }

@@ -79,7 +79,8 @@
       slug: p.slug, title: p.title, desc: num(p.summary),
       tag: (p.meta && p.meta.tag) || p.category, region: num(p.region),
       source: num(p.source_name), date: num(p.published_at), url: num(p.source_url),
-      image: p.image_url || "", _id: p.id
+      image: p.image_url || "", _id: p.id,
+      pinned: !!p.is_pinned, publish_at: p.publish_at || null, sort: p.sort_order || 0
     };
   }
   function mapInterview(p) {
@@ -87,7 +88,8 @@
     return {
       slug: p.slug, title: p.title, quote: num(p.summary), desc: num(p.body || p.summary),
       person: m.person || "공방", role: m.role || "", source: num(p.source_name),
-      date: num(p.published_at), url: num(p.source_url), image: p.image_url || "", _id: p.id
+      date: num(p.published_at), url: num(p.source_url), image: p.image_url || "", _id: p.id,
+      pinned: !!p.is_pinned, publish_at: p.publish_at || null, sort: p.sort_order || 0
     };
   }
   function mapInfo(p) {
@@ -97,12 +99,20 @@
     return {
       slug: p.slug, title: p.title, org: num(p.source_name), period: m.period || "",
       due: due, kind: m.kind || "정보", desc: num(p.summary), url: num(p.source_url),
-      image: p.image_url || "", _id: p.id
+      image: p.image_url || "", _id: p.id,
+      pinned: !!p.is_pinned, publish_at: p.publish_at || null, sort: p.sort_order || 0
     };
   }
   function applyPosts(rows) {
     var by = { "소개": [], "뉴스": [], "인터뷰": [], "정보": [] };
     rows.forEach(function (p) { if (by[p.category]) by[p.category].push(p); });
+    // 상단 고정(PIN) 글이 먼저, 그다음 sort_order 순서입니다.
+    ["소개", "뉴스", "인터뷰", "정보"].forEach(function (cat) {
+      by[cat].sort(function (a, b) {
+        if (!!a.is_pinned !== !!b.is_pinned) return a.is_pinned ? -1 : 1;
+        return (a.sort_order || 0) - (b.sort_order || 0);
+      });
+    });
     S.intro = by["소개"].map(mapArticle);
     S.news = by["뉴스"].map(mapArticle);
     S.interviews = by["인터뷰"].map(mapInterview);
@@ -143,26 +153,201 @@
     }
 
     // 공지 배너
-    var bar = $("#notice-bar"), txt = contents["notice.text"];
-    if (bar) {
-      var text = txt && txt.value ? vars(txt.value).trim() : "";
-      if (!text || sessionStorage.getItem("craft-notice-dismissed") === text) {
-        bar.hidden = true;
-      } else {
-        bar.hidden = false;
-        var p = $("#notice-text");
-        if (p) p.textContent = text;
-        var link = $("#notice-link");
-        var lab = contents["notice.link_label"], url = contents["notice.link_url"];
-        if (link) {
-          if (url && url.value) {
-            link.href = url.value;
-            link.textContent = (lab && lab.value) || "자세히 보기";
-            link.hidden = false;
-          } else { link.hidden = true; }
-        }
+    applyNotice();
+  }
+
+  /* ---------------- 공지 띠배너 : 켜짐 · 기간 ---------------- */
+  function kstStamp(d) {
+    // 2026-11-21T13:23  (Asia/Seoul 기준 분 단위)
+    var s = new Date(d || Date.now()).toLocaleString("sv-SE", { timeZone: "Asia/Seoul" });
+    return s.replace(" ", "T").slice(0, 16);
+  }
+  function normStamp(v) {
+    var s = String(v == null ? "" : v).trim();
+    if (!s) return "";
+    var m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/.exec(s);
+    if (!m) return "";
+    return m[1] + "-" + m[2] + "-" + m[3] + "T" + (m[4] || "00") + ":" + (m[5] || "00");
+  }
+  function withinWindow(startKey, endKey) {
+    var now = kstStamp();
+    var a = normStamp(cval(startKey)), b = normStamp(cval(endKey));
+    if (a && now < a) return false;
+    if (b && now > b) return false;
+    return true;
+  }
+  function flagOn(key, fallback) {
+    var v = cval(key).toLowerCase();
+    if (!v) return !!fallback;
+    return /^(1|true|yes|y|on|ok|켬|켜기)$/.test(v);
+  }
+
+  function noticeText() {
+    // notice_banner_text 는 옛 이름 — 두 키를 모두 받습니다.
+    var t = cval("notice.text") || cval("notice_banner_text");
+    return t ? vars(t).trim() : "";
+  }
+  function applyNotice() {
+    var bar = $("#notice-bar");
+    if (!bar) return;
+    var hasFlag = contents["banner_enabled"] != null;
+    var text = noticeText();
+    var on = hasFlag ? flagOn("banner_enabled", false) : !!text;   // 키가 없으면 옛 방식(문구가 있으면 표시)
+    if (!on || !text || !withinWindow("banner_start_at", "banner_end_at") ||
+        sessionStorage.getItem("craft-notice-dismissed") === text) {
+      bar.hidden = true;
+      return;
+    }
+    bar.hidden = false;
+    var p = $("#notice-text");
+    if (p) p.textContent = text;
+    var link = $("#notice-link");
+    var lab = contents["notice.link_label"], url = contents["notice.link_url"] || contents["notice_banner_link"];
+    if (link) {
+      if (url && url.value) {
+        link.href = url.value;
+        link.textContent = (lab && lab.value) || "자세히 보기";
+        link.hidden = false;
+      } else { link.hidden = true; }
+    }
+  }
+
+  /* ---------------- 포인트 색상 (theme_accent_color) ---------------- */
+  function hexToRgb(h) {
+    var m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(h || "").trim());
+    if (!m) return null;
+    var s = m[1];
+    if (s.length === 3) s = s.charAt(0) + s.charAt(0) + s.charAt(1) + s.charAt(1) + s.charAt(2) + s.charAt(2);
+    return [parseInt(s.slice(0, 2), 16), parseInt(s.slice(2, 4), 16), parseInt(s.slice(4, 6), 16)];
+  }
+  function rgbHex(rgb) {
+    return "#" + rgb.map(function (n) {
+      var v = Math.max(0, Math.min(255, Math.round(n))).toString(16);
+      return v.length === 1 ? "0" + v : v;
+    }).join("").toUpperCase();
+  }
+  function shade(rgb, f) {   // f < 0 : 어둡게, f > 0 : 흰색에 가깝게
+    if (f < 0) return rgb.map(function (n) { return n * (1 + f); });
+    return rgb.map(function (n) { return n + (255 - n) * f; });
+  }
+  function applyTheme() {
+    var raw = cval("theme_accent_color");
+    var rgb = hexToRgb(raw);
+    if (!rgb) return "";
+    var root = document.documentElement;
+    var hex = rgbHex(rgb);
+    root.style.setProperty("--accent", hex);
+    root.style.setProperty("--accent-d", rgbHex(shade(rgb, -0.18)));
+    root.style.setProperty("--accent-s", rgbHex(shade(rgb, 0.86)));
+    root.setAttribute("data-accent", hex);
+    var th = document.querySelector('meta[name="theme-color"]');
+    if (th) th.setAttribute("content", hex);
+    return hex;
+  }
+
+  /* ---------------- SEO · OG · 파비콘 ---------------- */
+  function setMeta(key, val, prop) {
+    if (!val) return;
+    var sel = prop ? 'meta[property="' + key + '"]' : 'meta[name="' + key + '"]';
+    var n = document.head.querySelector(sel);
+    if (!n) {
+      n = document.createElement("meta");
+      n.setAttribute(prop ? "property" : "name", key);
+      document.head.appendChild(n);
+    }
+    n.setAttribute("content", val);
+  }
+  function applySeo() {
+    var title = cval("seo_title");
+    var desc = cval("seo_description");
+    var og = contents["seo_og_image"];
+    var fav = contents["seo_favicon_url"];
+    var ogUrl = (og && og.image_url) || "";
+    var favUrl = (fav && fav.image_url) || "";
+
+    window.CRAFT_SEO = { title: title, description: desc, ogImage: ogUrl, favicon: favUrl };
+    if (desc) {
+      setMeta("description", desc);
+      setMeta("og:description", desc, true);
+    }
+    if (title) {
+      setMeta("og:title", title, true);
+      var here = (location.hash || "#/home").replace(/^#\/?/, "") || "home";
+      if (here === "home") document.title = title;
+    }
+    if (ogUrl) setMeta("og:image", ogUrl, true);
+    if (favUrl) {
+      var link = document.head.querySelector('link[rel~="icon"]');
+      if (!link) {
+        link = document.createElement("link");
+        link.setAttribute("rel", "icon");
+        document.head.appendChild(link);
+      }
+      link.setAttribute("href", favUrl);
+    }
+  }
+
+  /* ---------------- 기간제 팝업 ---------------- */
+  var POP_LS = "craft-popup-hidden";
+  function popupSig() {
+    return (cval("popup_start_at") || "-") + "|" + (cval("popup_title") || cval("popup_body").slice(0, 20));
+  }
+  function popupHiddenToday() {
+    try {
+      var o = JSON.parse(localStorage.getItem(POP_LS) || "null");
+      return !!(o && o.date === kstStamp().slice(0, 10) && o.sig === popupSig());
+    } catch (e) { return false; }
+  }
+  function bindPopupOnce() {
+    var shell = $("#craft-popup");
+    if (!shell || shell.getAttribute("data-bound") === "1") return;
+    shell.setAttribute("data-bound", "1");
+    function hide(today) {
+      shell.hidden = true;
+      document.body.classList.remove("pop-lock");
+      if (today) {
+        try {
+          localStorage.setItem(POP_LS, JSON.stringify({ date: kstStamp().slice(0, 10), sig: popupSig() }));
+        } catch (e) { /* 저장 실패는 무시 */ }
       }
     }
+    var closeBtn = $("#craft-popup-close"), xBtn = $("#craft-popup-x"), ov = $("#craft-popup-overlay");
+    var today = $("#craft-popup-today");
+    function onClose() { hide(today && today.checked); }
+    if (closeBtn) closeBtn.addEventListener("click", onClose);
+    if (xBtn) xBtn.addEventListener("click", onClose);
+    if (ov) ov.addEventListener("click", onClose);
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && shell && !shell.hidden) onClose();
+    });
+  }
+  function applyPopup() {
+    var shell = $("#craft-popup");
+    if (!shell) return;
+    bindPopupOnce();
+    var title = cval("popup_title"), body = cval("popup_body");
+    var img = contents["popup_image_url"], imgUrl = (img && img.image_url) || "";
+    var link = cval("popup_link"), label = cval("popup_link_label");
+    var on = flagOn("popup_enabled", false);
+    if (!on || (!title && !body && !imgUrl) || !withinWindow("popup_start_at", "popup_end_at") || popupHiddenToday()) {
+      shell.hidden = true;
+      return;
+    }
+    $("#craft-popup-title").textContent = title || "공지";
+    $("#craft-popup-text").innerHTML = esc(body).replace(/\n/g, "<br>");
+    var im = $("#craft-popup-img");
+    if (im) {
+      if (imgUrl) { im.src = imgUrl; im.hidden = false; } else { im.hidden = true; im.removeAttribute("src"); }
+    }
+    var a = $("#craft-popup-link");
+    if (a) {
+      if (link) { a.href = link; a.textContent = label || "자세히 보기"; a.hidden = false; }
+      else { a.hidden = true; }
+    }
+    var box = $("#craft-popup-today");
+    if (box) box.checked = false;
+    shell.hidden = false;
+    document.body.classList.add("pop-lock");
   }
 
   /* ---------------- 푸터 : 회사 정보 · SNS · 저작권 ---------------- */
@@ -527,13 +712,16 @@
 
     Promise.all([
       rest("site_contents?select=key,value,image_url").catch(function () { return null; }),
-      rest("posts?select=*&is_published=eq.true&order=category.asc,sort_order.asc,published_at.desc&limit=500").catch(function () { return null; })
+      rest("posts?select=*&is_published=eq.true&order=category.asc,is_pinned.desc,sort_order.asc,published_at.desc&limit=500").catch(function () { return null; })
     ]).then(function (res) {
       var rows = res[0], posts = res[1];
       if (rows) { rows.forEach(function (r) { contents[r.key] = r; }); }
       if (posts && posts.length) { applyPosts(posts); }
       applyContents();
       applyFooter();
+      applyTheme();
+      applySeo();
+      applyPopup();
       injectHead();
       if (window.CRAFT_APP && window.CRAFT_APP.refresh) window.CRAFT_APP.refresh();
       loadCounts();

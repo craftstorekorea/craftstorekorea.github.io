@@ -41,14 +41,19 @@ assets/cms.js             Supabase 문구·글 불러오기, 댓글 버튼·드�
 - 사이트의 **문구·이미지**(`site_contents`), **게시판 글**(`posts`), **회원 댓글**(`comments`)은 Supabase에 있습니다.
   `assets/cms.js` 가 페이지를 열 때 읽어 반영하고, Supabase에 연결하지 못하면 `data.js` 기본값으로 보입니다.
 - `/admin.html` 탭: **페이지 텍스트·이미지**(문구 수정·이미지 업로드) · **헤더 · 푸터 · Head**(로고·브랜드 이름·메뉴 순서/숨김/외부링크, 푸터 회사 정보·SNS, `<head>` 코드) ·
-  **게시판 관리**(글 작성·수정·발행/숨김·삭제, 글 번호 `No. N`) · **댓글 관리**(숨김/공개·삭제). 이미지는 Storage `site-media` 버킷에 올라갑니다.
+  **게시판 관리**(글 작성·수정·발행/숨김·삭제, 상단 고정(PIN)·예약 발행, 글 번호 `No. N`) ·
+  **미디어 라이브러리**(`site-media` 전체 파일 목록·썸네일·URL 복사·삭제·업로드) · **댓글 관리**(숨김/공개·삭제). 이미지는 Storage `site-media` 버킷에 올라갑니다.
+- **SEO · 공유**: `seo_title`·`seo_description`·`seo_og_image`·`seo_favicon_url` 키로 문서 제목, `meta description`, `og:title`·`og:description`·`og:image`, 파비콘을 바꿉니다(카톡 공유 썸네일).
+- **포인트 색상 · 기간제 배너/팝업**: `theme_accent_color`(사이트 `--accent` 계열), `banner_enabled`·`banner_start_at`·`banner_end_at`(공지 띠배너),
+  `popup_enabled`·`popup_title`·`popup_body`·`popup_image_url`·`popup_link`·`popup_start_at`·`popup_end_at`(팝업, ‘오늘 하루 보지 않기’는 `localStorage`).
+- **공방 제보 원클릭 게시**: 대시보드의 `전국공방_등록_및_게시판DB` 표에서 승인된 행의 **게시판에 게시**를 누르면 `posts`(`소개`)에 들어가고, 같은 공방은 `게시됨`으로 표시됩니다(결정적 slug `sheet-…`).
 - 헤더·푸터·head 설정은 `site_contents` 의 `header_*` · `footer_*` · `custom_head_html` 키에 저장됩니다.
   `custom_head_html` 은 사이트를 열 때 `<head>` 로 주입되며(중복 태그는 건너뜀), 메뉴 항목은 `header_menu_items` JSON(관리자 화면에서 편집)입니다.
 - 공개 게시판 카드(소개·뉴스·인터뷰·정보·아카이브)에는 `No. N` 순번 배지가 붙습니다.
 - 모든 글·공방 카드에 `💬 댓글` 버튼이 붙습니다. 읽기는 누구나, 쓰기·본인 삭제는 로그인 회원,
   숨김·삭제 관리는 관리자 — 판단은 전부 Supabase RLS가 합니다.
-- 설정·검증 기록: `../supabase/07_cms.md`, DB 파일 `../supabase/03_cms_comments.sql` · `../supabase/04_header_footer_head.sql`,
-  테스트 `cd .. && CMS_TEST_MODE=user|admin|brand python3 cms_test.py`.
+- 설정·검증 기록: `../supabase/07_cms.md`, DB 파일 `../supabase/03_cms_comments.sql` · `../supabase/04_header_footer_head.sql` · `../supabase/05_cms_plus.sql`,
+  테스트 `cd .. && CMS_TEST_MODE=user|admin|brand|plus python3 cms_test.py`.
 
 ## 관리자 페이지
 

@@ -181,16 +181,26 @@
   function loadAll(force) {
     var stamp = $("#dash-stamp");
     if (stamp) stamp.textContent = "불러오는 중…";
-    Promise.all([loadMembers(), loadBookmarks(), loadSheet()]).then(function () {
+    Promise.all([loadMembers(), loadBookmarks(), loadSheet(), loadPostIndex()]).then(function () {
       recount();
       renderMembers();
       renderPopular();
       renderDday();
       renderKpis();
+      renderSheet();
       if (stamp) {
         stamp.textContent = "마지막 확인 " + new Date().toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit" });
       }
     });
+  }
+
+  /* 시트 행 ↔ 게시판 글 대조용 색인 (slug · 분류 · 정렬값만) */
+  function loadPostIndex() {
+    if (!sb) return Promise.resolve();
+    return sb.from("posts").select("id,slug,category,title,sort_order,is_pinned,is_published,publish_at")
+      .limit(1000).then(function (r) {
+        if (!r.error) CMS.postIndex = r.data || [];
+      });
   }
 
   function loadMembers() {
@@ -407,7 +417,7 @@
   function renderSheet() {
     var body = $("#sheet-table tbody"), note = $("#sheet-note");
     if (sheetError) {
-      body.innerHTML = '<tr class="empty-row"><td colspan="7">시트에 연결하지 못했습니다(' + esc(sheetError) + '). <a class="rowlink" href="' + SHEET_URL + '" target="_blank" rel="noopener">시트에서 직접 보기</a></td></tr>';
+      body.innerHTML = '<tr class="empty-row"><td colspan="8">시트에 연결하지 못했습니다(' + esc(sheetError) + '). <a class="rowlink" href="' + SHEET_URL + '" target="_blank" rel="noopener">시트에서 직접 보기</a></td></tr>';
       if (note) note.textContent = "전국공방_등록_및_게시판DB · 실시간 조회 실패";
       return;
     }
@@ -425,11 +435,16 @@
         " · 대기 " + num(sheetRows.length - ok) + ") · 행을 누르면 시트에서 바로 엽니다";
     }
     if (!rows.length) {
-      body.innerHTML = '<tr class="empty-row"><td colspan="7">조건에 맞는 항목이 없습니다.</td></tr>';
+      body.innerHTML = '<tr class="empty-row"><td colspan="8">조건에 맞는 항목이 없습니다.</td></tr>';
       return;
     }
     body.innerHTML = rows.map(function (r) {
       var cls = r.status === "승인" ? "b-ok" : (r.status ? "b-wait" : "b-off");
+      var posted = postBySheetSlug(sheetSlug(r));
+      var pubCell;
+      if (posted) pubCell = '<span class="badge b-ok" title="' + esc(posted.title || "") + '">게시됨</span>';
+      else if (r.status === "승인") pubCell = '<button type="button" class="rowlink sheet-pub" data-row="' + r.row + '">게시판에 게시</button>';
+      else pubCell = '<span class="muted">승인 후 게시</span>';
       return "<tr>" +
         '<td data-th="상태"><span class="badge ' + cls + '">' + esc(r.status || "미지정") + "</span></td>" +
         '<td data-th="공방명">' + esc(r.name) + "</td>" +
@@ -437,9 +452,91 @@
         '<td data-th="분야">' + esc(r.craft || "–") + "</td>" +
         '<td data-th="지역">' + esc(r.region || "–") + "</td>" +
         '<td class="muted" data-th="접수">' + esc(r.whenShort || "–") + "</td>" +
+        '<td data-th="게시">' + pubCell + "</td>" +
         '<td><a class="rowlink" href="' + SHEET_URL + '#gid=0&range=A' + r.row + '" target="_blank" rel="noopener" title="시트에서 이 행 열기">시트</a></td>' +
         "</tr>";
     }).join("");
+    [].forEach.call(body.querySelectorAll(".sheet-pub"), function (b) {
+      b.addEventListener("click", function () { publishFromSheet(+b.getAttribute("data-row")); });
+    });
+  }
+
+  /* ---------------- 시트 → 게시판 원클릭 게시 ---------------- */
+  function sheetSlug(r) {
+    // 이름·지역으로 만드는 고정 slug — 같은 행을 두 번 게시해도 중복되지 않습니다.
+    var key = String(r.name || "").trim() + "|" + String(r.region || "").trim();
+    var h = 5381;
+    for (var i = 0; i < key.length; i++) h = ((h * 33) ^ key.charCodeAt(i)) >>> 0;
+    return "sheet-" + h.toString(36);
+  }
+  function postBySheetSlug(slug) {
+    for (var i = 0; i < CMS.postIndex.length; i++) {
+      if (CMS.postIndex[i].slug === slug) return CMS.postIndex[i];
+    }
+    return null;
+  }
+  function nextSheetSort() {
+    var max = 0, n = 0;
+    CMS.postIndex.forEach(function (p) {
+      if (p.category !== "소개") return;
+      n++;
+      if ((p.sort_order || 0) > max) max = p.sort_order || 0;
+    });
+    return Math.max(max, n) + 1;
+  }
+  function publishFromSheet(rowNo) {
+    var r = null;
+    for (var i = 0; i < sheetRows.length; i++) if (sheetRows[i].row === rowNo) { r = sheetRows[i]; break; }
+    if (!r) return;
+    if (r.status !== "승인") { cmsMsg("sheet-msg", "승인된 항목만 게시할 수 있습니다.", "err"); return; }
+    var slug = sheetSlug(r);
+    var exist = postBySheetSlug(slug);
+    if (exist) {
+      cmsMsg("sheet-msg", "이미 게시판에 올라간 공방입니다: " + (exist.title || r.name), "");
+      renderSheet();
+      return;
+    }
+    var btn = document.querySelector('.sheet-pub[data-row="' + rowNo + '"]');
+    if (btn) { btn.disabled = true; btn.textContent = "게시하는 중…"; }
+    cmsMsg("sheet-msg", "게시하는 중…");
+    var body = {
+      slug: slug,
+      category: "소개",
+      title: r.name,
+      summary: r.desc || null,
+      body: r.address ? "주소: " + r.address : (r.desc || null),
+      region: r.region || null,
+      source_name: "전국공방 등록 게시판",
+      source_url: r.url || null,
+      image_url: null,
+      published_at: todayKST(),
+      is_published: true,
+      is_pinned: false,
+      sort_order: nextSheetSort(),
+      meta: { tag: r.kind || "공방", address: r.address || "", oneday: r.oneday || "" }
+    };
+    sb.from("posts").insert(body).then(function (res) {
+      if (res.error) {
+        var m = String(res.error.message || "");
+        if (/duplicate|unique|23505/i.test(m)) {
+          CMS.postIndex.push({ slug: slug, title: r.name, category: "소개", is_published: true, sort_order: body.sort_order });
+          renderSheet();
+          cmsMsg("sheet-msg", "이미 게시판에 올라간 공방입니다: " + r.name, "");
+        } else {
+          cmsMsg("sheet-msg", "게시하지 못했습니다: " + m, "err");
+          renderSheet();
+        }
+        return;
+      }
+      CMS.postIndex.push({ slug: slug, title: r.name, category: "소개", is_published: true, sort_order: body.sort_order });
+      CMS.loaded.posts = false;
+      renderSheet();
+      cmsMsg("sheet-msg", "‘" + r.name + "’을(를) 게시판 ‘소개’ 코너에 올렸습니다. 공개 사이트에 바로 반영됩니다.", "ok");
+      if (typeof renderKpis === "function") renderKpis();
+    }).catch(function (e) {
+      cmsMsg("sheet-msg", "게시하지 못했습니다: " + (e.message || "알 수 없는 오류"), "err");
+      renderSheet();
+    });
   }
 
   /* ---------------- D-day ---------------- */
@@ -491,8 +588,8 @@
      ============================================================ */
   var CMS = {
     tab: "dash",
-    pages: [], posts: [], comments: [],
-    loaded: { pages: false, posts: false, comments: false, brand: false },
+    pages: [], posts: [], comments: [], media: [], postIndex: [],
+    loaded: { pages: false, posts: false, comments: false, brand: false, media: false },
     editing: null, commentCounts: {}, brand: null
   };
 
@@ -508,13 +605,14 @@
     [].forEach.call(document.querySelectorAll(".admin-tab"), function (b) {
       b.setAttribute("aria-selected", b.getAttribute("data-tab") === name ? "true" : "false");
     });
-    ["dash", "pages", "brand", "posts", "comments"].forEach(function (t) {
+    ["dash", "pages", "brand", "posts", "media", "comments"].forEach(function (t) {
       var p = document.getElementById("tab-" + t);
       if (p) p.hidden = (t !== name);
     });
     if (name === "pages" && !CMS.loaded.pages) loadPages();
     if (name === "brand" && !CMS.loaded.brand) loadBrand();
     if (name === "posts" && !CMS.loaded.posts) loadPosts();
+    if (name === "media") loadMedia();
     if (name === "comments" && !CMS.loaded.comments) loadComments();
     try { window.scrollTo({ top: 0, behavior: "auto" }); } catch (e) { /* noop */ }
   }
@@ -532,6 +630,153 @@
       var url = (pub && pub.data && pub.data.publicUrl) || "";
       if (!url) throw new Error("공개 주소를 받지 못했습니다.");
       return url;
+    });
+  }
+
+  /* ---------------- 0. 미디어 라이브러리 (site-media 재귀 목록) ---------------- */
+  function fmtBytes(n) {
+    n = Number(n) || 0;
+    if (n < 1024) return n + " B";
+    if (n < 1048576) return Math.round(n / 1024) + " KB";
+    return (n / 1048576).toFixed(1) + " MB";
+  }
+  function publicMediaUrl(path) {
+    var r = sb.storage.from("site-media").getPublicUrl(path);
+    return (r && r.data && r.data.publicUrl) || "";
+  }
+  function loadMedia() {
+    var box = $("#media-grid");
+    if (!box || !sb) return Promise.resolve();
+    box.innerHTML = '<p class="panel-msg">불러오는 중…</p>';
+    cmsMsg("media-msg", "Storage site-media 를 읽는 중…");
+    var items = [];
+    function walk(prefix, depth) {
+      return sb.storage.from("site-media").list(prefix, { limit: 1000, sortBy: { column: "name", order: "asc" } })
+        .then(function (res) {
+          if (res.error) throw new Error(res.error.message || "목록 실패");
+          var rows = res.data || [], folders = [];
+          rows.forEach(function (f) {
+            if (!f || !f.name) return;
+            if (f.id) {
+              var path = prefix ? prefix + "/" + f.name : f.name;
+              items.push({
+                path: path, name: f.name,
+                size: (f.metadata && f.metadata.size) || 0,
+                updated: f.updated_at || f.created_at || "",
+                type: (f.metadata && f.metadata.mimetype) || "",
+                folder: prefix || "(최상위)", url: publicMediaUrl(path)
+              });
+            } else { folders.push(f.name); }
+          });
+          var chain = Promise.resolve();
+          folders.forEach(function (name) {
+            chain = chain.then(function () {
+              return depth < 5 ? walk(prefix ? prefix + "/" + name : name, depth + 1) : null;
+            });
+          });
+          return chain;
+        });
+    }
+    return walk("", 0).then(function () {
+      items.sort(function (a, b) { return String(b.updated).localeCompare(String(a.updated)); });
+      CMS.media = items;
+      CMS.loaded.media = true;
+      fillMediaFolders();
+      renderMedia();
+      cmsMsg("media-msg", "");
+      var stamp = $("#media-stamp");
+      if (stamp) stamp.textContent = "파일 " + items.length + "개 · " +
+        new Date().toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit" });
+    }).catch(function (e) {
+      box.innerHTML = '<p class="panel-msg error">불러오지 못했습니다: ' + esc(e && e.message || "") + "</p>";
+      cmsMsg("media-msg", "불러오지 못했습니다: " + (e && e.message || ""), "err");
+    });
+  }
+
+  function fillMediaFolders() {
+    var sel = $("#media-folder");
+    if (!sel) return;
+    var cur = sel.value, folders = {};
+    CMS.media.forEach(function (m) { folders[m.folder] = 1; });
+    var list = Object.keys(folders).sort();
+    sel.innerHTML = '<option value="">폴더 전체</option>' + list.map(function (f) {
+      return '<option value="' + esc(f) + '">' + esc(f) + "</option>";
+    }).join("");
+    if (cur && list.indexOf(cur) >= 0) sel.value = cur;
+  }
+
+  function renderMedia() {
+    var box = $("#media-grid");
+    if (!box) return;
+    var q = ($("#media-q").value || "").trim().toLowerCase();
+    var folder = $("#media-folder").value;
+    var rows = CMS.media.filter(function (m) {
+      if (folder && m.folder !== folder) return false;
+      if (!q) return true;
+      return (m.path + " " + m.type).toLowerCase().indexOf(q) >= 0;
+    });
+    var tag = $("#media-count");
+    if (tag) tag.textContent = rows.length === CMS.media.length
+      ? "전체 " + CMS.media.length + "개" : rows.length + " / " + CMS.media.length + "개";
+    if (!rows.length) {
+      box.innerHTML = '<p class="panel-msg">' + (CMS.media.length ? "조건에 맞는 파일이 없습니다." : "아직 올린 파일이 없습니다. ‘이미지 올리기’로 시작해 보세요.") + "</p>";
+      return;
+    }
+    box.innerHTML = rows.map(function (m) {
+      return '<figure class="media-card">' +
+        '<a class="media-thumb" href="' + esc(m.url) + '" target="_blank" rel="noopener"><img src="' + esc(m.url) + '" alt="" loading="lazy"></a>' +
+        "<figcaption><b title=\"" + esc(m.path) + "\">" + esc(m.name) + "</b>" +
+        '<span class="media-meta">' + esc(m.folder) + " · " + esc(fmtBytes(m.size)) + " · " + esc(String(m.updated).slice(0, 10)) + "</span>" +
+        '<span class="media-btns">' +
+          '<button type="button" class="rowlink media-copy" data-url="' + esc(m.url) + '">URL 복사</button>' +
+          '<button type="button" class="rowlink media-del" data-path="' + esc(m.path) + '">삭제</button>' +
+        "</span></figcaption></figure>";
+    }).join("");
+    [].forEach.call(box.querySelectorAll(".media-copy"), function (b) {
+      b.addEventListener("click", function () { copyMediaUrl(b.getAttribute("data-url"), b); });
+    });
+    [].forEach.call(box.querySelectorAll(".media-del"), function (b) {
+      b.addEventListener("click", function () { deleteMedia(b.getAttribute("data-path")); });
+    });
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text);
+    return new Promise(function (res, rej) {
+      try {
+        var ta = document.createElement("textarea");
+        ta.value = text; ta.setAttribute("readonly", "");
+        ta.style.position = "fixed"; ta.style.left = "-9999px";
+        document.body.appendChild(ta); ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta); res();
+      } catch (e) { rej(e); }
+    });
+  }
+  function copyMediaUrl(url, btn) {
+    copyText(url).then(function () {
+      cmsMsg("media-msg", "주소를 복사했습니다 — " + url, "ok");
+      if (btn) {
+        var t = btn.textContent;
+        btn.textContent = "복사됨";
+        setTimeout(function () { btn.textContent = t; }, 1600);
+      }
+    }).catch(function () {
+      cmsMsg("media-msg", "복사하지 못했습니다. 이미지를 새 탭으로 열어 주소를 복사해 주세요: " + url, "err");
+    });
+  }
+  function deleteMedia(path) {
+    if (!path) return;
+    if (!window.confirm("‘" + path + "’ 파일을 삭제할까요?\n이 파일을 쓰는 글·페이지의 이미지가 비어 보이게 됩니다. 되돌릴 수 없습니다.")) return;
+    cmsMsg("media-msg", "삭제하는 중…");
+    sb.storage.from("site-media").remove([path]).then(function (r) {
+      if (r.error) { cmsMsg("media-msg", "삭제하지 못했습니다: " + (r.error.message || ""), "err"); return; }
+      CMS.media = CMS.media.filter(function (m) { return m.path !== path; });
+      fillMediaFolders();
+      renderMedia();
+      cmsMsg("media-msg", "파일을 삭제했습니다: " + path, "ok");
+    }).catch(function (e) {
+      cmsMsg("media-msg", "삭제하지 못했습니다: " + (e && e.message || ""), "err");
     });
   }
 
@@ -557,13 +802,42 @@
       });
   }
 
-  function isImageSlot(p) { return /image_url$/.test(p.key); }
+  var EXTRA_IMAGE_KEYS = { seo_og_image: 1, seo_favicon_url: 1 };
+  function isImageSlot(p) { return /image_url$/.test(p.key) || !!EXTRA_IMAGE_KEYS[p.key]; }
+  function isFlagKey(key) { return /_enabled$/.test(key); }
+  function isDateKey(key) { return /_(start|end)_at$/.test(key); }
+
+  /* 값 종류에 맞는 입력칸: 색상 고르기 · 켜기/끄기 · 날짜·시각 · 긴 글 */
+  function pageControl(p, img) {
+    var key = p.key, v = p.value == null ? "" : p.value;
+    if (key === "theme_accent_color") {
+      var hex = /^#[0-9a-f]{6}$/i.test(v.trim()) ? v.trim() : "#C86D44";
+      return '<div class="cms-color">' +
+        '<input type="color" data-color="' + esc(key) + '" value="' + esc(hex) + '" aria-label="포인트 색상 선택">' +
+        '<input class="admin-input" data-value="' + esc(key) + '" maxlength="7" value="' + esc(v) + '" placeholder="#C86D44" spellcheck="false">' +
+        '</div><p class="cms-hint">사이트의 --accent · --accent-d · --accent-s 에 반영됩니다.</p>';
+    }
+    if (isFlagKey(key)) {
+      var on = /^(1|true|yes|y|on)$/i.test(v.trim());
+      return '<select class="admin-select" data-value="' + esc(key) + '">' +
+        '<option value="1"' + (on ? " selected" : "") + '>켜기 (표시)</option>' +
+        '<option value="0"' + (on ? "" : " selected") + '>끄기 (숨김)</option></select>';
+    }
+    if (isDateKey(key)) {
+      var dt = String(v || "").replace(" ", "T").slice(0, 16);
+      return '<input class="admin-input" type="datetime-local" data-value="' + esc(key) + '" value="' + esc(dt) + '">' +
+        '<p class="cms-hint">한국 시간(Asia/Seoul) 기준 · 비우면 기간 제한 없음</p>';
+    }
+    if (img && v === "") return '<p class="cms-hint">이미지만 있는 항목입니다. 아래에서 이미지를 올려 주세요.</p>';
+    return '<textarea class="cms-input" data-value="' + esc(key) + '" rows="' +
+      (v.indexOf("\n") >= 0 || v.length > 70 ? 3 : 1) + '" spellcheck="false">' + esc(v) + "</textarea>";
+  }
 
   function renderPages() {
     var box = $("#pages-list");
     if (!box) return;
     var groups = {}, order = [];
-    var secOrder = { "홈 상단": 0, "공지 배너": 1, "섹션 소개": 2, "이미지": 3, "푸터": 4 };
+    var secOrder = { "SEO · 공유 · 테마": 0, "홈 상단": 1, "공지 배너": 2, "팝업": 3, "섹션 소개": 4, "이미지": 5, "푸터": 6 };
     CMS.pages.forEach(function (p) {
       if (!groups[p.section]) { groups[p.section] = []; order.push(p.section); }
       groups[p.section].push(p);
@@ -579,9 +853,7 @@
           return '<div class="cms-row" data-key="' + esc(p.key) + '">' +
             '<div class="cms-row-head"><b>' + esc(p.label) + '</b><code>' + esc(p.key) + '</code>' +
             '<span class="cms-dirty" data-dirty="' + esc(p.key) + '" hidden>수정됨</span></div>' +
-            (p.value !== "" || !img
-              ? '<textarea class="cms-input" data-value="' + esc(p.key) + '" rows="' + (p.value && (p.value.indexOf("\n") >= 0 || p.value.length > 70) ? 3 : 1) + '" spellcheck="false">' + esc(p.value) + "</textarea>"
-              : '<p class="cms-hint">이미지만 있는 항목입니다. 아래에서 이미지를 올려 주세요.</p>') +
+            (pageControl(p, img)) +
             (img
               ? '<div class="cms-img-row">' +
                 '<div class="cms-img-preview" data-prev="' + esc(p.key) + '">' + (p.image_url ? '<img src="' + esc(p.image_url) + '" alt="">' : "<span>이미지 없음</span>") + "</div>" +
@@ -597,11 +869,24 @@
     }).join("");
 
     [].forEach.call(box.querySelectorAll("[data-value]"), function (ta) {
-      ta.addEventListener("input", function () {
+      function sync() {
         var p = pageByKey(ta.getAttribute("data-value"));
         if (!p) return;
         p._v = ta.value;
         markDirty(p.key, p._v !== p.value || p._i !== p.image_url);
+      }
+      ta.addEventListener("input", sync);
+      ta.addEventListener("change", sync);
+    });
+    [].forEach.call(box.querySelectorAll("[data-color]"), function (col) {
+      col.addEventListener("input", function () {
+        var key = col.getAttribute("data-color");
+        var text = box.querySelector('[data-value="' + key + '"]');
+        if (text) text.value = col.value.toUpperCase();
+        var p = pageByKey(key);
+        if (!p) return;
+        p._v = col.value.toUpperCase();
+        markDirty(key, p._v !== p.value || p._i !== p.image_url);
       });
     });
     [].forEach.call(box.querySelectorAll("[data-url]"), function (inp) {
@@ -732,9 +1017,12 @@
     body.innerHTML = rows.map(function (p) {
       var n = CMS.commentCounts[p.slug] || 0;
       var no = noMap[p.slug || p.id];
+      var sched = isFuture(p.publish_at);
+      var flags = (p.is_pinned ? '<span class="pin-flag" title="상단 고정">📌</span>' : "") +
+        (sched ? '<span class="badge b-wait" title="' + esc(String(p.publish_at).replace("T", " ").slice(0, 16)) + ' 공개">예약됨</span>' : "");
       return "<tr>" +
         '<td class="num" data-th="No."><span class="post-no">No. ' + (no || "–") + "</span></td>" +
-        '<td data-th="상태"><span class="badge ' + (p.is_published ? "b-ok" : "b-off") + '">' + (p.is_published ? "발행" : "숨김") + "</span></td>" +
+        '<td data-th="상태"><span class="badge ' + (p.is_published ? "b-ok" : "b-off") + '">' + (p.is_published ? "발행" : "숨김") + "</span>" + flags + "</td>" +
         '<td data-th="분류">' + esc(p.category) + "</td>" +
         '<td class="ellip" data-th="제목" title="' + esc(p.title) + '">' + esc(p.title) + (p.image_url ? ' <span class="cms-img-dot" title="이미지 있음">IMG</span>' : "") + "</td>" +
         '<td class="muted" data-th="출처·지역">' + esc([p.source_name, p.region].filter(Boolean).join(" · ") || "–") + "</td>" +
@@ -757,6 +1045,26 @@
 
   function catPrefix(cat) {
     return ({ "소개": "intro", "뉴스": "news", "인터뷰": "interview", "정보": "info" })[cat] || "post";
+  }
+
+  function toLocalInput(iso) {
+    if (!iso) return "";
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    var p = function (n) { return (n < 10 ? "0" : "") + n; };
+    return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + "T" +
+      p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+  function toIso(local) {
+    if (!local) return null;
+    var d = new Date(local);
+    if (isNaN(d.getTime())) return null;
+    return d.toISOString();
+  }
+  function isFuture(iso) {
+    if (!iso) return false;
+    var d = new Date(iso);
+    return !isNaN(d.getTime()) && d.getTime() > Date.now();
   }
 
   function openPostEditor(id) {
@@ -783,6 +1091,9 @@
     $("#pf-kind").value = m.kind || "";
     $("#pf-period").value = m.period || "";
     $("#pf-image_url").value = p ? (p.image_url || "") : "";
+    $("#pf-is_pinned").checked = !!(p && p.is_pinned);
+    $("#pf-publish_at").value = p && p.publish_at ? toLocalInput(p.publish_at) : "";
+    paintPublishHint();
     paintPostPreview(p ? p.image_url : "");
     $("#pf-img-msg").textContent = "";
     $("#pf-msg").textContent = "";
@@ -812,6 +1123,18 @@
     box.innerHTML = url ? '<img src="' + esc(url) + '" alt="">' : "<span>이미지 없음</span>";
   }
 
+  function paintPublishHint() {
+    var el = $("#pf-publish-hint");
+    var inp = $("#pf-publish_at");
+    if (!el || !inp) return;
+    var v = inp.value;
+    if (!v) { el.textContent = "비워 두면 저장 즉시 공개됩니다(상태가 ‘발행’일 때)."; return; }
+    var iso = toIso(v);
+    el.textContent = isFuture(iso)
+      ? "예약됨 — 이 시각 전까지 공개 사이트에는 보이지 않습니다. : " + v.replace("T", " ")
+      : "이미 지난 시각이라 저장 즉시 공개됩니다. : " + v.replace("T", " ");
+  }
+
   function savePost(e) {
     if (e) e.preventDefault();
     var title = ($("#pf-title").value || "").trim();
@@ -832,6 +1155,8 @@
       deadline: $("#pf-deadline").value || null,
       published_at: $("#pf-published_at").value || null,
       is_published: $("#pf-state").value === "true",
+      is_pinned: !!($("#pf-is_pinned") && $("#pf-is_pinned").checked),
+      publish_at: toIso($("#pf-publish_at").value),
       sort_order: parseInt($("#pf-sort_order").value || "0", 10) || 0,
       meta: {}
     };
@@ -1095,6 +1420,38 @@
     if (urlInput) urlInput.addEventListener("change", function () { paintPostPreview(urlInput.value.trim()); });
     var clear = $("#pf-img-clear");
     if (clear) clear.addEventListener("click", function () { $("#pf-image_url").value = ""; paintPostPreview(""); });
+    var pubAt = $("#pf-publish_at");
+    if (pubAt) pubAt.addEventListener("input", paintPublishHint);
+    var pinBox = $("#pf-is_pinned");
+    if (pinBox) pinBox.addEventListener("change", function () {
+      var hint = $("#pf-publish-hint");
+      if (hint && !($("#pf-publish_at").value)) {
+        hint.textContent = pinBox.checked
+          ? "상단 고정 — 공개 목록 맨 앞에 📌 고정으로 표시됩니다."
+          : "비워 두면 저장 즉시 공개됩니다(상태가 ‘발행’일 때).";
+      }
+    });
+
+    /* --- 미디어 라이브러리 --- */
+    var mediaFile = $("#media-file");
+    if (mediaFile) mediaFile.addEventListener("change", function () {
+      var f = mediaFile.files && mediaFile.files[0];
+      if (!f) return;
+      cmsMsg("media-msg", "올리는 중… (" + f.name + ")");
+      uploadSiteImage(f, "library").then(function (url) {
+        cmsMsg("media-msg", "업로드 완료 — " + url, "ok");
+        mediaFile.value = "";
+        loadMedia();
+      }).catch(function (e) {
+        cmsMsg("media-msg", "업로드 실패: " + (e.message || "알 수 없는 오류"), "err");
+      });
+    });
+    var mediaReload = $("#media-reload");
+    if (mediaReload) mediaReload.addEventListener("click", loadMedia);
+    var mediaQ = $("#media-q");
+    if (mediaQ) mediaQ.addEventListener("input", renderMedia);
+    var mediaFolder = $("#media-folder");
+    if (mediaFolder) mediaFolder.addEventListener("change", renderMedia);
     var cq = $("#cmt-q");
     if (cq) cq.addEventListener("input", renderComments);
     ["#cmt-state", "#cmt-post"].forEach(function (sel) {

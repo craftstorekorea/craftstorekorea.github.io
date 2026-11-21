@@ -870,3 +870,45 @@ body.cmt-lock{overflow:hidden}
 
 /* hidden 속성이 표시 규칙(display:flex 등)에 묻히지 않게 합니다. */
 [hidden]{display:none !important}
+
+/* ---------- 상단 고정(PIN) 배지 ---------- */
+.pin-badge{
+  display:inline-flex;align-items:center;gap:3px;white-space:nowrap;
+  font-size:.68rem;font-weight:800;color:var(--accent-d);background:var(--accent-s);
+  border-radius:999px;padding:2px 8px;margin-right:6px;vertical-align:2px;
+}
+.news-body h3 .pin-badge,.iv blockquote + .pin-badge{margin-bottom:4px}
+
+/* ---------- 기간제 팝업 ---------- */
+body.pop-lock{overflow:hidden}
+.pop-shell{position:fixed;inset:0;z-index:180;display:grid;place-items:center;padding:20px}
+.pop-shell[hidden]{display:none !important}
+.pop-overlay{position:absolute;inset:0;background:rgba(38,28,22,.52);backdrop-filter:blur(2px)}
+.pop-card{
+  position:relative;width:min(420px,100%);max-height:90vh;overflow-y:auto;
+  background:var(--card);border-radius:18px;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;
+}
+.pop-x{
+  position:absolute;right:10px;top:10px;z-index:1;width:32px;height:32px;border-radius:50%;
+  background:rgba(255,253,251,.92);border:1px solid var(--line);color:var(--ink-2);
+  font-size:1.1rem;line-height:1;cursor:pointer;
+}
+.pop-x:hover{border-color:var(--ink);color:var(--ink)}
+.pop-img{width:100%;max-height:320px;object-fit:cover;display:block;border-radius:18px 18px 0 0}
+.pop-img[hidden]{display:none !important}
+.pop-content{padding:22px 22px 4px}
+.pop-content h2{font-size:1.12rem;letter-spacing:-.03em;line-height:1.4;padding-right:26px}
+.pop-text{margin-top:10px;font-size:.9rem;color:var(--ink-2);line-height:1.75;word-break:break-word}
+.pop-content .btn{margin-top:16px}
+.pop-foot{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:14px 22px 18px;border-top:1px solid var(--line);margin-top:14px;
+}
+.pop-today{display:inline-flex;align-items:center;gap:7px;font-size:.8rem;font-weight:600;color:var(--ink-2);cursor:pointer}
+.pop-today input{width:16px;height:16px;accent-color:var(--accent)}
+@media (max-width:520px){
+  .pop-shell{padding:14px}
+  .pop-content{padding:18px 18px 2px}
+  .pop-foot{padding:12px 18px 16px}
+}
