@@ -32,6 +32,81 @@
     return it && it.pinned ? '<span class="pin-badge" title="상단 고정">📌 고정</span>' : "";
   }
 
+  /* ---------------- 게시판 · 페이지 번호 ---------------- */
+  var pagerState = { intro: 1, news: 1, interview: 1, info: 1, archive: 1, board: 1 };
+  var lastBoardArg = "";
+
+  function cmsBoards() {
+    var C = window.CRAFT_CMS;
+    return (C && C.boardsList) ? C.boardsList() : [];
+  }
+  function boardBySlug(slug) {
+    var list = cmsBoards();
+    for (var i = 0; i < list.length; i++) if (list[i].slug === slug) return list[i];
+    return null;
+  }
+  function perPageFor(slug, fallback) {
+    var b = boardBySlug(slug);
+    var n = b && b.per_page ? Number(b.per_page) : 0;
+    return n > 0 ? n : (fallback || 10);
+  }
+  function pageCount(total, per) { return Math.max(1, Math.ceil(total / per)); }
+  function slicePage(rows, per, page) {
+    var pages = pageCount(rows.length, per);
+    var p = Math.min(Math.max(1, parseInt(page, 10) || 1), pages);
+    return { rows: rows.slice((p - 1) * per, p * per), page: p, pages: pages, per: per, total: rows.length };
+  }
+  function pageNumbers(page, pages) {
+    var out = [], i;
+    if (pages <= 7) { for (i = 1; i <= pages; i++) out.push(i); return out; }
+    out.push(1);
+    var from = Math.max(2, page - 1), to = Math.min(pages - 1, page + 1);
+    if (from > 2) out.push("…");
+    for (i = from; i <= to; i++) out.push(i);
+    if (to < pages - 1) out.push("…");
+    out.push(pages);
+    return out;
+  }
+  function renderPager(box, info, onGo, label) {
+    if (!box) return;
+    if (!info || info.pages <= 1) { box.innerHTML = ""; return; }
+    var html = '<span class="pager-count">' + (label ? esc(label) + " · " : "") +
+      info.total + "건 중 " + ((info.page - 1) * info.per + 1) + "–" +
+      Math.min(info.total, info.page * info.per) + "건</span>";
+    html += '<button type="button" data-pg="' + (info.page - 1) + '"' +
+      (info.page === 1 ? " disabled" : "") + ' aria-label="이전 페이지">이전</button>';
+    pageNumbers(info.page, info.pages).forEach(function (n) {
+      if (n === "…") { html += '<span class="pg-gap" aria-hidden="true">…</span>'; return; }
+      html += '<button type="button" data-pg="' + n + '"' + (n === info.page ? ' aria-current="page"' : "") +
+        ' aria-label="' + n + '페이지">' + n + "</button>";
+    });
+    html += '<button type="button" data-pg="' + (info.page + 1) + '"' +
+      (info.page === info.pages ? " disabled" : "") + ' aria-label="다음 페이지">다음</button>';
+    box.innerHTML = html;
+    [].forEach.call(box.querySelectorAll("[data-pg]"), function (b) {
+      b.addEventListener("click", function () {
+        var n = parseInt(b.getAttribute("data-pg"), 10);
+        if (!n || n === info.page) return;
+        onGo(n);
+      });
+    });
+  }
+  function scrollToEl(el) {
+    if (!el) return;
+    try { el.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (e) { /* noop */ }
+  }
+  function hashRoute() { return (location.hash || "#/home").replace(/^#\/?/, "") || "home"; }
+  function parseRoute() {
+    var raw = hashRoute();
+    if (/^page\//.test(raw)) return { name: "page", arg: decodeURIComponent(raw.slice(5)), raw: raw };
+    if (/^board\//.test(raw)) return { name: "board", arg: decodeURIComponent(raw.slice(6)), raw: raw };
+    return { name: VIEW_KEYS.indexOf(raw) >= 0 ? raw : "home", arg: "", raw: raw };
+  }
+  function boardView(slug) {
+    var map = { intro: "workshops", news: "news", interview: "interview", info: "info" };
+    return map[slug] ? "#/" + map[slug] : "#/board/" + slug;
+  }
+
   /* ---------------- static links ---------------- */
   var L = S.links;
   var linkMap = {
@@ -77,7 +152,7 @@
   /* ---------------- 헤더 (로고 · 브랜드 · 메뉴) ----------------
      site_contents 의 header_logo_url / header_brand_text / header_menu_items 를 읽어 그립니다.
      값이 없으면 index.html 의 기본 마크·메뉴를 그대로 씁니다. */
-  var VIEW_KEYS = ["home", "workshops", "news", "interview", "archive", "info", "map"];
+  var VIEW_KEYS = ["home", "workshops", "news", "interview", "archive", "info", "map", "page", "board"];
   var DEFAULT_MARK =
     '<svg viewBox="0 0 32 32" fill="none"><path d="M8 22c0-4.5 3.4-5.6 8-5.6s8-1.2 8-5.4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="8" cy="22" r="2.4" fill="#C86D44"/></svg>';
 
@@ -99,9 +174,11 @@
   }
 
   function paintSelected() {
-    var v = (location.hash || "#/home").replace(/^#\/?/, "") || "home";
+    var r = parseRoute();
     [].forEach.call(document.querySelectorAll(".tabs .tab"), function (t) {
-      t.setAttribute("aria-selected", t.getAttribute("data-view") === v ? "true" : "false");
+      var dv = t.getAttribute("data-view") || "";
+      var on = dv === r.raw || (dv === r.name && r.name !== "page" && r.name !== "board");
+      t.setAttribute("aria-selected", on ? "true" : "false");
     });
   }
 
@@ -122,7 +199,9 @@
           esc(label) + noteHtml + ' <svg width="11" height="11" aria-hidden="true"><use href="#i-ext"/></svg></a>';
       }
       var view = target.replace(/^#\/?/, "").replace(/\/$/, "") || "home";
-      if (VIEW_KEYS.indexOf(view) < 0) view = "home";
+      var known = VIEW_KEYS.indexOf(view) >= 0 ||
+        /^page\/[A-Za-z0-9가-힣._-]+$/.test(view) || /^board\/[A-Za-z0-9가-힣._-]+$/.test(view);
+      if (!known) view = "home";
       return '<button class="tab" role="tab" type="button" data-view="' + esc(view) + '" aria-selected="false">' +
         esc(label) + noteHtml + "</button>";
     }).join("");
@@ -271,10 +350,10 @@
   });
 
   /* ---------------- 소개 코너 기사 (data.js 의 intro) ---------------- */
-  function newsRow(it, i) {
+  function newsRow(it, no) {
     var row = el("article", "news-item");
     row.innerHTML =
-      '<div class="news-num"><span class="post-no">No. ' + (i + 1) + "</span></div>" +
+      '<div class="news-num"><span class="post-no">No. ' + no + "</span></div>" +
       '<div class="news-body"><h3>' + pinBadge(it) + '<a href="' + esc(it.url) + '" target="_blank" rel="noopener">' + esc(it.title) + "</a></h3>" +
       "<p>" + esc(it.desc) + "</p>" +
       '<div class="news-tags">' + (it.tag ? '<span class="chip">' + esc(it.tag) + "</span>" : "") +
@@ -289,15 +368,29 @@
   function renderIntro() {
     var introList = $("#intro-list");
     if (!introList) return;
+    var per = perPageFor("intro", 8);
+    var st = slicePage(S.intro || [], per, pagerState.intro);
+    pagerState.intro = st.page;
     introList.innerHTML = "";
-    (S.intro || []).forEach(function (it, i) { introList.appendChild(newsRow(it, i)); });
+    st.rows.forEach(function (it, i) {
+      introList.appendChild(newsRow(it, (st.page - 1) * per + i + 1));
+    });
+    renderPager($("#intro-pager"), st, function (n) {
+      pagerState.intro = n; renderIntro(); scrollToEl(introList);
+    }, "공방 소개");
   }
 
   function renderNews() {
     var nl = $("#news-list");
     if (!nl) return;
+    var per = perPageFor("news", 10);
+    var st = slicePage(S.news || [], per, pagerState.news);
+    pagerState.news = st.page;
     nl.innerHTML = "";
-    S.news.forEach(function (it, i) { nl.appendChild(newsRow(it, i)); });
+    st.rows.forEach(function (it, i) { nl.appendChild(newsRow(it, (st.page - 1) * per + i + 1)); });
+    renderPager($("#news-pager"), st, function (n) {
+      pagerState.news = n; renderNews(); scrollToEl(nl);
+    }, "공방 뉴스");
     $("#news-lede").textContent =
       "업계 지표부터 지역 공방 거리, 팝업과 페어까지 " + S.news.length +
       "건입니다. " + shortDate(S.weekFrom) + " ~ " + shortDate(S.weekTo) + " 보도 기준, 원문 링크로 바로 이동할 수 있습니다.";
@@ -309,12 +402,16 @@
   function renderInterviews() {
     var ivg = $("#iv-grid");
     if (!ivg) return;
+    var per = perPageFor("interview", 5);
+    var st = slicePage(S.interviews || [], per, pagerState.interview);
+    pagerState.interview = st.page;
     ivg.innerHTML = "";
-    S.interviews.forEach(function (it, i) {
+    st.rows.forEach(function (it, i) {
       var card = el("article", "iv");
       var who = String(it.person || "·").charAt(0);
+      var no = (st.page - 1) * per + i + 1;
       card.innerHTML =
-        '<div class="iv-top"><span class="post-no">No. ' + (i + 1) + '</span>' + pinBadge(it) + '</div>' +
+        '<div class="iv-top"><span class="post-no">No. ' + no + '</span>' + pinBadge(it) + '</div>' +
         '<span class="qmark" aria-hidden="true">“</span>' +
         "<blockquote>" + esc(it.quote) + "</blockquote>" +
         "<p>" + esc(it.desc) + "</p>" +
@@ -325,6 +422,9 @@
       cmt(card, it.slug, it.title, it.image);
       ivg.appendChild(card);
     });
+    renderPager($("#iv-pager"), st, function (n) {
+      pagerState.interview = n; renderInterviews(); scrollToEl(ivg);
+    }, "작가 인터뷰");
   }
   renderInterviews();
 
@@ -413,6 +513,7 @@
 
   function setArc(kind, value) {
     arcState[kind] = value;
+    pagerState.archive = 1;
     renderArc();
   }
 
@@ -455,6 +556,9 @@
     });
 
     var rows = A.items.filter(arcMatch);
+    var arcPer = 30;
+    var arcPage = slicePage(rows, arcPer, pagerState.archive);
+    pagerState.archive = arcPage.page;
     $("#arc-count").innerHTML = (rows.length === A.total
       ? "전체 <b>" + A.total + "</b>건 · " + A.issues.length + "개 호"
       : "전체 " + A.total + "건 중 <b>" + rows.length + "</b>건");
@@ -472,14 +576,16 @@
     list.innerHTML = "";
     if (!rows.length) {
       list.appendChild(el("div", "empty", "해당하는 기사가 없습니다. 호·코너 필터나 검색어를 바꿔 보세요."));
+      renderPager($("#arc-pager"), null);
       return;
     }
 
+    var shownRows = arcPage.rows;
     var groups = arcState.issue === "all"
       ? A.issues.map(function (is) {
-          return { issue: is, items: rows.filter(function (it) { return it.issue === is.id; }) };
+          return { issue: is, items: shownRows.filter(function (it) { return it.issue === is.id; }) };
         }).filter(function (g) { return g.items.length; })
-      : [{ issue: cur, items: rows }];
+      : [{ issue: cur, items: shownRows }];
 
     groups.forEach(function (g) {
       var box = el("section", "arc-group");
@@ -490,10 +596,15 @@
           '<span class="n"><b>' + g.items.length + "</b>건" + (g.items.length !== g.issue.count ? " / " + g.issue.count + "건" : "") + "</span>"));
       }
       var cards = el("div", "arc-cards");
-      g.items.forEach(function (it, i) { cards.appendChild(arcCard(it, arcState.issue === "all", i + 1)); });
+      g.items.forEach(function (it) {
+        cards.appendChild(arcCard(it, arcState.issue === "all", rows.indexOf(it) + 1));
+      });
       box.appendChild(cards);
       list.appendChild(box);
     });
+    renderPager($("#arc-pager"), arcPage, function (n) {
+      pagerState.archive = n; renderArc(); scrollToEl(list);
+    }, "아카이브");
   }
 
   function initArc() {
@@ -508,10 +619,12 @@
     q.addEventListener("input", function () {
       arcState.q = q.value;
       qc.classList.toggle("show", !!q.value);
+      pagerState.archive = 1;
       renderArc();
     });
     qc.addEventListener("click", function () {
-      q.value = ""; arcState.q = ""; qc.classList.remove("show"); q.focus(); renderArc();
+      q.value = ""; arcState.q = ""; qc.classList.remove("show"); q.focus();
+      pagerState.archive = 1; renderArc();
     });
 
     var lead = $("#archive-lead");
@@ -552,12 +665,20 @@
       return ad - bd;
     });
     var shown = items.filter(function (it) { return infoState.kind === "전체" || it.kind === infoState.kind; });
-    if (!shown.length) { list.appendChild(el("div", "empty", "해당하는 정보가 없습니다.")); return; }
-    shown.forEach(function (it, i) {
+    if (!shown.length) {
+      list.appendChild(el("div", "empty", "해당하는 정보가 없습니다."));
+      renderPager($("#info-pager"), null);
+      return;
+    }
+    var per = perPageFor("info", 10);
+    var page = slicePage(shown, per, pagerState.info);
+    pagerState.info = page.page;
+    page.rows.forEach(function (it, i) {
       var st = dueState(it.due);
+      var no = (page.page - 1) * per + i + 1;
       var row = el("article", "info-item");
       row.innerHTML =
-        '<div class="info-date"><span class="post-no">No. ' + (i + 1) + "</span><b" + (it.due ? "" : ' class="loose"') + ">" + (it.due ? md(it.due) : "상시") + "</b>" +
+        '<div class="info-date"><span class="post-no">No. ' + no + "</span><b" + (it.due ? "" : ' class="loose"') + ">" + (it.due ? md(it.due) : "상시") + "</b>" +
         '<span class="dday ' + st.cls + '">' + st.label + "</span></div>" +
         '<div class="info-body"><h3>' + pinBadge(it) + esc(it.title) + "</h3>" +
         '<div class="meta"><span class="kind">' + esc(it.kind) + "</span><span>" + esc(it.org) + "</span><span>" + esc(it.period) + "</span><span data-cmt></span></div>" +
@@ -566,6 +687,9 @@
       cmt(row, it.slug, it.title, it.image);
       list.appendChild(row);
     });
+    renderPager($("#info-pager"), page, function (n) {
+      pagerState.info = n; renderInfo(); scrollToEl(list);
+    }, "지원·공모");
   }
 
   function renderInfoFilters() {
@@ -583,6 +707,7 @@
       b.innerHTML = esc(k) + "<i>" + n + "</i>";
       b.addEventListener("click", function () {
         infoState.kind = k;
+        pagerState.info = 1;
         [].forEach.call(box.children, function (c) { c.setAttribute("aria-pressed", "false"); });
         b.setAttribute("aria-pressed", "true");
         renderInfo();
@@ -974,8 +1099,100 @@
     }, 60);
   });
 
+  /* ---------------- 게시판 이동 (board switcher) ---------------- */
+  function renderBoardSwitch() {
+    var C = window.CRAFT_CMS;
+    var boards = cmsBoards();
+    var r = parseRoute();
+    [].forEach.call(document.querySelectorAll(".board-switch"), function (nav) {
+      if (!boards.length) { nav.innerHTML = ""; nav.hidden = true; return; }
+      nav.hidden = false;
+      nav.innerHTML = boards.map(function (b) {
+        var target = boardView(b.slug);
+        var n = (C && C.countFor) ? C.countFor(b.slug) : 0;
+        var on = (r.name === "board" && r.arg === b.slug) || target === "#/" + r.name;
+        return '<a href="' + esc(target) + '"' + (on ? ' aria-current="page"' : "") + ">" +
+          esc(b.name) + (n ? ' <span class="bs-n">' + n + "</span>" : "") + "</a>";
+      }).join("");
+    });
+  }
+
+  /* ---------------- 직접 만든 페이지 (#/page/<slug>) ---------------- */
+  function renderPageView(slug) {
+    var C = window.CRAFT_CMS;
+    var page = (C && C.pageBySlug) ? C.pageBySlug(slug) : null;
+    var empty = $("#page-empty");
+    if (!page) {
+      $("#page-eyebrow").textContent = "페이지";
+      $("#page-title").textContent = "페이지를 찾을 수 없습니다";
+      $("#page-sub").textContent = "";
+      $("#page-sub").hidden = true;
+      $("#page-gallery").innerHTML = "";
+      $("#page-body").textContent = "";
+      $("#page-body").hidden = true;
+      if (empty) empty.hidden = false;
+      return;
+    }
+    if (empty) empty.hidden = true;
+    $("#page-eyebrow").textContent = "전국공방 · 페이지";
+    $("#page-title").textContent = page.title || "";
+    var sub = $("#page-sub");
+    sub.textContent = page.subtitle || "";
+    sub.hidden = !page.subtitle;
+    var gal = $("#page-gallery");
+    gal.innerHTML = "";
+    (page.images || []).forEach(function (im) {
+      if (!im || !im.url) return;
+      var fig = document.createElement("figure");
+      fig.innerHTML = '<img src="' + esc(im.url) + '" alt="' + esc(im.caption || page.title || "") +
+        '" loading="lazy"><figcaption>' + esc(im.caption || "") + "</figcaption>";
+      gal.appendChild(fig);
+    });
+    var body = $("#page-body");
+    body.textContent = page.body || "";
+    body.hidden = !page.body;
+  }
+
+  /* ---------------- 직접 만든 게시판 (#/board/<slug>) ---------------- */
+  function renderCustomBoard(slug) {
+    var C = window.CRAFT_CMS;
+    var b = boardBySlug(slug);
+    var list = $("#board-list");
+    if (!list) return;
+    var empty = $("#board-empty");
+    if (!b) {
+      $("#board-eyebrow").textContent = "게시판";
+      $("#board-title").textContent = "게시판을 찾을 수 없습니다";
+      $("#board-desc").textContent = "";
+      list.innerHTML = "";
+      renderPager($("#board-pager"), null);
+      if (empty) empty.hidden = false;
+      return;
+    }
+    if (empty) empty.hidden = true;
+    $("#board-eyebrow").textContent = "게시판 · " + (b.slug || "");
+    $("#board-title").textContent = b.name || "게시판";
+    $("#board-desc").textContent = b.description || "";
+    var rows = (C && C.postsFor) ? C.postsFor(b.slug) : [];
+    var per = b.per_page || 12;
+    var st = slicePage(rows, per, pagerState.board);
+    pagerState.board = st.page;
+    list.innerHTML = "";
+    if (!rows.length) {
+      list.appendChild(el("div", "empty", "아직 이 게시판에 글이 없습니다."));
+      renderPager($("#board-pager"), null);
+      return;
+    }
+    st.rows.forEach(function (it, i) {
+      list.appendChild(newsRow(it, (st.page - 1) * per + i + 1));
+    });
+    renderPager($("#board-pager"), st, function (n) {
+      pagerState.board = n; renderCustomBoard(slug); scrollToEl(list);
+    }, b.name || "게시판");
+  }
+
   /* ---------------- routing ---------------- */
-  var VIEWS = ["home", "workshops", "news", "interview", "archive", "info", "map"];
+  var VIEWS = ["home", "workshops", "news", "interview", "archive", "info", "map", "page", "board"];
   var TITLES = {
     home: "전국공방 — 우리 동네 공방의 이번 주 소식",
     workshops: "공방 소개 — 전국공방",
@@ -983,15 +1200,16 @@
     interview: "작가 인터뷰 — 전국공방",
     archive: "아카이브 (2024–2026) 151건 — 전국공방",
     info: "지원·공모 정보 — 전국공방",
-    map: "전국 공방 지도 & 등록 게시판 — 전국공방"
+    map: "전국 공방 지도 & 등록 게시판 — 전국공방",
+    page: "페이지 — 전국공방",
+    board: "게시판 — 전국공방"
   };
   function route(scroll) {
-    var v = (location.hash || "#/home").replace(/^#\/?/, "") || "home";
-    if (VIEWS.indexOf(v) < 0) v = "home";
+    var r = parseRoute();
     VIEWS.forEach(function (name) {
       var view = document.getElementById("view-" + name);
       if (!view) return;
-      var on = name === v;
+      var on = name === r.name;
       view.hidden = !on;
       if (on) {
         view.classList.remove("fade-in");
@@ -999,13 +1217,26 @@
         view.classList.add("fade-in");
       }
     });
-    [].forEach.call(document.querySelectorAll(".tabs .tab"), function (t) {
-      t.setAttribute("aria-selected", t.getAttribute("data-view") === v ? "true" : "false");
-    });
-    document.title = (v === "home" && window.CRAFT_SEO && window.CRAFT_SEO.title)
+    paintSelected();
+    if (r.name === "page") renderPageView(r.arg);
+    if (r.name === "board") {
+      if (r.arg !== lastBoardArg) { pagerState.board = 1; lastBoardArg = r.arg; }
+      renderCustomBoard(r.arg);
+    }
+    renderBoardSwitch();
+    var title = TITLES[r.name] || TITLES.home;
+    if (r.name === "page") {
+      var pg = window.CRAFT_CMS && window.CRAFT_CMS.pageBySlug && window.CRAFT_CMS.pageBySlug(r.arg);
+      if (pg && pg.title) title = pg.title + " — 전국공방";
+    }
+    if (r.name === "board") {
+      var b = boardBySlug(r.arg);
+      if (b && b.name) title = b.name + " — 전국공방";
+    }
+    document.title = (r.name === "home" && window.CRAFT_SEO && window.CRAFT_SEO.title)
       ? window.CRAFT_SEO.title
-      : (TITLES[v] || TITLES.home);
-    if (v === "map") { buildMap(); }
+      : title;
+    if (r.name === "map") { buildMap(); }
     if (scroll !== false) window.scrollTo({ top: 0, behavior: "auto" });
   }
   window.addEventListener("hashchange", function () { route(true); });
@@ -1042,6 +1273,10 @@
     renderInfoFilters();
     renderInfo();
     renderBoard();
+    var r = parseRoute();
+    if (r.name === "page") renderPageView(r.arg);
+    if (r.name === "board") renderCustomBoard(r.arg);
+    renderBoardSwitch();
     if (window.CRAFT_CMS) window.CRAFT_CMS.recount();
   }
   window.CRAFT_APP = { refresh: refreshAll };

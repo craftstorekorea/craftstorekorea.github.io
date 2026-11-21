@@ -912,3 +912,131 @@ body.pop-lock{overflow:hidden}
   .pop-content{padding:18px 18px 2px}
   .pop-foot{padding:12px 18px 16px}
 }
+
+/* ============================================================================
+   2026-11 · 직접 만든 페이지 · 게시판 이동 · 페이지 번호 · 비회원 캡차 댓글
+   ============================================================================ */
+
+/* ---- 게시판 이동 (board switcher) ---- */
+.board-switch{
+  display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px;padding-bottom:14px;
+  border-bottom:1px solid var(--line);
+}
+.board-switch a{
+  display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;
+  border:1px solid var(--line-2);background:var(--card);color:var(--ink-2);
+  font-size:.82rem;font-weight:700;letter-spacing:-.01em;text-decoration:none;
+  transition:border-color .15s,color .15s,background .15s;
+}
+.board-switch a:hover{border-color:var(--accent);color:var(--accent-d)}
+.board-switch a[aria-current="page"]{
+  background:var(--ink);border-color:var(--ink);color:#fff;
+}
+.board-switch a .bs-n{font-size:.72rem;color:var(--ink-3);font-weight:700}
+.board-switch a[aria-current="page"] .bs-n{color:rgba(255,255,255,.72)}
+
+/* ---- 하단 페이지 번호 ---- */
+.pager{
+  display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;
+  margin:30px 0 6px;
+}
+.pager:empty{display:none}
+.pager button,.pager a{
+  min-width:38px;height:38px;padding:0 11px;border-radius:10px;border:1px solid var(--line-2);
+  background:var(--card);color:var(--ink-2);font-size:.86rem;font-weight:700;
+  display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+  font-variant-numeric:tabular-nums;transition:border-color .15s,color .15s,background .15s;
+}
+.pager button:hover:not(:disabled),.pager a:hover{border-color:var(--accent);color:var(--accent-d)}
+.pager button[aria-current="page"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.pager button:disabled{opacity:.38;cursor:default}
+.pager .pg-gap{min-width:22px;text-align:center;color:var(--ink-3);font-weight:700}
+.pager .pager-count{
+  flex:1 0 100%;text-align:center;font-size:.76rem;color:var(--ink-3);
+  margin:0 0 4px;font-variant-numeric:tabular-nums;
+}
+
+/* ---- 직접 만든 페이지 ---- */
+.page-view{max-width:880px}
+.page-title{
+  font-size:clamp(1.7rem,3.4vw,2.5rem);line-height:1.28;letter-spacing:-.035em;
+  margin:10px 0 0;
+}
+.page-sub{
+  margin:12px 0 0;color:var(--ink-2);font-size:1.02rem;line-height:1.7;
+  max-width:64ch;
+}
+.page-gallery{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;
+  margin:26px 0 4px;
+}
+.page-gallery:empty{display:none}
+.page-gallery figure{
+  margin:0;background:var(--card);border:1px solid var(--line);border-radius:14px;
+  overflow:hidden;
+}
+.page-gallery img{width:100%;height:220px;object-fit:cover;display:block;background:var(--bg-2,#f1ede8)}
+.page-gallery figcaption{
+  padding:9px 13px;font-size:.8rem;color:var(--ink-3);line-height:1.55;
+  border-top:1px solid var(--line);
+}
+.page-gallery figcaption:empty{display:none}
+.page-body{
+  margin:28px 0 0;font-size:.98rem;line-height:1.95;color:var(--ink-2);
+  word-break:break-word;white-space:pre-wrap;max-width:70ch;
+}
+.page-body:empty{display:none}
+.page-empty{padding:40px 0;text-align:center;color:var(--ink-3);font-size:.92rem}
+.page-empty[hidden]{display:none !important}
+
+/* ---- 댓글 권한 안내 · 비회원 캡차 ---- */
+.cmt-off{
+  border-top:1px solid var(--line);padding:18px 20px 22px;background:var(--bg);
+  font-size:.86rem;color:var(--ink-3);line-height:1.65;text-align:center;
+}
+.cmt-guest{
+  border-top:1px solid var(--line);padding:14px 20px 18px;background:var(--bg);
+  display:flex;flex-direction:column;gap:9px;
+}
+.cmt-guest .cap-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cmt-guest .cap-box{
+  border:1px solid var(--line-2);border-radius:10px;background:#fff;overflow:hidden;
+  line-height:0;flex:none;
+}
+.cmt-guest .cap-box svg{display:block;width:210px;height:74px}
+.cmt-guest .cap-box .cap-wait,.cmt-guest .cap-box .cap-err{
+  display:inline-block;padding:26px 16px;font-size:.78rem;color:var(--ink-3);line-height:1.4;
+}
+.cmt-guest .cap-refresh{
+  background:transparent;border:1px solid var(--line-2);border-radius:999px;padding:6px 12px;
+  font-size:.76rem;font-weight:700;color:var(--ink-2);cursor:pointer;
+}
+.cmt-guest .cap-refresh:hover{border-color:var(--accent);color:var(--accent-d)}
+.cmt-guest input,.cmt-guest textarea{
+  width:100%;font:inherit;color:var(--ink);background:#fff;border:1px solid var(--line-2);
+  border-radius:10px;padding:10px 12px;font-size:.9rem;
+}
+.cmt-guest input:focus,.cmt-guest textarea:focus{
+  outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s);
+}
+.cmt-guest textarea{resize:vertical;min-height:74px;line-height:1.6}
+.cmt-guest .cmt-guest-head{
+  display:flex;align-items:baseline;gap:8px;font-size:.78rem;color:var(--ink-3);
+}
+.cmt-guest .cmt-guest-head b{color:var(--ink-2);font-size:.84rem}
+.cmt-guest-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cmt-guest-foot .cmt-chars{margin-left:auto}
+.cmt-guest-msg{margin:0;font-size:.8rem;color:var(--accent-d);min-height:1.1em}
+.cmt-guest[hidden],.cmt-off[hidden]{display:none !important}
+.cmt-item-head .cmt-guest-badge{
+  font-size:.64rem;font-weight:800;color:#6b5a4c;background:#efe8de;border-radius:999px;
+  padding:2px 7px;letter-spacing:.02em;
+}
+@media (max-width:520px){
+  .board-switch{gap:6px;margin-bottom:16px}
+  .board-switch a{padding:6px 11px;font-size:.78rem}
+  .pager button,.pager a{min-width:34px;height:34px;font-size:.82rem}
+  .page-gallery{grid-template-columns:1fr}
+  .page-gallery img{height:190px}
+  .cmt-guest .cap-box svg{width:190px;height:67px}
+}

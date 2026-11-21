@@ -27,6 +27,42 @@
   var cmtCounts = Object.create(null);
   var booted = false;
   var loadedPosts = false;
+  var postsAll = [];                 // 발행된 글 전체 (게시판별 필터용)
+  var boards = [];                   // public.boards (사용 중인 게시판)
+  var customPages = [];              // public.pages (발행된 페이지)
+  var policyDefault = "member";      // site_contents.comments.default_policy
+
+  /* 게시판 slug ↔ posts.category 값 (기본 4개는 한글 분류를 그대로 씁니다) */
+  var CAT_ALIAS = { intro: "소개", news: "뉴스", interview: "인터뷰", info: "정보" };
+  function boardKey(b) { return (b && (CAT_ALIAS[b.slug] || b.slug)) || ""; }
+  function boardBySlug(slug) {
+    for (var i = 0; i < boards.length; i++) if (boards[i].slug === slug) return boards[i];
+    return null;
+  }
+  function boardByKey(key) {
+    for (var i = 0; i < boards.length; i++) {
+      var b = boards[i];
+      if (b.slug === key || CAT_ALIAS[b.slug] === key) return b;
+    }
+    return null;
+  }
+  function postBySlug(slug) {
+    for (var i = 0; i < postsAll.length; i++) if (postsAll[i].slug === slug) return postsAll[i];
+    return null;
+  }
+  function policyFor(key) {
+    if (!key) return "off";
+    if (key.indexOf("workshop:") === 0) return policyDefault || "member";
+    var p = postBySlug(key);
+    var b = p ? boardByKey(p.category) : boardBySlug(key);
+    return (b && b.comment_policy) || policyDefault || "member";
+  }
+  function postsForBoard(slug) {
+    var b = boardBySlug(slug);
+    if (!b) return [];
+    var key = boardKey(b);
+    return postsAll.filter(function (p) { return p.category === key; }).map(mapArticle);
+  }
 
   /* ---------------- REST (공개 읽기) ---------------- */
   function rest(path) {
@@ -104,6 +140,7 @@
     };
   }
   function applyPosts(rows) {
+    postsAll = rows.slice();
     var by = { "소개": [], "뉴스": [], "인터뷰": [], "정보": [] };
     rows.forEach(function (p) { if (by[p.category]) by[p.category].push(p); });
     // 상단 고정(PIN) 글이 먼저, 그다음 sort_order 순서입니다.
@@ -118,6 +155,18 @@
     S.interviews = by["인터뷰"].map(mapInterview);
     S.info = by["정보"].map(mapInfo);
     loadedPosts = true;
+  }
+
+  /* ---------------- boards · pages 공개 읽기 ---------------- */
+  function applyBoards(rows) {
+    boards = (rows || []).slice().sort(function (a, b) {
+      return (a.sort_order || 0) - (b.sort_order || 0) || String(a.slug).localeCompare(String(b.slug));
+    });
+  }
+  function applyPages(rows) {
+    customPages = (rows || []).slice().sort(function (a, b) {
+      return (a.sort_order || 0) - (b.sort_order || 0) || String(a.slug).localeCompare(String(b.slug));
+    });
   }
 
   /* ---------------- site_contents → 화면 ---------------- */
@@ -524,6 +573,23 @@
       '      <button type="submit" class="btn btn-primary btn-sm" id="cmt-send">댓글 등록</button></div>' +
       '    <p class="cmt-msg" id="cmt-msg" role="status" aria-live="polite"></p>' +
       "  </form>" +
+      '  <form class="cmt-guest" id="cmt-guest" hidden>' +
+      '    <div class="cmt-guest-head"><b>비회원으로 남기기</b><span>그림에 보이는 글자를 함께 적어 주세요.</span></div>' +
+      '    <label class="sr-only" for="cmt-name">닉네임</label>' +
+      '    <input id="cmt-name" maxlength="60" placeholder="닉네임 (1~60자)" autocomplete="nickname">' +
+      '    <div class="cap-row">' +
+      '      <div class="cap-box" id="cmt-cap-img" aria-live="polite"></div>' +
+      '      <button type="button" class="cap-refresh" id="cmt-cap-refresh">다른 글자</button>' +
+      '    </div>' +
+      '    <label class="sr-only" for="cmt-cap-answer">보안 문자</label>' +
+      '    <input id="cmt-cap-answer" maxlength="10" placeholder="그림에 보이는 글자 5자" autocomplete="off" spellcheck="false">' +
+      '    <label class="sr-only" for="cmt-guest-input">댓글 내용</label>' +
+      '    <textarea id="cmt-guest-input" maxlength="1000" rows="3" placeholder="서로에게 도움이 되는 말을 남겨 주세요. (최대 1000자)"></textarea>' +
+      '    <div class="cmt-guest-foot"><span class="cmt-chars" id="cmt-guest-chars">0/1000</span>' +
+      '      <button type="submit" class="btn btn-primary btn-sm" id="cmt-guest-send">댓글 등록</button></div>' +
+      '    <p class="cmt-guest-msg" id="cmt-guest-msg" role="status" aria-live="polite"></p>' +
+      "  </form>" +
+      '  <div class="cmt-off" id="cmt-off" hidden>이 게시판은 댓글이 비활성화되어 있습니다.</div>' +
       '  <div class="cmt-login" id="cmt-login" hidden>' +
       "    <p>댓글을 쓰려면 로그인이 필요합니다. 전국공방 회원은 누구나 남길 수 있어요.</p>" +
       '    <button type="button" class="btn btn-primary btn-sm" id="cmt-login-btn">로그인하고 댓글 쓰기</button>' +
@@ -541,6 +607,11 @@
       $("#cmt-chars").textContent = e.target.value.length + "/1000";
     });
     $("#cmt-form").addEventListener("submit", submitComment);
+    $("#cmt-guest").addEventListener("submit", submitGuestComment);
+    $("#cmt-guest-input").addEventListener("input", function (e) {
+      $("#cmt-guest-chars").textContent = e.target.value.length + "/1000";
+    });
+    $("#cmt-cap-refresh").addEventListener("click", function () { loadCaptcha(); });
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && drawer && !$("#cmt-drawer").hidden) closeDrawer();
     });
@@ -568,6 +639,12 @@
     if (state.image) { hero.src = state.image; hero.hidden = false; } else { hero.hidden = true; hero.removeAttribute("src"); }
     $("#cmt-list").innerHTML = '<p class="cmt-empty">댓글을 불러오는 중…</p>';
     $("#cmt-msg").textContent = "";
+    $("#cmt-guest-msg").textContent = "";
+    $("#cmt-cap-answer").value = "";
+    $("#cmt-guest-input").value = "";
+    $("#cmt-guest-chars").textContent = "0/1000";
+    capState.id = "";
+    $("#cmt-cap-img").innerHTML = "";
     $("#cmt-overlay").hidden = false;
     $("#cmt-drawer").hidden = false;
     document.body.classList.add("cmt-lock");
@@ -588,9 +665,103 @@
     if (!drawer || $("#cmt-drawer").hidden) return;
     var user = me(), token = sessionToken();
     var on = !!(user && token);
-    $("#cmt-form").hidden = !on;
-    $("#cmt-login").hidden = on;
+    var policy = policyFor(state.key);
+    var off = policy === "off";
+    $("#cmt-off").hidden = !off;
+    $("#cmt-form").hidden = off || !on;
+    $("#cmt-login").hidden = off || on || policy !== "member";
+    var guestOn = !off && !on && policy === "all";
+    $("#cmt-guest").hidden = !guestOn;
     if (on) $("#cmt-who").textContent = myName(user) + " 님으로 남깁니다";
+    if (guestOn && !capState.id && !capState.loading) loadCaptcha();
+  }
+
+  /* ---------------- 비회원 캡차 ---------------- */
+  var capState = { id: "", loading: false };
+
+  function loadCaptcha() {
+    var box = $("#cmt-cap-img");
+    if (!box || capState.loading) return Promise.resolve();
+    capState.loading = true;
+    capState.id = "";
+    var btn = $("#cmt-cap-refresh");
+    if (btn) btn.disabled = true;
+    box.innerHTML = '<span class="cap-wait">보안 문자를 불러오는 중…</span>';
+    return fetch(API + "/rest/v1/rpc/create_captcha", {
+      method: "POST",
+      headers: { apikey: KEY, Authorization: "Bearer " + KEY, "Content-Type": "application/json", Accept: "application/json" },
+      body: "{}"
+    }).then(function (r) {
+      if (!r.ok) return r.text().then(function (t) { throw new Error(t); });
+      return r.json();
+    }).then(function (d) {
+      capState.id = (d && d.id) || "";
+      box.innerHTML = (d && d.svg) ? d.svg : "";
+      var ans = $("#cmt-cap-answer");
+      if (ans) ans.value = "";
+      if (!capState.id) box.innerHTML = '<span class="cap-err">보안 문자를 받지 못했습니다.</span>';
+    }).catch(function () {
+      capState.id = "";
+      box.innerHTML = '<span class="cap-err">보안 문자를 불러오지 못했습니다. ‘다른 글자’를 눌러 주세요.</span>';
+    }).then(function () {
+      capState.loading = false;
+      if (btn) btn.disabled = false;
+    });
+  }
+
+  function submitGuestComment(e) {
+    if (e) e.preventDefault();
+    var msg = $("#cmt-guest-msg");
+    var name = ($("#cmt-name").value || "").trim();
+    var answer = ($("#cmt-cap-answer").value || "").trim();
+    var text = ($("#cmt-guest-input").value || "").trim();
+    if (!name) { msg.textContent = "닉네임을 적어 주세요."; $("#cmt-name").focus(); return; }
+    if (name.length > 60) { msg.textContent = "닉네임은 60자까지 쓸 수 있습니다."; return; }
+    if (!answer) { msg.textContent = "그림에 보이는 글자를 적어 주세요."; $("#cmt-cap-answer").focus(); return; }
+    if (!text) { msg.textContent = "댓글 내용을 입력해 주세요."; $("#cmt-guest-input").focus(); return; }
+    if (text.length > 1000) { msg.textContent = "댓글은 1000자까지 쓸 수 있습니다."; return; }
+    if (!capState.id) { msg.textContent = "보안 문자를 새로 받아 주세요."; loadCaptcha(); return; }
+
+    var btn = $("#cmt-guest-send");
+    btn.disabled = true;
+    msg.textContent = "등록하는 중…";
+    var cid = capState.id;
+    capState.id = "";
+    fetch(API + "/rest/v1/rpc/submit_guest_comment", {
+      method: "POST",
+      headers: { apikey: KEY, Authorization: "Bearer " + KEY, "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({
+        p_challenge_id: cid, p_answer: answer, p_post_key: state.key,
+        p_author_name: name, p_content: text
+      })
+    }).then(function (r) {
+      if (!r.ok) return r.text().then(function (t) {
+        var m = "";
+        try { m = JSON.parse(t).message || ""; } catch (err) { m = t; }
+        throw new Error(m || ("HTTP " + r.status));
+      });
+      return r.json();
+    }).then(function (row) {
+      var item = row && row.id ? row : null;
+      if (item && state.rows.every(function (c) { return c.id !== item.id; })) state.rows.push(item);
+      $("#cmt-guest-input").value = "";
+      $("#cmt-guest-chars").textContent = "0/1000";
+      $("#cmt-cap-answer").value = "";
+      msg.textContent = "댓글을 남겼습니다.";
+      cmtCounts[state.key] = (cmtCounts[state.key] || 0) + 1;
+      paintButtons();
+      renderComments();
+      loadCaptcha();
+      setTimeout(function () { if (msg.textContent === "댓글을 남겼습니다.") msg.textContent = ""; }, 2400);
+    }).catch(function (err) {
+      var m = String((err && err.message) || "");
+      if (/맞지 않습니다/.test(m)) msg.textContent = "보안 문자가 맞지 않습니다. 새 글자로 다시 시도해 주세요.";
+      else if (/만료/.test(m)) msg.textContent = "보안 문자가 만료되었습니다. 새 글자를 받아 주세요.";
+      else if (/비활성화/.test(m)) msg.textContent = "이 게시판은 댓글이 비활성화되어 있습니다.";
+      else if (/받지 않습니다/.test(m)) msg.textContent = "이 게시판은 비회원 댓글을 받지 않습니다.";
+      else msg.textContent = "댓글을 남기지 못했습니다. 잠시 후 다시 시도해 주세요.";
+      loadCaptcha();
+    }).then(function () { btn.disabled = false; });
   }
 
   function renderComments() {
@@ -606,6 +777,7 @@
         '<div class="cmt-item-head"><span class="cmt-avatar">' + esc(String(c.author_name || "?").charAt(0)) + "</span>" +
         "<b>" + esc(c.author_name) + "</b>" +
         (mine ? '<span class="cmt-me">나</span>' : "") +
+        (c.is_guest ? '<span class="cmt-guest-badge">비회원</span>' : "") +
         '<time datetime="' + esc(c.created_at) + '">' + esc(fmtWhen(c.created_at)) + "</time></div>" +
         '<p class="cmt-text">' + esc(c.content).replace(/\n/g, "<br>") + "</p>" +
         (mine ? '<button type="button" class="cmt-del" data-del="' + esc(c.id) + '">삭제</button>' : "") +
@@ -617,7 +789,7 @@
   }
 
   function loadComments(key) {
-    var q = "comments?select=id,post_key,user_id,author_name,content,is_hidden,created_at" +
+    var q = "comments?select=id,post_key,user_id,author_name,content,is_hidden,is_guest,created_at" +
       "&post_key=eq." + encodeURIComponent(key) + "&order=created_at.asc&limit=500";
     return rest(q).then(function (rows) {
       if (state.key !== key) return;
@@ -712,10 +884,17 @@
 
     Promise.all([
       rest("site_contents?select=key,value,image_url").catch(function () { return null; }),
-      rest("posts?select=*&is_published=eq.true&order=category.asc,is_pinned.desc,sort_order.asc,published_at.desc&limit=500").catch(function () { return null; })
+      rest("posts?select=*&is_published=eq.true&order=category.asc,is_pinned.desc,sort_order.asc,published_at.desc&limit=500").catch(function () { return null; }),
+      rest("boards?select=slug,name,description,per_page,comment_policy,sort_order&order=sort_order").catch(function () { return null; }),
+      rest("pages?select=slug,title,subtitle,body,images,sort_order&is_published=eq.true&order=sort_order").catch(function () { return null; })
     ]).then(function (res) {
-      var rows = res[0], posts = res[1];
-      if (rows) { rows.forEach(function (r) { contents[r.key] = r; }); }
+      var rows = res[0], posts = res[1], boardRows = res[2], pageRows = res[3];
+      if (rows) {
+        rows.forEach(function (r) { contents[r.key] = r; });
+        policyDefault = cval("comments.default_policy") || "member";
+      }
+      if (boardRows) applyBoards(boardRows);
+      if (pageRows) applyPages(pageRows);
       if (posts && posts.length) { applyPosts(posts); }
       applyContents();
       applyFooter();
@@ -735,7 +914,24 @@
     open: openDrawer,
     contents: function () { return contents; },
     postsLoaded: function () { return loadedPosts; },
-    headInjected: function () { return headDone; }
+    headInjected: function () { return headDone; },
+    /* 게시판·페이지 (app.js 가 화면을 그릴 때 씁니다) */
+    boardsList: function () { return boards.slice(); },
+    boardBySlug: boardBySlug,
+    boardKey: function (b) { return b ? boardKey(b) : ""; },
+    perPage: function (key) {
+      var b = boardBySlug(key) || boardByKey(key);
+      return b && b.per_page ? Number(b.per_page) : 12;
+    },
+    countFor: function (slug) { return postsForBoard(slug).length; },
+    postsFor: function (slug) { return postsForBoard(slug); },
+    pageList: function () { return customPages.slice(); },
+    pageBySlug: function (slug) {
+      for (var i = 0; i < customPages.length; i++) if (customPages[i].slug === slug) return customPages[i];
+      return null;
+    },
+    policyFor: policyFor,
+    defaultPolicy: function () { return policyDefault; }
   };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);

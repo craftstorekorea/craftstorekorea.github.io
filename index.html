@@ -173,6 +173,7 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
   <div class="view" id="view-workshops" role="tabpanel" aria-labelledby="tab-workshops" hidden>
     <section class="section">
       <div class="wrap">
+        <div class="board-switch" data-switch="intro" role="navigation" aria-label="게시판 이동"></div>
         <div class="section-head row">
           <div>
             <p class="eyebrow">공방 소개 · Intro</p>
@@ -195,6 +196,7 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
           <h2>소개 코너에서 다룬 공간</h2>
         </div>
         <div class="news-list" id="intro-list"></div>
+        <nav class="pager" id="intro-pager" aria-label="공방 소개 페이지"></nav>
       </div>
     </section>
   </div>
@@ -203,12 +205,14 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
   <div class="view" id="view-news" role="tabpanel" aria-labelledby="tab-news" hidden>
     <section class="section">
       <div class="wrap">
+        <div class="board-switch" data-switch="news" role="navigation" aria-label="게시판 이동"></div>
         <div class="section-head">
           <p class="eyebrow">공방 뉴스 · News</p>
           <h2 data-cms="news.title">이번 주 공예·공방 소식</h2>
           <p id="news-lede" data-cms="news.desc">업계 지표부터 지역 공방 거리, 팝업과 페어까지. 원문 링크로 바로 이동할 수 있습니다.</p>
         </div>
         <div class="news-list" id="news-list"></div>
+        <nav class="pager" id="news-pager" aria-label="공방 뉴스 페이지"></nav>
       </div>
     </section>
   </div>
@@ -217,12 +221,14 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
   <div class="view" id="view-interview" role="tabpanel" aria-labelledby="tab-interview" hidden>
     <section class="section">
       <div class="wrap">
+        <div class="board-switch" data-switch="interview" role="navigation" aria-label="게시판 이동"></div>
         <div class="section-head">
           <p class="eyebrow">작가 인터뷰 · Interview</p>
           <h2 data-cms="interview.title">공방을 지키는 사람들의 말</h2>
           <p data-cms="interview.desc">기사에서 직접 확인한 인터뷰만 싣습니다. 인용은 원문에서 옮겼습니다.</p>
         </div>
         <div class="iv-grid" id="iv-grid"></div>
+        <nav class="pager" id="iv-pager" aria-label="작가 인터뷰 페이지"></nav>
         <div class="archive">
           <div>
             <b>우리동네공방 뉴스레터 아카이브 · 2024–2026</b>
@@ -277,6 +283,7 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
         </div>
 
         <div class="arc-list" id="arc-list"></div>
+        <nav class="pager" id="arc-pager" aria-label="아카이브 페이지"></nav>
       </div>
     </section>
   </div>
@@ -285,6 +292,7 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
   <div class="view" id="view-info" role="tabpanel" aria-labelledby="tab-info" hidden>
     <section class="section">
       <div class="wrap">
+        <div class="board-switch" data-switch="info" role="navigation" aria-label="게시판 이동"></div>
         <div class="section-head">
           <p class="eyebrow">지원·공모 정보 · Guide</p>
           <h2 data-cms="info.title">지금 신청할 수 있는 것들</h2>
@@ -292,6 +300,7 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
         </div>
         <div class="info-filters" id="info-filters" role="group" aria-label="정보 분류"></div>
         <div class="info-list" id="info-list"></div>
+        <nav class="pager" id="info-pager" aria-label="지원·공모 페이지"></nav>
       </div>
     </section>
   </div>
@@ -362,6 +371,37 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
     </section>
   </div>
 
+  <!-- ============ 직접 만든 게시판 (#/board/<slug>) ============ -->
+  <div class="view" id="view-board" role="tabpanel" hidden>
+    <section class="section">
+      <div class="wrap">
+        <div class="board-switch" data-switch="board" role="navigation" aria-label="게시판 이동"></div>
+        <div class="section-head">
+          <p class="eyebrow" id="board-eyebrow">게시판</p>
+          <h2 id="board-title">게시판</h2>
+          <p id="board-desc"></p>
+        </div>
+        <div class="news-list" id="board-list"></div>
+        <nav class="pager" id="board-pager" aria-label="게시판 페이지"></nav>
+        <p class="page-empty" id="board-empty" hidden>게시판을 찾을 수 없습니다.</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ 직접 만든 페이지 (#/page/<slug>) ============ -->
+  <div class="view" id="view-page" role="tabpanel" hidden>
+    <section class="section">
+      <div class="wrap page-view">
+        <p class="eyebrow" id="page-eyebrow">페이지</p>
+        <h1 class="page-title" id="page-title"></h1>
+        <p class="page-sub" id="page-sub"></p>
+        <div class="page-gallery" id="page-gallery"></div>
+        <div class="page-body" id="page-body"></div>
+        <p class="page-empty" id="page-empty" hidden>페이지를 찾을 수 없습니다. 주소를 확인해 주세요.</p>
+      </div>
+    </section>
+  </div>
+
 </main>
 
 <footer class="site-footer">
@@ -385,6 +425,7 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
           <li><a href="#/news" data-goto="news">공방 뉴스</a></li>
           <li><a href="#/interview" data-goto="interview">작가 인터뷰</a></li>
           <li><a href="#/info" data-goto="info">지원·공모 정보</a></li>
+          <li><a href="#/archive">뉴스레터 아카이브</a></li>
         </ul>
       </div>
       <div class="foot-col">

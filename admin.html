@@ -186,6 +186,24 @@
         </div>
       </div>
       <p class="panel-note" id="pages-note">Supabase <code>site_contents</code> · 공개 읽기 / 관리자만 수정</p>
+
+      <section class="cms-group mgr-group" id="page-mgr-group">
+        <div class="mgr-head">
+          <div>
+            <h2>직접 만든 페이지</h2>
+            <p class="cms-hint">제목·부제·본문과 여러 장의 이미지를 가진 페이지를 만듭니다. 주소는 <code>#/page/&lt;slug&gt;</code> 이고, 아래 ‘헤더 · 푸터 · Head’ 탭의 메뉴에서 <code>page/&lt;slug&gt;</code> 로 연결하면 메뉴에도 나타납니다.</p>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" id="page-new">+ 새 페이지</button>
+        </div>
+        <p class="cms-toast" id="page-msg" role="status" aria-live="polite"></p>
+        <div class="table-wrap">
+          <table class="admin-table" id="page-table">
+            <thead><tr><th class="num">순서</th><th>주소(slug)</th><th>제목</th><th class="num">이미지</th><th>상태</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
       <div class="cms-groups" id="pages-list"></div>
       <p class="cms-toast" id="pages-msg" role="status" aria-live="polite"></p>
     </div>
@@ -227,7 +245,7 @@
 
         <section class="cms-group">
           <h2>헤더 메뉴</h2>
-          <p class="cms-hint">↑ ↓ 로 순서를 바꾸고, 체크를 끄면 사이트에서 숨겨집니다. 연결 대상에 <code>home</code>·<code>workshops</code>·<code>news</code>·<code>interview</code>·<code>archive</code>·<code>info</code>·<code>map</code> 중 하나를 넣으면 사이트 안의 화면으로, <code>https://…</code>를 넣으면 새 창으로 연결됩니다.</p>
+          <p class="cms-hint">↑ ↓ 로 순서를 바꾸고, 체크를 끄면 사이트에서 숨겨집니다. 연결 대상에 <code>home</code>·<code>workshops</code>·<code>news</code>·<code>interview</code>·<code>archive</code>·<code>info</code>·<code>map</code> 중 하나를 넣으면 사이트 안의 화면으로, 직접 만든 페이지·게시판은 <code>page/&lt;slug&gt;</code>·<code>board/&lt;slug&gt;</code> 로 연결합니다. <code>https://…</code>를 넣으면 새 창으로 열립니다.</p>
           <div id="menu-rows" class="menu-rows"></div>
           <div class="menu-actions">
             <button type="button" class="btn btn-ghost btn-sm" id="menu-add">+ 메뉴 추가</button>
@@ -303,6 +321,34 @@
           <tbody></tbody>
         </table>
       </div>
+
+      <section class="cms-group mgr-group" id="board-mgr-group">
+        <div class="mgr-head">
+          <div>
+            <h2>게시판 설정</h2>
+            <p class="cms-hint">게시판을 추가하고 이름·설명·페이지당 글 수·댓글 정책을 바꿉니다. 추가한 게시판은 사이트 <code>#/board/&lt;slug&gt;</code> 에 나타나며, 글의 ‘분류’에서 고를 수 있습니다. 기본 4개 게시판(공방 소개·공방 뉴스·작가 인터뷰·지원·공모)은 사이트의 고정 화면이라 삭제할 수 없습니다.</p>
+          </div>
+          <div class="mgr-actions">
+            <label class="cms-field mgr-inline"><span>기본 댓글 정책</span>
+              <select id="board-default-policy" class="admin-select">
+                <option value="all">누구나 (비회원은 캡차)</option>
+                <option value="member">로그인 회원만</option>
+                <option value="off">댓글 비활성화</option>
+              </select>
+            </label>
+            <button type="button" class="btn btn-ghost btn-sm" id="board-policy-save">정책 저장</button>
+            <button type="button" class="btn btn-primary btn-sm" id="board-new">+ 새 게시판</button>
+          </div>
+        </div>
+        <p class="cms-hint">‘기본 댓글 정책’은 게시판을 따로 정하지 않은 곳(공방 카드 댓글 등)에 쓰입니다.</p>
+        <p class="cms-toast" id="board-msg" role="status" aria-live="polite"></p>
+        <div class="table-wrap">
+          <table class="admin-table" id="board-table">
+            <thead><tr><th class="num">순서</th><th>slug</th><th>이름</th><th class="num">페이지당</th><th>댓글 정책</th><th class="num">글</th><th>상태</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
     </div>
 
     <!-- ============ 미디어 라이브러리 ============ -->
@@ -423,6 +469,85 @@
           <span class="spacer"></span>
           <button type="button" class="btn btn-ghost btn-sm" id="post-cancel">취소</button>
           <button type="submit" class="btn btn-primary btn-sm" id="post-save">저장</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ 페이지 편집기 ============ -->
+  <div class="cms-modal" id="page-modal" hidden>
+    <div class="cms-modal-card" role="dialog" aria-modal="true" aria-labelledby="page-modal-title">
+      <header class="cms-modal-head">
+        <h2 id="page-modal-title">새 페이지</h2>
+        <button type="button" class="cms-modal-x" id="page-cancel-x" aria-label="닫기">×</button>
+      </header>
+      <form id="page-form" novalidate>
+        <div class="cms-grid2">
+          <label class="cms-field"><span>주소(slug) *</span><input id="pg-slug" maxlength="60" placeholder="about" spellcheck="false"></label>
+          <label class="cms-field"><span>정렬 순서</span><input id="pg-sort" type="number" min="0" step="1" value="0"></label>
+        </div>
+        <label class="cms-field"><span>제목 *</span><input id="pg-title" maxlength="120"></label>
+        <label class="cms-field"><span>부제 <em>선택</em></span><input id="pg-subtitle" maxlength="200"></label>
+        <label class="cms-field"><span>본문 <em>줄바꿈 그대로 표시</em></span><textarea id="pg-body" rows="8"></textarea></label>
+        <div class="cms-field">
+          <span>이미지 <em>여러 장 · 위에서부터 순서대로</em></span>
+          <div class="page-img-list" id="pg-images"></div>
+          <div class="cms-img-tools">
+            <input type="file" id="pg-file" accept="image/*" multiple class="sr-only">
+            <label for="pg-file" class="btn btn-ghost btn-sm">이미지 올리기</label>
+            <input id="pg-url" class="admin-input" placeholder="또는 이미지 주소(URL)">
+            <button type="button" class="btn btn-ghost btn-sm" id="pg-url-add">주소로 추가</button>
+          </div>
+          <p class="cms-hint" id="pg-img-msg">이미지는 <code>site-media/pages/</code> 에 올라갑니다. 설명을 비우면 사이트에서 설명 없이 사진만 나옵니다.</p>
+        </div>
+        <label class="cms-check cms-field"><span>발행</span>
+          <span class="cms-check-row"><input type="checkbox" id="pg-published" checked><em>끄면 사이트에서 보이지 않습니다.</em></span>
+        </label>
+        <p class="cms-toast" id="pg-msg" role="status" aria-live="polite"></p>
+        <div class="cms-modal-foot">
+          <button type="button" class="btn btn-ghost btn-sm danger" id="page-delete" hidden>삭제</button>
+          <span class="spacer"></span>
+          <button type="button" class="btn btn-ghost btn-sm" id="page-cancel">취소</button>
+          <button type="submit" class="btn btn-primary btn-sm" id="page-save">저장</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ 게시판 편집기 ============ -->
+  <div class="cms-modal" id="board-modal" hidden>
+    <div class="cms-modal-card" role="dialog" aria-modal="true" aria-labelledby="board-modal-title">
+      <header class="cms-modal-head">
+        <h2 id="board-modal-title">새 게시판</h2>
+        <button type="button" class="cms-modal-x" id="board-cancel-x" aria-label="닫기">×</button>
+      </header>
+      <form id="board-form" novalidate>
+        <div class="cms-grid2">
+          <label class="cms-field"><span>slug * <em>주소에 쓰입니다</em></span><input id="bd-slug" maxlength="40" placeholder="notice" spellcheck="false"></label>
+          <label class="cms-field"><span>이름 *</span><input id="bd-name" maxlength="40" placeholder="공지사항"></label>
+        </div>
+        <label class="cms-field"><span>설명 <em>게시판 위에 표시</em></span><input id="bd-desc" maxlength="200"></label>
+        <div class="cms-grid3">
+          <label class="cms-field"><span>페이지당 글 수</span><input id="bd-per" type="number" min="1" max="100" step="1" value="12"></label>
+          <label class="cms-field"><span>댓글 정책</span>
+            <select id="bd-policy">
+              <option value="all">누구나 (비회원은 캡차)</option>
+              <option value="member">로그인 회원만</option>
+              <option value="off">댓글 비활성화</option>
+            </select>
+          </label>
+          <label class="cms-field"><span>정렬 순서</span><input id="bd-sort" type="number" min="0" step="1" value="0"></label>
+        </div>
+        <label class="cms-check cms-field"><span>사용</span>
+          <span class="cms-check-row"><input type="checkbox" id="bd-active" checked><em>끄면 사이트 메뉴·게시판 이동에서 숨겨집니다.</em></span>
+        </label>
+        <p class="cms-hint" id="bd-hint">slug 는 영문·숫자·하이픈을 권장합니다. 글을 쓰면 이 게시판이 ‘분류’로 저장됩니다.</p>
+        <p class="cms-toast" id="bd-msg" role="status" aria-live="polite"></p>
+        <div class="cms-modal-foot">
+          <button type="button" class="btn btn-ghost btn-sm danger" id="board-delete" hidden>삭제</button>
+          <span class="spacer"></span>
+          <button type="button" class="btn btn-ghost btn-sm" id="board-cancel">취소</button>
+          <button type="submit" class="btn btn-primary btn-sm" id="board-save">저장</button>
         </div>
       </form>
     </div>

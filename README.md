@@ -19,6 +19,12 @@ GitHub Pages로 배포합니다.
 | 아카이브 (2024–2026) | 뉴스레터 아카이브 8개 호·4개 코너 151건, 호/코너 필터 + 키워드 검색 |
 | 지원·공모 | 마감일 기준 정렬, 분야 필터, D-day 자동 계산 |
 | 지도·게시판 | 시·도 SVG 지도 + 공개 시트 연동 검색·필터 게시판 |
+| 직접 만든 페이지 | `#/page/<slug>` — 제목·부제·본문·여러 이미지 갤러리 (관리자에서 생성) |
+| 직접 만든 게시판 | `#/board/<slug>` — 게시판별 페이지당 글 수·댓글 정책 (관리자에서 생성) |
+
+모든 게시판 목록(공방 소개·공방 뉴스·작가 인터뷰·지원·공모·직접 만든 게시판)은
+게시판 설정의 **페이지당 글 수**만큼 보여 주고, 하단에 `이전 1 2 3 … 다음` 페이지 번호를 붙입니다.
+`No. N` 번호는 페이지가 바뀌어도 이어집니다(2쪽 첫 글 = `No. 11`).
 
 ## 파일
 
@@ -50,10 +56,22 @@ assets/cms.js             Supabase 문구·글 불러오기, 댓글 버튼·드�
 - 헤더·푸터·head 설정은 `site_contents` 의 `header_*` · `footer_*` · `custom_head_html` 키에 저장됩니다.
   `custom_head_html` 은 사이트를 열 때 `<head>` 로 주입되며(중복 태그는 건너뜀), 메뉴 항목은 `header_menu_items` JSON(관리자 화면에서 편집)입니다.
 - 공개 게시판 카드(소개·뉴스·인터뷰·정보·아카이브)에는 `No. N` 순번 배지가 붙습니다.
-- 모든 글·공방 카드에 `💬 댓글` 버튼이 붙습니다. 읽기는 누구나, 쓰기·본인 삭제는 로그인 회원,
-  숨김·삭제 관리는 관리자 — 판단은 전부 Supabase RLS가 합니다.
-- 설정·검증 기록: `../supabase/07_cms.md`, DB 파일 `../supabase/03_cms_comments.sql` · `../supabase/04_header_footer_head.sql` · `../supabase/05_cms_plus.sql`,
-  테스트 `cd .. && CMS_TEST_MODE=user|admin|brand|plus python3 cms_test.py`.
+- **직접 만든 페이지**: `/admin.html` → 페이지 텍스트·이미지 탭의 **직접 만든 페이지**에서 제목·부제·본문과
+  여러 장의 이미지(설명 포함)를 만들고 순서를 바꾸거나 지웁니다. 헤더 · 푸터 · Head 탭의 메뉴에서
+  연결 대상에 `page/<slug>` 를 넣으면 메뉴에 나타납니다.
+- **게시판 설정**: 게시판 관리 탭의 **게시판 설정**에서 게시판을 추가하고 이름·설명·페이지당 글 수·
+  댓글 정책·사용 여부를 정합니다. 글의 ‘분류’가 곧 게시판이며, 추가한 게시판은 `#/board/<slug>` 로 열립니다.
+  기본 4개 게시판(`intro`·`news`·`interview`·`info`)은 사이트 고정 화면이라 삭제할 수 없습니다.
+- **댓글 권한 · 비회원 캡차**: 게시판마다 `all`(누구나) · `member`(로그인 회원만) · `off`(비활성화) 중 하나이고,
+  게시판에 정하지 않은 곳은 `site_contents.comments.default_policy` 를 따릅니다.
+  `all` 게시판에서 로그인하지 않은 방문자는 닉네임 + **그림 보안 문자(SVG)** 를 함께 적어 댓글을 남깁니다.
+  정답은 서버(`captcha_challenges`, 10분 만료·1회용)에 해시로만 있고, 그림은 서버가 픽셀 사각형으로 그려
+  응답에 정답 글자가 남지 않습니다. 확인·저장은 `submit_guest_comment()` RPC가 합니다.
+- 모든 글·공방 카드에 `💬 댓글` 버튼이 붙습니다. 읽기는 누구나, 쓰기·본인 삭제는 로그인 회원(또는 캡차를 통과한 비회원),
+  숨김·삭제 관리는 관리자 — 판단은 전부 Supabase RLS와 RPC가 합니다.
+- 설정·검증 기록: `../supabase/07_cms.md`, DB 파일 `../supabase/03_cms_comments.sql` · `../supabase/04_header_footer_head.sql` · `../supabase/05_cms_plus.sql` · `../supabase/06_pages_boards_captcha.sql`,
+  테스트 `cd .. && CMS_TEST_MODE=user|admin|brand|plus|v2 python3 cms_test.py`,
+  서버 검증 `cd ../supabase && SUPABASE_MGMT_TOKEN=… python3 06_check.py`.
 
 ## 관리자 페이지
 

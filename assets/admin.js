@@ -589,9 +589,26 @@
   var CMS = {
     tab: "dash",
     pages: [], posts: [], comments: [], media: [], postIndex: [],
-    loaded: { pages: false, posts: false, comments: false, brand: false, media: false },
+    customPages: [], boardRows: [], editingPage: null, editingBoard: null, pageImages: [],
+    loaded: { pages: false, posts: false, comments: false, brand: false, media: false, boards: false },
     editing: null, commentCounts: {}, brand: null
   };
+
+  /* 게시판 slug ↔ posts.category 값 (기본 4개는 한글 분류) */
+  var CAT_ALIAS = { intro: "소개", news: "뉴스", interview: "인터뷰", info: "정보" };
+  function boardKeyOf(b) { return b ? (CAT_ALIAS[b.slug] || b.slug) : ""; }
+  function boardNameFor(cat) {
+    for (var i = 0; i < CMS.boardRows.length; i++) {
+      if (boardKeyOf(CMS.boardRows[i]) === cat) return CMS.boardRows[i].name;
+    }
+    return cat;
+  }
+  function boardByKeyAdmin(key) {
+    for (var i = 0; i < CMS.boardRows.length; i++) {
+      if (boardKeyOf(CMS.boardRows[i]) === key) return CMS.boardRows[i];
+    }
+    return null;
+  }
 
   function cmsMsg(id, text, kind) {
     var el = document.getElementById(id);
@@ -609,9 +626,9 @@
       var p = document.getElementById("tab-" + t);
       if (p) p.hidden = (t !== name);
     });
-    if (name === "pages" && !CMS.loaded.pages) loadPages();
+    if (name === "pages") { if (!CMS.loaded.pages) loadPages(); loadPageManager(); }
     if (name === "brand" && !CMS.loaded.brand) loadBrand();
-    if (name === "posts" && !CMS.loaded.posts) loadPosts();
+    if (name === "posts") { if (!CMS.loaded.posts) loadPosts(); loadBoards(); }
     if (name === "media") loadMedia();
     if (name === "comments" && !CMS.loaded.comments) loadComments();
     try { window.scrollTo({ top: 0, behavior: "auto" }); } catch (e) { /* noop */ }
@@ -982,6 +999,7 @@
       (cmts.data || []).forEach(function (c) { CMS.commentCounts[c.post_key] = (CMS.commentCounts[c.post_key] || 0) + 1; });
       CMS.loaded.posts = true;
       renderPosts();
+      if (CMS.boardRows.length) renderBoardTable();
       fillCommentPostFilter();
       paintCommentBadge();
       var stamp = $("#posts-stamp");
@@ -1037,7 +1055,7 @@
       return "<tr>" +
         '<td class="num" data-th="No."><span class="post-no">No. ' + (no || "–") + "</span></td>" +
         '<td data-th="상태"><span class="badge ' + (p.is_published ? "b-ok" : "b-off") + '">' + (p.is_published ? "발행" : "숨김") + "</span>" + flags + "</td>" +
-        '<td data-th="분류">' + esc(p.category) + "</td>" +
+        '<td data-th="분류">' + esc(boardNameFor(p.category)) + "</td>" +
         '<td class="ellip" data-th="제목" title="' + esc(p.title) + '">' + esc(p.title) + (p.image_url ? ' <span class="cms-img-dot" title="이미지 있음">IMG</span>' : "") + "</td>" +
         '<td class="muted" data-th="출처·지역">' + esc([p.source_name, p.region].filter(Boolean).join(" · ") || "–") + "</td>" +
         '<td class="muted" data-th="발행일">' + esc(p.published_at || "–") + "</td>" +
@@ -1058,7 +1076,9 @@
   }
 
   function catPrefix(cat) {
-    return ({ "소개": "intro", "뉴스": "news", "인터뷰": "interview", "정보": "info" })[cat] || "post";
+    var known = ({ "소개": "intro", "뉴스": "news", "인터뷰": "interview", "정보": "info" })[cat];
+    if (known) return known;
+    return String(cat || "post").replace(/[^A-Za-z0-9._-]/g, "").toLowerCase() || "post";
   }
 
   function toLocalInput(iso) {
@@ -1087,7 +1107,7 @@
     CMS.editing = p;
     var m = p && p.meta ? p.meta : {};
     $("#post-modal-title").textContent = p ? "글 수정" : "새 글";
-    $("#pf-category").value = p ? p.category : "뉴스";
+    setCategoryValue(p ? p.category : "뉴스");
     $("#pf-state").value = p ? String(!!p.is_published) : "true";
     $("#pf-title").value = p ? p.title : "";
     $("#pf-slug").value = p ? (p.slug || "") : "";
@@ -1229,7 +1249,7 @@
 
   function loadCommentsRows() {
     var body = $("#cmt-table tbody");
-    return sb.from("comments").select("id,post_key,user_id,author_name,content,is_hidden,created_at")
+    return sb.from("comments").select("id,post_key,user_id,author_name,content,is_hidden,is_guest,created_at")
       .order("created_at", { ascending: false }).limit(500).then(function (res) {
         if (res.error) {
           if (body) body.innerHTML = '<tr class="empty-row"><td colspan="6">불러오지 못했습니다: ' + esc(res.error.message) + "</td></tr>";
@@ -1287,7 +1307,8 @@
       return "<tr" + (c.is_hidden ? ' class="is-hidden"' : "") + ">" +
         '<td data-th="상태"><span class="badge ' + (c.is_hidden ? "b-off" : "b-ok") + '">' + (c.is_hidden ? "숨김" : "공개") + "</span></td>" +
         '<td class="ellip" data-th="글" title="' + esc(postTitleByKey(c.post_key)) + '">' + esc(postTitleByKey(c.post_key)) + "</td>" +
-        '<td data-th="작성자">' + esc(c.author_name) + "</td>" +
+        '<td data-th="작성자">' + esc(c.author_name) +
+          (c.is_guest ? ' <span class="badge b-wait">비회원</span>' : "") + "</td>" +
         '<td class="cms-cmt-text" data-th="내용">' + esc(c.content) + "</td>" +
         '<td class="muted" data-th="작성 시각">' + esc(fmtWhen(c.created_at)) + "</td>" +
         '<td class="cms-actions"><button type="button" class="rowlink cms-hide" data-id="' + esc(c.id) + '" data-h="' + (c.is_hidden ? "0" : "1") + '">' + (c.is_hidden ? "공개" : "숨김") + "</button>" +
@@ -1327,6 +1348,368 @@
       paintCommentBadge();
       cmsMsg("cmt-msg", "댓글을 삭제했습니다.", "ok");
     });
+  }
+
+  /* ============================================================
+     5. 직접 만든 페이지 (public.pages) — 제목·부제·본문 + 여러 이미지
+     ============================================================ */
+  function loadPageManager() {
+    if (!sb) return Promise.resolve();
+    var body = $("#page-table tbody");
+    if (body) body.innerHTML = '<tr class="empty-row"><td colspan="6">불러오는 중…</td></tr>';
+    return sb.from("pages").select("*").order("sort_order").order("slug").then(function (res) {
+      if (res.error) {
+        if (body) body.innerHTML = '<tr class="empty-row"><td colspan="6">불러오지 못했습니다: ' + esc(res.error.message) + "</td></tr>";
+        return;
+      }
+      CMS.customPages = res.data || [];
+      renderPageTable();
+    });
+  }
+
+  function pageBySlugAdmin(slug) {
+    for (var i = 0; i < CMS.customPages.length; i++) if (CMS.customPages[i].slug === slug) return CMS.customPages[i];
+    return null;
+  }
+  function pageImgCount(p) { return (p && Array.isArray(p.images)) ? p.images.filter(function (im) { return im && im.url; }).length : 0; }
+
+  function renderPageTable() {
+    var body = $("#page-table tbody");
+    if (!body) return;
+    if (!CMS.customPages.length) {
+      body.innerHTML = '<tr class="empty-row"><td colspan="6">아직 직접 만든 페이지가 없습니다. ‘+ 새 페이지’로 시작해 보세요.</td></tr>';
+      return;
+    }
+    body.innerHTML = CMS.customPages.map(function (p) {
+      return "<tr>" +
+        '<td class="num" data-th="순서">' + (p.sort_order || 0) + "</td>" +
+        '<td data-th="주소"><code>' + esc(p.slug) + "</code>" +
+          ' <a class="rowlink" href="../index.html#/page/' + esc(encodeURIComponent(p.slug)) + '" target="_blank" rel="noopener">보기</a></td>' +
+        '<td class="ellip" data-th="제목" title="' + esc(p.title) + '">' + esc(p.title) + "</td>" +
+        '<td class="num" data-th="이미지">' + pageImgCount(p) + "</td>" +
+        '<td data-th="상태"><span class="badge ' + (p.is_published ? "b-ok" : "b-off") + '">' + (p.is_published ? "발행" : "숨김") + "</span></td>" +
+        '<td><button type="button" class="rowlink page-edit" data-slug="' + esc(p.slug) + '">수정</button></td>' +
+        "</tr>";
+    }).join("");
+    [].forEach.call(body.querySelectorAll(".page-edit"), function (b) {
+      b.addEventListener("click", function () { openPageEditor(b.getAttribute("data-slug")); });
+    });
+  }
+
+  function nextPageSort() {
+    var max = 0;
+    CMS.customPages.forEach(function (p) { if ((p.sort_order || 0) > max) max = p.sort_order || 0; });
+    return max + 1;
+  }
+
+  function openPageEditor(slug) {
+    var p = slug ? pageBySlugAdmin(slug) : null;
+    CMS.editingPage = p;
+    CMS.pageImages = (p && Array.isArray(p.images) ? p.images : []).map(function (im) {
+      return { url: (im && im.url) || "", caption: (im && im.caption) || "" };
+    }).filter(function (im) { return im.url; });
+    $("#page-modal-title").textContent = p ? "페이지 수정" : "새 페이지";
+    $("#pg-slug").value = p ? p.slug : "";
+    $("#pg-slug").disabled = !!p;
+    $("#pg-title").value = p ? p.title : "";
+    $("#pg-subtitle").value = p ? (p.subtitle || "") : "";
+    $("#pg-body").value = p ? (p.body || "") : "";
+    $("#pg-sort").value = p ? (p.sort_order || 0) : nextPageSort();
+    $("#pg-published").checked = p ? !!p.is_published : true;
+    $("#pg-url").value = "";
+    $("#pg-img-msg").textContent = "";
+    $("#pg-msg").textContent = "";
+    $("#page-delete").hidden = !p;
+    renderPageImages();
+    $("#page-modal").hidden = false;
+    document.body.classList.add("cms-lock");
+    setTimeout(function () { $("#pg-title").focus(); }, 50);
+  }
+
+  function closePageEditor() {
+    $("#page-modal").hidden = true;
+    document.body.classList.remove("cms-lock");
+    CMS.editingPage = null;
+    CMS.pageImages = [];
+  }
+
+  function renderPageImages() {
+    var box = $("#pg-images");
+    if (!box) return;
+    if (!CMS.pageImages.length) {
+      box.innerHTML = '<p class="cms-hint">아직 이미지가 없습니다. 아래에서 올리거나 주소를 넣어 추가하세요.</p>';
+      return;
+    }
+    box.innerHTML = CMS.pageImages.map(function (im, i) {
+      return '<div class="img-row" data-i="' + i + '">' +
+        '<span class="img-thumb">' + (im.url ? '<img src="' + esc(im.url) + '" alt="">' : "<span>없음</span>") + "</span>" +
+        '<input class="admin-input img-cap" data-cap="' + i + '" value="' + esc(im.caption) + '" placeholder="이미지 설명 (선택)" maxlength="160">' +
+        '<span class="img-btns">' +
+          '<button type="button" class="mini" data-move="-1" data-i="' + i + '"' + (i === 0 ? " disabled" : "") + ' aria-label="위로">↑</button>' +
+          '<button type="button" class="mini" data-move="1" data-i="' + i + '"' + (i === CMS.pageImages.length - 1 ? " disabled" : "") + ' aria-label="아래로">↓</button>' +
+          '<button type="button" class="mini img-del" data-del="' + i + '">삭제</button>' +
+        "</span></div>";
+    }).join("");
+  }
+
+  function syncPageCaptions() {
+    [].forEach.call(document.querySelectorAll("#pg-images .img-cap"), function (el) {
+      var i = +el.getAttribute("data-cap");
+      if (CMS.pageImages[i]) CMS.pageImages[i].caption = (el.value || "").trim();
+    });
+  }
+
+  function addPageImageUrl(url) {
+    if (!url) return;
+    CMS.pageImages.push({ url: url, caption: "" });
+    renderPageImages();
+  }
+
+  function savePage(e) {
+    if (e) e.preventDefault();
+    var p = CMS.editingPage;
+    var slug = (($("#pg-slug").value || "").trim() || (p ? p.slug : "")).toLowerCase();
+    var title = ($("#pg-title").value || "").trim();
+    if (!p && !/^[a-z0-9][a-z0-9._-]{0,59}$/.test(slug)) {
+      $("#pg-msg").textContent = "주소(slug)는 영문 소문자·숫자·하이픈으로 1~60자 입력해 주세요. 예: about";
+      $("#pg-slug").focus();
+      return;
+    }
+    if (!title) { $("#pg-msg").textContent = "제목을 입력해 주세요."; $("#pg-title").focus(); return; }
+    syncPageCaptions();
+    var payload = {
+      title: title,
+      subtitle: ($("#pg-subtitle").value || "").trim() || null,
+      body: ($("#pg-body").value || "").trim() || null,
+      images: CMS.pageImages.filter(function (im) { return im.url; }).map(function (im) {
+        return { url: im.url, caption: (im.caption || "").trim() };
+      }),
+      is_published: $("#pg-published").checked,
+      sort_order: parseInt($("#pg-sort").value || "0", 10) || 0
+    };
+    var btn = $("#page-save");
+    btn.disabled = true;
+    $("#pg-msg").textContent = "저장하는 중…";
+    var req = p
+      ? sb.from("pages").update(payload).eq("slug", p.slug)
+      : sb.from("pages").insert(Object.assign({ slug: slug }, payload));
+    req.then(function (r) {
+      btn.disabled = false;
+      if (r.error) { $("#pg-msg").textContent = "저장 실패: " + r.error.message; return; }
+      closePageEditor();
+      cmsMsg("page-msg", (p ? "페이지를 수정했습니다: " : "페이지를 만들었습니다: ") + slug +
+        " · 사이트 #/page/" + slug + " 에 반영됩니다.", "ok");
+      loadPageManager();
+    }).catch(function (err) {
+      btn.disabled = false;
+      $("#pg-msg").textContent = "저장 실패: " + (err.message || "알 수 없는 오류");
+    });
+  }
+
+  function deletePage() {
+    var p = CMS.editingPage;
+    if (!p) return;
+    if (!window.confirm("‘" + p.title + "’ 페이지를 삭제할까요?\n이미지 파일은 미디어 라이브러리에 남습니다. 되돌릴 수 없습니다.")) return;
+    $("#pg-msg").textContent = "삭제하는 중…";
+    sb.from("pages").delete().eq("slug", p.slug).then(function (r) {
+      if (r.error) { $("#pg-msg").textContent = "삭제 실패: " + r.error.message; return; }
+      closePageEditor();
+      cmsMsg("page-msg", "페이지를 삭제했습니다: " + p.slug, "ok");
+      loadPageManager();
+    });
+  }
+
+  /* ============================================================
+     6. 게시판 설정 (public.boards)
+     ============================================================ */
+  var DEFAULT_BOARD_SLUGS = { intro: 1, news: 1, interview: 1, info: 1 };
+
+  function loadBoards() {
+    if (!sb) return Promise.resolve();
+    return sb.from("boards").select("*").order("sort_order").order("slug").then(function (res) {
+      if (res.error) { cmsMsg("board-msg", "게시판을 불러오지 못했습니다: " + res.error.message, "err"); return; }
+      CMS.boardRows = res.data || [];
+      CMS.loaded.boards = true;
+      renderBoardTable();
+      fillPostCategorySelect();
+      loadDefaultPolicy();
+    });
+  }
+
+  function loadDefaultPolicy() {
+    if (!sb) return Promise.resolve();
+    return sb.from("site_contents").select("value").eq("key", "comments.default_policy").then(function (r) {
+      var v = (r && r.data && r.data[0]) ? String(r.data[0].value || "").trim() : "";
+      var sel = $("#board-default-policy");
+      if (sel && /^(all|member|off)$/.test(v)) sel.value = v;
+    });
+  }
+
+  function saveDefaultPolicy() {
+    var sel = $("#board-default-policy");
+    if (!sel) return;
+    var v = sel.value;
+    cmsMsg("board-msg", "저장하는 중…");
+    sb.from("site_contents").upsert({
+      key: "comments.default_policy",
+      section: "게시판 · 댓글",
+      label: "기본 댓글 정책 (all = 누구나·비회원 캡차 / member = 로그인 회원만 / off = 비활성화)",
+      value: v,
+      image_url: null
+    }, { onConflict: "key" }).then(function (r) {
+      if (r.error) { cmsMsg("board-msg", "저장하지 못했습니다: " + r.error.message, "err"); return; }
+      cmsMsg("board-msg", "기본 댓글 정책을 ‘" + policyLabel(v) + "’ 로 저장했습니다.", "ok");
+    });
+  }
+
+  function policyLabel(v) {
+    return ({ all: "누구나 (비회원은 캡차)", member: "로그인 회원만", off: "댓글 비활성화" })[v] || v;
+  }
+
+  function boardPostCount(b) {
+    var key = boardKeyOf(b);
+    return CMS.posts.filter(function (p) { return p.category === key; }).length;
+  }
+
+  function renderBoardTable() {
+    var body = $("#board-table tbody");
+    if (!body) return;
+    if (!CMS.boardRows.length) {
+      body.innerHTML = '<tr class="empty-row"><td colspan="8">게시판 정보를 불러오지 못했습니다.</td></tr>';
+      return;
+    }
+    body.innerHTML = CMS.boardRows.map(function (b) {
+      return "<tr>" +
+        '<td class="num" data-th="순서">' + (b.sort_order || 0) + "</td>" +
+        '<td data-th="slug"><code>' + esc(b.slug) + "</code></td>" +
+        '<td data-th="이름">' + esc(b.name) + '<span class="muted"> · ' + esc(b.description || "") + "</span></td>" +
+        '<td class="num" data-th="페이지당">' + (b.per_page || 0) + "</td>" +
+        '<td data-th="댓글 정책"><span class="badge ' + (b.comment_policy === "off" ? "b-off" : "b-ok") + '">' + esc(policyLabel(b.comment_policy)) + "</span></td>" +
+        '<td class="num" data-th="글">' + boardPostCount(b) + "</td>" +
+        '<td data-th="상태"><span class="badge ' + (b.is_active ? "b-ok" : "b-off") + '">' + (b.is_active ? "사용" : "숨김") + "</span></td>" +
+        '<td><button type="button" class="rowlink board-edit" data-slug="' + esc(b.slug) + '">수정</button></td>' +
+        "</tr>";
+    }).join("");
+    [].forEach.call(body.querySelectorAll(".board-edit"), function (btn) {
+      btn.addEventListener("click", function () { openBoardEditor(btn.getAttribute("data-slug")); });
+    });
+  }
+
+  function nextBoardSort() {
+    var max = 0;
+    CMS.boardRows.forEach(function (b) { if ((b.sort_order || 0) > max) max = b.sort_order || 0; });
+    return max + 1;
+  }
+
+  function openBoardEditor(slug) {
+    var b = null;
+    for (var i = 0; i < CMS.boardRows.length; i++) if (CMS.boardRows[i].slug === slug) { b = CMS.boardRows[i]; break; }
+    CMS.editingBoard = b;
+    $("#board-modal-title").textContent = b ? "게시판 수정" : "새 게시판";
+    $("#bd-slug").value = b ? b.slug : "";
+    $("#bd-slug").disabled = !!b;
+    $("#bd-name").value = b ? b.name : "";
+    $("#bd-desc").value = b ? (b.description || "") : "";
+    $("#bd-per").value = b ? b.per_page : 12;
+    $("#bd-policy").value = b ? b.comment_policy : "member";
+    $("#bd-sort").value = b ? (b.sort_order || 0) : nextBoardSort();
+    $("#bd-active").checked = b ? !!b.is_active : true;
+    $("#bd-msg").textContent = "";
+    $("#board-delete").hidden = !b || !!DEFAULT_BOARD_SLUGS[b.slug];
+    $("#board-modal").hidden = false;
+    document.body.classList.add("cms-lock");
+    setTimeout(function () { $("#bd-name").focus(); }, 50);
+  }
+
+  function closeBoardEditor() {
+    $("#board-modal").hidden = true;
+    document.body.classList.remove("cms-lock");
+    CMS.editingBoard = null;
+  }
+
+  function saveBoard(e) {
+    if (e) e.preventDefault();
+    var b = CMS.editingBoard;
+    var slug = (($("#bd-slug").value || "").trim() || (b ? b.slug : "")).toLowerCase();
+    var name = ($("#bd-name").value || "").trim();
+    var per = parseInt($("#bd-per").value || "12", 10);
+    if (!b && !/^[a-z0-9][a-z0-9._-]{0,39}$/.test(slug)) {
+      $("#bd-msg").textContent = "slug 는 영문 소문자·숫자·하이픈으로 1~40자 입력해 주세요. 예: notice";
+      $("#bd-slug").focus();
+      return;
+    }
+    if (!name) { $("#bd-msg").textContent = "게시판 이름을 입력해 주세요."; $("#bd-name").focus(); return; }
+    if (!(per >= 1 && per <= 100)) { $("#bd-msg").textContent = "페이지당 글 수는 1~100 사이로 입력해 주세요."; $("#bd-per").focus(); return; }
+    var payload = {
+      name: name,
+      description: ($("#bd-desc").value || "").trim() || null,
+      per_page: per,
+      comment_policy: $("#bd-policy").value,
+      is_active: $("#bd-active").checked,
+      sort_order: parseInt($("#bd-sort").value || "0", 10) || 0
+    };
+    var btn = $("#board-save");
+    btn.disabled = true;
+    $("#bd-msg").textContent = "저장하는 중…";
+    var req = b
+      ? sb.from("boards").update(payload).eq("slug", b.slug)
+      : sb.from("boards").insert(Object.assign({ slug: slug }, payload));
+    req.then(function (r) {
+      btn.disabled = false;
+      if (r.error) { $("#bd-msg").textContent = "저장 실패: " + r.error.message; return; }
+      closeBoardEditor();
+      cmsMsg("board-msg", (b ? "게시판을 수정했습니다: " : "게시판을 만들었습니다: ") + name +
+        " · 사이트 #/board/" + slug + " 에 반영됩니다.", "ok");
+      CMS.loaded.boards = false;
+      loadBoards();
+    }).catch(function (err) {
+      btn.disabled = false;
+      $("#bd-msg").textContent = "저장 실패: " + (err.message || "알 수 없는 오류");
+    });
+  }
+
+  function deleteBoard() {
+    var b = CMS.editingBoard;
+    if (!b) return;
+    if (DEFAULT_BOARD_SLUGS[b.slug]) { $("#bd-msg").textContent = "기본 4개 게시판은 삭제할 수 없습니다."; return; }
+    var n = boardPostCount(b);
+    if (n > 0) {
+      $("#bd-msg").textContent = "이 게시판에 글이 " + n + "건 있어 삭제할 수 없습니다. 글을 다른 게시판으로 옮기거나 삭제한 뒤 다시 시도해 주세요.";
+      return;
+    }
+    if (!window.confirm("‘" + b.name + "’ 게시판을 삭제할까요?\n되돌릴 수 없습니다.")) return;
+    $("#bd-msg").textContent = "삭제하는 중…";
+    sb.from("boards").delete().eq("slug", b.slug).then(function (r) {
+      if (r.error) { $("#bd-msg").textContent = "삭제 실패: " + r.error.message; return; }
+      closeBoardEditor();
+      cmsMsg("board-msg", "게시판을 삭제했습니다: " + b.slug, "ok");
+      CMS.loaded.boards = false;
+      loadBoards();
+    });
+  }
+
+  /* 글 편집기의 ‘분류’ 목록 = 게시판 목록 */
+  function fillPostCategorySelect() {
+    var sel = $("#pf-category");
+    if (!sel || !CMS.boardRows.length) return;
+    var cur = sel.value;
+    sel.innerHTML = CMS.boardRows.map(function (b) {
+      return '<option value="' + esc(boardKeyOf(b)) + '">' + esc(b.name) + (b.is_active ? "" : " (숨김)") + "</option>";
+    }).join("");
+    if (cur) setCategoryValue(cur);
+  }
+
+  function setCategoryValue(val) {
+    var sel = $("#pf-category");
+    if (!sel) return;
+    var has = [].some.call(sel.options, function (o) { return o.value === val; });
+    if (!has && val) {
+      var o = document.createElement("option");
+      o.value = val;
+      o.textContent = val + " (게시판 없음)";
+      sel.appendChild(o);
+    }
+    sel.value = val || (sel.options[0] ? sel.options[0].value : "");
   }
 
   function initCms() {
@@ -1399,6 +1782,80 @@
       }
       renderMenuRows();
     });
+
+    /* --- 직접 만든 페이지 --- */
+    var pageNew = $("#page-new");
+    if (pageNew) pageNew.addEventListener("click", function () { openPageEditor(null); });
+    ["#page-cancel", "#page-cancel-x"].forEach(function (sel) {
+      var n = $(sel); if (n) n.addEventListener("click", closePageEditor);
+    });
+    var pageForm = $("#page-form");
+    if (pageForm) pageForm.addEventListener("submit", savePage);
+    var pageDel = $("#page-delete");
+    if (pageDel) pageDel.addEventListener("click", deletePage);
+    var pgImages = $("#pg-images");
+    if (pgImages) {
+      pgImages.addEventListener("click", function (e) {
+        var btn = e.target.closest("button[data-move],button[data-del]");
+        if (!btn) return;
+        syncPageCaptions();
+        var i = btn.hasAttribute("data-move") ? +btn.getAttribute("data-i") : +btn.getAttribute("data-del");
+        if (btn.hasAttribute("data-del")) {
+          CMS.pageImages.splice(i, 1);
+        } else {
+          var j = i + (+btn.getAttribute("data-move"));
+          if (j < 0 || j >= CMS.pageImages.length) return;
+          var tmp = CMS.pageImages[i]; CMS.pageImages[i] = CMS.pageImages[j]; CMS.pageImages[j] = tmp;
+        }
+        renderPageImages();
+      });
+      pgImages.addEventListener("input", function (e) {
+        if (e.target.classList.contains("img-cap")) {
+          var i = +e.target.getAttribute("data-cap");
+          if (CMS.pageImages[i]) CMS.pageImages[i].caption = e.target.value;
+        }
+      });
+    }
+    var pgFile = $("#pg-file");
+    if (pgFile) pgFile.addEventListener("change", function () {
+      var files = [].slice.call(pgFile.files || []);
+      if (!files.length) return;
+      $("#pg-img-msg").textContent = files.length + "장 올리는 중…";
+      var chain = Promise.resolve();
+      files.forEach(function (f) {
+        chain = chain.then(function () {
+          return uploadSiteImage(f, "pages/new").then(function (url) { addPageImageUrl(url); });
+        });
+      });
+      chain.then(function () {
+        pgFile.value = "";
+        $("#pg-img-msg").textContent = files.length + "장을 올렸습니다. ‘저장’을 누르면 페이지에 반영됩니다.";
+      }).catch(function (e) {
+        pgFile.value = "";
+        $("#pg-img-msg").textContent = "업로드 실패: " + (e.message || "알 수 없는 오류");
+      });
+    });
+    var pgUrlAdd = $("#pg-url-add");
+    if (pgUrlAdd) pgUrlAdd.addEventListener("click", function () {
+      var v = ($("#pg-url").value || "").trim();
+      if (!v) { $("#pg-url").focus(); return; }
+      addPageImageUrl(v);
+      $("#pg-url").value = "";
+      $("#pg-img-msg").textContent = "이미지를 추가했습니다. ‘저장’을 누르면 페이지에 반영됩니다.";
+    });
+
+    /* --- 게시판 설정 --- */
+    var boardNew = $("#board-new");
+    if (boardNew) boardNew.addEventListener("click", function () { openBoardEditor(null); });
+    ["#board-cancel", "#board-cancel-x"].forEach(function (sel) {
+      var n = $(sel); if (n) n.addEventListener("click", closeBoardEditor);
+    });
+    var boardForm = $("#board-form");
+    if (boardForm) boardForm.addEventListener("submit", saveBoard);
+    var boardDel = $("#board-delete");
+    if (boardDel) boardDel.addEventListener("click", deleteBoard);
+    var policySave = $("#board-policy-save");
+    if (policySave) policySave.addEventListener("click", saveDefaultPolicy);
 
     var pq = $("#posts-q");
     if (pq) pq.addEventListener("input", renderPosts);
@@ -1474,7 +1931,10 @@
     var cr = $("#cmt-reload");
     if (cr) cr.addEventListener("click", function () { CMS.loaded.comments = false; loadComments(); });
     document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && !$("#post-modal").hidden) closePostEditor();
+      if (e.key !== "Escape") return;
+      if (!$("#post-modal").hidden) closePostEditor();
+      else if (!$("#page-modal").hidden) closePageEditor();
+      else if (!$("#board-modal").hidden) closeBoardEditor();
     });
     // 관리자는 로그인 직후 대시보드에서 전체 댓글 수를 볼 수 있게 미리 셉니다.
     if (sb) {
@@ -1660,7 +2120,8 @@
       if (!target) target = "home";
       var isUrl = /^(https?:)?\/\//i.test(target) || /^mailto:/i.test(target);
       var view = target.replace(/^#\/?/, "").replace(/\/$/, "");
-      if (!isUrl && VIEW_TARGETS.indexOf(view) < 0) {
+      var extra = /^page\/[A-Za-z0-9가-힣._-]+$/.test(view) || /^board\/[A-Za-z0-9가-힣._-]+$/.test(view);
+      if (!isUrl && VIEW_TARGETS.indexOf(view) < 0 && !extra) {
         return { error: "‘" + label + "’ 의 연결 대상 \"" + target + "\" 을(를) 알 수 없습니다. " + VIEW_TARGETS.join(" · ") + " 또는 https:// 주소를 넣어 주세요." };
       }
       if (isUrl && target.indexOf("//") === 0) target = "https:" + target;
