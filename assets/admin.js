@@ -1,6 +1,7 @@
-/* ===== 전국공방 · 관리자 페이지 (/admin.html) =====
+/* ===== 전국공방 · 관리자 페이지 (/admin) =====
    - 로그인 게이트: Supabase 세션 + is_admin() RPC 로 관리자 판별
    - 관리자에게만: profiles / bookmarks 전체 조회(RLS 정책이 서버에서 막아 줌)
+   - 회원 등급(1·2·3) 변경 — 서버의 등급 보호 트리거는 관리자만 통과시킵니다.
    - 구글 시트(등록·제보 DB)는 gviz 로 실시간 조회, data.js 의 마감 일정은 D-day 로 정렬
    의존: assets/supabase.js, assets/auth-config.js, assets/data.js, assets/archive.js
    주의: service_role 키나 비밀 값은 이 파일에 절대 넣지 않습니다. 공개(publishable) 키만 사용.
@@ -181,7 +182,7 @@
   function loadAll(force) {
     var stamp = $("#dash-stamp");
     if (stamp) stamp.textContent = "불러오는 중…";
-    Promise.all([loadMembers(), loadBookmarks(), loadSheet(), loadPostIndex()]).then(function () {
+    Promise.all([loadMembers(), loadBookmarks(), loadSheet(), loadPostIndex(), loadGrade(), loadTasksAdmin()]).then(function () {
       recount();
       renderMembers();
       renderPopular();
@@ -206,7 +207,7 @@
   function loadMembers() {
     var since = new Date(Date.now() - WEEK_MS).toISOString();
     return Promise.all([
-      sb.from("profiles").select("id,email,nickname,provider,created_at").order("created_at", { ascending: false }).limit(1000),
+      sb.from("profiles").select("id,email,nickname,provider,created_at,member_grade").order("created_at", { ascending: false }).limit(1000),
       sb.from("profiles").select("id", { count: "exact", head: true }),
       sb.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", since)
     ]).then(function (res) {
@@ -335,17 +336,54 @@
   }
 
   /* ---------------- 회원 목록 ---------------- */
+  /* ---------------- 회원 등급 ---------------- */
+  var GRADE_DEFAULT = { 1: "일반회원", 2: "정회원", 3: "특별회원(VIP)" };
+  var GRADE_NAMES = { 1: GRADE_DEFAULT[1], 2: GRADE_DEFAULT[2], 3: GRADE_DEFAULT[3] };
+  function gradeName(n) {
+    var g = (n >= 1 && n <= 3) ? n : 1;
+    return GRADE_NAMES[g] || GRADE_DEFAULT[g];
+  }
+  function gradeOfRow(m) {
+    var g = m && m.member_grade != null ? parseInt(m.member_grade, 10) : 1;
+    return (g >= 1 && g <= 3) ? g : 1;
+  }
+  function gradeOptions(sel) {
+    return [1, 2, 3].map(function (g) {
+      return '<option value="' + g + '"' + (g === sel ? " selected" : "") + ">" + g + "단계 · " + esc(gradeName(g)) + "</option>";
+    }).join("");
+  }
+  function setGrade(id, grade) {
+    var m = null;
+    for (var i = 0; i < members.length; i++) if (members[i].id === id) { m = members[i]; break; }
+    if (!m) return;
+    cmsMsg("member-msg", "등급을 바꾸는 중…");
+    sb.from("profiles").update({ member_grade: grade }).eq("id", id).then(function (r) {
+      if (r.error) {
+        cmsMsg("member-msg", "등급을 바꾸지 못했습니다: " + r.error.message, "err");
+        renderMembers();
+        return;
+      }
+      m.member_grade = grade;
+      renderMembers();
+      cmsMsg("member-msg", (m.email || m.id.slice(0, 8)) + " 회원을 " + grade + "단계 · " + gradeName(grade) + "(으)로 바꿨습니다.", "ok");
+    }).catch(function (e) {
+      cmsMsg("member-msg", "등급을 바꾸지 못했습니다: " + (e.message || "알 수 없는 오류"), "err");
+      renderMembers();
+    });
+  }
+
   function renderMembers() {
     var body = $("#member-table tbody");
     var note = $("#member-note");
+    if (!body) return;
     if (memberStats.error) {
-      body.innerHTML = '<tr class="empty-row"><td colspan="5">회원 목록을 불러오지 못했습니다: ' + esc(memberStats.error) + "</td></tr>";
+      body.innerHTML = '<tr class="empty-row"><td colspan="6">회원 목록을 불러오지 못했습니다: ' + esc(memberStats.error) + "</td></tr>";
       return;
     }
     if (note) {
       note.innerHTML = "Supabase <code>profiles</code> · 전체 " + num(memberStats.total) +
         "명" + (memberStats.loaded < memberStats.total ? " (최근 " + num(memberStats.loaded) + "명 표시)" : "") +
-        " · 관리자 권한 조회(RLS)";
+        " · 관리자 권한 조회(RLS) · 등급은 오른쪽 선택상자로 바로 바꿉니다";
     }
     var q = ($("#member-q").value || "").trim().toLowerCase();
     var rows = members.filter(function (m) {
@@ -353,25 +391,37 @@
       return (m.email || "").toLowerCase().indexOf(q) >= 0 || (m.nickname || "").toLowerCase().indexOf(q) >= 0;
     });
     if (!rows.length) {
-      body.innerHTML = '<tr class="empty-row"><td colspan="5">' + (members.length ? "검색 결과가 없습니다." : "아직 가입한 회원이 없습니다.") + "</td></tr>";
+      body.innerHTML = '<tr class="empty-row"><td colspan="6">' + (members.length ? "검색 결과가 없습니다." : "아직 가입한 회원이 없습니다.") + "</td></tr>";
       return;
     }
     body.innerHTML = rows.map(function (m) {
       var isMe = session && session.user && m.id === session.user.id;
+      var g = gradeOfRow(m);
       return "<tr>" +
         '<td class="ellip" data-th="이메일">' + esc(m.email || "–") + (isMe ? ' <span class="badge b-admin">나</span>' : "") + "</td>" +
         '<td data-th="닉네임">' + esc(m.nickname || "–") + "</td>" +
+        '<td data-th="등급"><div class="grade-cell">' +
+          '<span class="badge b-grade g' + g + '">' + esc(gradeName(g)) + "</span>" +
+          '<select class="admin-select grade-select" data-id="' + esc(m.id) + '" aria-label="' + esc((m.email || "회원") + " 등급 변경") + '">' +
+            gradeOptions(g) + "</select></div></td>" +
         '<td data-th="로그인"><span class="badge b-off">' + esc(providerLabel(m.provider)) + "</span></td>" +
         '<td class="muted" data-th="가입일">' + esc(fmtDate(m.created_at)) + "</td>" +
         '<td class="num" data-th="찜">' + num(m.bookmarkCount) + "</td>" +
         "</tr>";
     }).join("");
+    [].forEach.call(body.querySelectorAll(".grade-select"), function (sel) {
+      sel.addEventListener("change", function () {
+        var g = parseInt(sel.value, 10);
+        if (!(g >= 1 && g <= 3)) return;
+        setGrade(sel.getAttribute("data-id"), g);
+      });
+    });
   }
 
   function downloadCsv() {
-    var head = ["이메일", "닉네임", "로그인", "가입일", "찜"];
+    var head = ["이메일", "닉네임", "등급", "로그인", "가입일", "찜"];
     var lines = [head.join(",")].concat(members.map(function (m) {
-      var cells = [m.email || "", m.nickname || "", providerLabel(m.provider), fmtDate(m.created_at), m.bookmarkCount || 0];
+      var cells = [m.email || "", m.nickname || "", gradeName(gradeOfRow(m)), providerLabel(m.provider), fmtDate(m.created_at), m.bookmarkCount || 0];
       return cells.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(",");
     }));
     var blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
@@ -590,7 +640,7 @@
     tab: "dash",
     pages: [], posts: [], comments: [], media: [], postIndex: [],
     customPages: [], boardRows: [], editingPage: null, editingBoard: null, pageImages: [],
-    loaded: { pages: false, posts: false, comments: false, brand: false, media: false, boards: false },
+    loaded: { pages: false, posts: false, comments: false, brand: false, media: false, boards: false, grade: false, tasks: false },
     editing: null, commentCounts: {}, brand: null
   };
 
@@ -622,13 +672,15 @@
     [].forEach.call(document.querySelectorAll(".admin-tab"), function (b) {
       b.setAttribute("aria-selected", b.getAttribute("data-tab") === name ? "true" : "false");
     });
-    ["dash", "pages", "brand", "posts", "media", "comments"].forEach(function (t) {
+    ["dash", "pages", "brand", "posts", "tasks", "media", "comments"].forEach(function (t) {
       var p = document.getElementById("tab-" + t);
       if (p) p.hidden = (t !== name);
     });
     if (name === "pages") { if (!CMS.loaded.pages) loadPages(); loadPageManager(); }
     if (name === "brand" && !CMS.loaded.brand) loadBrand();
+    if (name === "brand") loadGrade();
     if (name === "posts") { if (!CMS.loaded.posts) loadPosts(); loadBoards(); }
+    if (name === "tasks") loadTasksAdmin();
     if (name === "media") loadMedia();
     if (name === "comments" && !CMS.loaded.comments) loadComments();
     try { window.scrollTo({ top: 0, behavior: "auto" }); } catch (e) { /* noop */ }
@@ -809,7 +861,7 @@
           return;
         }
         CMS.pages = (res.data || []).map(function (r) { return { key: r.key, section: r.section || "기타", label: r.label || r.key, value: r.value || "", image_url: r.image_url || "", _v: r.value || "", _i: r.image_url || "" }; })
-          .filter(function (p) { return p.section !== BRAND_SECTION; });   // 헤더·푸터·head 는 전용 탭에서 편집합니다
+          .filter(function (p) { return p.section !== BRAND_SECTION && p.section !== GRADE_SECTION; });   // 헤더·푸터·head·회원 등급은 전용 탭에서 편집합니다
         CMS.loaded.pages = true;
         renderPages();
         var note = $("#pages-note");
@@ -1384,7 +1436,7 @@
       return "<tr>" +
         '<td class="num" data-th="순서">' + (p.sort_order || 0) + "</td>" +
         '<td data-th="주소"><code>' + esc(p.slug) + "</code>" +
-          ' <a class="rowlink" href="../index.html#/page/' + esc(encodeURIComponent(p.slug)) + '" target="_blank" rel="noopener">보기</a></td>' +
+          ' <a class="rowlink" href="/#/page/' + esc(encodeURIComponent(p.slug)) + '" target="_blank" rel="noopener">보기</a></td>' +
         '<td class="ellip" data-th="제목" title="' + esc(p.title) + '">' + esc(p.title) + "</td>" +
         '<td class="num" data-th="이미지">' + pageImgCount(p) + "</td>" +
         '<td data-th="상태"><span class="badge ' + (p.is_published ? "b-ok" : "b-off") + '">' + (p.is_published ? "발행" : "숨김") + "</span></td>" +
@@ -1751,11 +1803,11 @@
     if (menuAdd) menuAdd.addEventListener("click", function () {
       syncMenuModel();
       if (!CMS.brand) return;
-      CMS.brand.menu.push({ label: "", target: "home", note: "", visible: true });
+      CMS.brand.menu.push({ label: "", label_ko: "", label_en: "", target: "home", note: "", visible: true });
       renderMenuRows();
       var rows = document.querySelectorAll("#menu-rows .menu-row");
       var last = rows[rows.length - 1];
-      var inp = last && last.querySelector('[data-f="label"]');
+      var inp = last && last.querySelector('[data-f="label_ko"]');
       if (inp) inp.focus();
     });
     var menuReset = $("#menu-reset");
@@ -1857,6 +1909,16 @@
     var policySave = $("#board-policy-save");
     if (policySave) policySave.addEventListener("click", saveDefaultPolicy);
 
+    /* --- 회원 등급 · 업무 관리 설정 --- */
+    var gradeSave = $("#grade-save");
+    if (gradeSave) gradeSave.addEventListener("click", saveGrade);
+    var tasksReload = $("#tasks-reload");
+    if (tasksReload) tasksReload.addEventListener("click", loadTasksAdmin);
+    var adminTq = $("#tasks-admin-q");
+    if (adminTq) adminTq.addEventListener("input", renderTasksAdmin);
+    var adminTs = $("#tasks-admin-status");
+    if (adminTs) adminTs.addEventListener("change", renderTasksAdmin);
+
     var pq = $("#posts-q");
     if (pq) pq.addEventListener("input", renderPosts);
     ["#posts-cat", "#posts-state"].forEach(function (sel) {
@@ -1948,16 +2010,22 @@
 
   /* ---------------- 4. 헤더 · 푸터 · Head ---------------- */
   var BRAND_SECTION = "헤더 · 푸터 · Head";
-  var VIEW_TARGETS = ["home", "workshops", "news", "interview", "archive", "info", "map"];
+  var GRADE_SECTION = "회원 등급";
+  var VIEW_TARGETS = ["home", "workshops", "news", "interview", "archive", "info", "map", "tasks"];
   var DEFAULT_MENU = [
-    { label: "홈", target: "home", visible: true, note: "" },
-    { label: "공방 소개", target: "workshops", visible: true, note: "" },
-    { label: "공방 뉴스", target: "news", visible: true, note: "" },
-    { label: "작가 인터뷰", target: "interview", visible: true, note: "" },
-    { label: "아카이브", target: "archive", visible: true, note: "2024–2026" },
-    { label: "지원·공모", target: "info", visible: true, note: "" },
-    { label: "지도·게시판", target: "map", visible: true, note: "" }
+    { label: "홈", label_ko: "홈", label_en: "Home", target: "home", visible: true, note: "" },
+    { label: "공방 소개", label_ko: "공방 소개", label_en: "Workshops", target: "workshops", visible: true, note: "" },
+    { label: "공방 뉴스", label_ko: "공방 뉴스", label_en: "News", target: "news", visible: true, note: "" },
+    { label: "작가 인터뷰", label_ko: "작가 인터뷰", label_en: "Interviews", target: "interview", visible: true, note: "" },
+    { label: "아카이브", label_ko: "아카이브", label_en: "Archive", target: "archive", visible: true, note: "2024–2026" },
+    { label: "지원·공모", label_ko: "지원·공모", label_en: "Grants & Info", target: "info", visible: true, note: "" },
+    { label: "지도·게시판", label_ko: "지도·게시판", label_en: "Map", target: "map", visible: true, note: "" },
+    { label: "업무 관리", label_ko: "업무 관리", label_en: "Tasks", target: "tasks", visible: true, note: "" }
   ];
+  var MENU_EN_DEFAULT = {
+    home: "Home", workshops: "Workshops", news: "News", interview: "Interviews",
+    archive: "Archive", info: "Grants & Info", map: "Map", tasks: "Tasks"
+  };
   var BRAND_FIELDS = [
     ["footer_company_name", "푸터 · 회사명", "#ft-company"],
     ["footer_ceo", "푸터 · 대표자", "#ft-ceo"],
@@ -1976,9 +2044,14 @@
     BRAND_FIELDS.map(function (f) { return f[0]; }));
 
   function normMenu(it) {
+    var target = String((it && it.target) || "");
+    var ko = String((it && (it.label_ko || it.label)) || "");
+    var en = String((it && it.label_en) || "").trim() || MENU_EN_DEFAULT[target] || "";
     return {
-      label: String((it && it.label) || ""),
-      target: String((it && it.target) || ""),
+      label: ko,
+      label_ko: ko,
+      label_en: en,
+      target: target,
       note: String((it && it.note) || ""),
       visible: !(it && it.visible === false)
     };
@@ -2068,7 +2141,8 @@
     box.innerHTML = list.map(function (it, i) {
       return '<div class="menu-row" data-i="' + i + '">' +
         '<span class="menu-idx" aria-hidden="true">' + (i + 1) + "</span>" +
-        '<input class="admin-input menu-label" data-f="label" value="' + esc(it.label) + '" placeholder="메뉴 이름" aria-label="' + (i + 1) + '번째 메뉴 이름" maxlength="20">' +
+        '<input class="admin-input menu-label" data-f="label_ko" value="' + esc(it.label_ko || it.label || '') + '" placeholder="메뉴 이름 (한국어)" aria-label="' + (i + 1) + '번째 메뉴 한국어 이름" maxlength="20">' +
+        '<input class="admin-input menu-label-en" data-f="label_en" value="' + esc(it.label_en || '') + '" placeholder="Menu name (English)" aria-label="' + (i + 1) + '번째 메뉴 영어 이름" maxlength="30">' +
         '<input class="admin-input menu-target" data-f="target" value="' + esc(it.target) + '" placeholder="home 또는 https://" aria-label="' + (i + 1) + '번째 메뉴 연결 대상" maxlength="200">' +
         '<input class="admin-input menu-note" data-f="note" value="' + esc(it.note) + '" placeholder="작은 표기(선택)" aria-label="' + (i + 1) + '번째 메뉴 작은 표기" maxlength="20">' +
         '<label class="menu-vis"><input type="checkbox" data-f="visible"' + (it.visible !== false ? " checked" : "") + '><span>표시</span></label>' +
@@ -2086,8 +2160,12 @@
     var rows = [].slice.call(document.querySelectorAll("#menu-rows .menu-row"));
     if (!rows.length) return;
     CMS.brand.menu = rows.map(function (row) {
+      var ko = (row.querySelector('[data-f="label_ko"]').value || "").trim();
+      var en = (row.querySelector('[data-f="label_en"]').value || "").trim();
       return {
-        label: (row.querySelector('[data-f="label"]').value || "").trim(),
+        label: ko,
+        label_ko: ko,
+        label_en: en,
         target: (row.querySelector('[data-f="target"]').value || "").trim(),
         note: (row.querySelector('[data-f="note"]').value || "").trim(),
         visible: !!row.querySelector('[data-f="visible"]').checked
@@ -2111,12 +2189,13 @@
     var rows = [].slice.call(document.querySelectorAll("#menu-rows .menu-row"));
     for (var i = 0; i < rows.length; i++) {
       var row = rows[i];
-      var label = (row.querySelector('[data-f="label"]').value || "").trim();
+      var label = (row.querySelector('[data-f="label_ko"]').value || "").trim();
+      var labelEn = (row.querySelector('[data-f="label_en"]').value || "").trim();
       var target = (row.querySelector('[data-f="target"]').value || "").trim();
       var note = (row.querySelector('[data-f="note"]').value || "").trim();
       var visible = !!row.querySelector('[data-f="visible"]').checked;
-      if (!label && !target) continue;                       // 빈 줄은 무시
-      if (!label) return { error: (i + 1) + "번째 줄에 메뉴 이름이 없습니다." };
+      if (!label && !target && !labelEn) continue;            // 빈 줄은 무시
+      if (!label) return { error: (i + 1) + "번째 줄에 한국어 메뉴 이름이 없습니다." };
       if (!target) target = "home";
       var isUrl = /^(https?:)?\/\//i.test(target) || /^mailto:/i.test(target);
       var view = target.replace(/^#\/?/, "").replace(/\/$/, "");
@@ -2125,7 +2204,7 @@
         return { error: "‘" + label + "’ 의 연결 대상 \"" + target + "\" 을(를) 알 수 없습니다. " + VIEW_TARGETS.join(" · ") + " 또는 https:// 주소를 넣어 주세요." };
       }
       if (isUrl && target.indexOf("//") === 0) target = "https:" + target;
-      menu.push({ label: label, target: isUrl ? target : view, note: note, visible: visible });
+      menu.push({ label: label, label_ko: label, label_en: labelEn, target: isUrl ? target : view, note: note, visible: visible });
     }
     if (!menu.length) return { error: "메뉴를 최소 한 개는 남겨 주세요." };
     return { name: name, sub: sub, logo: logo, head: head, fields: fields, menu: menu };
@@ -2158,6 +2237,144 @@
       if (stamp) stamp.textContent = "저장 " + new Date().toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit" });
     }).catch(function (e) {
       cmsMsg("brand-msg", "저장 실패: " + (e.message || "권한을 확인해 주세요."), "err");
+    });
+  }
+
+  /* ---------------- 7. 회원 등급 · 업무 관리 설정 ---------------- */
+  function loadGrade() {
+    if (!sb) return Promise.resolve();
+    return sb.from("site_contents").select("key,value")
+      .in("key", ["grade_1_name", "grade_2_name", "grade_3_name", "tasks.min_grade"])
+      .then(function (r) {
+        if (r.error) { cmsMsg("grade-msg", "불러오지 못했습니다: " + r.error.message, "err"); return; }
+        var map = {};
+        (r.data || []).forEach(function (x) { map[x.key] = x.value; });
+        [1, 2, 3].forEach(function (g) {
+          var v = String(map["grade_" + g + "_name"] || "").trim() || GRADE_DEFAULT[g];
+          GRADE_NAMES[g] = v;
+          var inp = $("#grade-" + g + "-name");
+          if (inp) inp.value = v;
+        });
+        var mg = String(map["tasks.min_grade"] || "").trim();
+        var sel = $("#tasks-min-grade");
+        if (sel) sel.value = /^[123]$/.test(mg) ? mg : "1";
+        CMS.loaded.grade = true;
+        renderMembers();          // 배지 이름을 새 이름으로 다시 그림
+      });
+  }
+
+  function saveGrade() {
+    if (!sb) return;
+    var name = function (g) {
+      var el = $("#grade-" + g + "-name");
+      return ((el && el.value) || "").trim() || GRADE_DEFAULT[g];
+    };
+    var sel = $("#tasks-min-grade");
+    var minG = sel && /^[123]$/.test(sel.value) ? sel.value : "1";
+    var rows = [
+      { key: "grade_1_name", section: GRADE_SECTION, label: "1단계 이름 (일반회원)", value: name(1), image_url: null },
+      { key: "grade_2_name", section: GRADE_SECTION, label: "2단계 이름 (정회원)", value: name(2), image_url: null },
+      { key: "grade_3_name", section: GRADE_SECTION, label: "3단계 이름 (특별회원/VIP)", value: name(3), image_url: null },
+      { key: "tasks.min_grade", section: GRADE_SECTION, label: "업무 관리 최소 등급 (1·2·3)", value: minG, image_url: null }
+    ];
+    cmsMsg("grade-msg", "저장하는 중…");
+    Promise.all(rows.map(function (r) {
+      return sb.from("site_contents").upsert(r, { onConflict: "key" }).then(function (res) {
+        if (res.error) throw new Error(r.key + ": " + res.error.message);
+        return true;
+      });
+    })).then(function () {
+      GRADE_NAMES[1] = name(1); GRADE_NAMES[2] = name(2); GRADE_NAMES[3] = name(3);
+      [1, 2, 3].forEach(function (g) { var inp = $("#grade-" + g + "-name"); if (inp) inp.value = GRADE_NAMES[g]; });
+      renderMembers();
+      cmsMsg("grade-msg", "등급 설정을 저장했습니다. 업무 관리는 " + gradeName(+minG) + " 이상만 열립니다.", "ok");
+    }).catch(function (e) {
+      cmsMsg("grade-msg", "저장 실패: " + (e.message || "권한을 확인해 주세요."), "err");
+    });
+  }
+
+  /* ---------------- 8. 업무 관리 (public.tasks) ---------------- */
+  var adminTasks = [];
+  var TASK_STATUS = { todo: "할 일", doing: "진행 중", done: "완료" };
+  var TASK_PRIO = { low: "낮음", normal: "보통", high: "높음" };
+
+  function loadTasksAdmin() {
+    var body = $("#tasks-admin-table tbody");
+    if (!sb || !body) return Promise.resolve();
+    body.innerHTML = '<tr class="empty-row"><td colspan="8">불러오는 중…</td></tr>';
+    return sb.from("tasks").select("*").order("created_at", { ascending: false }).limit(500).then(function (r) {
+      if (r.error) {
+        body.innerHTML = '<tr class="empty-row"><td colspan="8">불러오지 못했습니다: ' + esc(r.error.message) + "</td></tr>";
+        return;
+      }
+      adminTasks = r.data || [];
+      CMS.loaded.tasks = true;
+      renderTasksAdmin();
+      var st = $("#tasks-stamp");
+      if (st) st.textContent = "전체 " + adminTasks.length + "건";
+      var tab = $("#tab-task-count");
+      if (tab) tab.textContent = adminTasks.length ? String(adminTasks.length) : "";
+    });
+  }
+
+  function renderTasksAdmin() {
+    var body = $("#tasks-admin-table tbody");
+    if (!body) return;
+    var q = ($("#tasks-admin-q").value || "").trim().toLowerCase();
+    var st = $("#tasks-admin-status").value;
+    var rows = adminTasks.filter(function (t) {
+      if (st && t.status !== st) return false;
+      if (!q) return true;
+      return [t.title, t.description, t.assignee, t.author_name].join(" ").toLowerCase().indexOf(q) >= 0;
+    });
+    var tag = $("#tasks-admin-count");
+    if (tag) tag.textContent = rows.length === adminTasks.length ? "전체 " + adminTasks.length + "건" : rows.length + " / " + adminTasks.length + "건";
+    if (!rows.length) {
+      body.innerHTML = '<tr class="empty-row"><td colspan="8">' + (adminTasks.length ? "조건에 맞는 업무가 없습니다." : "아직 등록된 업무가 없습니다. 사이트 #/tasks 에서 회원이 추가합니다.") + "</td></tr>";
+      return;
+    }
+    body.innerHTML = rows.map(function (t) {
+      var opts = Object.keys(TASK_STATUS).map(function (k) {
+        return '<option value="' + k + '"' + (t.status === k ? " selected" : "") + ">" + TASK_STATUS[k] + "</option>";
+      }).join("");
+      return "<tr>" +
+        '<td data-th="상태"><select class="admin-select task-status-sel" data-id="' + esc(t.id) + '" aria-label="상태 변경">' + opts + "</select></td>" +
+        '<td class="ellip" data-th="제목" title="' + esc(t.title) + '">' + esc(t.title) +
+          (t.description ? '<span class="muted">' + esc(String(t.description).slice(0, 60)) + "</span>" : "") + "</td>" +
+        '<td data-th="우선순위"><span class="badge b-prio p-' + esc(t.priority) + '">' + esc(TASK_PRIO[t.priority] || t.priority) + "</span></td>" +
+        '<td data-th="담당">' + esc(t.assignee || "–") + "</td>" +
+        '<td class="muted" data-th="마감">' + esc(t.due_date ? String(t.due_date).slice(0, 10) : "–") + "</td>" +
+        '<td class="muted" data-th="작성자">' + esc(t.author_name || "–") + "</td>" +
+        '<td class="muted" data-th="수정">' + esc(fmtWhen(t.updated_at || t.created_at)) + "</td>" +
+        '<td><button type="button" class="rowlink task-del" data-id="' + esc(t.id) + '">삭제</button></td>' +
+        "</tr>";
+    }).join("");
+    [].forEach.call(body.querySelectorAll(".task-status-sel"), function (sel) {
+      sel.addEventListener("change", function () {
+        var id = sel.getAttribute("data-id");
+        sb.from("tasks").update({ status: sel.value }).eq("id", id).then(function (r) {
+          if (r.error) { cmsMsg("tasks-admin-msg", "바꾸지 못했습니다: " + r.error.message, "err"); return; }
+          for (var i = 0; i < adminTasks.length; i++) if (adminTasks[i].id === id) adminTasks[i].status = sel.value;
+          renderTasksAdmin();
+          cmsMsg("tasks-admin-msg", "업무 상태를 ‘" + (TASK_STATUS[sel.value] || sel.value) + "’(으)로 바꿨습니다.", "ok");
+        });
+      });
+    });
+    [].forEach.call(body.querySelectorAll(".task-del"), function (b) {
+      b.addEventListener("click", function () {
+        var id = b.getAttribute("data-id");
+        var row = null;
+        for (var i = 0; i < adminTasks.length; i++) if (adminTasks[i].id === id) row = adminTasks[i];
+        if (!window.confirm("‘" + (row ? row.title : "업무") + "’를 삭제할까요?\n되돌릴 수 없습니다.")) return;
+        sb.from("tasks").delete().eq("id", id).then(function (r) {
+          if (r.error) { cmsMsg("tasks-admin-msg", "삭제하지 못했습니다: " + r.error.message, "err"); return; }
+          adminTasks = adminTasks.filter(function (t) { return t.id !== id; });
+          renderTasksAdmin();
+          var tab = $("#tab-task-count");
+          if (tab) tab.textContent = adminTasks.length ? String(adminTasks.length) : "";
+          cmsMsg("tasks-admin-msg", "업무를 삭제했습니다.", "ok");
+        });
+      });
     });
   }
 

@@ -423,3 +423,26 @@ tr.is-hidden td{opacity:.62}
   .img-row .img-cap{flex:1 1 100%}
   .mgr-head{gap:10px}
 }
+
+/* ============================================================================
+   2026-11 · 회원 등급 · 업무 관리 · 메뉴 KO/EN
+   ============================================================================ */
+.menu-row{
+  grid-template-columns:24px minmax(90px,1fr) minmax(90px,1fr) minmax(110px,1.1fr) minmax(70px,.55fr) auto auto;
+}
+.menu-row .menu-label-en{color:var(--ink-2)}
+.grade-cell{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.grade-cell .admin-select{padding:5px 8px;font-size:.78rem;height:auto;min-width:150px}
+.badge.b-grade.g1{background:#EFEAE3;color:#6E5C4F}
+.badge.b-grade.g2{background:#E7EFE0;color:#4C6338}
+.badge.b-grade.g3{background:#FBE6D3;color:#9A4E22}
+.badge.b-prio.p-low{background:#EDF3F0;color:#4E6259}
+.badge.b-prio.p-normal{background:#EFEAE3;color:#6E5C4F}
+.badge.b-prio.p-high{background:#FBE3DC;color:#9E3520}
+#tasks-admin-table .task-status-sel{padding:5px 8px;font-size:.8rem;height:auto;min-width:96px}
+#tasks-admin-table .muted{display:block;font-size:.76rem;line-height:1.4;margin-top:2px}
+#member-table .grade-select{max-width:190px}
+@media (max-width:860px){
+  .menu-row{grid-template-areas:"idx label vis" "idx label-en vis" "idx target btns" "idx note btns"}
+  .menu-row .menu-label-en{grid-area:label-en}
+}

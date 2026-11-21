@@ -22,6 +22,11 @@
   var ready = false;
 
   var $ = function (sel, root) { return (root || document).querySelector(sel); };
+  var I18N = window.CRAFT_I18N || null;
+  function T(key, vars) { return I18N ? I18N.t(key, vars) : key; }
+  function sessionToken() {
+    return (session && session.access_token) ? session.access_token : null;
+  }
   function el(tag, cls, html) {
     var n = document.createElement(tag);
     if (cls) n.className = cls;
@@ -67,9 +72,9 @@
     host.innerHTML = "";
 
     if (!session) {
-      var b = el("button", "auth-btn", I.user + "<span>로그인</span>");
+      var b = el("button", "auth-btn", I.user + "<span>" + esc(T("auth.login.btn")) + "</span>");
       b.type = "button";
-      b.setAttribute("aria-label", "로그인 또는 회원가입");
+      b.setAttribute("aria-label", T("auth.login.aria"));
       b.addEventListener("click", function () { openAuth("signin"); });
       host.appendChild(b);
       return;
@@ -80,6 +85,7 @@
     var btn = el("button", "auth-btn auth-user-btn",
       '<span class="auth-avatar" aria-hidden="true">' + esc(name.slice(0, 1)) + "</span>" +
       '<span class="auth-name">' + esc(name) + "</span>" +
+      '<span class="grade-badge g' + gradeOf() + '">' + esc(gradeName(gradeOf())) + "</span>" +
       '<span class="auth-caret" aria-hidden="true">▾</span>');
     btn.type = "button";
     btn.setAttribute("aria-haspopup", "menu");
@@ -89,10 +95,14 @@
     menu.setAttribute("role", "menu");
     menu.hidden = true;
     menu.innerHTML =
-      '<div class="auth-menu-head"><b>' + esc(name) + "</b><span>" + esc(session.user.email || providerLabel()) + "</span></div>" +
-      '<button type="button" role="menuitem" data-act="bookmarks">' + I.heartOn + "관심 공방 <i>" + bookmarks.length + "</i></button>" +
-      '<a role="menuitem" href="#/map" data-act="map">공방 게시판</a>' +
-      '<button type="button" role="menuitem" data-act="signout">로그아웃</button>';
+      '<div class="auth-menu-head"><b>' + esc(name) + ' <span class="grade-badge g' + gradeOf() + '">' + esc(gradeName(gradeOf())) + "</span></b><span>" +
+        esc(session.user.email || providerLabel()) + "</span></div>" +
+      '<button type="button" role="menuitem" data-act="bookmarks">' + I.heartOn +
+        '<span data-i18n="auth.menu.bookmarks"></span> <i>' + bookmarks.length + "</i></button>" +
+      '<a role="menuitem" href="#/tasks" data-act="tasks" data-i18n="auth.menu.tasks"></a>' +
+      '<a role="menuitem" href="#/map" data-act="map" data-i18n="auth.menu.board"></a>' +
+      '<button type="button" role="menuitem" data-act="signout" data-i18n="auth.menu.signout"></button>';
+    if (I18N) I18N.apply(menu);
 
     btn.addEventListener("click", function () {
       var open = menu.hidden;
@@ -128,6 +138,27 @@
     return m.nickname || m.name || m.full_name || m.preferred_username ||
       (u.email ? u.email.split("@")[0] : "회원");
   }
+
+  /* ---------- 회원 등급 (1 일반 · 2 정회원 · 3 특별회원/VIP) ---------- */
+  function gradeOf() {
+    var g = profile && profile.member_grade != null ? parseInt(profile.member_grade, 10) : 1;
+    return (g >= 1 && g <= 3) ? g : 1;
+  }
+  function gradeName(n) {
+    var ko = { 1: "일반회원", 2: "정회원", 3: "특별회원(VIP)" };
+    var en = { 1: "Member", 2: "Regular member", 3: "VIP" };
+    var g = (n >= 1 && n <= 3) ? n : 1;
+    var v = "";
+    try {
+      var c = window.CRAFT_CMS && window.CRAFT_CMS.contents ? window.CRAFT_CMS.contents() : null;
+      var row = c && c["grade_" + g + "_name"];
+      v = row && row.value != null ? String(row.value).trim() : "";
+    } catch (e) { v = ""; }
+    var english = !!(I18N && I18N.isEn && I18N.isEn());
+    if (!v) return english ? en[g] : ko[g];
+    if (english && v === ko[g]) return en[g];   // 관리자가 이름을 바꾸지 않았다면 영어 기본 이름
+    return v;
+  }
   function providerLabel() {
     var p = (profile && profile.provider) || (session && session.user && session.user.app_metadata && session.user.app_metadata.provider);
     return { google: "Google 계정", kakao: "카카오 계정", naver: "네이버 계정", email: "이메일 계정" }[p] || "회원";
@@ -143,33 +174,34 @@
     modal.innerHTML =
       '<div class="auth-backdrop" data-close="1"></div>' +
       '<div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">' +
-        '<button type="button" class="auth-x" aria-label="닫기" data-close="1">' + I.close + "</button>" +
-        '<p class="eyebrow auth-eyebrow">우리동네공방 회원</p>' +
+        '<button type="button" class="auth-x" aria-label="close" data-close="1">' + I.close + "</button>" +
+        '<p class="eyebrow auth-eyebrow" data-i18n="auth.eyebrow">우리동네공방 회원</p>' +
         '<h2 id="auth-title">로그인</h2>' +
-        '<p class="auth-sub">관심 공방을 찜해 두고, 다음에 다시 찾아보세요.</p>' +
+        '<p class="auth-sub"></p>' +
         '<div class="auth-socials">' +
-          '<button type="button" class="auth-social google" data-provider="google"><span class="ic">' + I.google + "</span>구글로 계속하기</button>" +
-          '<button type="button" class="auth-social kakao" data-provider="kakao"><span class="ic">' + I.kakao + "</span>카카오로 계속하기</button>" +
-          '<button type="button" class="auth-social naver" data-provider="naver"><span class="ic">' + I.naver + "</span>네이버로 계속하기</button>" +
+          '<button type="button" class="auth-social google" data-provider="google"><span class="ic">' + I.google + '</span><span data-i18n="auth.google">구글로 계속하기</span></button>' +
+          '<button type="button" class="auth-social kakao" data-provider="kakao"><span class="ic">' + I.kakao + '</span><span data-i18n="auth.kakao">카카오로 계속하기</span></button>' +
+          '<button type="button" class="auth-social naver" data-provider="naver"><span class="ic">' + I.naver + '</span><span data-i18n="auth.naver">네이버로 계속하기</span></button>' +
         "</div>" +
-        '<div class="auth-or"><span>또는 이메일로</span></div>' +
+        '<div class="auth-or"><span data-i18n="auth.or">또는 이메일로</span></div>' +
         '<form id="auth-form" novalidate>' +
-          '<label class="auth-field"><span>이메일</span>' +
+          '<label class="auth-field"><span data-i18n="auth.email">이메일</span>' +
             '<input type="email" id="auth-email" autocomplete="email" inputmode="email" placeholder="name@example.com" required></label>' +
-          '<label class="auth-field" id="auth-nick-wrap" hidden><span>닉네임 <em>(선택)</em></span>' +
-            '<input type="text" id="auth-nick" autocomplete="nickname" maxlength="20" placeholder="게시판에 표시할 이름"></label>' +
+          '<label class="auth-field" id="auth-nick-wrap" hidden><span><span data-i18n="auth.nickname">닉네임</span> <em data-i18n="auth.optional">(선택)</em></span>' +
+            '<input type="text" id="auth-nick" autocomplete="nickname" maxlength="20" placeholder="게시판에 표시할 이름" data-i18n-ph="auth.nick.ph"></label>' +
           '<label class="auth-field"><span id="auth-pass-label">비밀번호</span>' +
-            '<input type="password" id="auth-pass" autocomplete="current-password" minlength="6" placeholder="6자 이상" required></label>' +
+            '<input type="password" id="auth-pass" autocomplete="current-password" minlength="6" placeholder="6자 이상" data-i18n-ph="auth.pass.ph" required></label>' +
           '<p class="auth-msg" id="auth-msg" role="status" aria-live="polite"></p>' +
           '<button type="submit" class="btn btn-primary auth-submit" id="auth-submit">로그인</button>' +
         "</form>" +
         '<div class="auth-foot">' +
-          '<button type="button" class="auth-link" id="auth-toggle">처음이신가요? <b>회원가입</b></button>' +
-          '<button type="button" class="auth-link" id="auth-forgot">비밀번호를 잊으셨나요?</button>' +
+          '<button type="button" class="auth-link" id="auth-toggle"></button>' +
+          '<button type="button" class="auth-link" id="auth-forgot"></button>' +
         "</div>" +
-        '<p class="auth-terms">가입하면 전국공방의 <a href="#/info">이용 안내</a>에 동의하는 것으로 봅니다. 이메일은 로그인과 공지 전달에만 씁니다.</p>' +
+        '<p class="auth-terms" data-i18n="auth.terms"></p>' +
       "</div>";
     document.body.appendChild(modal);
+    if (I18N) I18N.apply(modal);
 
     // auth-config.js 의 providers 목록에 있는 로그인만 노출합니다. (없거나 비면 전부 노출)
     var only = (CFG.providers && CFG.providers.length) ? CFG.providers : null;
@@ -219,37 +251,39 @@
     var nickWrap = $("#auth-nick-wrap", modal);
     var pass = $("#auth-pass", modal);
     var passLabel = $("#auth-pass-label", modal);
+    var toggle = $("#auth-toggle", modal);
+    var forgot = $("#auth-forgot", modal);
     msg("");
 
+    var key = next === "signup" ? "signup" : (next === "reset" ? "reset" : "signin");
+    title.textContent = T("auth." + key + ".title");
+    sub.textContent = T("auth." + key + ".sub");
+    submit.textContent = T("auth.submit." + key);
+    submit.dataset.label = "";
+
     if (next === "signup") {
-      title.textContent = "회원가입";
-      sub.textContent = "이메일만 있으면 됩니다. 가입 후 바로 관심 공방을 찜할 수 있어요.";
-      submit.textContent = "회원가입";
       nickWrap.hidden = false;
       pass.autocomplete = "new-password";
-      passLabel.textContent = "비밀번호";
-      $("#auth-toggle", modal).innerHTML = "이미 회원이신가요? <b>로그인</b>";
-      $("#auth-forgot", modal).hidden = false;
+      passLabel.textContent = T("auth.password");
+      toggle.innerHTML = T("auth.toggle.signup");
+      toggle.hidden = false;
+      forgot.hidden = false;
+      forgot.textContent = T("auth.forgot");
     } else if (next === "reset") {
-      title.textContent = "새 비밀번호 설정";
-      sub.textContent = "새로 사용할 비밀번호를 입력해 주세요.";
-      submit.textContent = "비밀번호 변경";
       nickWrap.hidden = true;
       pass.value = "";
       pass.autocomplete = "new-password";
-      passLabel.textContent = "새 비밀번호";
-      $("#auth-toggle", modal).hidden = true;
-      $("#auth-forgot", modal).hidden = true;
+      passLabel.textContent = T("auth.newPassword");
+      toggle.hidden = true;
+      forgot.hidden = true;
     } else {
-      title.textContent = "로그인";
-      sub.textContent = "관심 공방을 찜해 두고, 다음에 다시 찾아보세요.";
-      submit.textContent = "로그인";
       nickWrap.hidden = true;
       pass.autocomplete = "current-password";
-      passLabel.textContent = "비밀번호";
-      $("#auth-toggle", modal).innerHTML = "처음이신가요? <b>회원가입</b>";
-      $("#auth-toggle", modal).hidden = false;
-      $("#auth-forgot", modal).hidden = false;
+      passLabel.textContent = T("auth.password");
+      toggle.innerHTML = T("auth.toggle.signin");
+      toggle.hidden = false;
+      forgot.hidden = false;
+      forgot.textContent = T("auth.forgot");
     }
   }
 
@@ -583,7 +617,7 @@
   /* ---------------- 세션 ---------------- */
   function loadProfile() {
     if (!sb || !session) { profile = null; return Promise.resolve(); }
-    return sb.from("profiles").select("nickname,email,provider").eq("id", session.user.id).maybeSingle()
+    return sb.from("profiles").select("nickname,email,provider,member_grade").eq("id", session.user.id).maybeSingle()
       .then(function (r) {
         profile = (r && !r.error && r.data) ? r.data : null;
         if (!profile) {
@@ -592,7 +626,8 @@
           profile = {
             nickname: m.nickname || m.name || (session.user.email || "").split("@")[0],
             email: session.user.email,
-            provider: (session.user.app_metadata && session.user.app_metadata.provider) || "email"
+            provider: (session.user.app_metadata && session.user.app_metadata.provider) || "email",
+            member_grade: 1
           };
           sb.from("profiles").upsert({
             id: session.user.id, email: profile.email,
@@ -600,6 +635,7 @@
           }).then(function () {});
         }
         renderHeader();
+        fireSession();       // 화면(업무 관리 등)이 등급을 바로 읽을 수 있게 알립니다
       });
   }
 
@@ -651,6 +687,15 @@
 
   /* ---------------- 시작 ---------------- */
   function init() {
+    if (I18N && I18N.onChange) {
+      I18N.onChange(function () {
+        var wasOpen = !!(modal && !modal.hidden);
+        if (modal && modal.parentNode) modal.parentNode.removeChild(modal);
+        modal = null;
+        renderHeader();
+        if (wasOpen) openAuth(mode === "reset" ? "reset" : (mode === "signup" ? "signup" : "signin"));
+      });
+    }
     if (!CONFIGURED) {
       document.body.classList.add("auth-off");
       console.warn("[auth] CRAFT_SUPABASE 설정이 비어 있습니다. assets/auth-config.js 를 채워 주세요.");
@@ -689,6 +734,10 @@
     },
     isSignedIn: function () { return !!session; },
     user: function () { return session ? session.user : null; },
+    token: sessionToken,
+    profile: function () { return profile; },
+    memberGrade: gradeOf,
+    gradeName: gradeName,
     configured: CONFIGURED
   };
 

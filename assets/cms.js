@@ -16,6 +16,8 @@
 
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return [].slice.call((r || document).querySelectorAll(s)); };
+  var I18N = window.CRAFT_I18N || null;
+  function T(key, vars) { return I18N ? I18N.t(key, vars) : key; }
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
@@ -521,9 +523,9 @@
     $$(".cmt-btn").forEach(function (b) {
       var key = b.getAttribute("data-key");
       var n = cmtCounts[key] || 0;
-      b.innerHTML = '<span class="cmt-ico" aria-hidden="true">💬</span><span>댓글</span>' +
+      b.innerHTML = '<span class="cmt-ico" aria-hidden="true">💬</span><span>' + esc(T("cmt.btn")) + "</span>" +
         (n ? ' <b class="cmt-n">' + n + "</b>" : "");
-      b.setAttribute("aria-label", (n ? "댓글 " + n + "개 " : "댓글 ") + "보기");
+      b.setAttribute("aria-label", n ? T("cmt.n.aria", { n: n }) : T("cmt.open.aria"));
     });
   }
 
@@ -544,8 +546,9 @@
     });
     (slot || node).appendChild(btn);
     var n = cmtCounts[key] || 0;
-    btn.innerHTML = '<span class="cmt-ico" aria-hidden="true">💬</span><span>댓글</span>' +
+    btn.innerHTML = '<span class="cmt-ico" aria-hidden="true">💬</span><span>' + esc(T("cmt.btn")) + "</span>" +
       (n ? ' <b class="cmt-n">' + n + "</b>" : "");
+    btn.setAttribute("aria-label", n ? T("cmt.n.aria", { n: n }) : T("cmt.open.aria"));
   }
 
   /* ---------------- 댓글 드로어 ---------------- */
@@ -561,42 +564,43 @@
       '<aside class="cmt-drawer" id="cmt-drawer" role="dialog" aria-modal="true" aria-labelledby="cmt-title" hidden>' +
       '  <img class="cmt-hero" id="cmt-hero" alt="" hidden>' +
       '  <header class="cmt-head">' +
-      '    <div><p class="cmt-eyebrow">댓글</p><h2 id="cmt-title"></h2></div>' +
+      '    <div><p class="cmt-eyebrow" data-i18n="cmt.title">댓글</p><h2 id="cmt-title"></h2></div>' +
       '    <button type="button" class="cmt-close" id="cmt-close" aria-label="댓글 닫기">×</button>' +
       "  </header>" +
       '  <div class="cmt-body"><div class="cmt-list" id="cmt-list"></div></div>' +
       '  <form class="cmt-form" id="cmt-form" hidden>' +
       '    <label class="sr-only" for="cmt-input">댓글 내용</label>' +
-      '    <textarea id="cmt-input" maxlength="1000" rows="3" placeholder="서로에게 도움이 되는 말을 남겨 주세요. (최대 1000자)"></textarea>' +
+      '    <textarea id="cmt-input" maxlength="1000" rows="3" placeholder="서로에게 도움이 되는 말을 남겨 주세요. (최대 1000자)" data-i18n-ph="cmt.input.ph"></textarea>' +
       '    <div class="cmt-form-foot"><span class="cmt-who" id="cmt-who"></span>' +
       '      <span class="cmt-chars" id="cmt-chars">0/1000</span>' +
-      '      <button type="submit" class="btn btn-primary btn-sm" id="cmt-send">댓글 등록</button></div>' +
+      '      <button type="submit" class="btn btn-primary btn-sm" id="cmt-send" data-i18n="cmt.submit">댓글 등록</button></div>' +
       '    <p class="cmt-msg" id="cmt-msg" role="status" aria-live="polite"></p>' +
       "  </form>" +
       '  <form class="cmt-guest" id="cmt-guest" hidden>' +
-      '    <div class="cmt-guest-head"><b>비회원으로 남기기</b><span>그림에 보이는 글자를 함께 적어 주세요.</span></div>' +
+      '    <div class="cmt-guest-head"><b data-i18n="cmt.guest.head">비회원으로 남기기</b><span data-i18n="cmt.guest.hint">그림에 보이는 글자를 함께 적어 주세요.</span></div>' +
       '    <label class="sr-only" for="cmt-name">닉네임</label>' +
-      '    <input id="cmt-name" maxlength="60" placeholder="닉네임 (1~60자)" autocomplete="nickname">' +
+      '    <input id="cmt-name" maxlength="60" placeholder="닉네임 (1~60자)" data-i18n-ph="cmt.guest.name" autocomplete="nickname">' +
       '    <div class="cap-row">' +
       '      <div class="cap-box" id="cmt-cap-img" aria-live="polite"></div>' +
-      '      <button type="button" class="cap-refresh" id="cmt-cap-refresh">다른 글자</button>' +
+      '      <button type="button" class="cap-refresh" id="cmt-cap-refresh" data-i18n="cmt.guest.refresh">다른 글자</button>' +
       '    </div>' +
       '    <label class="sr-only" for="cmt-cap-answer">보안 문자</label>' +
-      '    <input id="cmt-cap-answer" maxlength="10" placeholder="그림에 보이는 글자 5자" autocomplete="off" spellcheck="false">' +
+      '    <input id="cmt-cap-answer" maxlength="10" placeholder="그림에 보이는 글자 5자" data-i18n-ph="cmt.guest.captcha" autocomplete="off" spellcheck="false">' +
       '    <label class="sr-only" for="cmt-guest-input">댓글 내용</label>' +
-      '    <textarea id="cmt-guest-input" maxlength="1000" rows="3" placeholder="서로에게 도움이 되는 말을 남겨 주세요. (최대 1000자)"></textarea>' +
+      '    <textarea id="cmt-guest-input" maxlength="1000" rows="3" placeholder="서로에게 도움이 되는 말을 남겨 주세요. (최대 1000자)" data-i18n-ph="cmt.input.ph"></textarea>' +
       '    <div class="cmt-guest-foot"><span class="cmt-chars" id="cmt-guest-chars">0/1000</span>' +
-      '      <button type="submit" class="btn btn-primary btn-sm" id="cmt-guest-send">댓글 등록</button></div>' +
+      '      <button type="submit" class="btn btn-primary btn-sm" id="cmt-guest-send" data-i18n="cmt.submit">댓글 등록</button></div>' +
       '    <p class="cmt-guest-msg" id="cmt-guest-msg" role="status" aria-live="polite"></p>' +
       "  </form>" +
-      '  <div class="cmt-off" id="cmt-off" hidden>이 게시판은 댓글이 비활성화되어 있습니다.</div>' +
+      '  <div class="cmt-off" id="cmt-off" hidden data-i18n="cmt.off">이 게시판은 댓글이 비활성화되어 있습니다.</div>' +
       '  <div class="cmt-login" id="cmt-login" hidden>' +
-      "    <p>댓글을 쓰려면 로그인이 필요합니다. 전국공방 회원은 누구나 남길 수 있어요.</p>" +
-      '    <button type="button" class="btn btn-primary btn-sm" id="cmt-login-btn">로그인하고 댓글 쓰기</button>' +
+      "    <p data-i18n=\"cmt.login.need\">댓글을 쓰려면 로그인이 필요합니다. 전국공방 회원은 누구나 남길 수 있어요.</p>" +
+      '    <button type="button" class="btn btn-primary btn-sm" id="cmt-login-btn" data-i18n="cmt.login.btn">로그인하고 댓글 쓰기</button>' +
       "  </div>" +
       "</aside>";
     root.appendChild(wrap);
     drawer = wrap;
+    if (I18N) I18N.apply(wrap);
 
     $("#cmt-close").addEventListener("click", closeDrawer);
     $("#cmt-overlay").addEventListener("click", closeDrawer);
@@ -634,10 +638,10 @@
     if (!drawer) buildDrawer();
     lastFocus = document.activeElement;
     state.key = key; state.title = title; state.image = image || "";
-    $("#cmt-title").textContent = title || "댓글";
+    $("#cmt-title").textContent = title || T("cmt.title");
     var hero = $("#cmt-hero");
     if (state.image) { hero.src = state.image; hero.hidden = false; } else { hero.hidden = true; hero.removeAttribute("src"); }
-    $("#cmt-list").innerHTML = '<p class="cmt-empty">댓글을 불러오는 중…</p>';
+    $("#cmt-list").innerHTML = '<p class="cmt-empty">' + esc(T("cmt.loading")) + "</p>";
     $("#cmt-msg").textContent = "";
     $("#cmt-guest-msg").textContent = "";
     $("#cmt-cap-answer").value = "";
@@ -672,7 +676,7 @@
     $("#cmt-login").hidden = off || on || policy !== "member";
     var guestOn = !off && !on && policy === "all";
     $("#cmt-guest").hidden = !guestOn;
-    if (on) $("#cmt-who").textContent = myName(user) + " 님으로 남깁니다";
+    if (on) $("#cmt-who").textContent = T("cmt.as", { name: myName(user) });
     if (guestOn && !capState.id && !capState.loading) loadCaptcha();
   }
 
@@ -767,7 +771,7 @@
   function renderComments() {
     var list = $("#cmt-list");
     if (!state.rows.length) {
-      list.innerHTML = '<div class="cmt-empty"><b>아직 댓글이 없습니다.</b><p>첫 번째 이야기를 남겨 보세요.</p></div>';
+      list.innerHTML = '<div class="cmt-empty"><b>' + esc(T("cmt.empty.title")) + "</b><p>" + esc(T("cmt.empty.desc")) + "</p></div>";
       return;
     }
     var user = me();
@@ -776,11 +780,11 @@
       return '<article class="cmt-item' + (mine ? " mine" : "") + '">' +
         '<div class="cmt-item-head"><span class="cmt-avatar">' + esc(String(c.author_name || "?").charAt(0)) + "</span>" +
         "<b>" + esc(c.author_name) + "</b>" +
-        (mine ? '<span class="cmt-me">나</span>' : "") +
-        (c.is_guest ? '<span class="cmt-guest-badge">비회원</span>' : "") +
+        (mine ? '<span class="cmt-me">' + esc(T("cmt.me")) + "</span>" : "") +
+        (c.is_guest ? '<span class="cmt-guest-badge">' + esc(T("cmt.guest.badge")) + "</span>" : "") +
         '<time datetime="' + esc(c.created_at) + '">' + esc(fmtWhen(c.created_at)) + "</time></div>" +
         '<p class="cmt-text">' + esc(c.content).replace(/\n/g, "<br>") + "</p>" +
-        (mine ? '<button type="button" class="cmt-del" data-del="' + esc(c.id) + '">삭제</button>' : "") +
+        (mine ? '<button type="button" class="cmt-del" data-del="' + esc(c.id) + '">' + esc(T("cmt.delete")) + "</button>" : "") +
         "</article>";
     }).join("");
     $$("[data-del]", list).forEach(function (b) {
@@ -797,7 +801,7 @@
       renderComments();
     }).catch(function () {
       if (state.key !== key) return;
-      $("#cmt-list").innerHTML = '<p class="cmt-empty">댓글을 불러오지 못했습니다. 잠시 후 다시 열어 주세요.</p>';
+      $("#cmt-list").innerHTML = '<p class="cmt-empty">' + esc(T("cmt.load.fail")) + "</p>";
     });
   }
 
@@ -844,7 +848,7 @@
   function deleteComment(id) {
     var user = me(), token = sessionToken();
     if (!user || !token || !id) return;
-    if (!window.confirm("이 댓글을 삭제할까요? 삭제하면 되돌릴 수 없습니다.")) return;
+    if (!window.confirm(T("cmt.confirm.del"))) return;
     fetch(API + "/rest/v1/comments?id=eq." + encodeURIComponent(id), {
       method: "DELETE",
       headers: { apikey: KEY, Authorization: "Bearer " + token, Prefer: "return=minimal" }
@@ -881,6 +885,15 @@
     if (booted) return;
     booted = true;
     bindNotice();
+    if (I18N && I18N.onChange) {
+      I18N.onChange(function () {
+        paintButtons();
+        if (drawer) {
+          I18N.apply(drawer);
+          if (!$("#cmt-drawer").hidden) { syncForm(); renderComments(); }
+        }
+      });
+    }
 
     Promise.all([
       rest("site_contents?select=key,value,image_url").catch(function () { return null; }),
