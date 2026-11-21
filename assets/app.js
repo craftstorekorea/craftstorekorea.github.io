@@ -48,13 +48,16 @@
   });
 
   /* ---------------- counts ---------------- */
-  var counts = {
-    workshops: S.workshops.length,
-    news: S.news.length,
-    interview: S.interviews.length,
-    info: S.info.length
-  };
-  var total = counts.workshops + counts.news + counts.interview + counts.info;
+  var counts = { workshops: 0, news: 0, interview: 0, info: 0 };
+  var total = 0;
+  function recomputeCounts() {
+    counts.workshops = S.workshops.length;
+    counts.news = S.news.length;
+    counts.interview = S.interviews.length;
+    counts.info = S.info.length;
+    total = counts.workshops + counts.news + counts.interview + counts.info;
+  }
+  recomputeCounts();
   var cornerRecords = {
     workshops: S.workshops[0], news: S.news[0], interview: S.interviews[0], info: S.info[0]
   };
@@ -63,37 +66,49 @@
     interview: S.interviews[0].title, info: S.info[0].title
   };
 
+  /* ---------------- 댓글 버튼 붙이기 (assets/cms.js) ---------------- */
+  function cmt(node, key, title, image) {
+    if (window.CRAFT_CMS && key) window.CRAFT_CMS.attach(node, key, title, image);
+  }
+
   /* ---------------- hero ---------------- */
-  var weekLabel = "2026년 11월 넷째 주";
-  $("#hero-week").textContent = "우리동네공방 · " + weekLabel;
+  function renderHeroMeta() {
+    $("#hero-meta").innerHTML = [
+      "<span><i>●</i>업데이트 " + md(S.updated) + "</span>",
+      "<span>소식 <b>" + total + "</b>건</span>",
+      "<span>등록 공방 <b>" + counts.workshops + "</b>곳</span>",
+      "<span>아카이브 <b>" + (window.ARCHIVE ? window.ARCHIVE.total : 0) + "</b>건</span>",
+      "<span>매주 금요일 오전</span>"
+    ].join("");
+  }
+  $("#hero-week").textContent = "우리동네공방 · 2026년 11월 넷째 주";
   $("#hero-lede").textContent =
     "이번 주 전국 공방 소식 " + total + "건을 소개·뉴스·인터뷰·정보 네 코너로 정리했습니다. 등록된 공방은 지도와 게시판에서 지역과 분야로 찾아보세요.";
-  $("#hero-meta").innerHTML = [
-    "<span><i>●</i>업데이트 " + md(S.updated) + "</span>",
-    "<span>소식 <b>" + total + "</b>건</span>",
-    "<span>등록 공방 <b>" + counts.workshops + "</b>곳</span>",
-    "<span>아카이브 <b>" + (window.ARCHIVE ? window.ARCHIVE.total : 0) + "</b>건</span>",
-    "<span>매주 금요일 오전</span>"
-  ].join("");
+  renderHeroMeta();
 
   /* keywords */
   var kw = $("#keywords");
   S.keywords.forEach(function (k) { kw.appendChild(el("li", null, esc(k))); });
 
   /* ---------------- corners ---------------- */
-  var cornerEl = $("#corners");
-  S.corners.forEach(function (c) {
-    var n = counts[c.key];
-    var card = el("a", "corner");
-    card.href = "#/" + c.key;
-    card.innerHTML =
-      '<span class="corner-ico"><svg width="22" height="22" aria-hidden="true"><use href="#i-' + c.icon + '"/></svg></span>' +
-      "<h3>" + c.label + " <span>" + c.en + "</span></h3>" +
-      "<p>" + esc(c.desc) + "</p>" +
-      '<span class="count"><b>' + n + "</b>건</span>" +
-      '<span class="arrow"><svg width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg></span>';
-    cornerEl.appendChild(card);
-  });
+  function renderCorners() {
+    var cornerEl = $("#corners");
+    if (!cornerEl) return;
+    cornerEl.innerHTML = "";
+    S.corners.forEach(function (c) {
+      var n = counts[c.key];
+      var card = el("a", "corner");
+      card.href = "#/" + c.key;
+      card.innerHTML =
+        '<span class="corner-ico"><svg width="22" height="22" aria-hidden="true"><use href="#i-' + c.icon + '"/></svg></span>' +
+        "<h3>" + c.label + " <span>" + c.en + "</span></h3>" +
+        "<p>" + esc(c.desc) + "</p>" +
+        '<span class="count"><b>' + n + "</b>건</span>" +
+        '<span class="arrow"><svg width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg></span>';
+      cornerEl.appendChild(card);
+    });
+  }
+  renderCorners();
 
   /* ---------------- featured ---------------- */
   var F = S.featured;
@@ -119,17 +134,21 @@
   feat.appendChild(side);
 
   /* ---------------- stats ---------------- */
-  var stats = [
-    [total, "건", "이번 주 새 소식"],
-    [counts.workshops, "곳", "등록된 공방"],
-    [17, "개", "시·도 단위 지도"],
-    [4, "개", "소개·뉴스·인터뷰·정보"]
-  ];
-  var statBox = $("#stats");
-  stats.forEach(function (s) {
-    statBox.appendChild(el("div", "stat",
-      "<b>" + s[0] + "<i>" + s[1] + "</i></b><span>" + s[2] + "</span>"));
-  });
+  function renderStats() {
+    var stats = [
+      [total, "건", "이번 주 새 소식"],
+      [counts.workshops, "곳", "등록된 공방"],
+      [17, "개", "시·도 단위 지도"],
+      [4, "개", "소개·뉴스·인터뷰·정보"]
+    ];
+    var statBox = $("#stats");
+    statBox.innerHTML = "";
+    stats.forEach(function (s) {
+      statBox.appendChild(el("div", "stat",
+        "<b>" + s[0] + "<i>" + s[1] + "</i></b><span>" + s[2] + "</span>"));
+    });
+  }
+  renderStats();
 
   /* ---------------- workshops ---------------- */
   var wg = $("#workshop-grid");
@@ -145,10 +164,12 @@
       "<p>" + esc(w.desc) + "</p>" +
       '<div class="ws-foot"><span class="ws-note">' + esc(w.note) + "</span>" +
       '<span class="ws-actions">' +
+      '<span data-cmt></span>' +
       '<button class="mini" type="button" data-map="' + esc(w.name) + '"><svg width="13" height="13" aria-hidden="true"><use href="#i-map"/></svg>지도에서 보기</button>' +
       '<a class="mini" href="' + esc(w.url) + '" target="_blank" rel="noopener">자료 <svg width="12" height="12" aria-hidden="true"><use href="#i-ext"/></svg></a>' +
       "</span></div>";
     if (window.CRAFT_AUTH) window.CRAFT_AUTH.attachBookmark(card, w.name);
+    cmt(card, "workshop:" + w.name, w.name);
     wg.appendChild(card);
   });
 
@@ -159,44 +180,61 @@
   });
 
   /* ---------------- 소개 코너 기사 (data.js 의 intro) ---------------- */
-  var INTRO = S.intro || [];
-
   function newsRow(it, i) {
     var row = el("article", "news-item");
     row.innerHTML =
       '<div class="news-num">' + String(i + 1).padStart(2, "0") + "</div>" +
       '<div class="news-body"><h3><a href="' + esc(it.url) + '" target="_blank" rel="noopener">' + esc(it.title) + "</a></h3>" +
       "<p>" + esc(it.desc) + "</p>" +
-      '<div class="news-tags"><span class="chip">' + esc(it.tag) + "</span>" +
-      '<span class="chip region">' + esc(it.region) + "</span></div></div>" +
+      '<div class="news-tags">' + (it.tag ? '<span class="chip">' + esc(it.tag) + "</span>" : "") +
+      (it.region ? '<span class="chip region">' + esc(it.region) + "</span>" : "") + "</div></div>" +
       '<div class="news-side"><span class="src">' + esc(it.source) + "</span><span>" + shortDate(it.date) + "</span>" +
+      '<span data-cmt></span>' +
       '<a class="ext" href="' + esc(it.url) + '" target="_blank" rel="noopener">원문 <svg width="12" height="12" aria-hidden="true"><use href="#i-ext"/></svg></a></div>';
+    cmt(row, it.slug, it.title, it.image);
     return row;
   }
 
-  var introList = $("#intro-list");
-  INTRO.forEach(function (it, i) { introList.appendChild(newsRow(it, i)); });
+  function renderIntro() {
+    var introList = $("#intro-list");
+    if (!introList) return;
+    introList.innerHTML = "";
+    (S.intro || []).forEach(function (it, i) { introList.appendChild(newsRow(it, i)); });
+  }
 
-  /* ---------------- news ---------------- */
-  var nl = $("#news-list");
-  S.news.forEach(function (it, i) { nl.appendChild(newsRow(it, i)); });
-  $("#news-lede").textContent =
-    "업계 지표부터 지역 공방 거리, 팝업과 페어까지 " + S.news.length +
-    "건입니다. " + shortDate(S.weekFrom) + " ~ " + shortDate(S.weekTo) + " 보도 기준, 원문 링크로 바로 이동할 수 있습니다.";
+  function renderNews() {
+    var nl = $("#news-list");
+    if (!nl) return;
+    nl.innerHTML = "";
+    S.news.forEach(function (it, i) { nl.appendChild(newsRow(it, i)); });
+    $("#news-lede").textContent =
+      "업계 지표부터 지역 공방 거리, 팝업과 페어까지 " + S.news.length +
+      "건입니다. " + shortDate(S.weekFrom) + " ~ " + shortDate(S.weekTo) + " 보도 기준, 원문 링크로 바로 이동할 수 있습니다.";
+  }
+  renderIntro();
+  renderNews();
 
   /* ---------------- interviews ---------------- */
-  var ivg = $("#iv-grid");
-  S.interviews.forEach(function (it) {
-    var card = el("article", "iv");
-    card.innerHTML =
-      '<span class="qmark" aria-hidden="true">“</span>' +
-      "<blockquote>" + esc(it.quote) + "</blockquote>" +
-      "<p>" + esc(it.desc) + "</p>" +
-      '<div class="iv-who"><span class="iv-avatar">' + esc(it.person.charAt(0)) + "</span>" +
-      "<span><b>" + esc(it.person) + "</b><span>" + esc(it.role) + " · " + esc(it.source) + " " + shortDate(it.date) + "</span></span>" +
-      '<a href="' + esc(it.url) + '" target="_blank" rel="noopener">인터뷰 읽기 <svg width="12" height="12" aria-hidden="true"><use href="#i-ext"/></svg></a></div>';
-    ivg.appendChild(card);
-  });
+  function renderInterviews() {
+    var ivg = $("#iv-grid");
+    if (!ivg) return;
+    ivg.innerHTML = "";
+    S.interviews.forEach(function (it) {
+      var card = el("article", "iv");
+      var who = String(it.person || "·").charAt(0);
+      card.innerHTML =
+        '<span class="qmark" aria-hidden="true">“</span>' +
+        "<blockquote>" + esc(it.quote) + "</blockquote>" +
+        "<p>" + esc(it.desc) + "</p>" +
+        '<div class="iv-who"><span class="iv-avatar">' + esc(who) + "</span>" +
+        "<span><b>" + esc(it.person) + "</b><span>" + esc(it.role) + " · " + esc(it.source) + " " + shortDate(it.date) + "</span></span>" +
+        '<a href="' + esc(it.url) + '" target="_blank" rel="noopener">인터뷰 읽기 <svg width="12" height="12" aria-hidden="true"><use href="#i-ext"/></svg></a></div>' +
+        '<div class="cmt-slot" data-cmt></div>';
+      cmt(card, it.slug, it.title, it.image);
+      ivg.appendChild(card);
+    });
+  }
+  renderInterviews();
 
   /* ---------------- archive (2024–2026) ---------------- */
   var A = window.ARCHIVE;
@@ -429,17 +467,21 @@
         '<div class="info-date"><b' + (it.due ? "" : ' class="loose"') + ">" + (it.due ? md(it.due) : "상시") + "</b>" +
         '<span class="dday ' + st.cls + '">' + st.label + "</span></div>" +
         '<div class="info-body"><h3>' + esc(it.title) + "</h3>" +
-        '<div class="meta"><span class="kind">' + esc(it.kind) + "</span><span>" + esc(it.org) + "</span><span>" + esc(it.period) + "</span></div>" +
+        '<div class="meta"><span class="kind">' + esc(it.kind) + "</span><span>" + esc(it.org) + "</span><span>" + esc(it.period) + "</span><span data-cmt></span></div>" +
         "<p>" + esc(it.desc) + "</p></div>" +
         '<a class="info-go" href="' + esc(it.url) + '" target="_blank" rel="noopener">자세히 <svg width="13" height="13" aria-hidden="true"><use href="#i-ext"/></svg></a>';
+      cmt(row, it.slug, it.title, it.image);
       list.appendChild(row);
     });
   }
 
   function renderInfoFilters() {
     var box = $("#info-filters");
+    if (!box) return;
+    box.innerHTML = "";
     var kinds = ["전체"];
     S.info.forEach(function (it) { if (kinds.indexOf(it.kind) < 0) kinds.push(it.kind); });
+    if (kinds.indexOf(infoState.kind) < 0) infoState.kind = "전체";
     kinds.forEach(function (k) {
       var b = el("button", "fchip");
       b.type = "button";
@@ -709,9 +751,10 @@
         '<div class="chips"><span class="chip">' + esc(b.craft) + '</span><span class="chip region">' + esc(b.region) + "</span></div>" +
         '<p class="addr"><svg width="14" height="14" aria-hidden="true"><use href="#i-pin"/></svg><span>' + esc(b.address) + "</span></p>" +
         "<p>" + esc(b.desc) + "</p>" +
-        '<div class="bcard-foot"><a href="' + esc(b.url) + '" target="_blank" rel="noopener">자료 보기 <svg width="12" height="12" aria-hidden="true"><use href="#i-ext"/></svg></a>' +
+        '<div class="bcard-foot"><span data-cmt></span><a href="' + esc(b.url) + '" target="_blank" rel="noopener">자료 보기 <svg width="12" height="12" aria-hidden="true"><use href="#i-ext"/></svg></a>' +
         '<span class="coords">' + esc(coords) + "</span></div>";
       if (window.CRAFT_AUTH) window.CRAFT_AUTH.attachBookmark(card, b.name);
+      cmt(card, "workshop:" + b.name, b.name);
       grid.appendChild(card);
     });
   }
@@ -886,4 +929,20 @@
   loadSheet();
   initArc();
   route(false);
+
+  /* ---------------- 관리자 CMS(cms.js) 가 글·문구를 받아온 뒤 다시 그리기 ---------------- */
+  function refreshAll() {
+    recomputeCounts();
+    renderHeroMeta();
+    renderCorners();
+    renderStats();
+    renderIntro();
+    renderNews();
+    renderInterviews();
+    renderInfoFilters();
+    renderInfo();
+    renderBoard();
+    if (window.CRAFT_CMS) window.CRAFT_CMS.recount();
+  }
+  window.CRAFT_APP = { refresh: refreshAll };
 })();

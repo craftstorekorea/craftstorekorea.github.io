@@ -745,3 +745,97 @@ body.auth-lock{overflow:hidden}
 /* Supabase 키가 아직 입력되지 않았을 때: 로그인·찜 UI 숨김 */
 body.auth-off .auth-area,
 body.auth-off .bm-btn{display:none !important}
+
+/* ============================================================
+   CMS · 댓글 UI (assets/cms.js)
+   ============================================================ */
+
+/* ---------- 공지 배너 ---------- */
+.notice-bar{background:var(--ink);color:#FBF8F4;font-size:.88rem}
+.notice-in{max-width:var(--wrap);margin:0 auto;padding:10px 28px;display:flex;align-items:center;gap:10px}
+.notice-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex:none}
+.notice-in p{flex:1;min-width:0;line-height:1.5}
+.notice-in a{color:#F3C9B4;font-weight:700;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+.notice-close{background:transparent;border:0;color:#FBF8F4;font-size:1.15rem;line-height:1;cursor:pointer;padding:2px 7px;border-radius:8px;flex:none}
+.notice-close:hover{background:rgba(255,255,255,.14)}
+
+/* ---------- 섹션 배너 이미지 ---------- */
+.view-banner{margin:0 0 22px;border-radius:18px;overflow:hidden;border:1px solid var(--line);background:var(--bg-2)}
+.view-banner img{width:100%;height:clamp(140px,22vw,240px);object-fit:cover}
+
+/* ---------- 댓글 드로어 상단 이미지 ---------- */
+.cmt-hero{width:100%;height:150px;object-fit:cover;display:block;flex:none}
+
+/* ---------- 댓글 버튼 ---------- */
+.cmt-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 11px;border-radius:999px;border:1px solid var(--line-2);
+  background:#fff;color:var(--ink-2);font-size:.76rem;font-weight:700;
+  cursor:pointer;white-space:nowrap;line-height:1.5;
+  transition:border-color .16s ease,color .16s ease,background .16s ease;
+}
+.cmt-btn:hover{border-color:var(--accent);color:var(--accent-d);background:#fffaf7}
+.cmt-ico{font-size:.85em;line-height:1}
+.cmt-n{color:var(--accent-d);font-weight:800}
+.news-side .cmt-btn{align-self:flex-end}
+.info-body .meta .cmt-btn{padding:3px 9px;font-size:.72rem}
+.bcard-foot .cmt-btn,.ws-actions .cmt-btn{padding:4px 10px}
+.iv .cmt-slot{display:flex;justify-content:flex-end;margin-top:-6px}
+
+/* ---------- 댓글 드로어 ---------- */
+body.cmt-lock{overflow:hidden}
+.cmt-overlay{position:fixed;inset:0;background:rgba(38,28,22,.44);z-index:120;animation:cmtFade .18s ease}
+.cmt-drawer{
+  position:fixed;top:0;right:0;bottom:0;width:min(440px,100%);z-index:121;
+  background:var(--card);border-left:1px solid var(--line);
+  display:flex;flex-direction:column;box-shadow:-18px 0 48px -24px rgba(62,47,38,.4);
+  animation:cmtSlide .22s ease;
+}
+@keyframes cmtFade{from{opacity:0}to{opacity:1}}
+@keyframes cmtSlide{from{transform:translateX(24px);opacity:.6}to{transform:none;opacity:1}}
+.cmt-head{display:flex;align-items:flex-start;gap:12px;padding:18px 20px 14px;border-bottom:1px solid var(--line)}
+.cmt-eyebrow{margin:0;font-size:.68rem;font-weight:800;letter-spacing:.14em;color:var(--accent)}
+.cmt-head h2{margin:4px 0 0;font-size:1.02rem;line-height:1.4;letter-spacing:-.02em}
+.cmt-close{margin-left:auto;background:transparent;border:1px solid var(--line);border-radius:50%;width:32px;height:32px;font-size:1.05rem;line-height:1;cursor:pointer;color:var(--ink-2);flex:none}
+.cmt-close:hover{border-color:var(--ink);color:var(--ink)}
+.cmt-body{flex:1;overflow-y:auto;padding:8px 20px 20px}
+.cmt-list{display:flex;flex-direction:column}
+.cmt-item{padding:16px 0;border-bottom:1px solid var(--line)}
+.cmt-item:last-child{border-bottom:0}
+.cmt-item-head{display:flex;align-items:center;gap:8px;font-size:.82rem;flex-wrap:wrap}
+.cmt-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent-s);color:var(--accent-d);display:grid;place-items:center;font-weight:800;font-size:.8rem;flex:none}
+.cmt-item-head b{font-size:.86rem;letter-spacing:-.01em}
+.cmt-item-head time{margin-left:auto;color:var(--ink-3);font-size:.74rem}
+.cmt-me{font-size:.66rem;font-weight:800;color:var(--accent-d);background:var(--accent-s);border-radius:999px;padding:2px 7px}
+.cmt-text{margin:8px 0 0;font-size:.9rem;line-height:1.7;color:var(--ink);white-space:pre-wrap;word-break:break-word}
+.cmt-del{margin-top:8px;background:transparent;border:1px solid var(--line-2);border-radius:999px;padding:4px 11px;font-size:.74rem;font-weight:700;color:var(--ink-3);cursor:pointer}
+.cmt-del:hover{border-color:var(--accent);color:var(--accent-d)}
+.cmt-empty{padding:36px 4px;text-align:center;color:var(--ink-3);font-size:.88rem;line-height:1.7}
+.cmt-empty b{display:block;color:var(--ink-2);font-size:.95rem;margin-bottom:4px}
+.cmt-form{border-top:1px solid var(--line);padding:14px 20px 18px;background:var(--bg)}
+.cmt-form textarea{
+  width:100%;resize:vertical;min-height:78px;padding:11px 13px;border:1px solid var(--line-2);
+  border-radius:12px;background:#fff;font:inherit;font-size:.9rem;line-height:1.6;
+}
+.cmt-form textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s)}
+.cmt-form-foot{display:flex;align-items:center;gap:10px;margin-top:9px;flex-wrap:wrap}
+.cmt-who{font-size:.76rem;color:var(--ink-3);font-weight:700}
+.cmt-chars{margin-left:auto;font-size:.74rem;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.cmt-msg{margin:8px 0 0;font-size:.8rem;color:var(--accent-d);min-height:1.1em}
+.cmt-login{border-top:1px solid var(--line);padding:16px 20px 20px;background:var(--bg);display:flex;flex-direction:column;gap:10px}
+.cmt-login p{font-size:.86rem;color:var(--ink-2);line-height:1.6}
+.cmt-login .btn{justify-content:center}
+
+@media (max-width:760px){
+  .notice-in{padding:9px 16px;font-size:.82rem;gap:8px}
+  .cmt-drawer{top:auto;left:0;right:0;width:100%;height:min(86vh,640px);border-left:0;border-top:1px solid var(--line);border-radius:18px 18px 0 0;animation:cmtUp .22s ease}
+  @keyframes cmtUp{from{transform:translateY(28px);opacity:.7}to{transform:none;opacity:1}}
+  .cmt-head{padding:14px 16px 12px}
+  .cmt-body{padding:6px 16px 16px}
+  .cmt-form{padding:12px 16px 16px}
+  .news-thumb{width:64px;height:64px}
+}
+.cmt-hero[hidden]{display:none !important}
+
+/* hidden 속성이 표시 규칙(display:flex 등)에 묻히지 않게 합니다. */
+[hidden]{display:none !important}

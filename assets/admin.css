@@ -225,3 +225,94 @@
   .admin-table tr.empty-row td::before{display:none}
   .admin-table tr.empty-row td{padding:4px 0}
 }
+
+/* ============================================================
+   관리자 CMS — 탭 · 페이지 편집 · 게시판 · 댓글 · 글 편집기
+   ============================================================ */
+
+.admin-tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:18px}
+.admin-tab{
+  padding:10px 15px;border:0;background:transparent;border-bottom:2px solid transparent;margin-bottom:-1px;
+  font-size:.9rem;font-weight:700;color:var(--ink-2);cursor:pointer;white-space:nowrap;
+}
+.admin-tab:hover{color:var(--ink)}
+.admin-tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tab-n{display:inline-block;margin-left:4px;font-size:.68rem;font-weight:800;background:var(--accent-s);color:var(--accent-d);border-radius:999px;padding:1px 6px;vertical-align:1px}
+.tab-n:empty{display:none}
+
+.cms-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:2px 0 12px}
+.cms-toast{margin:10px 0 0;font-size:.84rem;color:var(--ink-2);min-height:1.2em;line-height:1.5}
+.cms-toast.ok{color:var(--sage)}
+.cms-toast.err{color:var(--accent-d)}
+
+/* ---------- 페이지 텍스트·이미지 ---------- */
+.cms-groups{display:flex;flex-direction:column;gap:16px}
+.cms-group{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow-s)}
+.cms-group h2{font-size:.98rem;letter-spacing:-.02em;margin-bottom:6px}
+.cms-row{padding:12px 0;border-top:1px dashed var(--line)}
+.cms-row:first-of-type{border-top:0;padding-top:2px}
+.cms-row-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.cms-row-head b{font-size:.86rem;letter-spacing:-.01em}
+.cms-row-head code{font-size:.72rem;color:var(--ink-3);background:var(--bg-2);padding:1px 6px;border-radius:5px}
+.cms-dirty{font-size:.68rem;font-weight:800;color:#fff;background:var(--accent);border-radius:999px;padding:2px 8px}
+.cms-input{
+  width:100%;padding:10px 12px;border:1px solid var(--line-2);border-radius:10px;
+  background:#fff;font:inherit;font-size:.88rem;line-height:1.6;resize:vertical;
+}
+.cms-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s)}
+.cms-hint{font-size:.74rem;color:var(--ink-3);line-height:1.6;margin-top:4px}
+
+/* ---------- 이미지 업로드 ---------- */
+.cms-img-row{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-top:8px}
+.cms-img-preview{
+  width:150px;height:96px;border-radius:10px;border:1px solid var(--line);background:var(--bg-2);
+  display:grid;place-items:center;overflow:hidden;font-size:.74rem;color:var(--ink-3);flex:none;
+}
+.cms-img-preview img{width:100%;height:100%;object-fit:cover}
+.cms-img-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;flex:1;min-width:220px}
+.cms-img-tools .admin-input{flex:1;min-width:180px}
+.cms-img-dot{font-size:.62rem;font-weight:800;color:var(--accent-d);background:var(--accent-s);border-radius:4px;padding:1px 5px;margin-left:4px}
+
+/* ---------- 글 편집기 ---------- */
+body.cms-lock{overflow:hidden}
+.cms-modal{position:fixed;inset:0;z-index:130;background:rgba(38,28,22,.5);display:flex;align-items:center;justify-content:center;padding:18px}
+.cms-modal-card{width:min(740px,100%);max-height:92vh;overflow-y:auto;background:var(--card);border-radius:16px;box-shadow:var(--shadow)}
+.cms-modal-head{position:sticky;top:0;z-index:1;background:var(--card);display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.cms-modal-head h2{font-size:1.05rem;letter-spacing:-.02em}
+.cms-modal-x{
+  margin-left:auto;background:transparent;border:1px solid var(--line);border-radius:50%;
+  width:32px;height:32px;font-size:1.05rem;line-height:1;cursor:pointer;color:var(--ink-2);flex:none;
+}
+.cms-modal-x:hover{border-color:var(--ink);color:var(--ink)}
+#post-form{padding:16px 20px 20px}
+.cms-field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.cms-field > span{font-size:.78rem;font-weight:800;color:var(--ink-3)}
+.cms-field > span em{font-style:normal;font-weight:600;color:var(--ink-3);opacity:.85;margin-left:4px}
+.cms-field input,.cms-field select,.cms-field textarea{
+  width:100%;padding:10px 12px;border:1px solid var(--line-2);border-radius:10px;
+  background:#fff;font:inherit;font-size:.9rem;
+}
+.cms-field textarea{resize:vertical;line-height:1.6}
+.cms-field input:focus,.cms-field select:focus,.cms-field textarea:focus{
+  outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-s);
+}
+.cms-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cms-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.cms-modal-foot{display:flex;align-items:center;gap:10px;margin-top:6px;border-top:1px solid var(--line);padding-top:14px}
+.cms-modal-foot .spacer{flex:1}
+.btn.danger{color:#A8482B;border-color:#E7C6B9;background:#fff}
+.btn.danger:hover{background:#FCF1EC;border-color:#A8482B;color:#8E3A20}
+
+/* ---------- 댓글 표 ---------- */
+.cms-cmt-text{max-width:340px;white-space:pre-wrap;word-break:break-word;font-size:.84rem;line-height:1.6}
+.cms-actions{white-space:nowrap}
+.cms-actions .rowlink + .rowlink{margin-left:8px}
+tr.is-hidden td{opacity:.62}
+
+@media (max-width:860px){
+  .admin-tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .cms-grid2,.cms-grid3{grid-template-columns:1fr}
+  .cms-cmt-text{max-width:none}
+  .cms-modal{padding:0;align-items:flex-end}
+  .cms-modal-card{max-height:94vh;border-radius:16px 16px 0 0}
+}

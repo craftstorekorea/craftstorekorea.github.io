@@ -69,21 +69,31 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
   </div>
 </header>
 
+<!-- 공지 배너 (관리자 > 페이지 텍스트에서 문구를 바꿉니다. 비우면 숨김) -->
+<div class="notice-bar" id="notice-bar" hidden>
+  <div class="notice-in">
+    <span class="notice-dot" aria-hidden="true"></span>
+    <p id="notice-text"></p>
+    <a id="notice-link" href="#" target="_blank" rel="noopener" hidden></a>
+    <button class="notice-close" id="notice-close" type="button" aria-label="공지 닫기">×</button>
+  </div>
+</div>
+
 <main id="main">
 
   <!-- ============ HOME ============ -->
   <div class="view" id="view-home" role="tabpanel" aria-labelledby="tab-home">
     <section class="hero">
       <div class="hero-media">
-        <picture>
+        <picture id="hero-picture">
           <source type="image/webp" srcset="assets/hero-900.webp 900w, assets/hero-1600.webp 1600w" sizes="100vw">
-          <img src="assets/hero-1600.jpg" alt="가죽과 원단, 공구가 놓인 목공 작업대" width="1600" height="835" fetchpriority="high">
+          <img id="hero-img" src="assets/hero-1600.jpg" alt="가죽과 원단, 공구가 놓인 목공 작업대" width="1600" height="835" fetchpriority="high">
         </picture>
       </div>
       <div class="hero-in">
-        <p class="eyebrow" id="hero-week">우리동네공방 · 이번 주</p>
-        <h1>손끝이 있는 곳,<br><em>전국공방</em></h1>
-        <p class="lede" id="hero-lede">이번 주 전국 공방 소식을 소개·뉴스·인터뷰·정보 네 코너로 정리했습니다. 등록된 공방은 지도와 게시판에서 지역과 분야로 찾아보세요.</p>
+        <p class="eyebrow" id="hero-week" data-cms="hero.week">우리동네공방 · 이번 주</p>
+        <h1><span data-cms="hero.title1">손끝이 있는 곳,</span><br><em data-cms="hero.title2">전국공방</em></h1>
+        <p class="lede" id="hero-lede" data-cms="hero.lede">이번 주 전국 공방 소식을 소개·뉴스·인터뷰·정보 네 코너로 정리했습니다. 등록된 공방은 지도와 게시판에서 지역과 분야로 찾아보세요.</p>
         <div class="hero-actions">
           <a class="btn btn-primary" href="#/news" data-goto="news">이번 주 소식 보기 <svg width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></a>
           <a class="btn btn-ghost" href="#/map" data-goto="map">공방 등록 신청</a>
@@ -104,8 +114,8 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
         <div class="section-head row">
           <div>
             <p class="eyebrow">네 코너</p>
-            <h2>한 주의 공방 소식을 네 갈래로</h2>
-            <p>새로 조명된 공방, 업계와 지역의 뉴스, 작가의 목소리, 그리고 지금 신청할 수 있는 정보까지 — 뉴스레터와 같은 구성으로 정리했습니다.</p>
+            <h2 data-cms="home.corners_title">한 주의 공방 소식을 네 갈래로</h2>
+            <p data-cms="home.corners_desc">새로 조명된 공방, 업계와 지역의 뉴스, 작가의 목소리, 그리고 지금 신청할 수 있는 정보까지 — 뉴스레터와 같은 구성으로 정리했습니다.</p>
           </div>
           <a class="link-more" href="#/news" data-goto="news">전체 소식 <svg width="15" height="15" aria-hidden="true"><use href="#i-arrow"/></svg></a>
         </div>
@@ -117,7 +127,7 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
       <div class="wrap">
         <div class="section-head">
           <p class="eyebrow">이번 주 주요 소식</p>
-          <h2>지금 가장 많이 읽은 소식</h2>
+          <h2 data-cms="home.featured_title">지금 가장 많이 읽은 소식</h2>
         </div>
         <div class="featured" id="featured"></div>
       </div>
@@ -148,8 +158,8 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
       <div class="cta-in">
         <div>
           <p class="eyebrow">공방 등록</p>
-          <h2 style="margin-top:14px">우리 동네 공방을<br>지도에 올려 주세요</h2>
-          <p>공방 이름과 주소, 다루는 분야, 원데이클래스 운영 여부만 적어 주시면 확인 후 게시판과 지도에 표시합니다. 등록은 무료입니다.</p>
+          <h2 style="margin-top:14px" data-cms="home.cta_title">우리 동네 공방을<br>지도에 올려 주세요</h2>
+          <p data-cms="home.cta_desc">공방 이름과 주소, 다루는 분야, 원데이클래스 운영 여부만 적어 주시면 확인 후 게시판과 지도에 표시합니다. 등록은 무료입니다.</p>
         </div>
         <div class="cta-actions">
           <a class="btn btn-accent" href="#/map" data-goto="map">등록 게시판 가기 <svg width="15" height="15" aria-hidden="true"><use href="#i-arrow"/></svg></a>
@@ -166,11 +176,14 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
         <div class="section-head row">
           <div>
             <p class="eyebrow">공방 소개 · Intro</p>
-            <h2>확인된 공방,<br>그리고 지역의 작업실</h2>
-            <p>주소와 운영 내용이 확인된 공방만 소개합니다. 지도에서 위치를 보고, 게시판에서 분야·지역으로 찾아볼 수 있습니다.</p>
+            <h2 data-cms="workshops.title">확인된 공방, 그리고 지역의 작업실</h2>
+            <p data-cms="workshops.desc">주소와 운영 내용이 확인된 공방만 소개합니다. 지도에서 위치를 보고, 게시판에서 분야·지역으로 찾아볼 수 있습니다.</p>
           </div>
           <a class="link-more" href="#/map" data-goto="map">지도에서 보기 <svg width="15" height="15" aria-hidden="true"><use href="#i-map"/></svg></a>
         </div>
+        <figure class="view-banner" id="workshops-banner" hidden>
+          <img id="workshops-banner-img" alt="공방 작업실 전경" loading="lazy">
+        </figure>
         <div class="workshop-grid" id="workshop-grid"></div>
         <div class="cat-grid" id="cat-grid"></div>
       </div>
@@ -192,8 +205,8 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
       <div class="wrap">
         <div class="section-head">
           <p class="eyebrow">공방 뉴스 · News</p>
-          <h2>이번 주 공예·공방 소식</h2>
-          <p id="news-lede">업계 지표부터 지역 공방 거리, 팝업과 페어까지. 원문 링크로 바로 이동할 수 있습니다.</p>
+          <h2 data-cms="news.title">이번 주 공예·공방 소식</h2>
+          <p id="news-lede" data-cms="news.desc">업계 지표부터 지역 공방 거리, 팝업과 페어까지. 원문 링크로 바로 이동할 수 있습니다.</p>
         </div>
         <div class="news-list" id="news-list"></div>
       </div>
@@ -206,8 +219,8 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
       <div class="wrap">
         <div class="section-head">
           <p class="eyebrow">작가 인터뷰 · Interview</p>
-          <h2>공방을 지키는 사람들의 말</h2>
-          <p>기사에서 직접 확인한 인터뷰만 싣습니다. 인용은 원문에서 옮겼습니다.</p>
+          <h2 data-cms="interview.title">공방을 지키는 사람들의 말</h2>
+          <p data-cms="interview.desc">기사에서 직접 확인한 인터뷰만 싣습니다. 인용은 원문에서 옮겼습니다.</p>
         </div>
         <div class="iv-grid" id="iv-grid"></div>
         <div class="archive">
@@ -228,8 +241,8 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
         <div class="section-head row">
           <div>
             <p class="eyebrow">아카이브 · ARCHIVE</p>
-            <h2>지난 3년의 공방 소식,<br><em class="ink-em">151건</em>을 한자리에</h2>
-            <p>2023년 12월부터 2026년 11월까지 구글 알리미로 모은 1,150여 통의 메일에서 공방·공예 기사 151건을 골라 8개 호, 네 코너로 정리했습니다. 호와 코너로 걸러 보거나 키워드로 찾아보세요. 기사 제목을 누르면 원문으로 이동합니다.</p>
+            <h2 data-cms="archive.title">지난 3년의 공방 소식, <em class="ink-em">151건</em>을 한자리에</h2>
+            <p data-cms="archive.desc">2023년 12월부터 2026년 11월까지 구글 알리미로 모은 1,150여 통의 메일에서 공방·공예 기사 151건을 골라 8개 호, 네 코너로 정리했습니다. 호와 코너로 걸러 보거나 키워드로 찾아보세요. 기사 제목을 누르면 원문으로 이동합니다.</p>
           </div>
           <a class="link-more" id="arc-doc" href="#" target="_blank" rel="noopener">정리 문서 원본 <svg width="14" height="14" aria-hidden="true"><use href="#i-ext"/></svg></a>
         </div>
@@ -274,8 +287,8 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
       <div class="wrap">
         <div class="section-head">
           <p class="eyebrow">지원·공모 정보 · Guide</p>
-          <h2>지금 신청할 수 있는 것들</h2>
-          <p>마감이 가까운 순서로 정렬했습니다. 마감일은 브라우저의 오늘 날짜를 기준으로 계산합니다.</p>
+          <h2 data-cms="info.title">지금 신청할 수 있는 것들</h2>
+          <p data-cms="info.desc">마감이 가까운 순서로 정렬했습니다. 마감일은 브라우저의 오늘 날짜를 기준으로 계산합니다.</p>
         </div>
         <div class="info-filters" id="info-filters" role="group" aria-label="정보 분류"></div>
         <div class="info-list" id="info-list"></div>
@@ -290,8 +303,8 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
         <div class="section-head row">
           <div>
             <p class="eyebrow">전국 공방 지도 · Live Board</p>
-            <h2>지도에서 찾고,<br>게시판에서 등록하세요</h2>
-            <p>등록 게시판은 공개 구글 시트를 그대로 불러옵니다. 시트에 새로 승인된 공방은 새로고침하면 이 페이지에 바로 나타납니다.</p>
+            <h2 data-cms="map.title">지도에서 찾고,<br>게시판에서 등록하세요</h2>
+            <p data-cms="map.desc">등록 게시판은 공개 구글 시트를 그대로 불러옵니다. 시트에 새로 승인된 공방은 새로고침하면 이 페이지에 바로 나타납니다.</p>
           </div>
           <a class="btn btn-primary" id="register-link" href="#" target="_blank" rel="noopener">공방 등록 신청 <svg width="15" height="15" aria-hidden="true"><use href="#i-plus"/></svg></a>
         </div>
@@ -361,7 +374,7 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
           </span>
           <span>전국공방<small>우리동네공방</small></span>
         </a>
-        <p>전국 공방의 소식을 모아 매주 금요일 전합니다. 등록된 공방 정보는 공개 게시판으로 열려 있습니다.</p>
+        <p data-cms="footer.desc">전국 공방의 소식을 모아 매주 금요일 전합니다. 등록된 공방 정보는 공개 게시판으로 열려 있습니다.</p>
       </div>
       <div class="foot-col">
         <h4>코너</h4>
@@ -416,6 +429,10 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
 <script src="assets/data.js"></script>
 <script src="assets/archive.js"></script>
 <script src="assets/korea-paths.js"></script>
+<script src="assets/cms.js"></script>
 <script src="assets/app.js"></script>
+
+<!-- 댓글 드로어 (assets/cms.js 가 채웁니다) -->
+<div id="cmt-root"></div>
 </body>
 </html>

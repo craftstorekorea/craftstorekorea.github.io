@@ -31,9 +31,21 @@ assets/archive.js         뉴스레터 아카이브 2024–2026 (8개 호, 151�
 assets/korea-paths.js     시·도 경계 SVG 좌표 (KOSTAT 2013 단순화 데이터)
 assets/hero-*.webp|jpg    대표 이미지
 admin.html                관리자 페이지(로그인 게이트 + 회원·찜·등록 현황 대시보드, noindex)
-assets/admin.js           관리자 로직(Supabase 세션·is_admin·시트/D-day 집계)
+assets/admin.js           관리자 로직(Supabase 세션·is_admin·시트/D-day 집계 + CMS·게시판·댓글 관리)
 assets/admin.css          관리자 화면 전용 레이아웃(모바일 카드형 표 포함)
+assets/cms.js             Supabase 문구·글 불러오기, 댓글 버튼·드로어
 ```
+
+## 관리자 CMS · 댓글
+
+- 사이트의 **문구·이미지**(`site_contents`), **게시판 글**(`posts`), **회원 댓글**(`comments`)은 Supabase에 있습니다.
+  `assets/cms.js` 가 페이지를 열 때 읽어 반영하고, Supabase에 연결하지 못하면 `data.js` 기본값으로 보입니다.
+- `/admin.html` 탭: **페이지 텍스트·이미지**(문구 수정·이미지 업로드) · **게시판 관리**(글 작성·수정·발행/숨김·삭제) ·
+  **댓글 관리**(숨김/공개·삭제). 이미지는 Storage `site-media` 버킷에 올라갑니다.
+- 모든 글·공방 카드에 `💬 댓글` 버튼이 붙습니다. 읽기는 누구나, 쓰기·본인 삭제는 로그인 회원,
+  숨김·삭제 관리는 관리자 — 판단은 전부 Supabase RLS가 합니다.
+- 설정·검증 기록: `../supabase/07_cms.md`, DB 파일 `../supabase/03_cms_comments.sql`,
+  테스트 `cd .. && CMS_TEST_MODE=user python3 cms_test.py`.
 
 ## 관리자 페이지
 

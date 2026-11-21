@@ -603,14 +603,22 @@
       });
   }
 
+  var sessionListeners = [];
+  function fireSession() {
+    sessionListeners.forEach(function (fn) {
+      try { fn(session); } catch (e) { /* 한 곳이 실패해도 나머지는 그대로 */ }
+    });
+  }
+
   function onSession(s, force) {
     session = s || null;
     if (!session) {
       profile = null; bookmarks = []; bookmarkSet = Object.create(null);
-      paintBookmarks(); renderHeader();
+      paintBookmarks(); renderHeader(); fireSession();
       return;
     }
     loadProfile().then(reloadBookmarks);
+    fireSession();
     if (force && modal && !modal.hidden) { msg("로그인되었습니다.", "ok"); setTimeout(closeAuth, 500); }
   }
 
@@ -673,6 +681,12 @@
     attachBookmark: attachBookmark,
     openLogin: function (note) { openAuth("signin", note); },
     openBookmarks: openBookmarks,
+    /* 로그인/로그아웃 때 알림을 받습니다 (댓글 UI 등). 등록 즉시 현재 상태로 한 번 호출됩니다. */
+    onChange: function (fn) {
+      if (typeof fn !== "function") return;
+      sessionListeners.push(fn);
+      try { fn(session); } catch (e) { /* noop */ }
+    },
     isSignedIn: function () { return !!session; },
     user: function () { return session ? session.user : null; },
     configured: CONFIGURED

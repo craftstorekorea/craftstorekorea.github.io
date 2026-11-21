@@ -486,6 +486,552 @@
     }).join("");
   }
 
+  /* ============================================================
+     관리자 CMS — 페이지 텍스트·이미지 / 게시판 관리 / 댓글 관리
+     ============================================================ */
+  var CMS = {
+    tab: "dash",
+    pages: [], posts: [], comments: [],
+    loaded: { pages: false, posts: false, comments: false },
+    editing: null, commentCounts: {}
+  };
+
+  function cmsMsg(id, text, kind) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = text || "";
+    el.className = "cms-toast" + (kind === "ok" ? " ok" : kind === "err" ? " err" : "");
+  }
+
+  function activateTab(name) {
+    CMS.tab = name;
+    [].forEach.call(document.querySelectorAll(".admin-tab"), function (b) {
+      b.setAttribute("aria-selected", b.getAttribute("data-tab") === name ? "true" : "false");
+    });
+    ["dash", "pages", "posts", "comments"].forEach(function (t) {
+      var p = document.getElementById("tab-" + t);
+      if (p) p.hidden = (t !== name);
+    });
+    if (name === "pages" && !CMS.loaded.pages) loadPages();
+    if (name === "posts" && !CMS.loaded.posts) loadPosts();
+    if (name === "comments" && !CMS.loaded.comments) loadComments();
+    try { window.scrollTo({ top: 0, behavior: "auto" }); } catch (e) { /* noop */ }
+  }
+
+  /* ---------------- Storage 업로드 ---------------- */
+  function uploadSiteImage(file, prefix) {
+    if (!file) return Promise.reject(new Error("파일이 없습니다."));
+    if (!/^image\//.test(file.type || "")) return Promise.reject(new Error("이미지 파일만 올릴 수 있습니다."));
+    if (file.size > 5 * 1024 * 1024) return Promise.reject(new Error("이미지는 5MB까지 올릴 수 있습니다."));
+    var ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+    var path = prefix + "-" + Date.now().toString(36) + "." + ext;
+    return sb.storage.from("site-media").upload(path, file, { upsert: true, contentType: file.type }).then(function (r) {
+      if (r.error) throw new Error(r.error.message || "업로드 실패");
+      var pub = sb.storage.from("site-media").getPublicUrl(path);
+      var url = (pub && pub.data && pub.data.publicUrl) || "";
+      if (!url) throw new Error("공개 주소를 받지 못했습니다.");
+      return url;
+    });
+  }
+
+  /* ---------------- 1. 페이지 텍스트·이미지 ---------------- */
+  function loadPages() {
+    var box = $("#pages-list");
+    if (!box) return Promise.resolve();
+    box.innerHTML = '<p class="panel-msg">불러오는 중…</p>';
+    return sb.from("site_contents").select("key,section,label,value,image_url").order("section").order("key")
+      .then(function (res) {
+        if (res.error) {
+          box.innerHTML = '<p class="panel-msg error">불러오지 못했습니다: ' + esc(res.error.message) + "</p>";
+          return;
+        }
+        CMS.pages = (res.data || []).map(function (r) { return { key: r.key, section: r.section || "기타", label: r.label || r.key, value: r.value || "", image_url: r.image_url || "", _v: r.value || "", _i: r.image_url || "" }; });
+        CMS.loaded.pages = true;
+        renderPages();
+        var note = $("#pages-note");
+        if (note) note.innerHTML = "Supabase <code>site_contents</code> · " + CMS.pages.length + "개 항목 · 공개 읽기 / 관리자만 수정";
+        var stamp = $("#pages-stamp");
+        if (stamp) stamp.textContent = "불러옴 " + new Date().toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit" });
+      });
+  }
+
+  function isImageSlot(p) { return /image_url$/.test(p.key); }
+
+  function renderPages() {
+    var box = $("#pages-list");
+    if (!box) return;
+    var groups = {}, order = [];
+    var secOrder = { "홈 상단": 0, "공지 배너": 1, "섹션 소개": 2, "이미지": 3, "푸터": 4 };
+    CMS.pages.forEach(function (p) {
+      if (!groups[p.section]) { groups[p.section] = []; order.push(p.section); }
+      groups[p.section].push(p);
+    });
+    order.sort(function (a, b) {
+      var ao = secOrder[a] != null ? secOrder[a] : 9, bo = secOrder[b] != null ? secOrder[b] : 9;
+      return ao - bo || a.localeCompare(b, "ko");
+    });
+    box.innerHTML = order.map(function (sec) {
+      return '<section class="cms-group"><h2>' + esc(sec) + "</h2>" +
+        groups[sec].map(function (p) {
+          var img = isImageSlot(p);
+          return '<div class="cms-row" data-key="' + esc(p.key) + '">' +
+            '<div class="cms-row-head"><b>' + esc(p.label) + '</b><code>' + esc(p.key) + '</code>' +
+            '<span class="cms-dirty" data-dirty="' + esc(p.key) + '" hidden>수정됨</span></div>' +
+            (p.value !== "" || !img
+              ? '<textarea class="cms-input" data-value="' + esc(p.key) + '" rows="' + (p.value && (p.value.indexOf("\n") >= 0 || p.value.length > 70) ? 3 : 1) + '" spellcheck="false">' + esc(p.value) + "</textarea>"
+              : '<p class="cms-hint">이미지만 있는 항목입니다. 아래에서 이미지를 올려 주세요.</p>') +
+            (img
+              ? '<div class="cms-img-row">' +
+                '<div class="cms-img-preview" data-prev="' + esc(p.key) + '">' + (p.image_url ? '<img src="' + esc(p.image_url) + '" alt="">' : "<span>이미지 없음</span>") + "</div>" +
+                '<div class="cms-img-tools">' +
+                '<input type="file" accept="image/*" class="sr-only cms-file" id="f-' + esc(p.key) + '" data-file="' + esc(p.key) + '">' +
+                '<label for="f-' + esc(p.key) + '" class="btn btn-ghost btn-sm">이미지 올리기</label>' +
+                '<input class="admin-input cms-url" data-url="' + esc(p.key) + '" placeholder="또는 이미지 주소(URL)" value="' + esc(p.image_url) + '">' +
+                '</div></div>' +
+                '<p class="cms-hint" data-imgmsg="' + esc(p.key) + '"></p>'
+              : "") +
+            "</div>";
+        }).join("") + "</section>";
+    }).join("");
+
+    [].forEach.call(box.querySelectorAll("[data-value]"), function (ta) {
+      ta.addEventListener("input", function () {
+        var p = pageByKey(ta.getAttribute("data-value"));
+        if (!p) return;
+        p._v = ta.value;
+        markDirty(p.key, p._v !== p.value || p._i !== p.image_url);
+      });
+    });
+    [].forEach.call(box.querySelectorAll("[data-url]"), function (inp) {
+      inp.addEventListener("input", function () {
+        var p = pageByKey(inp.getAttribute("data-url"));
+        if (!p) return;
+        p._i = inp.value.trim();
+        paintPrev(p.key, p._i);
+        markDirty(p.key, p._v !== p.value || p._i !== p.image_url);
+      });
+    });
+    [].forEach.call(box.querySelectorAll("[data-file]"), function (f) {
+      f.addEventListener("change", function () {
+        var key = f.getAttribute("data-file");
+        var p = pageByKey(key);
+        var file = f.files && f.files[0];
+        if (!p || !file) return;
+        var msg = box.querySelector('[data-imgmsg="' + key + '"]');
+        if (msg) msg.textContent = "올리는 중…";
+        uploadSiteImage(file, "pages/" + key.replace(/[^a-z0-9._-]/gi, "-")).then(function (url) {
+          p._i = url;
+          var urlInput = box.querySelector('[data-url="' + key + '"]');
+          if (urlInput) urlInput.value = url;
+          paintPrev(key, url);
+          markDirty(key, true);
+          if (msg) msg.textContent = "업로드 완료 — ‘변경 저장’을 누르면 사이트에 반영됩니다.";
+        }).catch(function (e) {
+          if (msg) msg.textContent = "업로드 실패: " + (e.message || "알 수 없는 오류");
+        });
+      });
+    });
+  }
+
+  function pageByKey(key) {
+    for (var i = 0; i < CMS.pages.length; i++) if (CMS.pages[i].key === key) return CMS.pages[i];
+    return null;
+  }
+  function paintPrev(key, url) {
+    var box = document.querySelector('[data-prev="' + key + '"]');
+    if (!box) return;
+    box.innerHTML = url ? '<img src="' + esc(url) + '" alt="">' : "<span>이미지 없음</span>";
+  }
+  function markDirty(key, on) {
+    var t = document.querySelector('[data-dirty="' + key + '"]');
+    if (t) t.hidden = !on;
+  }
+
+  function savePages() {
+    var changed = CMS.pages.filter(function (p) { return p._v !== p.value || p._i !== p.image_url; });
+    if (!changed.length) { cmsMsg("pages-msg", "바뀐 내용이 없습니다."); return; }
+    cmsMsg("pages-msg", "저장하는 중…");
+    Promise.all(changed.map(function (p) {
+      return sb.from("site_contents").update({ value: p._v, image_url: p._i || null }).eq("key", p.key).then(function (r) {
+        if (r.error) throw new Error(p.key + ": " + r.error.message);
+        return true;
+      });
+    })).then(function () {
+      changed.forEach(function (p) { p.value = p._v; p.image_url = p._i; });
+      renderPages();
+      cmsMsg("pages-msg", changed.length + "개 항목을 저장했습니다. 사이트에 바로 반영됩니다.", "ok");
+    }).catch(function (e) { cmsMsg("pages-msg", "저장 실패: " + (e.message || "권한을 확인해 주세요."), "err"); });
+  }
+
+  /* ---------------- 2. 게시판 관리 ---------------- */
+  function loadPosts() {
+    var body = $("#posts-table tbody");
+    if (body) body.innerHTML = '<tr class="empty-row"><td colspan="8">불러오는 중…</td></tr>';
+    return Promise.all([
+      sb.from("posts").select("*").order("category").order("sort_order").limit(1000),
+      sb.from("comments").select("post_key").limit(5000)
+    ]).then(function (res) {
+      var list = res[0], cmts = res[1];
+      if (list.error) {
+        if (body) body.innerHTML = '<tr class="empty-row"><td colspan="8">불러오지 못했습니다: ' + esc(list.error.message) + "</td></tr>";
+        return;
+      }
+      CMS.posts = list.data || [];
+      CMS.commentCounts = {};
+      (cmts.data || []).forEach(function (c) { CMS.commentCounts[c.post_key] = (CMS.commentCounts[c.post_key] || 0) + 1; });
+      CMS.loaded.posts = true;
+      renderPosts();
+      fillCommentPostFilter();
+      paintCommentBadge();
+      var stamp = $("#posts-stamp");
+      if (stamp) stamp.textContent = "전체 " + CMS.posts.length + "건";
+    });
+  }
+
+  function renderPosts() {
+    var body = $("#posts-table tbody");
+    if (!body) return;
+    var q = ($("#posts-q").value || "").trim().toLowerCase();
+    var cat = $("#posts-cat").value, st = $("#posts-state").value;
+    var rows = CMS.posts.slice().sort(function (a, b) {
+      var order = { "소개": 0, "뉴스": 1, "인터뷰": 2, "정보": 3 };
+      var ao = order[a.category] != null ? order[a.category] : 9, bo = order[b.category] != null ? order[b.category] : 9;
+      if (ao !== bo) return ao - bo;
+      return (a.sort_order || 0) - (b.sort_order || 0);
+    }).filter(function (p) {
+      if (cat && p.category !== cat) return false;
+      if (st === "pub" && !p.is_published) return false;
+      if (st === "hidden" && p.is_published) return false;
+      if (!q) return true;
+      return [p.title, p.source_name, p.region, p.slug, p.summary].join(" ").toLowerCase().indexOf(q) >= 0;
+    });
+    var tag = $("#posts-count");
+    if (tag) tag.textContent = rows.length === CMS.posts.length ? "전체 " + CMS.posts.length + "건" : rows.length + " / " + CMS.posts.length + "건";
+    if (!rows.length) {
+      body.innerHTML = '<tr class="empty-row"><td colspan="8">' + (CMS.posts.length ? "조건에 맞는 글이 없습니다." : "아직 글이 없습니다. ‘새 글 쓰기’로 시작해 보세요.") + "</td></tr>";
+      return;
+    }
+    body.innerHTML = rows.map(function (p) {
+      var n = CMS.commentCounts[p.slug] || 0;
+      return "<tr>" +
+        '<td data-th="상태"><span class="badge ' + (p.is_published ? "b-ok" : "b-off") + '">' + (p.is_published ? "발행" : "숨김") + "</span></td>" +
+        '<td data-th="분류">' + esc(p.category) + "</td>" +
+        '<td class="ellip" data-th="제목" title="' + esc(p.title) + '">' + esc(p.title) + (p.image_url ? ' <span class="cms-img-dot" title="이미지 있음">IMG</span>' : "") + "</td>" +
+        '<td class="muted" data-th="출처·지역">' + esc([p.source_name, p.region].filter(Boolean).join(" · ") || "–") + "</td>" +
+        '<td class="muted" data-th="발행일">' + esc(p.published_at || "–") + "</td>" +
+        '<td class="muted" data-th="마감">' + esc(p.deadline || "–") + "</td>" +
+        '<td class="num" data-th="댓글">' + (n ? "<b>" + n + "</b>" : "0") + "</td>" +
+        '<td><button type="button" class="rowlink cms-edit" data-id="' + esc(p.id) + '">수정</button></td>' +
+        "</tr>";
+    }).join("");
+    [].forEach.call(body.querySelectorAll(".cms-edit"), function (b) {
+      b.addEventListener("click", function () { openPostEditor(b.getAttribute("data-id")); });
+    });
+  }
+
+  function nextSortOrder(cat) {
+    var max = 0;
+    CMS.posts.forEach(function (p) { if (p.category === cat && (p.sort_order || 0) > max) max = p.sort_order || 0; });
+    return max + 1;
+  }
+
+  function catPrefix(cat) {
+    return ({ "소개": "intro", "뉴스": "news", "인터뷰": "interview", "정보": "info" })[cat] || "post";
+  }
+
+  function openPostEditor(id) {
+    var p = null;
+    if (id) { for (var i = 0; i < CMS.posts.length; i++) if (CMS.posts[i].id === id) { p = CMS.posts[i]; break; } }
+    CMS.editing = p;
+    var m = p && p.meta ? p.meta : {};
+    $("#post-modal-title").textContent = p ? "글 수정" : "새 글";
+    $("#pf-category").value = p ? p.category : "뉴스";
+    $("#pf-state").value = p ? String(!!p.is_published) : "true";
+    $("#pf-title").value = p ? p.title : "";
+    $("#pf-slug").value = p ? (p.slug || "") : "";
+    $("#pf-summary").value = p ? (p.summary || "") : "";
+    $("#pf-body").value = p ? (p.body || "") : "";
+    $("#pf-region").value = p ? (p.region || "") : "";
+    $("#pf-source_name").value = p ? (p.source_name || "") : "";
+    $("#pf-source_url").value = p ? (p.source_url || "") : "";
+    $("#pf-published_at").value = p && p.published_at ? String(p.published_at).slice(0, 10) : todayKST();
+    $("#pf-deadline").value = p && p.deadline ? String(p.deadline).slice(0, 10) : "";
+    $("#pf-sort_order").value = p ? (p.sort_order || 0) : nextSortOrder(p ? p.category : "뉴스");
+    $("#pf-tag").value = m.tag || "";
+    $("#pf-person").value = m.person || "";
+    $("#pf-role").value = m.role || "";
+    $("#pf-kind").value = m.kind || "";
+    $("#pf-period").value = m.period || "";
+    $("#pf-image_url").value = p ? (p.image_url || "") : "";
+    paintPostPreview(p ? p.image_url : "");
+    $("#pf-img-msg").textContent = "";
+    $("#pf-msg").textContent = "";
+    $("#post-delete").hidden = !p;
+    syncPostFields();
+    $("#post-modal").hidden = false;
+    document.body.classList.add("cms-lock");
+    setTimeout(function () { $("#pf-title").focus(); }, 50);
+  }
+
+  function closePostEditor() {
+    $("#post-modal").hidden = true;
+    document.body.classList.remove("cms-lock");
+    CMS.editing = null;
+  }
+
+  function syncPostFields() {
+    var cat = $("#pf-category").value;
+    $("#pf-extra-tag").hidden = !(cat === "뉴스" || cat === "소개");
+    $("#pf-extra-iv").hidden = cat !== "인터뷰";
+    $("#pf-extra-info").hidden = cat !== "정보";
+  }
+
+  function paintPostPreview(url) {
+    var box = $("#pf-img-preview");
+    if (!box) return;
+    box.innerHTML = url ? '<img src="' + esc(url) + '" alt="">' : "<span>이미지 없음</span>";
+  }
+
+  function savePost(e) {
+    if (e) e.preventDefault();
+    var title = ($("#pf-title").value || "").trim();
+    var cat = $("#pf-category").value;
+    if (!title) { $("#pf-msg").textContent = "제목을 입력해 주세요."; $("#pf-title").focus(); return; }
+    var prev = CMS.editing;
+    var slug = ($("#pf-slug").value || "").trim() || (prev && prev.slug) || (catPrefix(cat) + "-" + Date.now().toString(36));
+    var body = {
+      slug: slug,
+      category: cat,
+      title: title,
+      summary: ($("#pf-summary").value || "").trim() || null,
+      body: ($("#pf-body").value || "").trim() || null,
+      region: ($("#pf-region").value || "").trim() || null,
+      source_name: ($("#pf-source_name").value || "").trim() || null,
+      source_url: ($("#pf-source_url").value || "").trim() || null,
+      image_url: ($("#pf-image_url").value || "").trim() || null,
+      deadline: $("#pf-deadline").value || null,
+      published_at: $("#pf-published_at").value || null,
+      is_published: $("#pf-state").value === "true",
+      sort_order: parseInt($("#pf-sort_order").value || "0", 10) || 0,
+      meta: {}
+    };
+    if (cat === "뉴스" || cat === "소개") body.meta.tag = ($("#pf-tag").value || "").trim();
+    if (cat === "인터뷰") { body.meta.person = ($("#pf-person").value || "").trim(); body.meta.role = ($("#pf-role").value || "").trim(); }
+    if (cat === "정보") { body.meta.kind = ($("#pf-kind").value || "").trim(); body.meta.period = ($("#pf-period").value || "").trim(); }
+
+    var btn = $("#post-save");
+    btn.disabled = true;
+    $("#pf-msg").textContent = "저장하는 중…";
+    var req = prev ? sb.from("posts").update(body).eq("id", prev.id) : sb.from("posts").insert(body);
+    req.then(function (r) {
+      btn.disabled = false;
+      if (r.error) {
+        $("#pf-msg").textContent = "저장 실패: " + r.error.message;
+        return;
+      }
+      closePostEditor();
+      CMS.loaded.posts = false;
+      loadPosts().then(function () { cmsMsg("posts-msg", "글을 저장했습니다.", "ok"); });
+      var msg = $("#posts-stamp");
+      if (msg) msg.textContent = "저장됨 · 사이트에 반영";
+    }).catch(function (err) {
+      btn.disabled = false;
+      $("#pf-msg").textContent = "저장 실패: " + (err.message || "알 수 없는 오류");
+    });
+  }
+
+  function deletePost() {
+    var p = CMS.editing;
+    if (!p) return;
+    if (!window.confirm("‘" + p.title + "’ 글을 삭제할까요?\n삭제하면 되돌릴 수 없습니다.")) return;
+    $("#pf-msg").textContent = "삭제하는 중…";
+    sb.from("posts").delete().eq("id", p.id).then(function (r) {
+      if (r.error) { $("#pf-msg").textContent = "삭제 실패: " + r.error.message; return; }
+      closePostEditor();
+      CMS.loaded.posts = false;
+      loadPosts().then(function () { cmsMsg("posts-msg", "글을 삭제했습니다.", "ok"); });
+    });
+  }
+
+  /* ---------------- 3. 댓글 관리 ---------------- */
+  function loadComments() {
+    var body = $("#cmt-table tbody");
+    if (body) body.innerHTML = '<tr class="empty-row"><td colspan="6">불러오는 중…</td></tr>';
+    if (!CMS.loaded.posts) {
+      // 댓글이 달린 글의 제목을 보여주려면 글 목록이 먼저 필요합니다.
+      sb.from("posts").select("id,slug,category,title,sort_order,is_published").order("sort_order").then(function (r) {
+        if (!r.error) { CMS.posts = r.data || []; CMS.loaded.posts = true; }
+        loadCommentsRows();
+      });
+      return Promise.resolve();
+    }
+    return loadCommentsRows();
+  }
+
+  function loadCommentsRows() {
+    var body = $("#cmt-table tbody");
+    return sb.from("comments").select("id,post_key,user_id,author_name,content,is_hidden,created_at")
+      .order("created_at", { ascending: false }).limit(500).then(function (res) {
+        if (res.error) {
+          if (body) body.innerHTML = '<tr class="empty-row"><td colspan="6">불러오지 못했습니다: ' + esc(res.error.message) + "</td></tr>";
+          return;
+        }
+        CMS.comments = res.data || [];
+        CMS.loaded.comments = true;
+        renderComments();
+        fillCommentPostFilter();
+        paintCommentBadge();
+        var stamp = $("#cmt-stamp");
+        if (stamp) stamp.textContent = "전체 " + CMS.comments.length + "건";
+      });
+  }
+
+  function postTitleByKey(key) {
+    if (!key) return "–";
+    if (key.indexOf("workshop:") === 0) return "공방 · " + key.slice(9);
+    for (var i = 0; i < CMS.posts.length; i++) if (CMS.posts[i].slug === key) return CMS.posts[i].title;
+    return key;
+  }
+
+  function fillCommentPostFilter() {
+    var sel = $("#cmt-post");
+    if (!sel) return;
+    var cur = sel.value;
+    var keys = {};
+    CMS.comments.forEach(function (c) { keys[c.post_key] = (keys[c.post_key] || 0) + 1; });
+    var list = Object.keys(keys).sort();
+    sel.innerHTML = '<option value="">글 전체</option>' + list.map(function (k) {
+      return '<option value="' + esc(k) + '">' + esc(postTitleByKey(k).slice(0, 40)) + " (" + keys[k] + ")</option>";
+    }).join("");
+    if (cur && list.indexOf(cur) >= 0) sel.value = cur;
+  }
+
+  function renderComments() {
+    var body = $("#cmt-table tbody");
+    if (!body) return;
+    var q = ($("#cmt-q").value || "").trim().toLowerCase();
+    var st = $("#cmt-state").value, pk = $("#cmt-post").value;
+    var rows = CMS.comments.filter(function (c) {
+      if (st === "open" && c.is_hidden) return false;
+      if (st === "hidden" && !c.is_hidden) return false;
+      if (pk && c.post_key !== pk) return false;
+      if (!q) return true;
+      return [c.content, c.author_name, postTitleByKey(c.post_key)].join(" ").toLowerCase().indexOf(q) >= 0;
+    });
+    var tag = $("#cmt-count");
+    if (tag) tag.textContent = rows.length === CMS.comments.length ? "전체 " + CMS.comments.length + "건" : rows.length + " / " + CMS.comments.length + "건";
+    if (!rows.length) {
+      body.innerHTML = '<tr class="empty-row"><td colspan="6">' + (CMS.comments.length ? "조건에 맞는 댓글이 없습니다." : "아직 댓글이 없습니다.") + "</td></tr>";
+      return;
+    }
+    body.innerHTML = rows.map(function (c) {
+      return "<tr" + (c.is_hidden ? ' class="is-hidden"' : "") + ">" +
+        '<td data-th="상태"><span class="badge ' + (c.is_hidden ? "b-off" : "b-ok") + '">' + (c.is_hidden ? "숨김" : "공개") + "</span></td>" +
+        '<td class="ellip" data-th="글" title="' + esc(postTitleByKey(c.post_key)) + '">' + esc(postTitleByKey(c.post_key)) + "</td>" +
+        '<td data-th="작성자">' + esc(c.author_name) + "</td>" +
+        '<td class="cms-cmt-text" data-th="내용">' + esc(c.content) + "</td>" +
+        '<td class="muted" data-th="작성 시각">' + esc(fmtWhen(c.created_at)) + "</td>" +
+        '<td class="cms-actions"><button type="button" class="rowlink cms-hide" data-id="' + esc(c.id) + '" data-h="' + (c.is_hidden ? "0" : "1") + '">' + (c.is_hidden ? "공개" : "숨김") + "</button>" +
+        '<button type="button" class="rowlink cms-del" data-id="' + esc(c.id) + '">삭제</button></td>' +
+        "</tr>";
+    }).join("");
+    [].forEach.call(body.querySelectorAll(".cms-hide"), function (b) {
+      b.addEventListener("click", function () { toggleComment(b.getAttribute("data-id"), b.getAttribute("data-h") === "1"); });
+    });
+    [].forEach.call(body.querySelectorAll(".cms-del"), function (b) {
+      b.addEventListener("click", function () { deleteComment(b.getAttribute("data-id")); });
+    });
+  }
+
+  function paintCommentBadge() {
+    var el = $("#tab-cmt-count");
+    if (!el) return;
+    el.textContent = CMS.comments.length ? String(CMS.comments.length) : "";
+  }
+
+  function toggleComment(id, hide) {
+    sb.from("comments").update({ is_hidden: hide }).eq("id", id).then(function (r) {
+      if (r.error) { cmsMsg("cmt-msg", "바꾸지 못했습니다: " + r.error.message, "err"); return; }
+      for (var i = 0; i < CMS.comments.length; i++) if (CMS.comments[i].id === id) CMS.comments[i].is_hidden = hide;
+      renderComments();
+      cmsMsg("cmt-msg", hide ? "댓글을 숨겼습니다. 사이트에서 보이지 않습니다." : "댓글을 다시 공개했습니다.", "ok");
+    });
+  }
+
+  function deleteComment(id) {
+    if (!window.confirm("이 댓글을 삭제할까요?\n삭제하면 되돌릴 수 없습니다.")) return;
+    sb.from("comments").delete().eq("id", id).then(function (r) {
+      if (r.error) { cmsMsg("cmt-msg", "삭제하지 못했습니다: " + r.error.message, "err"); return; }
+      CMS.comments = CMS.comments.filter(function (c) { return c.id !== id; });
+      renderComments();
+      fillCommentPostFilter();
+      paintCommentBadge();
+      cmsMsg("cmt-msg", "댓글을 삭제했습니다.", "ok");
+    });
+  }
+
+  function initCms() {
+    [].forEach.call(document.querySelectorAll(".admin-tab"), function (b) {
+      b.addEventListener("click", function () { activateTab(b.getAttribute("data-tab")); });
+    });
+    var saveBtn = $("#pages-save");
+    if (saveBtn) saveBtn.addEventListener("click", savePages);
+    var reload = $("#pages-reload");
+    if (reload) reload.addEventListener("click", function () { CMS.loaded.pages = false; loadPages(); });
+    var pq = $("#posts-q");
+    if (pq) pq.addEventListener("input", renderPosts);
+    ["#posts-cat", "#posts-state"].forEach(function (sel) {
+      var n = $(sel); if (n) n.addEventListener("change", renderPosts);
+    });
+    var pn = $("#post-new");
+    if (pn) pn.addEventListener("click", function () { openPostEditor(null); });
+    var form = $("#post-form");
+    if (form) form.addEventListener("submit", savePost);
+    ["#post-cancel", "#post-cancel-x"].forEach(function (sel) {
+      var n = $(sel); if (n) n.addEventListener("click", closePostEditor);
+    });
+    var del = $("#post-delete");
+    if (del) del.addEventListener("click", deletePost);
+    var cat = $("#pf-category");
+    if (cat) cat.addEventListener("change", function () {
+      syncPostFields();
+      if (!CMS.editing) $("#pf-sort_order").value = nextSortOrder(cat.value);
+    });
+    var file = $("#pf-img-file");
+    if (file) file.addEventListener("change", function () {
+      var f = file.files && file.files[0];
+      if (!f) return;
+      $("#pf-img-msg").textContent = "올리는 중…";
+      uploadSiteImage(f, "posts/" + catPrefix($("#pf-category").value)).then(function (url) {
+        $("#pf-image_url").value = url;
+        paintPostPreview(url);
+        $("#pf-img-msg").textContent = "업로드 완료 — ‘저장’을 누르면 글이 반영됩니다.";
+      }).catch(function (e) { $("#pf-img-msg").textContent = "업로드 실패: " + (e.message || "알 수 없는 오류"); });
+    });
+    var urlInput = $("#pf-image_url");
+    if (urlInput) urlInput.addEventListener("change", function () { paintPostPreview(urlInput.value.trim()); });
+    var clear = $("#pf-img-clear");
+    if (clear) clear.addEventListener("click", function () { $("#pf-image_url").value = ""; paintPostPreview(""); });
+    var cq = $("#cmt-q");
+    if (cq) cq.addEventListener("input", renderComments);
+    ["#cmt-state", "#cmt-post"].forEach(function (sel) {
+      var n = $(sel); if (n) n.addEventListener("change", renderComments);
+    });
+    var cr = $("#cmt-reload");
+    if (cr) cr.addEventListener("click", function () { CMS.loaded.comments = false; loadComments(); });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && !$("#post-modal").hidden) closePostEditor();
+    });
+    // 관리자는 로그인 직후 대시보드에서 전체 댓글 수를 볼 수 있게 미리 셉니다.
+    if (sb) {
+      sb.from("comments").select("id", { count: "exact", head: true }).then(function (r) {
+        var el = $("#tab-cmt-count");
+        var n = r && r.count != null ? r.count : null;
+        if (el && n != null) el.textContent = n ? String(n) : "";
+      });
+    }
+  }
+
   /* ---------------- 시작 ---------------- */
   function start() {
     if (booted) return;
@@ -511,6 +1057,7 @@
     if (ss) ss.addEventListener("change", renderSheet);
 
     renderQuickLinks();
+    initCms();
 
     if (sb) {
       sb.auth.onAuthStateChange(function (evt, s) {
