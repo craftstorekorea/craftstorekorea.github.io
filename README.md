@@ -31,10 +31,10 @@ GitHub Pages로 배포합니다.
 
 ```
 index.html                한 페이지, 탭 여러 개(해시 라우팅) + KO|EN 전환
-admin/index.html          관리자 페이지 → 주소는 /admin (.html 없이)
-privacy/index.html        개인정보처리방침 → /privacy
-terms/index.html          이용약관 → /terms
-admin.html|privacy.html|terms.html   위 주소로 넘기는 얇은 리다이렉트 스텁(옛 링크용)
+admin.html                관리자 페이지 → 주소는 /admin (.html 없이)
+privacy.html              개인정보처리방침 → /privacy
+terms.html                이용약관 → /terms
+admin/ · privacy/ · terms/  끝에 / 를 붙여 들어온 주소를 /admin · /privacy · /terms 로 넘기는 스텁
 assets/styles.css         디자인 토큰과 전체 레이아웃
 assets/app.js             렌더링·검색·필터·지도
 assets/data.js            이번 주 소식·공방·정보 데이터 (여기만 고치면 됩니다)
@@ -49,6 +49,12 @@ assets/tasks.js           업무 관리 화면 (#/tasks) — 로그인·등급 �
 assets/hunmin.js          hunmin 블록 — 사이트 렌더(최신글·지도·폼·갤러리·텍스트) + 관리자 편집기
 sitemap.xml | rss.xml     검색엔진·구독용 피드 (../build_feeds.py 가 Supabase 공개 데이터로 생성)
 ```
+
+> **왜 폴더가 아니라 루트 `.html` 파일인가** — GitHub Pages는 `/admin` 요청에 같은 이름의 파일
+> (`admin.html`)을 폴더(`admin/index.html`)보다 먼저 돌려줍니다. 실제 페이지를 폴더에 두면
+> `/admin` 은 루트 스텁이 열려 자기 자신으로 되돌아가는 고리가 됩니다. 그래서 실제 페이지는
+> `admin.html`·`privacy.html`·`terms.html` 에 두고(주소는 `/admin`·`/privacy`·`/terms`),
+> 폴더의 `index.html` 은 `/admin/` 처럼 끝에 `/` 를 붙여 들어온 주소만 받아 넘깁니다.
 
 ## 관리자 CMS · 댓글
 
@@ -98,7 +104,7 @@ sitemap.xml | rss.xml     검색엔진·구독용 피드 (../build_feeds.py 가 
 
 ## 관리자 페이지
 
-- 주소: **https://craftstorekorea.github.io/admin** (푸터 "더 보기 → 관리자"). 예전 `/admin.html` 로 들어와도 새 주소로 넘어갑니다.
+- 주소: **https://craftstorekorea.github.io/admin** (푸터 "더 보기 → 관리자"). `.html` 을 붙인 `/admin.html` 로 들어와도 같은 관리자 페이지가 열립니다.
 - 같은 방식으로 개인정보처리방침은 `/privacy`, 이용약관은 `/terms` 이고, 자산 경로는 `/assets/…` 로 통일했습니다(GitHub Pages 루트 도메인·로컬 `http.server` 모두 동작).
 - `craftstore.kr@gmail.com` 계정으로 로그인하면 회원·찜·등록 현황이 보입니다.
 - 관리자 판별과 데이터 접근은 Supabase RLS(`is_admin()` + `profiles_select_admin` / `bookmarks_select_admin`)가 서버에서 처리합니다.
