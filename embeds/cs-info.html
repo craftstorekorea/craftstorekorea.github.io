@@ -1,0 +1,96 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>전국공방 — 지원·공모 정보 (2026.11.13~11.20)</title><style>@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap');
+*{box-sizing:border-box}
+body{margin:0;padding:16px 15px 24px;background:#F7F5F2;color:#3E2F26;font-size:13.5px;line-height:1.62;-webkit-text-size-adjust:100%}
+.wrap{max-width:980px;margin:0 auto}
+h1{margin:0 0 4px;font-size:20px;letter-spacing:-.01em;font-weight:800}
+.sub{margin:0 0 12px;font-size:12.5px;color:#7A6A5D}
+.stats{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 12px}
+.stat{background:#fff;border:1px solid #E8E1D8;border-radius:10px;padding:6px 11px;font-size:12px;color:#7A6A5D}
+.stat b{display:block;font-size:15px;color:#3E2F26;line-height:1.3}
+.bar{background:#fff;border:1px solid #E8E1D8;border-radius:12px;padding:10px;margin:0 0 10px}
+.search{width:100%;padding:9px 12px;border:1px solid #DCD3C7;border-radius:9px;font-size:13.5px;background:#FDFCFA;color:#3E2F26}
+.search:focus{outline:2px solid #FF6B4A33;border-color:#FF6B4A}
+.frow{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:7px}
+.flab{font-size:11px;color:#9C8B7C;letter-spacing:.04em;margin-right:2px}
+.chip{border:1px solid #DCD3C7;background:#FDFCFA;color:#5C4B3F;border-radius:999px;padding:4px 10px;font-size:11.5px;cursor:pointer;font-family:inherit;line-height:1.5}
+.chip em{font-style:normal;color:#A08F80;font-size:10.5px;margin-left:2px}
+.chip.on{background:#3E2F26;border-color:#3E2F26;color:#fff}
+.chip.on em{color:#D9CCBE}
+.reset{border:none;background:none;color:#B4553A;font-size:11.5px;cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 2px}
+.count{margin:4px 0 10px;font-size:12px;color:#8A7869}
+.item{background:#fff;border:1px solid #EDE6DC;border-radius:11px;padding:11px 13px;margin:0 0 8px}
+.item h3{margin:0 0 4px;font-size:14.5px;line-height:1.45;font-weight:700}
+.item h3 a{color:#3E2F26;text-decoration:none}
+.item h3 a:hover{color:#B4553A;text-decoration:underline}
+.meta{font-size:11.5px;color:#8A7869;margin:0 0 5px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tag{background:#F3EDE5;color:#7A6A5D;border-radius:6px;padding:1px 6px;font-size:10.5px}
+.desc{margin:0;font-size:12.8px;color:#544437}
+.quote{margin:6px 0;padding:7px 11px;border-left:3px solid #FF6B4A;background:#FDF8F4;font-size:13px;color:#4A382B}
+.who{font-weight:700;color:#3E2F26}
+.kind{background:#EAF1F6;color:#2C5470;border-radius:6px;padding:1px 7px;font-size:10.5px;font-weight:700}
+.due{background:#FBE7E7;color:#AD3B3B;border-radius:6px;padding:1px 7px;font-size:10.5px;font-weight:700}
+.open{background:#E3F5F1;color:#1F7A6B;border-radius:6px;padding:1px 7px;font-size:10.5px;font-weight:700}
+.foot{margin:14px 0 0;font-size:11.5px;color:#8A7869;border-top:1px solid #E8E1D8;padding-top:9px}
+.foot a{color:#7A5C48}
+.none{background:#fff;border:1px dashed #DCD3C7;border-radius:11px;padding:16px;text-align:center;color:#9C8B7C;font-size:12.5px}
+@media(max-width:640px){
+body{padding:12px 10px 18px;font-size:13px}
+h1{font-size:17px}
+.stat{padding:5px 9px;font-size:11px}
+.item{padding:10px}
+.item h3{font-size:13.5px}
+.desc{font-size:12.3px}
+}
+body,button,input,h1,h3,.quote{font-family:'Nanum Gothic','나눔고딕',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif}</style></head><body><div class="wrap"><h1>지원·공모 정보</h1><p class="sub">전국 공방·작가를 위한 공모전, 지원사업, 전시, 특강, 원데이 클래스 정보입니다. 마감이 임박한 순서로 정리했습니다.</p><div class="stats"><div class="stat"><b>11</b>건 일정</div><div class="stat"><b>5</b>개 유형</div><div class="stat"><b>9</b>건 마감일 표시</div></div><div class="bar"><input class="search" id="q" type="search" placeholder="제목·매체·요약 키워드 검색"><div class="frow"><span class="flab">유형</span><button class="chip" data-k="kind" data-v="공모">공모 <em>2</em></button><button class="chip" data-k="kind" data-v="교육">교육 <em>1</em></button><button class="chip" data-k="kind" data-v="전시">전시 <em>1</em></button><button class="chip" data-k="kind" data-v="체험">체험 <em>6</em></button><button class="chip" data-k="kind" data-v="페어">페어 <em>1</em></button><button class="reset" data-reset="kind">초기화</button></div></div><p class="count" id="count"></p><div id="list"><div class="item" data-kind="공모" data-due="2026-11-20T14:00" data-s="2027 KCDF 공예·디자인 공모전시 한국공예·디자인문화진흥원 접수 마감 11/20 14:00 인사동 KCDF갤러리 무료 대관 + 직접경비 500만~2,500만 원 지원. 공모"><h3><a href="https://esellernews.kr/?id=149" target="_blank" rel="noopener">2027 KCDF 공예·디자인 공모전시</a></h3><div class="meta"><span class="kind">공모</span><span>한국공예·디자인문화진흥원</span><span>접수 마감 11/20 14:00</span><span class="due" data-dday></span></div><p class="desc">인사동 KCDF갤러리 무료 대관 + 직접경비 500만~2,500만 원 지원.</p></div>
+<div class="item" data-kind="체험" data-due="2026-11-21" data-s="용인 ‘나도 금손’ 팝업 데이 용인상상의숲 공생광장 11/21 하루 공예 꾸러미 20종을 만져보는 하루 팝업. 체험"><h3><a href="http://www.gyinews.kr/news/articleView.html?idxno=68532" target="_blank" rel="noopener">용인 ‘나도 금손’ 팝업 데이</a></h3><div class="meta"><span class="kind">체험</span><span>용인상상의숲 공생광장</span><span>11/21 하루</span><span class="due" data-dday></span></div><p class="desc">공예 꾸러미 20종을 만져보는 하루 팝업.</p></div>
+<div class="item" data-kind="공모" data-due="2026-11-22" data-s="2026 밀양 경남 찻사발·차우림이 전국공모전 밀양 · 경남 접수 11/20~22 찻사발과 차우림이를 주제로 한 전국 공모전 접수. 공모"><h3><a href="https://www.newsgn.com/news/articleView.html?idxno=585538" target="_blank" rel="noopener">2026 밀양 경남 찻사발·차우림이 전국공모전</a></h3><div class="meta"><span class="kind">공모</span><span>밀양 · 경남</span><span>접수 11/20~22</span><span class="due" data-dday></span></div><p class="desc">찻사발과 차우림이를 주제로 한 전국 공모전 접수.</p></div>
+<div class="item" data-kind="체험" data-due="2026-11-27" data-s="광주 동구 ‘명장·장인과 함께하는 원데이 클래스’ 광주 동구 접수 11/18~27 명장·장인에게 직접 배우는 무료 원데이 클래스. 체험"><h3><a href="https://begin-up.com/announcements/AG_mun-gj-donggu_ljc3mp" target="_blank" rel="noopener">광주 동구 ‘명장·장인과 함께하는 원데이 클래스’</a></h3><div class="meta"><span class="kind">체험</span><span>광주 동구</span><span>접수 11/18~27</span><span class="due" data-dday></span></div><p class="desc">명장·장인에게 직접 배우는 무료 원데이 클래스.</p></div>
+<div class="item" data-kind="체험" data-due="2026-11-28" data-s="구미 신라불교초전지 핸드빌딩 원데이클래스 신라불교초전지 11/28 체험비 1만 원, 핸드빌딩으로 그릇을 빚는 하루. 체험"><h3><a href="http://www.gmuc.or.kr/silla/boardViewModel.do?ArticleId=16438&amp;Category=226&amp;mid=226" target="_blank" rel="noopener">구미 신라불교초전지 핸드빌딩 원데이클래스</a></h3><div class="meta"><span class="kind">체험</span><span>신라불교초전지</span><span>11/28</span><span class="due" data-dday></span></div><p class="desc">체험비 1만 원, 핸드빌딩으로 그릇을 빚는 하루.</p></div>
+<div class="item" data-kind="체험" data-due="2026-11-29" data-s="이천 중리동 공방투어 ‘다시, 나의 봄날’ 커넥트이천 11/23~29 중리동 6개 공방을 잇는 투어 프로그램. 체험"><h3><a href="https://www.connecticheon.com/ko-kr/articles/3779" target="_blank" rel="noopener">이천 중리동 공방투어 ‘다시, 나의 봄날’</a></h3><div class="meta"><span class="kind">체험</span><span>커넥트이천</span><span>11/23~29</span><span class="due" data-dday></span></div><p class="desc">중리동 6개 공방을 잇는 투어 프로그램.</p></div>
+<div class="item" data-kind="교육" data-due="2026-12-04" data-s="화성시 공예문화관 전통공예 특강 화성시 공예문화관 모집 11/24~12/4 초경·닥종이·규방 특강, 수강료 무료. 교육"><h3><a href="https://www.hscity.go.kr/www/user/bbs/BD_selectBbs.do?q_bbsCode=1019&amp;q_bbscttSn=20261119174421719" target="_blank" rel="noopener">화성시 공예문화관 전통공예 특강</a></h3><div class="meta"><span class="kind">교육</span><span>화성시 공예문화관</span><span>모집 11/24~12/4</span><span class="due" data-dday></span></div><p class="desc">초경·닥종이·규방 특강, 수강료 무료.</p></div>
+<div class="item" data-kind="페어" data-due="2026-12-20" data-s="K-핸드메이드페어 서울 2026 코엑스 B홀 12/17~20 · 사전예매 ~12/15 사전예매 시 20% 할인. 핸드메이드 작가와 브랜드가 모이는 연말 페어. 페어"><h3><a href="https://www.threads.com/@k_handmadefair" target="_blank" rel="noopener">K-핸드메이드페어 서울 2026</a></h3><div class="meta"><span class="kind">페어</span><span>코엑스 B홀</span><span>12/17~20 · 사전예매 ~12/15</span><span class="due" data-dday></span></div><p class="desc">사전예매 시 20% 할인. 핸드메이드 작가와 브랜드가 모이는 연말 페어.</p></div>
+<div class="item" data-kind="전시" data-due="2026-12-26" data-s="《2026 찾아가는 공예 명작전》 광주 ‘공유자산’ 광주디자인진흥원 11/20~12/26 전통문화포털이 소개한 순회 전시, 관람 무료. 전시"><h3><a href="https://www.kculture.or.kr/brd/board/399/L/menu/498?bbIdx=17225" target="_blank" rel="noopener">《2026 찾아가는 공예 명작전》 광주 ‘공유자산’</a></h3><div class="meta"><span class="kind">전시</span><span>광주디자인진흥원</span><span>11/20~12/26</span><span class="due" data-dday></span></div><p class="desc">전통문화포털이 소개한 순회 전시, 관람 무료.</p></div>
+<div class="item" data-kind="체험" data-due="" data-s="구리 갈매 아이&amp;유거리 골목형상점가 무료 원데이클래스 구리 갈매동 ~2027년 2월 골목형상점가에서 상시로 열리는 무료 원데이 클래스. 체험"><h3><a href="https://www.gokorea.kr/news/articleView.html?idxno=886360" target="_blank" rel="noopener">구리 갈매 아이&amp;유거리 골목형상점가 무료 원데이클래스</a></h3><div class="meta"><span class="kind">체험</span><span>구리 갈매동</span><span>~2027년 2월</span><span class="due" data-dday></span></div><p class="desc">골목형상점가에서 상시로 열리는 무료 원데이 클래스.</p></div>
+<div class="item" data-kind="체험" data-due="" data-s="순천 한옥글방 ‘손끝의 계절’ 전통공예 무료 체험 순천 한옥글방 11~12월 한옥에서 만나는 전통공예 무료 체험 프로그램. 체험"><h3><a href="https://www.suncheonnews.kr/articles/2026111486493" target="_blank" rel="noopener">순천 한옥글방 ‘손끝의 계절’ 전통공예 무료 체험</a></h3><div class="meta"><span class="kind">체험</span><span>순천 한옥글방</span><span>11~12월</span><span class="due" data-dday></span></div><p class="desc">한옥에서 만나는 전통공예 무료 체험 프로그램.</p></div></div><div class="none" id="none" style="display:none">조건에 맞는 항목이 없습니다.</div><p class="foot">※ 마감 표시는 오늘 날짜를 기준으로 브라우저에서 계산합니다(마감·오늘 마감·D-n). 이미 끝난 일정은 다음 공고를 기다리는 참고 목록으로 보시면 됩니다.<br>정부·지자체 공고는 <a href="https://www.kcdf.or.kr/" target="_blank" rel="noopener">KCDF</a> · 지자체 문화재단 공지에서 다시 확인하세요.</p></div></body></html>
+<script>
+(function(){
+ var st={},q='';
+ function apply(){
+  var items=[].slice.call(document.querySelectorAll('#list .item')),shown=0;
+  items.forEach(function(el){
+   var ok=true;
+   for(var k in st){ if(st[k]&&el.getAttribute('data-'+k)!==st[k]) ok=false; }
+   if(ok&&q){ var hay=(el.getAttribute('data-s')||'').toLowerCase(); if(hay.indexOf(q)<0) ok=false; }
+   el.style.display=ok?'':'none'; if(ok) shown++;
+  });
+  document.getElementById('count').textContent='총 '+items.length+'건 중 '+shown+'건 표시';
+  document.getElementById('none').style.display=shown?'none':'block';
+ }
+ document.querySelectorAll('.chip').forEach(function(b){
+  b.addEventListener('click',function(){
+   var k=b.getAttribute('data-k'),v=b.getAttribute('data-v');
+   st[k]=(st[k]===v)?'':v;
+   document.querySelectorAll('.chip[data-k="'+k+'"]').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-v')===st[k]);});
+   apply();
+  });
+ });
+ document.querySelectorAll('.reset').forEach(function(b){b.addEventListener('click',function(){var k=b.getAttribute('data-reset');st[k]='';
+  document.querySelectorAll('.chip[data-k="'+k+'"]').forEach(function(x){x.classList.remove('on');});apply();});});
+ var qi=document.getElementById('q');
+ qi.addEventListener('input',function(){q=qi.value.trim().toLowerCase();apply();});
+ apply();
+})();
+
+ document.querySelectorAll('[data-dday]').forEach(function(el){
+  var it=el.closest('.item'), due=it.getAttribute('data-due'); if(!due){el.remove();return;}
+  var t=new Date(); t.setHours(0,0,0,0);
+  var d=new Date(due.replace(' ','T')); if(isNaN(d)) return; d.setHours(0,0,0,0);
+  var diff=Math.round((d-t)/86400000);
+  if(diff<0){el.textContent='마감';el.className='tag';}
+  else if(diff===0){el.textContent='오늘 마감';el.className='due';}
+  else if(diff<=3){el.textContent='D-'+diff;el.className='due';}
+  else {el.textContent='D-'+diff;el.className='open';}
+ });
+</script>

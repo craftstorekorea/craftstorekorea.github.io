@@ -1,0 +1,84 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>전국공방 — 공방 소개 (2026.11.13~11.20)</title><style>@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap');
+*{box-sizing:border-box}
+body{margin:0;padding:16px 15px 24px;background:#F7F5F2;color:#3E2F26;font-size:13.5px;line-height:1.62;-webkit-text-size-adjust:100%}
+.wrap{max-width:980px;margin:0 auto}
+h1{margin:0 0 4px;font-size:20px;letter-spacing:-.01em;font-weight:800}
+.sub{margin:0 0 12px;font-size:12.5px;color:#7A6A5D}
+.stats{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 12px}
+.stat{background:#fff;border:1px solid #E8E1D8;border-radius:10px;padding:6px 11px;font-size:12px;color:#7A6A5D}
+.stat b{display:block;font-size:15px;color:#3E2F26;line-height:1.3}
+.bar{background:#fff;border:1px solid #E8E1D8;border-radius:12px;padding:10px;margin:0 0 10px}
+.search{width:100%;padding:9px 12px;border:1px solid #DCD3C7;border-radius:9px;font-size:13.5px;background:#FDFCFA;color:#3E2F26}
+.search:focus{outline:2px solid #FF6B4A33;border-color:#FF6B4A}
+.frow{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:7px}
+.flab{font-size:11px;color:#9C8B7C;letter-spacing:.04em;margin-right:2px}
+.chip{border:1px solid #DCD3C7;background:#FDFCFA;color:#5C4B3F;border-radius:999px;padding:4px 10px;font-size:11.5px;cursor:pointer;font-family:inherit;line-height:1.5}
+.chip em{font-style:normal;color:#A08F80;font-size:10.5px;margin-left:2px}
+.chip.on{background:#3E2F26;border-color:#3E2F26;color:#fff}
+.chip.on em{color:#D9CCBE}
+.reset{border:none;background:none;color:#B4553A;font-size:11.5px;cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 2px}
+.count{margin:4px 0 10px;font-size:12px;color:#8A7869}
+.item{background:#fff;border:1px solid #EDE6DC;border-radius:11px;padding:11px 13px;margin:0 0 8px}
+.item h3{margin:0 0 4px;font-size:14.5px;line-height:1.45;font-weight:700}
+.item h3 a{color:#3E2F26;text-decoration:none}
+.item h3 a:hover{color:#B4553A;text-decoration:underline}
+.meta{font-size:11.5px;color:#8A7869;margin:0 0 5px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tag{background:#F3EDE5;color:#7A6A5D;border-radius:6px;padding:1px 6px;font-size:10.5px}
+.desc{margin:0;font-size:12.8px;color:#544437}
+.quote{margin:6px 0;padding:7px 11px;border-left:3px solid #FF6B4A;background:#FDF8F4;font-size:13px;color:#4A382B}
+.who{font-weight:700;color:#3E2F26}
+.kind{background:#EAF1F6;color:#2C5470;border-radius:6px;padding:1px 7px;font-size:10.5px;font-weight:700}
+.due{background:#FBE7E7;color:#AD3B3B;border-radius:6px;padding:1px 7px;font-size:10.5px;font-weight:700}
+.open{background:#E3F5F1;color:#1F7A6B;border-radius:6px;padding:1px 7px;font-size:10.5px;font-weight:700}
+.foot{margin:14px 0 0;font-size:11.5px;color:#8A7869;border-top:1px solid #E8E1D8;padding-top:9px}
+.foot a{color:#7A5C48}
+.none{background:#fff;border:1px dashed #DCD3C7;border-radius:11px;padding:16px;text-align:center;color:#9C8B7C;font-size:12.5px}
+@media(max-width:640px){
+body{padding:12px 10px 18px;font-size:13px}
+h1{font-size:17px}
+.stat{padding:5px 9px;font-size:11px}
+.item{padding:10px}
+.item h3{font-size:13.5px}
+.desc{font-size:12.3px}
+}
+body,button,input,h1,h3,.quote{font-family:'Nanum Gothic','나눔고딕',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif}</style></head><body><div class="wrap"><h1>이번 주 새로 조명된 공방</h1><p class="sub">새로 문을 열었거나 조명할 만한 공방과 공예 공간 10곳입니다. 분야·지역으로 걸러 볼 수 있습니다.</p><div class="stats"><div class="stat"><b>10</b>곳 공방·공간</div><div class="stat"><b>6</b>개 지역</div><div class="stat"><b>6</b>개 분야</div><div class="stat"><b>11.13~11.20</b>수집 기간</div></div><div class="bar"><input class="search" id="q" type="search" placeholder="제목·매체·요약 키워드 검색"><div class="frow"><span class="flab">지역</span><button class="chip" data-k="region" data-v="강원">강원 <em>1</em></button><button class="chip" data-k="region" data-v="경기">경기 <em>4</em></button><button class="chip" data-k="region" data-v="경북">경북 <em>1</em></button><button class="chip" data-k="region" data-v="부산">부산 <em>2</em></button><button class="chip" data-k="region" data-v="서울">서울 <em>1</em></button><button class="chip" data-k="region" data-v="전북">전북 <em>1</em></button><button class="reset" data-reset="region">초기화</button></div><div class="frow"><span class="flab">분야·성격</span><button class="chip" data-k="tag" data-v="공방">공방 <em>5</em></button><button class="chip" data-k="tag" data-v="교육">교육 <em>1</em></button><button class="chip" data-k="tag" data-v="마켓">마켓 <em>1</em></button><button class="chip" data-k="tag" data-v="사람">사람 <em>1</em></button><button class="chip" data-k="tag" data-v="전시">전시 <em>1</em></button><button class="chip" data-k="tag" data-v="체험">체험 <em>1</em></button><button class="reset" data-reset="tag">초기화</button></div></div><p class="count" id="count"></p><div id="list"><div class="item" data-region="경기" data-tag="공방" data-s="시흥 ‘손과 숨의 방’ 도예공방, 우수 봉사자 66명에 하루를 선물 시흥시자원봉사센터가 11/13·14·17 사흘간 ‘2026 볼런티어 겨울 패키지’를 열었습니다. 61세 이상 우수 봉사자와 명예의 전당 등재자 66명이 연성로 도예공방 ‘손과 숨의 방’에서 흙을 만졌습니다. 시흥저널 경기 공방"><h3><a href="https://www.shjn.co.kr/news/articleView.html?idxno=90230" target="_blank" rel="noopener">시흥 ‘손과 숨의 방’ 도예공방, 우수 봉사자 66명에 하루를 선물</a></h3><div class="meta"><span>시흥저널</span><span>2026-11-19</span><span class="tag">경기</span><span class="tag">공방</span></div><p class="desc">시흥시자원봉사센터가 11/13·14·17 사흘간 ‘2026 볼런티어 겨울 패키지’를 열었습니다. 61세 이상 우수 봉사자와 명예의 전당 등재자 66명이 연성로 도예공방 ‘손과 숨의 방’에서 흙을 만졌습니다.</p></div>
+<div class="item" data-region="전북" data-tag="공방" data-s="고창 혜윰공방, 모암마을에 주민과 함께 만든 보자기 그늘막 고창문화관광재단 ‘터치유’ 사업의 ‘마음보따리’. 김유진·이은주·최민희가 6회 워크숍으로 주민과 보자기를 이어 만든 공동 그늘막을 모암마을회관 앞 공터에 세웠습니다. 새전북신문 전북 공방"><h3><a href="https://sjbnews.com/news/news.php?number=892433&amp;year=2026" target="_blank" rel="noopener">고창 혜윰공방, 모암마을에 주민과 함께 만든 보자기 그늘막</a></h3><div class="meta"><span>새전북신문</span><span>2026-11-19</span><span class="tag">전북</span><span class="tag">공방</span></div><p class="desc">고창문화관광재단 ‘터치유’ 사업의 ‘마음보따리’. 김유진·이은주·최민희가 6회 워크숍으로 주민과 보자기를 이어 만든 공동 그늘막을 모암마을회관 앞 공터에 세웠습니다.</p></div>
+<div class="item" data-region="경기" data-tag="마켓" data-s="부천 상2동 예술마켓, 거리에서 동네 가게로 10월 매주 토요일 상2동 카페거리에서 도예·패브릭·액세서리·가죽공예·디퓨저 마켓을 열고, 상시 ‘예술상점’으로 이어갔습니다. 부천예술투어 스탬프 거점이며 투어는 11/30까지입니다. 부천포커스 경기 마켓"><h3><a href="https://www.efocus.co.kr/news/articleView.html?idxno=57504" target="_blank" rel="noopener">부천 상2동 예술마켓, 거리에서 동네 가게로</a></h3><div class="meta"><span>부천포커스</span><span>2026-11-19</span><span class="tag">경기</span><span class="tag">마켓</span></div><p class="desc">10월 매주 토요일 상2동 카페거리에서 도예·패브릭·액세서리·가죽공예·디퓨저 마켓을 열고, 상시 ‘예술상점’으로 이어갔습니다. 부천예술투어 스탬프 거점이며 투어는 11/30까지입니다.</p></div>
+<div class="item" data-region="경기" data-tag="교육" data-s="안성시·중앙대, 청소년 공예창작 진로캠프 — 학생 3명당 지도자 1명 11/18 중앙대 다빈치캠퍼스에서 안성초 4학년이 목공예를 실습했습니다. 문화도시 조성사업과 지역 인재양성체계를 잇는 ‘밀착형 공방 수업’입니다. 경기남부저널 경기 교육"><h3><a href="http://www.gnjn.co.kr/news/articleViewAmp.html?idxno=133081" target="_blank" rel="noopener">안성시·중앙대, 청소년 공예창작 진로캠프 — 학생 3명당 지도자 1명</a></h3><div class="meta"><span>경기남부저널</span><span>2026-11-19</span><span class="tag">경기</span><span class="tag">교육</span></div><p class="desc">11/18 중앙대 다빈치캠퍼스에서 안성초 4학년이 목공예를 실습했습니다. 문화도시 조성사업과 지역 인재양성체계를 잇는 ‘밀착형 공방 수업’입니다.</p></div>
+<div class="item" data-region="부산" data-tag="전시" data-s="부산진구 20개 공방 연합 전시 《모두의 작업실》 동천문화홀에서 11/19~12/2. 시민 체험 재료비는 1,000~2,000원입니다. 부산진구청 부산 전시"><h3><a href="https://www.busanjin.go.kr/lll/board/view.busanjin?boardId=BBS_0000010&amp;dataSid=3981784&amp;menuCd=DOM_000000206001000000" target="_blank" rel="noopener">부산진구 20개 공방 연합 전시 《모두의 작업실》</a></h3><div class="meta"><span>부산진구청</span><span>2026-11-19</span><span class="tag">부산</span><span class="tag">전시</span></div><p class="desc">동천문화홀에서 11/19~12/2. 시민 체험 재료비는 1,000~2,000원입니다.</p></div>
+<div class="item" data-region="강원" data-tag="체험" data-s="횡성목재문화체험장, 11/24~12/18 시범운영 목공 11종을 무료로 체험. 화~금 하루 2회, 전화 예약(033-342-7150)으로 신청합니다. 연합뉴스 강원 체험"><h3><a href="https://www.yna.co.kr/view/AKR20261119052000062" target="_blank" rel="noopener">횡성목재문화체험장, 11/24~12/18 시범운영</a></h3><div class="meta"><span>연합뉴스</span><span>2026-11-19</span><span class="tag">강원</span><span class="tag">체험</span></div><p class="desc">목공 11종을 무료로 체험. 화~금 하루 2회, 전화 예약(033-342-7150)으로 신청합니다.</p></div>
+<div class="item" data-region="서울" data-tag="공방" data-s="도봉구 공방 3곳 대표가 강사로 — 덕성여대 공예교육, 제작품 30점 기부 4년째 이어온 지역사회 공유배움터 프로그램. 올해 가죽·리본·라탄공예 5회에 30명이 참여했고, 강사는 도봉구에서 공방을 운영하는 최주경(공방비록)·구성진(민트에이)·정은주(토토얀공방) 대표입니다. 만든 작품은 지역 가정에 전달했습니다. 아시아타임즈 서울 공방"><h3><a href="https://www.asiatime.co.kr/article/20261117500128" target="_blank" rel="noopener">도봉구 공방 3곳 대표가 강사로 — 덕성여대 공예교육, 제작품 30점 기부</a></h3><div class="meta"><span>아시아타임즈</span><span>2026-11-17</span><span class="tag">서울</span><span class="tag">공방</span></div><p class="desc">4년째 이어온 지역사회 공유배움터 프로그램. 올해 가죽·리본·라탄공예 5회에 30명이 참여했고, 강사는 도봉구에서 공방을 운영하는 최주경(공방비록)·구성진(민트에이)·정은주(토토얀공방) 대표입니다. 만든 작품은 지역 가정에 전달했습니다.</p></div>
+<div class="item" data-region="경북" data-tag="공방" data-s="김천 봉산면 주민자치 목공방 ‘뚝딱 뚝딱, 봉산 행복한 목공방’ 11/13 거산서각에서 첫 강좌를 열고 생활 소품과 소가구 만들기를 시작했습니다. 안전교육부터 차근차근, 주민이 직접 운영하는 목공방입니다. 경북도민일보 경북 공방"><h3><a href="https://www.hidomin.com/news/articleView.html?idxno=729615" target="_blank" rel="noopener">김천 봉산면 주민자치 목공방 ‘뚝딱 뚝딱, 봉산 행복한 목공방’</a></h3><div class="meta"><span>경북도민일보</span><span>2026-11-16</span><span class="tag">경북</span><span class="tag">공방</span></div><p class="desc">11/13 거산서각에서 첫 강좌를 열고 생활 소품과 소가구 만들기를 시작했습니다. 안전교육부터 차근차근, 주민이 직접 운영하는 목공방입니다.</p></div>
+<div class="item" data-region="부산" data-tag="공방" data-s="망미동 골목 네 칸의 캠퍼스 — 가죽공방 본 사회복지사 출신 서경원 대표가 원데이클래스, 청각장애인 수업, 업사이클링을 함께 운영합니다. 부산진 부산 공방"><h3><a href="https://busanzine.com/8937" target="_blank" rel="noopener">망미동 골목 네 칸의 캠퍼스 — 가죽공방 본</a></h3><div class="meta"><span>부산진</span><span>2026-11-16</span><span class="tag">부산</span><span class="tag">공방</span></div><p class="desc">사회복지사 출신 서경원 대표가 원데이클래스, 청각장애인 수업, 업사이클링을 함께 운영합니다.</p></div>
+<div class="item" data-region="경기" data-tag="사람" data-s="동두천 두두리공방 승경란 작가, 국가무형유산 ‘입사장’ 보유자 인정 보산동 디자인아트빌리지의 체험·플리마켓과 지역 축제를 연계할 계획입니다. 경기일보 경기 사람"><h3><a href="https://www.kyeonggi.com/article/20261113580143" target="_blank" rel="noopener">동두천 두두리공방 승경란 작가, 국가무형유산 ‘입사장’ 보유자 인정</a></h3><div class="meta"><span>경기일보</span><span>2026-11-13</span><span class="tag">경기</span><span class="tag">사람</span></div><p class="desc">보산동 디자인아트빌리지의 체험·플리마켓과 지역 축제를 연계할 계획입니다.</p></div></div><div class="none" id="none" style="display:none">조건에 맞는 항목이 없습니다.</div><p class="foot">※ 이번 주 새로 조명된 공방·공예 공간입니다. 주소와 운영 내용이 지도에 등록된 공방은 <a href="https://sites.google.com/view/craftstore-kr/%EA%B3%B5%EB%B0%A9-%EC%A7%80%EB%8F%84%EA%B2%8C%EC%8B%9C%ED%8C%90" target="_blank" rel="noopener">공방 지도·게시판</a>에서 볼 수 있습니다.<br>분야별로 찾아보기 — 가죽 · 도예 · 목공 · 바느질 · 전통공예 · 업사이클링. 소개하고 싶은 공방이 있다면 <a href="https://www.instagram.com/craftstore.kr/" target="_blank" rel="noopener">@craftstore.kr</a>로 알려주세요.</p></div></body></html>
+<script>
+(function(){
+ var st={},q='';
+ function apply(){
+  var items=[].slice.call(document.querySelectorAll('#list .item')),shown=0;
+  items.forEach(function(el){
+   var ok=true;
+   for(var k in st){ if(st[k]&&el.getAttribute('data-'+k)!==st[k]) ok=false; }
+   if(ok&&q){ var hay=(el.getAttribute('data-s')||'').toLowerCase(); if(hay.indexOf(q)<0) ok=false; }
+   el.style.display=ok?'':'none'; if(ok) shown++;
+  });
+  document.getElementById('count').textContent='총 '+items.length+'건 중 '+shown+'건 표시';
+  document.getElementById('none').style.display=shown?'none':'block';
+ }
+ document.querySelectorAll('.chip').forEach(function(b){
+  b.addEventListener('click',function(){
+   var k=b.getAttribute('data-k'),v=b.getAttribute('data-v');
+   st[k]=(st[k]===v)?'':v;
+   document.querySelectorAll('.chip[data-k="'+k+'"]').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-v')===st[k]);});
+   apply();
+  });
+ });
+ document.querySelectorAll('.reset').forEach(function(b){b.addEventListener('click',function(){var k=b.getAttribute('data-reset');st[k]='';
+  document.querySelectorAll('.chip[data-k="'+k+'"]').forEach(function(x){x.classList.remove('on');});apply();});});
+ var qi=document.getElementById('q');
+ qi.addEventListener('input',function(){q=qi.value.trim().toLowerCase();apply();});
+ apply();
+})();
+</script>
