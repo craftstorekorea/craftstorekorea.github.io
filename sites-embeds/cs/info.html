@@ -1,0 +1,332 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>전국공방 — 지원·공모 정보</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap');
+:root{--bg:#FAF7F2;--bg-soft:#F3EEE6;--ink:#211A15;--body:#4A3F37;--muted:#8A7C6F;
+--line:#E6DDD1;--line2:#D8CCBC;--acc:#B4552F;--acc-ink:#8E3F20;--acc-soft:#FBEDE6;
+--acc-line:#E7C4B4;--chip-bg:#F6F1E9;--chip-ink:#6B5B4C;--chip-line:#E6DDD1;
+--hero:linear-gradient(135deg,#3B2A20 0%,#6A4230 55%,#9A5A3A 100%);--hero-soft:#EADFD3;--hero-eyebrow:#E7B79B}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'Nanum Gothic','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+     font-size:14px;line-height:1.62;-webkit-text-size-adjust:100%;overflow-x:hidden}
+a{color:var(--acc);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:1120px;margin:0 auto;padding:18px 18px 26px}
+button{font-family:inherit}
+/* hero */
+.hero{background:var(--hero);color:#fff;border-radius:18px;padding:26px 24px;position:relative;overflow:hidden}
+.hero:after{content:'';position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;
+  background:rgba(255,255,255,.07)}
+.eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--hero-eyebrow);margin:0 0 8px}
+.hero h1{margin:0 0 8px;font-size:26px;line-height:1.28;letter-spacing:-.02em;font-weight:800;color:#fff}
+.hero p{margin:0;font-size:13.5px;line-height:1.62;color:var(--hero-soft);max-width:760px}
+.stats{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0}
+.stat{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:11px;padding:7px 12px;min-width:96px}
+.stat b{display:block;font-size:18px;line-height:1.25;color:#fff;font-weight:800}
+.stat span{font-size:11px;color:var(--hero-soft)}
+/* section head */
+h2.sec{margin:26px 0 10px;font-size:17px;letter-spacing:-.01em;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px}
+h2.sec em{font-style:normal;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.04em}
+.lead{font-size:13px;color:var(--muted);margin:-4px 0 12px}
+/* cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:12px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 15px;display:flex;flex-direction:column;
+  gap:7px;transition:box-shadow .15s,border-color .15s;position:relative}
+.card:hover{border-color:var(--acc-line);box-shadow:0 6px 18px rgba(20,30,25,.07)}
+.card .tags{display:flex;flex-wrap:wrap;gap:5px}
+.tag{display:inline-flex;align-items:center;font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:2px 8px;border-radius:20px;
+  background:var(--chip-bg);color:var(--chip-ink);border:1px solid var(--chip-line)}
+.tag.acc{background:var(--acc-soft);color:var(--acc-ink);border-color:var(--acc-line)}
+.card h3{margin:0;font-size:14.5px;line-height:1.45;font-weight:800;letter-spacing:-.01em;color:var(--ink)}
+.card h3 a{color:inherit}
+.card p{margin:0;font-size:12.5px;line-height:1.62;color:var(--body)}
+.card .meta{margin-top:auto;font-size:11.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.card .meta .dot{opacity:.4}
+.clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.cardacts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.mini{font-size:11.5px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--body);border-radius:8px;
+  padding:4px 9px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.mini:hover{border-color:var(--acc-line);color:var(--acc)}
+.mini.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.mini.ghost{background:transparent}
+a.mini{text-decoration:none}
+/* filter bar */
+.bar{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin:16px 0 14px;position:relative;z-index:1}
+.searchrow{display:flex;gap:8px;flex-wrap:wrap}
+.searchrow input[type=search]{flex:1 1 240px;min-width:0;height:38px;border:1px solid var(--line2);border-radius:10px;
+  padding:0 12px;font-size:13.5px;font-family:inherit;background:var(--bg-soft);color:var(--ink)}
+.searchrow input[type=search]:focus{outline:2px solid var(--acc-line);outline-offset:-1px;border-color:var(--acc);background:#fff}
+.searchrow select{height:38px;border:1px solid var(--line2);border-radius:10px;padding:0 8px;font-size:12.5px;background:#fff;
+  color:var(--ink);font-family:inherit}
+.fgroup{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:8px}
+.flab{font-size:10.5px;font-weight:800;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-right:3px;min-width:34px}
+.chip{border:1px solid var(--line2);background:#fff;color:var(--body);border-radius:20px;padding:4px 10px;font-size:11.5px;
+  cursor:pointer;font-weight:700;white-space:nowrap}
+.chip em{font-style:normal;color:var(--muted);font-weight:400;margin-left:3px}
+.chip:hover{border-color:var(--acc-line);color:var(--acc)}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.chip.on em{color:rgba(255,255,255,.75)}
+.barfoot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;padding-top:9px;border-top:1px dashed var(--line)}
+.count{font-size:12px;color:var(--body)}
+.count b{color:var(--ink)}
+.reset{margin-left:auto;border:1px solid var(--line2);background:#fff;color:var(--body);font-size:11.5px;font-weight:700;
+  height:29px;padding:0 11px;border-radius:8px;cursor:pointer}
+.reset:hover{border-color:var(--acc);color:var(--acc)}
+/* tray */
+.tray{position:sticky;bottom:0;z-index:5;margin-top:16px;background:rgba(255,255,255,.97);backdrop-filter:blur(6px);
+  border:1px solid var(--line);border-radius:13px;box-shadow:0 -4px 20px rgba(20,30,25,.08);padding:10px 12px;
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tray .tinfo{font-size:12px;color:var(--body);display:flex;gap:10px;flex-wrap:wrap}
+.tray .tinfo b{color:var(--acc)}
+.tray .sp{flex:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:34px;padding:0 14px;border-radius:9px;
+  font-size:12.5px;font-weight:800;border:1px solid var(--acc);background:var(--acc);color:#fff;cursor:pointer;text-decoration:none}
+.btn:hover{filter:brightness(1.05);text-decoration:none}
+.btn.sec{background:#fff;color:var(--acc)}
+.btn.ghost{background:transparent;border-color:var(--line2);color:var(--body)}
+.btn.sm{height:30px;padding:0 11px;font-size:11.5px}
+/* panels & modal */
+.panel{position:fixed;inset:0;background:rgba(18,26,22,.5);z-index:50;display:none;align-items:flex-start;justify-content:center;
+  padding:20px 12px;overflow:auto}
+.panel.open{display:flex}
+.sheet{background:#fff;border-radius:16px;max-width:960px;width:100%;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.sheet h3{margin:0 0 4px;font-size:17px;font-weight:800}
+.sheet .sub{font-size:12px;color:var(--muted);margin:0 0 12px}
+.sheet .x{float:right;border:0;background:var(--bg-soft);border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:15px;color:var(--body)}
+table.cmp{width:100%;border-collapse:collapse;font-size:12px}
+table.cmp th,table.cmp td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+table.cmp th{background:var(--bg-soft);font-size:11px;color:var(--muted);font-weight:800;letter-spacing:.03em;width:120px}
+table.cmp tr:first-child th{width:auto}
+.scrollx{overflow-x:auto}
+/* blocks */
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.block{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 16px}
+.block h3{margin:0 0 6px;font-size:14.5px;font-weight:800}
+.block p{margin:0;font-size:12.5px;color:var(--body)}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+.kv:last-child{border-bottom:0}
+.kv b{color:var(--ink)}
+.note{background:var(--bg-soft);border:1px dashed var(--line2);border-radius:12px;padding:11px 13px;font-size:11.5px;color:var(--muted);margin-top:16px}
+.foot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;font-size:12px;color:var(--muted)}
+.empty{display:none;text-align:center;padding:36px 12px;color:var(--muted);font-size:13px}
+@media (max-width:640px){
+  .wrap{padding:12px 11px 20px}
+  .hero{padding:20px 16px;border-radius:14px}
+  .hero h1{font-size:21px}
+  .hero p{font-size:12.5px}
+  .grid{grid-template-columns:1fr;gap:10px}
+  .stat{min-width:86px;padding:6px 10px}
+  .stat b{font-size:16px}
+  h2.sec{font-size:15.5px;margin-top:20px}
+  .searchrow input[type=search]{flex:1 1 100%}
+  .flab{min-width:100%}
+  .sheet{padding:14px;border-radius:13px}
+  .tray{border-radius:11px}
+}
+</style></head><body class="">
+<div class="wrap">
+  <section class="hero">
+    <p class="eyebrow">INFO · 11 NOTICES</p>
+    <h1>공모전·지원사업·전시·클래스 안내</h1>
+    <p>마감일이 있는 정보만 모았습니다. 신청 전 원문에서 조건을 확인하세요.</p>
+    <div class="stats"><div class="stat"><b>11</b><span>이번 주 정보</span></div><div class="stat"><b>46</b><span>누적 소식</span></div><div class="stat"><b>금요일</b><span>다음 발행</span></div></div>
+  </section>
+  
+  <div class="bar">
+    <div class="searchrow"><input type="search" id="q" placeholder="검색 (예: 도예, 통영, 공모)"><select id="sort">
+      <option value="new">최신순</option><option value="old">오래된순</option><option value="title">제목순</option></select></div>
+    <div id="filters"></div>
+    <div class="barfoot"><span class="count" id="count"></span><button class="reset" id="reset">필터 초기화</button></div>
+  </div>
+  <div class="grid" id="list"></div>
+  <p class="empty" id="empty">조건에 맞는 소식이 없습니다. 필터를 초기화해 보세요.</p>
+  <div class="tray" id="tray">
+    <div class="tinfo">저장 <b id="nSaved">0</b></div><div class="sp"></div>
+    <button class="btn sm sec" id="savedBtn">저장함</button>
+    <a class="btn sm ghost" href="https://sites.google.com/view/craftstore-kr/통합-검색">통합 검색</a>
+    <a class="btn sm ghost" href="https://docs.google.com/forms/d/e/1FAIpQLSfsAqB6xnd8iNofTPrmpF6XKYlWrb_vMhYaYuEvMup3IS2oiw/viewform" target="_blank" rel="noopener">제보·문의</a>
+  </div>
+
+  <p class="note">수집·정리: 우리동네공방(@craftstore.kr) · 마지막 업데이트 2026-11-21. 소식의 저작권은 각 원문 매체에 있습니다.</p>
+  <div class="foot">
+    <a class="btn sm sec" href="https://docs.google.com/forms/d/e/1FAIpQLSfsAqB6xnd8iNofTPrmpF6XKYlWrb_vMhYaYuEvMup3IS2oiw/viewform" target="_blank" rel="noopener">공방 등록·소식 제보</a>
+    <a class="btn sm ghost" href="https://page.stibee.com/archives/252109" target="_blank" rel="noopener">뉴스레터 지난 호</a>
+    <a class="btn sm ghost" href="https://www.instagram.com/craftstore.kr/" target="_blank" rel="noopener">인스타그램</a>
+    <span id="flash" style="color:#B4552F;font-weight:700;opacity:0;transition:opacity .25s"></span>
+  </div>
+</div>
+<div class="panel" id="panel"><div class="sheet"><button class="x" id="pClose">×</button><h3 id="pTitle"></h3><p class="sub" id="pSub"></p><div id="pBody"></div></div></div>
+
+<script>window.__CFG__ = {"filters": [{"key": "tag", "label": "분류", "values": ["공모", "교육", "전시", "체험", "페어"]}], "compare": null, "ls": "cs", "defaultSort": "new"};window.__DATA__ = [{"title": "2027 KCDF 공예·디자인 공모전시", "region": "", "tag": "공모", "desc": "인사동 KCDF갤러리 무료 대관 + 직접경비 500만~2,500만 원 지원.", "meta": "한국공예·디자인문화진흥원 · 접수 마감 11/20 14:00", "date": "2026-11-20", "url": "https://esellernews.kr/?id=149", "sub": "", "id": "cs036", "corner": "정보", "search": "2027 KCDF 공예·디자인 공모전시  인사동 KCDF갤러리 무료 대관 + 직접경비 500만~2,500만 원 지원.  공모 한국공예·디자인문화진흥원 · 접수 마감 11/20 14:00 "}, {"title": "용인 ‘나도 금손’ 팝업 데이", "region": "", "tag": "체험", "desc": "공예 꾸러미 20종을 만져보는 하루 팝업.", "meta": "용인상상의숲 공생광장 · 11/21 하루", "date": "2026-11-21", "url": "http://www.gyinews.kr/news/articleView.html?idxno=68532", "sub": "", "id": "cs037", "corner": "정보", "search": "용인 ‘나도 금손’ 팝업 데이  공예 꾸러미 20종을 만져보는 하루 팝업.  체험 용인상상의숲 공생광장 · 11/21 하루 "}, {"title": "2026 밀양 경남 찻사발·차우림이 전국공모전", "region": "", "tag": "공모", "desc": "찻사발과 차우림이를 주제로 한 전국 공모전 접수.", "meta": "밀양 · 경남 · 접수 11/20~22", "date": "2026-11-22", "url": "https://www.newsgn.com/news/articleView.html?idxno=585538", "sub": "", "id": "cs038", "corner": "정보", "search": "2026 밀양 경남 찻사발·차우림이 전국공모전  찻사발과 차우림이를 주제로 한 전국 공모전 접수.  공모 밀양 · 경남 · 접수 11/20~22 "}, {"title": "이천 중리동 공방투어 ‘다시, 나의 봄날’", "region": "", "tag": "체험", "desc": "중리동 6개 공방을 잇는 투어 프로그램.", "meta": "커넥트이천 · 11/23~29", "date": "2026-11-29", "url": "https://www.connecticheon.com/ko-kr/articles/3779", "sub": "", "id": "cs039", "corner": "정보", "search": "이천 중리동 공방투어 ‘다시, 나의 봄날’  중리동 6개 공방을 잇는 투어 프로그램.  체험 커넥트이천 · 11/23~29 "}, {"title": "화성시 공예문화관 전통공예 특강", "region": "", "tag": "교육", "desc": "초경·닥종이·규방 특강, 수강료 무료.", "meta": "화성시 공예문화관 · 모집 11/24~12/4", "date": "2026-12-04", "url": "https://www.hscity.go.kr/www/user/bbs/BD_selectBbs.do?q_bbsCode=1019&q_bbscttSn=20261119174421719", "sub": "", "id": "cs040", "corner": "정보", "search": "화성시 공예문화관 전통공예 특강  초경·닥종이·규방 특강, 수강료 무료.  교육 화성시 공예문화관 · 모집 11/24~12/4 "}, {"title": "광주 동구 ‘명장·장인과 함께하는 원데이 클래스’", "region": "", "tag": "체험", "desc": "명장·장인에게 직접 배우는 무료 원데이 클래스.", "meta": "광주 동구 · 접수 11/18~27", "date": "2026-11-27", "url": "https://begin-up.com/announcements/AG_mun-gj-donggu_ljc3mp", "sub": "", "id": "cs041", "corner": "정보", "search": "광주 동구 ‘명장·장인과 함께하는 원데이 클래스’  명장·장인에게 직접 배우는 무료 원데이 클래스.  체험 광주 동구 · 접수 11/18~27 "}, {"title": "구미 신라불교초전지 핸드빌딩 원데이클래스", "region": "", "tag": "체험", "desc": "체험비 1만 원, 핸드빌딩으로 그릇을 빚는 하루.", "meta": "신라불교초전지 · 11/28", "date": "2026-11-28", "url": "http://www.gmuc.or.kr/silla/boardViewModel.do?ArticleId=16438&Category=226&mid=226", "sub": "", "id": "cs042", "corner": "정보", "search": "구미 신라불교초전지 핸드빌딩 원데이클래스  체험비 1만 원, 핸드빌딩으로 그릇을 빚는 하루.  체험 신라불교초전지 · 11/28 "}, {"title": "K-핸드메이드페어 서울 2026", "region": "", "tag": "페어", "desc": "사전예매 시 20% 할인. 핸드메이드 작가와 브랜드가 모이는 연말 페어.", "meta": "코엑스 B홀 · 12/17~20 · 사전예매 ~12/15", "date": "2026-12-20", "url": "https://www.threads.com/@k_handmadefair", "sub": "", "id": "cs043", "corner": "정보", "search": "K-핸드메이드페어 서울 2026  사전예매 시 20% 할인. 핸드메이드 작가와 브랜드가 모이는 연말 페어.  페어 코엑스 B홀 · 12/17~20 · 사전예매 ~12/15 "}, {"title": "《2026 찾아가는 공예 명작전》 광주 ‘공유자산’", "region": "", "tag": "전시", "desc": "전통문화포털이 소개한 순회 전시, 관람 무료.", "meta": "광주디자인진흥원 · 11/20~12/26", "date": "2026-12-26", "url": "https://www.kculture.or.kr/brd/board/399/L/menu/498?bbIdx=17225", "sub": "", "id": "cs044", "corner": "정보", "search": "《2026 찾아가는 공예 명작전》 광주 ‘공유자산’  전통문화포털이 소개한 순회 전시, 관람 무료.  전시 광주디자인진흥원 · 11/20~12/26 "}, {"title": "구리 갈매 아이&유거리 골목형상점가 무료 원데이클래스", "region": "", "tag": "체험", "desc": "골목형상점가에서 상시로 열리는 무료 원데이 클래스.", "meta": "구리 갈매동 · ~2027년 2월", "date": "", "url": "https://www.gokorea.kr/news/articleView.html?idxno=886360", "sub": "", "id": "cs045", "corner": "정보", "search": "구리 갈매 아이&유거리 골목형상점가 무료 원데이클래스  골목형상점가에서 상시로 열리는 무료 원데이 클래스.  체험 구리 갈매동 · ~2027년 2월 "}, {"title": "순천 한옥글방 ‘손끝의 계절’ 전통공예 무료 체험", "region": "", "tag": "체험", "desc": "한옥에서 만나는 전통공예 무료 체험 프로그램.", "meta": "순천 한옥글방 · 11~12월", "date": "", "url": "https://www.suncheonnews.kr/articles/2026111486493", "sub": "", "id": "cs046", "corner": "정보", "search": "순천 한옥글방 ‘손끝의 계절’ 전통공예 무료 체험  한옥에서 만나는 전통공예 무료 체험 프로그램.  체험 순천 한옥글방 · 11~12월 "}];</script>
+<script>
+(function(){
+  var CFG = window.__CFG__, DATA = window.__DATA__;
+  var LS = CFG.ls || 'sbx';
+  function load(k, d){ try{ var v=JSON.parse(localStorage.getItem(LS+':'+k)); return v||d; }catch(e){ return d; } }
+  function save(k, v){ try{ localStorage.setItem(LS+':'+k, JSON.stringify(v)); }catch(e){} }
+  var saved = load('saved', []), cmp = load('cmp', []);
+  var st = {q:'', sort: CFG.defaultSort || 'new'};
+  (CFG.filters||[]).forEach(function(f){ st[f.key]=[]; });
+  var byId = {}; DATA.forEach(function(d){ byId[d.id]=d; });
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
+  function el(id){ return document.getElementById(id); }
+  function chipsHtml(f){
+    var counts = {};
+    DATA.forEach(function(d){ var v = d[f.key]; if(!v) return; (Array.isArray(v)?v:[v]).forEach(function(x){ counts[x]=(counts[x]||0)+1; }); });
+    var vals = f.values || Object.keys(counts).sort(function(a,b){ return counts[b]-counts[a]; });
+    if(f.limit) vals = vals.slice(0, f.limit);
+    return vals.map(function(v){
+      return '<button class="chip" data-k="'+f.key+'" data-v="'+esc(v)+'">'+esc(f.labelOf?f.labelOf(v):v)+'<em>'+(counts[v]||0)+'</em></button>';
+    }).join('');
+  }
+  function renderFilters(){
+    var host = el('filters'); if(!host) return;
+    host.innerHTML = (CFG.filters||[]).map(function(f){
+      return '<div class="fgroup"><span class="flab">'+esc(f.label)+'</span>'+chipsHtml(f)+'</div>';
+    }).join('');
+    host.querySelectorAll('.chip').forEach(function(b){
+      b.addEventListener('click', function(){
+        var k=b.dataset.k, v=b.dataset.v, arr=st[k];
+        var i=arr.indexOf(v); if(i<0) arr.push(v); else arr.splice(i,1);
+        b.classList.toggle('on', arr.indexOf(v)>=0);
+        apply(); updateChips();
+      });
+    });
+  }
+  function updateChips(){
+    document.querySelectorAll('#filters .chip').forEach(function(b){
+      b.classList.toggle('on', (st[b.dataset.k]||[]).indexOf(b.dataset.v)>=0);
+    });
+  }
+  function matches(d){
+    for(var k in st){
+      if(k==='q'||k==='sort') continue;
+      var want=st[k]; if(!want || !want.length) continue;
+      var have = Array.isArray(d[k])?d[k]:[d[k]];
+      if(!want.some(function(w){ return have.indexOf(w)>=0; })) return false;
+    }
+    if(st.q){
+      var hay=(d.search||[d.title,d.sub,d.desc,d.region,d.tag,d.extra].join(' ')).toLowerCase();
+      if(hay.indexOf(st.q)<0) return false;
+    }
+    return true;
+  }
+  function card(d){
+    var tags='';
+    if(d.corner) tags += '<span class="tag acc">'+esc(d.corner)+'</span>';
+    if(d.region) tags += '<span class="tag">'+esc(d.region)+'</span>';
+    if(d.tag) tags += '<span class="tag">'+esc(d.tag)+'</span>';
+    if(d.badge) tags += '<span class="tag">'+esc(d.badge)+'</span>';
+    var title = d.url ? '<a href="'+esc(d.url)+'" target="_blank" rel="noopener">'+esc(d.title)+'</a>' : esc(d.title);
+    var meta = [];
+    if(d.sub) meta.push('<span>'+esc(d.sub)+'</span>');
+    if(d.meta) meta.push('<span>'+esc(d.meta)+'</span>');
+    if(d.date) meta.push('<span>'+esc(d.date)+'</span>');
+    var onS = saved.indexOf(d.id)>=0, onC = cmp.indexOf(d.id)>=0;
+    var acts = '<div class="cardacts"><button class="mini'+(onS?' on':'')+'" data-act="save" data-id="'+esc(d.id)+'">'+(onS?'★ 저장됨':'☆ 저장')+'</button>';
+    if(CFG.compare && d.cmp) acts += '<button class="mini'+(onC?' on':'')+'" data-act="cmp" data-id="'+esc(d.id)+'">'+(onC?'✓ 비교 담김':'＋ 비교')+'</button>';
+    if(d.url) acts += '<a class="mini ghost" href="'+esc(d.url)+'" target="_blank" rel="noopener">원문 ↗</a>';
+    if(d.link) acts += '<a class="mini ghost" href="'+esc(d.link.href)+'" target="'+esc(d.link.target||'_self')+'">'+esc(d.link.label)+'</a>';
+    acts += '</div>';
+    return '<article class="card"><div class="tags">'+tags+'</div><h3>'+title+'</h3>'+
+      (d.desc?'<p class="clamp">'+esc(d.desc)+'</p>':'')+
+      '<div class="meta">'+meta.join('<span class="dot">·</span>')+'</div>'+acts+'</article>';
+  }
+  function apply(){
+    var rows = DATA.filter(matches);
+    var s = st.sort;
+    rows.sort(function(a,b){
+      if(s==='new') return String(b.date||'').localeCompare(String(a.date||''));
+      if(s==='old') return String(a.date||'').localeCompare(String(b.date||''));
+      if(s==='title') return String(a.title||'').localeCompare(String(b.title||''),'ko');
+      return 0;
+    });
+    var host=el('list');
+    if(!host) return;
+    host.innerHTML = rows.map(card).join('');
+    if(el('count')) el('count').innerHTML = '전체 <b>'+DATA.length+'</b>건 중 <b>'+rows.length+'</b>건';
+    if(el('empty')) el('empty').style.display = rows.length? 'none':'block';
+    bindActs();
+    updateTray();
+  }
+  function bindActs(){
+    document.querySelectorAll('#list [data-act]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var id=b.dataset.id;
+        if(b.dataset.act==='save'){
+          var i=saved.indexOf(id); if(i<0) saved.push(id); else saved.splice(i,1);
+          save('saved', saved);
+        } else {
+          var j=cmp.indexOf(id); if(j<0){ if(cmp.length>=3){ flash('비교는 최대 3개까지 담을 수 있습니다.'); return; } cmp.push(id); } else cmp.splice(j,1);
+          save('cmp', cmp);
+        }
+        apply();
+      });
+    });
+  }
+  var flashT;
+  function flash(msg){
+    var f=el('flash'); if(!f) return;
+    f.textContent=msg; f.style.opacity='1'; clearTimeout(flashT);
+    flashT=setTimeout(function(){ f.style.opacity='0'; }, 2400);
+  }
+  function updateTray(){
+    if(!el('tray')) return;
+    if(el('nSaved')) el('nSaved').textContent = saved.length;
+    if(el('nCmp')) el('nCmp').textContent = cmp.length;
+    if(el('cmpBtn')) el('cmpBtn').style.display = CFG.compare? 'inline-flex':'none';
+  }
+  function openSaved(){
+    var rows = saved.map(function(id){ return byId[id]; }).filter(Boolean);
+    var body = rows.length ? '<table class="cmp"><tr><td>항목</td><td>내용</td><td></td></tr>'+rows.map(function(d){
+      return '<tr><td>'+esc(d.corner||d.region||'')+'</td><td><b>'+esc(d.title)+'</b><div style="color:#7a8580;font-size:11.5px">'+esc(d.meta||d.sub||'')+'</div></td>'+
+        '<td><button class="mini" data-rm="'+esc(d.id)+'">빼기</button></td></tr>';
+    }).join('')+'</table>' : '<p class="lead">저장한 항목이 없습니다. 카드의 ☆ 저장을 눌러 모아두세요.</p>';
+    showPanel('저장함 · '+rows.length+'건','브라우저(localStorage)에 저장됩니다. 같은 사이트의 다른 페이지에서도 유지됩니다.', body);
+    document.querySelectorAll('[data-rm]').forEach(function(b){
+      b.addEventListener('click', function(){ var i=saved.indexOf(b.dataset.rm); if(i>=0) saved.splice(i,1); save('saved',saved); openSaved(); apply(); });
+    });
+  }
+  function openCmp(){
+    var rows = cmp.map(function(id){ return byId[id]; }).filter(Boolean).filter(function(d){ return d.cmp; });
+    if(rows.length<2){ flash('비교할 항목을 2개 이상 담아주세요.'); return; }
+    var fields = CFG.compare;
+    var head = '<tr><th>항목</th>'+rows.map(function(d){ return '<th>'+esc(d.title)+'</th>'; }).join('')+'</tr>';
+    var body = fields.map(function(f){
+      return '<tr><th>'+esc(f.label)+'</th>'+rows.map(function(d){
+        var v = d.cmp[f.key]; return '<td>'+(v==null||v===''?'—':esc(v))+'</td>';
+      }).join('')+'</tr>';
+    }).join('');
+    var links = '<tr><th>링크</th>'+rows.map(function(d){
+      return '<td>'+(d.url?'<a href="'+esc(d.url)+'" target="_blank" rel="noopener">원문/홈페이지 ↗</a>':'—')+(d.link?'<br><a href="'+esc(d.link.href)+'" target="'+esc(d.link.target||'_self')+'">'+esc(d.link.label)+'</a>':'')+'</td>';
+    }).join('')+'</tr>';
+    showPanel('비교 · '+rows.length+'개','', '<div class="scrollx"><table class="cmp">'+head+body+links+'</table></div>');
+  }
+  function showPanel(title, sub, body){
+    el('pTitle').textContent = title; el('pSub').textContent = sub||'';
+    el('pBody').innerHTML = body; el('panel').classList.add('open');
+  }
+  function init(){
+    renderFilters();
+    var q=el('q'); if(q){ q.addEventListener('input', function(){ st.q=q.value.trim().toLowerCase(); apply(); }); }
+    var so=el('sort'); if(so){ so.addEventListener('change', function(){ st.sort=so.value; apply(); }); }
+    var r=el('reset'); if(r){ r.addEventListener('click', function(){
+      st.q=''; if(q) q.value=''; (CFG.filters||[]).forEach(function(f){ st[f.key]=[]; }); st.sort=CFG.defaultSort||'new'; if(so) so.value=st.sort;
+      updateChips(); apply(); }); }
+    var sb=el('savedBtn'); if(sb) sb.addEventListener('click', openSaved);
+    var cb=el('cmpBtn'); if(cb) cb.addEventListener('click', openCmp);
+    var px=el('pClose'); if(px) px.addEventListener('click', function(){ el('panel').classList.remove('open'); });
+    var pn=el('panel'); if(pn) pn.addEventListener('click', function(e){ if(e.target===pn) pn.classList.remove('open'); });
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ el('panel').classList.remove('open'); } });
+    apply();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+
+</body></html>

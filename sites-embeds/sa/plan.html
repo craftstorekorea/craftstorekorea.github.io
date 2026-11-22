@@ -1,0 +1,466 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>스터디어브로드 — 비용 계산기·비교</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap');
+:root{--bg:#F5F8FB;--bg-soft:#EDF2F7;--ink:#102436;--body:#40566B;--muted:#7A8B9C;
+--line:#DDE6EF;--line2:#CBD9E6;--acc:#12324F;--acc-ink:#0C2438;--acc-soft:#E8F0F7;
+--acc-line:#B9CFE2;--chip-bg:#EEF3F8;--chip-ink:#41586D;--chip-line:#DDE6EF;
+--hero:linear-gradient(135deg,#0E2A42 0%,#184A6B 55%,#2C6E8F 100%);--hero-soft:#CFE0EC;--hero-eyebrow:#8FC3DE}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'Nanum Gothic','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+     font-size:14px;line-height:1.62;-webkit-text-size-adjust:100%;overflow-x:hidden}
+a{color:var(--acc);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:1120px;margin:0 auto;padding:18px 18px 26px}
+button{font-family:inherit}
+/* hero */
+.hero{background:var(--hero);color:#fff;border-radius:18px;padding:26px 24px;position:relative;overflow:hidden}
+.hero:after{content:'';position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;
+  background:rgba(255,255,255,.07)}
+.eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--hero-eyebrow);margin:0 0 8px}
+.hero h1{margin:0 0 8px;font-size:26px;line-height:1.28;letter-spacing:-.02em;font-weight:800;color:#fff}
+.hero p{margin:0;font-size:13.5px;line-height:1.62;color:var(--hero-soft);max-width:760px}
+.stats{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0}
+.stat{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:11px;padding:7px 12px;min-width:96px}
+.stat b{display:block;font-size:18px;line-height:1.25;color:#fff;font-weight:800}
+.stat span{font-size:11px;color:var(--hero-soft)}
+/* section head */
+h2.sec{margin:26px 0 10px;font-size:17px;letter-spacing:-.01em;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px}
+h2.sec em{font-style:normal;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.04em}
+.lead{font-size:13px;color:var(--muted);margin:-4px 0 12px}
+/* cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:12px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 15px;display:flex;flex-direction:column;
+  gap:7px;transition:box-shadow .15s,border-color .15s;position:relative}
+.card:hover{border-color:var(--acc-line);box-shadow:0 6px 18px rgba(20,30,25,.07)}
+.card .tags{display:flex;flex-wrap:wrap;gap:5px}
+.tag{display:inline-flex;align-items:center;font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:2px 8px;border-radius:20px;
+  background:var(--chip-bg);color:var(--chip-ink);border:1px solid var(--chip-line)}
+.tag.acc{background:var(--acc-soft);color:var(--acc-ink);border-color:var(--acc-line)}
+.card h3{margin:0;font-size:14.5px;line-height:1.45;font-weight:800;letter-spacing:-.01em;color:var(--ink)}
+.card h3 a{color:inherit}
+.card p{margin:0;font-size:12.5px;line-height:1.62;color:var(--body)}
+.card .meta{margin-top:auto;font-size:11.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.card .meta .dot{opacity:.4}
+.clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.cardacts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.mini{font-size:11.5px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--body);border-radius:8px;
+  padding:4px 9px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.mini:hover{border-color:var(--acc-line);color:var(--acc)}
+.mini.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.mini.ghost{background:transparent}
+a.mini{text-decoration:none}
+/* filter bar */
+.bar{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin:16px 0 14px;position:relative;z-index:1}
+.searchrow{display:flex;gap:8px;flex-wrap:wrap}
+.searchrow input[type=search]{flex:1 1 240px;min-width:0;height:38px;border:1px solid var(--line2);border-radius:10px;
+  padding:0 12px;font-size:13.5px;font-family:inherit;background:var(--bg-soft);color:var(--ink)}
+.searchrow input[type=search]:focus{outline:2px solid var(--acc-line);outline-offset:-1px;border-color:var(--acc);background:#fff}
+.searchrow select{height:38px;border:1px solid var(--line2);border-radius:10px;padding:0 8px;font-size:12.5px;background:#fff;
+  color:var(--ink);font-family:inherit}
+.fgroup{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:8px}
+.flab{font-size:10.5px;font-weight:800;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-right:3px;min-width:34px}
+.chip{border:1px solid var(--line2);background:#fff;color:var(--body);border-radius:20px;padding:4px 10px;font-size:11.5px;
+  cursor:pointer;font-weight:700;white-space:nowrap}
+.chip em{font-style:normal;color:var(--muted);font-weight:400;margin-left:3px}
+.chip:hover{border-color:var(--acc-line);color:var(--acc)}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.chip.on em{color:rgba(255,255,255,.75)}
+.barfoot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;padding-top:9px;border-top:1px dashed var(--line)}
+.count{font-size:12px;color:var(--body)}
+.count b{color:var(--ink)}
+.reset{margin-left:auto;border:1px solid var(--line2);background:#fff;color:var(--body);font-size:11.5px;font-weight:700;
+  height:29px;padding:0 11px;border-radius:8px;cursor:pointer}
+.reset:hover{border-color:var(--acc);color:var(--acc)}
+/* tray */
+.tray{position:sticky;bottom:0;z-index:5;margin-top:16px;background:rgba(255,255,255,.97);backdrop-filter:blur(6px);
+  border:1px solid var(--line);border-radius:13px;box-shadow:0 -4px 20px rgba(20,30,25,.08);padding:10px 12px;
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tray .tinfo{font-size:12px;color:var(--body);display:flex;gap:10px;flex-wrap:wrap}
+.tray .tinfo b{color:var(--acc)}
+.tray .sp{flex:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:34px;padding:0 14px;border-radius:9px;
+  font-size:12.5px;font-weight:800;border:1px solid var(--acc);background:var(--acc);color:#fff;cursor:pointer;text-decoration:none}
+.btn:hover{filter:brightness(1.05);text-decoration:none}
+.btn.sec{background:#fff;color:var(--acc)}
+.btn.ghost{background:transparent;border-color:var(--line2);color:var(--body)}
+.btn.sm{height:30px;padding:0 11px;font-size:11.5px}
+/* panels & modal */
+.panel{position:fixed;inset:0;background:rgba(18,26,22,.5);z-index:50;display:none;align-items:flex-start;justify-content:center;
+  padding:20px 12px;overflow:auto}
+.panel.open{display:flex}
+.sheet{background:#fff;border-radius:16px;max-width:960px;width:100%;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.sheet h3{margin:0 0 4px;font-size:17px;font-weight:800}
+.sheet .sub{font-size:12px;color:var(--muted);margin:0 0 12px}
+.sheet .x{float:right;border:0;background:var(--bg-soft);border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:15px;color:var(--body)}
+table.cmp{width:100%;border-collapse:collapse;font-size:12px}
+table.cmp th,table.cmp td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+table.cmp th{background:var(--bg-soft);font-size:11px;color:var(--muted);font-weight:800;letter-spacing:.03em;width:120px}
+table.cmp tr:first-child th{width:auto}
+.scrollx{overflow-x:auto}
+/* blocks */
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.block{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 16px}
+.block h3{margin:0 0 6px;font-size:14.5px;font-weight:800}
+.block p{margin:0;font-size:12.5px;color:var(--body)}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+.kv:last-child{border-bottom:0}
+.kv b{color:var(--ink)}
+.note{background:var(--bg-soft);border:1px dashed var(--line2);border-radius:12px;padding:11px 13px;font-size:11.5px;color:var(--muted);margin-top:16px}
+.foot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;font-size:12px;color:var(--muted)}
+.empty{display:none;text-align:center;padding:36px 12px;color:var(--muted);font-size:13px}
+@media (max-width:640px){
+  .wrap{padding:12px 11px 20px}
+  .hero{padding:20px 16px;border-radius:14px}
+  .hero h1{font-size:21px}
+  .hero p{font-size:12.5px}
+  .grid{grid-template-columns:1fr;gap:10px}
+  .stat{min-width:86px;padding:6px 10px}
+  .stat b{font-size:16px}
+  h2.sec{font-size:15.5px;margin-top:20px}
+  .searchrow input[type=search]{flex:1 1 100%}
+  .flab{min-width:100%}
+  .sheet{padding:14px;border-radius:13px}
+  .tray{border-radius:11px}
+}
+</style></head><body class="">
+<div class="wrap">
+  <section class="hero">
+    <p class="eyebrow">COST CALCULATOR · SCHOLARSHIP REFUND · COMPARE</p>
+    <h1>예상 비용과 돌려받을 금액을<br>같은 화면에서</h1>
+    <p>국가·도시·과정을 고르면 4·12·24주 총비용과 도시 생활비를 합산해 실질 부담을 계산합니다. 관심 과정은 최대 3개까지 담아 나란히 비교할 수 있습니다.</p>
+    <div class="stats"><div class="stat"><b>124</b><span>계산 가능 과정</span></div><div class="stat"><b>31개국</b><span>54도시 생활비</span></div><div class="stat"><b>8%</b><span>플랫폼 마진 상한</span></div><div class="stat"><b>15%</b><span>학비 환급 상한</span></div></div>
+  </section>
+
+  <div class="calc">
+    <h2 class="sec" style="margin:0 0 10px">1 · 과정 선택 <em>SELECT A COURSE</em></h2>
+    <div class="calcgrid">
+      <div class="fld"><label>국가</label><select id="cCountry"></select></div>
+      <div class="fld"><label>과정</label><select id="cCourse"></select></div>
+      <div class="fld"><label>기간</label><select id="cWeeks"><option value="0">4주</option><option value="1" selected>12주</option><option value="2">24주</option></select></div>
+      <div class="fld"><label>생활 개월 수 <b id="cMonLbl" style="color:#12324F">3개월</b></label><input type="range" id="cMonths" min="1" max="12" value="3" step="1"></div>
+    </div>
+    <div class="out" id="cOut"></div>
+    <div class="brk" id="cBrk"></div>
+    <div class="pickbtns">
+      <button class="btn sm" id="cAdd">비교에 담기</button>
+      <button class="btn sm sec" id="cCmp">비교표 보기 <b id="cCnt">0</b></button>
+      <a class="btn sm ghost" href="https://sites.google.com/view/studyabroad-kr/scholarship">환급 구조 설명</a>
+      <a class="btn sm ghost" href="https://sites.google.com/view/studyabroad-kr/contact">상담·문의</a>
+    </div>
+    <p class="hint" id="cNote"></p>
+  </div>
+
+  <h2 class="sec">2 · 조건으로 찾기 <em>FILTER</em></h2>
+  <div class="bar">
+    <div class="searchrow"><input type="search" id="q" placeholder="국가·도시·기관·과정 검색 (예: 도예, 필리핀)" data-x="1">
+      <select id="sort"><option value="new">총비용 낮은 순</option><option value="old">총비용 높은 순</option><option value="title">과정 이름순</option></select></div>
+    <div id="filters"></div>
+    <div class="barfoot"><span class="count" id="count"></span><button class="reset" id="reset">필터 초기화</button></div>
+  </div>
+  <div class="grid" id="list"></div>
+  <p class="empty" id="empty">조건에 맞는 과정이 없습니다.</p>
+
+  <div class="tray" id="tray">
+    <div class="tinfo">비교 담김 <b id="nCmp">0</b> / 3</div><div class="sp"></div>
+    <button class="btn sm sec" id="savedBtn" style="display:none">저장함</button>
+    <button class="btn sm" id="cmpBtn">비교표</button>
+    <a class="btn sm ghost" href="https://sites.google.com/view/studyabroad-kr/contact">상담 신청</a>
+  </div>
+  <p class="note">총비용은 학비+등록·교재+숙소+보험+비자·행정비(항공권·용돈 제외)입니다. 생활비는 도시별 월 생활비(주거 제외) × 생활 개월 수로 더했습니다. 장학금 환급은 학비의 최대 15%(플랫폼 마진 8% 상한 구조) 기준의 예상치이며, 실제 금액은 상담에서 확정됩니다.</p>
+</div>
+<div class="panel" id="panel"><div class="sheet"><button class="x" id="pClose">×</button><h3 id="pTitle"></h3><p class="sub" id="pSub"></p><div id="pBody"></div></div></div>
+<style>
+.calc{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-top:16px}
+.calcgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.fld{display:flex;flex-direction:column;gap:5px;min-width:0}
+.fld label{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.05em}
+.fld select,.fld input[type=range]{width:100%}
+.fld select{height:38px;border:1px solid var(--line2);border-radius:9px;padding:0 8px;font-size:12.5px;background:#fff;color:var(--ink);font-family:inherit}
+.out{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px;margin-top:14px}
+.obox{background:var(--bg-soft);border:1px solid var(--line);border-radius:12px;padding:11px 12px}
+.obox span{display:block;font-size:11px;color:var(--muted);font-weight:700}
+.obox b{font-size:17px;color:var(--ink);font-weight:800;letter-spacing:-.01em}
+.obox.hl{background:#0E2A42;border-color:#0E2A42}
+.obox.hl span{color:#A9C8DC}.obox.hl b{color:#fff}
+.obox.good{background:#EAF7EF;border-color:#BFE3CB}
+.obox.good span{color:#3E7A55}.obox.good b{color:#1F6B41}
+.brk{margin-top:12px;font-size:12px;color:var(--body)}
+.brk .kv b{font-variant-numeric:tabular-nums}
+.hint{font-size:11.5px;color:var(--muted);margin-top:8px}
+.pickbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+</style>
+
+<script>window.__CFG__ = {"filters": [{"key": "country", "label": "국가", "values": ["괌", "뉴질랜드", "대만", "독일", "마카오", "말레이시아", "몰타", "미국", "미국(하와이)", "베트남", "사이판(CNMI)", "스페인", "싱가포르", "아랍에미리트", "아일랜드", "영국", "이탈리아", "일본", "조지아", "중국", "캐나다(BC)", "캐나다(노바스코샤)", "캐나다(온타리오)", "캐나다(퀘벡)", "태국", "포르투갈", "프랑스", "필리핀", "한국", "호주", "홍콩"]}, {"key": "region", "label": "권역", "values": ["북미", "아시아", "오세아니아", "유럽", "중동"]}, {"key": "type", "label": "기관", "values": ["공공·정부기관", "국제학교", "국제학교(사립 K-12)", "국제학교(사립 K-12·IB)", "국제학교(사립 K-12·기독교)", "국제학교(사립 K-12·기숙)", "국제학교(사립 K-8)", "대학부설", "문화원 부설", "사립어학원", "사립어학원( Instituto Cervantes 인증)", "사립어학원(IALC)", "사립어학원(Instituto Cervantes 인증)", "사립어학원(MIUR 공인)", "사립어학원(공인)", "사설(대학부설형)", "사설어학원", "사설어학원(CEA 인증)", "사설어학원(CRICOS)", "사설어학원(DLI)", "사설어학원(EduTrust)", "사설어학원(English NZ)", "사설어학원(IALC 인증)", "사설어학원(IELTS 시험센터)", "사설어학원(ILEP)", "사설어학원(SEVP)", "사설어학원(대학 캠퍼스)", "어학교", "어학교(법무성 고시)", "전문학교 부설", "컬리지(ELICOS)", "컬리지·직업학교(공립)"]}], "compare": [{"label": "국가·도시", "key": "place"}, {"label": "기관·과정", "key": "course"}, {"label": "학비 12주", "key": "tuition"}, {"label": "숙소 12주", "key": "accom"}, {"label": "12주 총비용", "key": "total"}, {"label": "주당 수업", "key": "hours"}, {"label": "무비자 수강", "key": "visa"}, {"label": "자녀 무상교육", "key": "child"}, {"label": "아르바이트", "key": "work"}, {"label": "신뢰도", "key": "reli"}], "ls": "sa", "defaultSort": "new"};window.__DATA__ = [{"id": "SG-01", "country": "싱가포르", "city": "싱가포르", "inst": "SLI (School of Language International)", "name": "General English (월·수·금)", "region": "아시아", "hours": "9h", "type": "사설어학원", "t": [1012000, 2355000, 3904000], "a": [1343000, 4028000, 8057000], "i": [0, 0, 0], "v": [null, 108000, 108000], "tot": [2355000, 6491000, 12069000], "at": "홈스테이 2인실(추정)", "visa": "조건부(30일 이내·단일 모듈만)", "child": "해당없음", "work": "불가", "reli": "확정", "living": 1556202, "living_incl": null, "rate": ""}, {"id": "SG-02", "country": "싱가포르", "city": "싱가포르", "inst": "Kaplan Singapore", "name": "영어 레벨과정 (레벨당 2개월)", "region": "아시아", "hours": "약 27.5h", "type": "사설어학원(EduTrust)", "t": [1548000, 4644000, 9288000], "a": [1549000, 4648000, 9296000], "i": [0, 0, 0], "v": [null, null, null], "tot": [4877000, 11071000, 20363000], "at": "홈스테이 2인실", "visa": "조건부(30일 이내·단일 모듈만)", "child": "해당없음", "work": "불가", "reli": "추정", "living": 1556202, "living_incl": null, "rate": ""}, {"id": "SG-03", "country": "싱가포르", "city": "싱가포르", "inst": "EIS (Edvantage Institute)", "name": "Certificate in International English", "region": "아시아", "hours": "15h", "type": "사설어학원(EduTrust)", "t": [671000, 2014000, 4493000], "a": [1343000, 4028000, 8057000], "i": [186000, 186000, 186000], "v": [null, null, null], "tot": [2893000, 6921000, 13614000], "at": "홈스테이 2인실(추정)", "visa": "조건부(30일 이내·단일 모듈만)", "child": "해당없음", "work": "불가", "reli": "확정", "living": 1556202, "living_incl": null, "rate": ""}, {"id": "SG-04", "country": "싱가포르", "city": "싱가포르", "inst": "Inlingua Singapore", "name": "Intensive General English", "region": "아시아", "hours": "25h", "type": "사설어학원", "t": [2566000, 7536000, 13428000], "a": [1343000, 4028000, 8057000], "i": [0, 0, 0], "v": [null, 108000, 108000], "tot": [3908000, 11672000, 21592000], "at": "홈스테이 2인실(추정)", "visa": "조건부(30일 이내·단일 모듈만)", "child": "해당없음", "work": "불가", "reli": "추정", "living": 1556202, "living_incl": null, "rate": ""}, {"id": "SG-05", "country": "싱가포르", "city": "싱가포르", "inst": "Dimensions International College", "name": "일반영어 24주", "region": "아시아", "hours": "6h/일", "type": "사설(대학부설형)", "t": [1085000, 3099000, 5702000], "a": [1136000, 3409000, 6817000], "i": [0, 0, 0], "v": [null, 108000, 108000], "tot": [2221000, 6615000, 12627000], "at": "자체 기숙사", "visa": "조건부(30일 이내·단일 모듈만)", "child": "해당없음", "work": "불가", "reli": "추정", "living": 1556202, "living_incl": null, "rate": ""}, {"id": "HK-01", "country": "홍콩", "city": "홍콩섬", "inst": "Q Language", "name": "집중 영어 24h/주", "region": "아시아", "hours": "24h", "type": "사설어학원", "t": [2879000, 7639000, null], "a": [1698000, 5092000, 10185000], "i": [0, 0, 0], "v": [56000, 56000, 56000], "tot": [4632000, 12787000, null], "at": "홈스테이/스튜디오", "visa": "불가(학생비자 필수)", "child": "해당없음", "work": "불가", "reli": "확정", "living": 1498519, "living_incl": null, "rate": ""}, {"id": "HK-02", "country": "홍콩", "city": "홍콩섬(완차이)", "inst": "HKLLC", "name": "광둥어·보통화 단기", "region": "아시아", "hours": "20~40h/2주", "type": "사설어학원", "t": [2030000, 5941000, null], "a": [1698000, 5092000, 10185000], "i": [0, 0, 0], "v": [56000, 56000, 56000], "tot": [3784000, 11090000, null], "at": "홈스테이/스튜디오", "visa": "불가(학생비자 필수)", "child": "해당없음", "work": "불가", "reli": "추정", "living": 1498519, "living_incl": null, "rate": ""}, {"id": "HK-03", "country": "홍콩", "city": "홍콩(사틴)", "inst": "CUHK Yale-China Chinese Language Centre", "name": "중국어 정규(주 15회)", "region": "아시아", "hours": "15회/주", "type": "대학부설", "t": [null, null, null], "a": [1698000, 5092000, 10185000], "i": [0, 0, 0], "v": [56000, 56000, 56000], "tot": [null, null, null], "at": "기숙사/홈스테이", "visa": "불가(학생비자 필수)", "child": "해당없음", "work": "불가", "reli": "확인필요", "living": 1498519, "living_incl": null, "rate": ""}, {"id": "MO-01", "country": "마카오", "city": "마카오", "inst": "IPOR (동방포르투갈어학회)", "name": "포르투갈어 집중 120h/8주", "region": "아시아", "hours": "주 5일 야간", "type": "공공·정부기관", "t": [626000, 1813000, null], "a": [1154000, 3461000, 6922000], "i": [0, 0, 0], "v": [null, null, null], "tot": [1884000, 5377000, null], "at": "룸셰어/스튜디오", "visa": "조건부(기관 확인 필요)", "child": "해당없음", "work": "불가", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "MO-02", "country": "마카오", "city": "마카오(타이파)", "inst": "마카오대학교(UMA)", "name": "포르투갈어 여름과정 3주 60h", "region": "아시아", "hours": "주 5일 오전", "type": "대학부설", "t": [1154000, null, null], "a": [null, null, null], "i": [0, 0, 0], "v": [null, null, null], "tot": [1154000, null, null], "at": "숙소·식사 바우처 포함", "visa": "조건부(기관 확인 필요)", "child": "해당없음", "work": "불가", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "MO-03", "country": "마카오", "city": "마카오", "inst": "Focus / Plato 등 사설센터", "name": "성인 영어·중국어 그룹반", "region": "아시아", "hours": "주 1~2회", "type": "사설어학원", "t": [277000, null, null], "a": [1154000, 3461000, 6922000], "i": [0, 0, 0], "v": [null, null, null], "tot": [1430000, null, null], "at": "룸셰어/스튜디오", "visa": "조건부(기관 확인 필요)", "child": "해당없음", "work": "불가", "reli": "추정", "living": null, "living_incl": null, "rate": ""}, {"id": "MY-01", "country": "말레이시아", "city": "쿠알라룸푸르(KLCC)", "inst": "EMS 어학원", "name": "집중 일반영어 6h/일", "region": "아시아", "hours": "약 30h", "type": "사설어학원", "t": [809000, 2428000, 4856000], "a": [486000, 1457000, 2913000], "i": [0, 0, 0], "v": [null, null, 650000], "tot": [1457000, 4046000, 8581000], "at": "콘도 셰어/호텔", "visa": "가능", "child": "해당없음", "work": "불가", "reli": "확정", "living": 763129, "living_incl": null, "rate": ""}, {"id": "MY-02", "country": "말레이시아", "city": "쿠알라룸푸르(KLCC)", "inst": "ERICAN 어학원", "name": "인터내셔널 영어 24h/주", "region": "아시아", "hours": "24h", "type": "사설어학원", "t": [961000, 2642000, 5164000], "a": [486000, 1457000, 2913000], "i": [0, 0, 0], "v": [null, null, 650000], "tot": [1592000, 4390000, 9213000], "at": "연계 숙소(셰어 RM1,250~ / 스튜디오 RM2,900~)", "visa": "가능", "child": "해당없음", "work": "불가", "reli": "확정", "living": 763129, "living_incl": null, "rate": ""}, {"id": "MY-03", "country": "말레이시아", "city": "조호바루(에듀시티)", "inst": "MEC 어학원", "name": "일반영어 BASIC(그룹4+1:1)", "region": "아시아", "hours": "주 25~40교시", "type": "사설어학원(IELTS 시험센터)", "t": [1716000, 4676000, 9002000], "a": [594000, 1782000, 3564000], "i": [0, 0, 0], "v": [null, null, 700000], "tot": [2310000, 6458000, 13266000], "at": "성인 숙소(1개월 59.4만~178만)", "visa": "가능", "child": "해당없음", "work": "불가", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "MY-04", "country": "말레이시아", "city": "쿠알라룸푸르(KLCC)", "inst": "Bright Language Center", "name": "집중 영어", "region": "아시아", "hours": "주 20~25h", "type": "사설어학원", "t": [971000, 2104000, 4988000], "a": [486000, 1457000, 2913000], "i": [0, 0, 0], "v": [null, null, null], "tot": [1457000, 3561000, 7902000], "at": "숙소 별도", "visa": "가능", "child": "해당없음", "work": "불가", "reli": "확정", "living": 763129, "living_incl": null, "rate": ""}, {"id": "MY-05", "country": "말레이시아", "city": "쿠알라룸푸르", "inst": "British Council Malaysia", "name": "Smart English (월~금 10:00~16:00)", "region": "아시아", "hours": "약 25h", "type": "공공·정부기관", "t": [1235000, 3706000, null], "a": [486000, 1457000, 2913000], "i": [0, 0, 0], "v": [null, null, null], "tot": [1721000, 5162000, null], "at": "숙소 별도", "visa": "가능", "child": "해당없음", "work": "불가", "reli": "확정", "living": 763129, "living_incl": null, "rate": ""}, {"id": "PH-01", "country": "필리핀", "city": "세부", "inst": "CG 바닐라드", "name": "General ESL(1:1+그룹)", "region": "아시아", "hours": "주 30~40h", "type": "사설어학원", "t": [850000, 2400000, 4800000], "a": [800000, 2400000, 4800000], "i": [0, 0, 0], "v": [270000, 1000000, 1500000], "tot": [2020000, 5900000, 11200000], "at": "기숙사 3인실(식사 포함)", "visa": "가능(SSP 필수)", "child": "해당없음", "work": "불가", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "PH-02", "country": "필리핀", "city": "바기오", "inst": "JIC Challenger", "name": "ESL Flex(스파르타)", "region": "아시아", "hours": "주 40h+", "type": "사설어학원", "t": [800000, 2300000, 4600000], "a": [750000, 2250000, 4500000], "i": [0, 0, 0], "v": [270000, 1000000, 1500000], "tot": [1920000, 5650000, 10700000], "at": "기숙사 4인실(식사 포함)", "visa": "가능(SSP 필수)", "child": "해당없음", "work": "불가", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "PH-03", "country": "필리핀", "city": "세부", "inst": "CPI", "name": "General English", "region": "아시아", "hours": "주 30~40h", "type": "사설어학원", "t": [970000, 2800000, 5600000], "a": [910000, 2730000, 5460000], "i": [0, 0, 0], "v": [270000, 1000000, 1500000], "tot": [2250000, 6630000, 12660000], "at": "기숙사 3인실(식사 포함)", "visa": "가능(SSP 필수)", "child": "해당없음", "work": "불가", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "PH-04", "country": "필리핀", "city": "세부", "inst": "EV Academy", "name": "ESL Classic", "region": "아시아", "hours": "주 30~40h", "type": "사설어학원", "t": [1080000, 3100000, 6200000], "a": [1080000, 3240000, 6480000], "i": [0, 0, 0], "v": [270000, 1000000, 1500000], "tot": [2530000, 7440000, 14280000], "at": "기숙사 3인실(식사 포함)", "visa": "가능(SSP 필수)", "child": "해당없음", "work": "불가", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "AE-01", "country": "아랍에미리트", "city": "두바이", "inst": "ES Dubai", "name": "Semi-Intensive(주 15레슨)", "region": "중동", "hours": "15h", "type": "사설어학원", "t": [1625000, 4581000, 8336000], "a": [1145000, 3435000, 6871000], "i": [0, 0, 0], "v": [null, null, 860000], "tot": [2996000, 8242000, 16379000], "at": "4성 호텔 셰어(주 $215)", "visa": "가능(90일 이내)", "child": "해당없음", "work": "불가", "reli": "확정", "living": 1547357, "living_incl": null, "rate": ""}, {"id": "AE-02", "country": "아랍에미리트", "city": "두바이", "inst": "English Path Dubai", "name": "Classic Morning(주 20레슨)", "region": "중동", "hours": "20h", "type": "사설어학원", "t": [1864000, 5233000, 9787000], "a": [1238000, 3715000, 7430000], "i": [0, 0, 0], "v": [null, null, 860000], "tot": [3103000, 8948000, 18077000], "at": "셰어 아파트(주 $215)", "visa": "가능(90일 이내)", "child": "해당없음", "work": "불가", "reli": "확정", "living": 1547357, "living_incl": null, "rate": ""}, {"id": "MT-01", "country": "몰타", "city": "세인트줄리안", "inst": "IH Malta", "name": "General English 20 (주 15h)", "region": "유럽", "hours": "15h", "type": "사설어학원", "t": [1637000, 3070000, 5614000], "a": [789000, 2368000, 4737000], "i": [0, 0, 0], "v": [null, null, 200000], "tot": [2427000, 5439000, 10551000], "at": "Belview 레지던스 트리플 셰어(주 €135)", "visa": "가능(90일 이내)", "child": "조건부(연 €465.87~559.05)", "work": "조건부", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "MT-02", "country": "몰타", "city": "세인트줄리안", "inst": "EC Malta", "name": "General English 20", "region": "유럽", "hours": "15h", "type": "사설어학원", "t": [1637000, 4211000, 7895000], "a": [1140000, 3421000, 6842000], "i": [0, 0, 0], "v": [null, null, 200000], "tot": [2958000, 7893000, 15229000], "at": "Campus Hub 트윈(주 €195)", "visa": "가능(90일 이내)", "child": "조건부(연 €465.87~559.05)", "work": "조건부", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "MT-03", "country": "몰타", "city": "세인트줄리안/고조", "inst": "BELS Malta", "name": "General English Standard 20", "region": "유럽", "hours": "15h", "type": "사설어학원", "t": [1462000, 3509000, 7018000], "a": [1228000, 3684000, 7368000], "i": [0, 0, 0], "v": [null, null, 200000], "tot": [2690000, 7317000, 14710000], "at": "트윈 레지던스(주 €210→€150)", "visa": "가능(90일 이내)", "child": "조건부(연 €465.87~559.05)", "work": "조건부", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "IE-01", "country": "아일랜드", "city": "더블린", "inst": "Everest Language School", "name": "Academic Year 25주(주 15~20h)", "region": "유럽", "hours": "15~20h", "type": "사설어학원(ILEP)", "t": [950000, 2193000, 4079000], "a": [1608000, 4825000, 9649000], "i": [0, 0, 0], "v": [null, null, 450000], "tot": [2558000, 7018000, 14178000], "at": "홈스테이(주 €275)", "visa": "가능(3개월 이내 단기)", "child": "불가(주립학교 입학권 없음)", "work": "가능", "reli": "확정", "living": 1593131, "living_incl": null, "rate": "40"}, {"id": "IE-02", "country": "아일랜드", "city": "리머릭", "inst": "Language Learning Centre", "name": "General English AM(주 15h)", "region": "유럽", "hours": "15h", "type": "사설어학원(ILEP)", "t": [936000, 2632000, 4912000], "a": [1754000, 5263000, 10526000], "i": [0, 0, 219000], "v": [null, null, 450000], "tot": [2763000, 7968000, 16181000], "at": "홈스테이 €300/주 / 셰어 €220/주", "visa": "가능(3개월 이내 단기)", "child": "불가(주립학교 입학권 없음)", "work": "가능", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "IE-03", "country": "아일랜드", "city": "더블린", "inst": "Citas College Dublin", "name": "General English 25주(주 15h)", "region": "유럽", "hours": "15h", "type": "사설어학원(ILEP)", "t": [null, null, 3582000], "a": [1827000, 5482000, 10965000], "i": [0, 0, 0], "v": [null, null, 450000], "tot": [null, null, 14997000], "at": "홈스테이/레지던스", "visa": "가능(3개월 이내 단기)", "child": "불가(주립학교 입학권 없음)", "work": "가능", "reli": "확정", "living": 1593131, "living_incl": null, "rate": "40"}, {"id": "CA-QC-01", "country": "캐나다(퀘벡)", "city": "몬트리올", "inst": "ILSC Montréal", "name": "Full-Time Morning 24레슨", "region": "북미", "hours": "20h", "type": "사설어학원(DLI)", "t": [1563000, 4688000, 8930000], "a": [930000, 2791000, 5581000], "i": [78000, 234000, 469000], "v": [null, 260000, 260000], "tot": [2794000, 8271000, 15650000], "at": "홈스테이(월 CAD 1,000)", "visa": "가능(6개월 이내)", "child": "불가(ESL) / 가능(직업훈련·고등교육 재학 시)", "work": "조건부", "reli": "확정", "living": 1228741, "living_incl": null, "rate": "64"}, {"id": "CA-NS-01", "country": "캐나다(노바스코샤)", "city": "핼리팩스", "inst": "Oxford International Halifax (구 ECSL)", "name": "Morning 20 (주 15h)", "region": "북미", "hours": "15h", "type": "사설어학원(DLI)", "t": [1340000, 4019000, 8037000], "a": [884000, 2651000, 5302000], "i": [81000, 242000, 485000], "v": [null, 260000, 260000], "tot": [2476000, 7474000, 14517000], "at": "홈스테이(월 CAD 950)", "visa": "가능(6개월 이내)", "child": "가능(학업허가 보유 시 과정 무관)", "work": "조건부", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "CA-NS-02", "country": "캐나다(노바스코샤)", "city": "핼리팩스", "inst": "Oxford International Halifax — English for Parents", "name": "English for Parents 26레슨(28~40주)", "region": "북미", "hours": "26레슨", "type": "사설어학원(DLI)", "t": [1600000, 4800000, 11200000], "a": [884000, 2651000, 5302000], "i": [81000, 242000, 808000], "v": [null, 260000, 260000], "tot": [2737000, 8255000, 18133000], "at": "홈스테이(월 CAD 950)", "visa": "가능(6개월 이내)", "child": "가능(학업허가 보유 시 과정 무관)", "work": "조건부", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "GE-01", "country": "조지아", "city": "트빌리시", "inst": "IH Tbilisi", "name": "General English Adult (주 3회 90분)", "region": "유럽", "hours": "4.5h", "type": "사설어학원", "t": [195000, 586000, 1172000], "a": [463000, 1388000, 2775000], "i": [0, 0, 0], "v": [null, null, null], "tot": [658000, 1973000, 3947000], "at": "원룸/셰어(월 GEL 900)", "visa": "가능", "child": "확인필요", "work": "가능", "reli": "확정", "living": 919005, "living_incl": null, "rate": ""}, {"id": "GE-02", "country": "조지아", "city": "트빌리시", "inst": "ALC Tbilisi", "name": "General English 3개월", "region": "유럽", "hours": "주 2회 90분", "type": "사설어학원", "t": [128000, 385000, 771000], "a": [463000, 1388000, 2775000], "i": [0, 0, 0], "v": [null, null, null], "tot": [591000, 1773000, 3546000], "at": "원룸/셰어", "visa": "가능", "child": "확인필요", "work": "가능", "reli": "확정", "living": 919005, "living_incl": null, "rate": ""}, {"id": "GE-03", "country": "조지아", "city": "트빌리시", "inst": "Studio Lingo", "name": "성인 그룹(주 2회 90분, 3개월)", "region": "유럽", "hours": "3h", "type": "사설어학원", "t": [144000, 432000, 863000], "a": [463000, 1388000, 2775000], "i": [0, 0, 0], "v": [null, null, null], "tot": [606000, 1819000, 3638000], "at": "원룸/셰어", "visa": "가능", "child": "확인필요", "work": "가능", "reli": "확정", "living": 919005, "living_incl": null, "rate": ""}, {"id": "GE-04", "country": "조지아", "city": "트빌리시", "inst": "British Council Georgia", "name": "모듈 32시간", "region": "유럽", "hours": "주 2~3회 120분", "type": "공공·정부기관", "t": [401000, null, null], "a": [463000, 1388000, 2775000], "i": [0, 0, 0], "v": [null, null, null], "tot": [863000, null, null], "at": "원룸/셰어", "visa": "가능", "child": "확인필요", "work": "가능", "reli": "확정", "living": 919005, "living_incl": null, "rate": ""}, {"id": "DE-01", "country": "독일", "city": "베를린·뮌헨 등", "inst": "Goethe-Institut", "name": "집중 독일어 75레슨/3주", "region": "유럽", "hours": "약 25h", "type": "공공·정부기관", "t": [2237000, 6711000, 13421000], "a": [892000, 2675000, 5351000], "i": [0, 0, 0], "v": [null, 150000, 150000], "tot": [3129000, 9536000, 18922000], "at": "홈스테이/게스트하우스(4주 €610)", "visa": "가능(90일 이내)", "child": "가능(공립 무료) / 단 어학비자로는 가족 동반 불가", "work": "가능", "reli": "확정", "living": 1532312, "living_incl": null, "rate": "59"}, {"id": "KR-01", "country": "한국", "city": "서울(신촌)", "inst": "연세대 한국어학당(KLI)", "name": "정규과정 오전반(10주·200시간)", "region": "아시아", "hours": "20h", "type": "대학부설", "t": [null, 1860000, 3720000], "a": [700000, 2100000, 4200000], "i": [0, 0, 240000], "v": [null, 60000, 60000], "tot": [null, 4200000, 8460000], "at": "기숙사 2인실 학기 98만~198만 / 콜리빙 월 90만~140만", "visa": "해당없음(자국)", "child": "해당없음", "work": "조건부", "reli": "확정", "living": 1539721, "living_incl": null, "rate": "37"}, {"id": "KR-02", "country": "한국", "city": "서울(관악)", "inst": "서울대 언어교육원(LEI)", "name": "한국어 정규과정 오전반(10주)", "region": "아시아", "hours": "20h", "type": "대학부설", "t": [null, 1800000, 3600000], "a": [650000, 1950000, 3900000], "i": [0, 0, 240000], "v": [null, 60000, 60000], "tot": [null, 3930000, 7980000], "at": "기숙사(관악생활관) 또는 콜리빙", "visa": "해당없음(자국)", "child": "해당없음", "work": "조건부", "reli": "확정", "living": 1539721, "living_incl": null, "rate": "37"}, {"id": "KR-03", "country": "한국", "city": "서울(마포)", "inst": "서강대 한국어교육원(KLEC)", "name": "정규과정(10주·주 20시간)", "region": "아시아", "hours": "20h", "type": "대학부설", "t": [null, 1860000, 3720000], "a": [700000, 2100000, 4200000], "i": [0, 0, 240000], "v": [null, 60000, 60000], "tot": [null, 4140000, 8400000], "at": "기숙사(곤자가·벨라르미노) 또는 콜리빙", "visa": "해당없음(자국)", "child": "해당없음", "work": "조건부", "reli": "확정", "living": 1539721, "living_incl": null, "rate": "37"}, {"id": "KR-04", "country": "한국", "city": "서울(안암)", "inst": "고려대 한국어센터(KLC)", "name": "일반 한국어(10주)", "region": "아시아", "hours": "20h", "type": "대학부설", "t": [null, 1800000, 3600000], "a": [680000, 2040000, 4080000], "i": [0, 0, 240000], "v": [null, 60000, 60000], "tot": [null, 4080000, 8220000], "at": "기숙사 또는 콜리빙", "visa": "해당없음(자국)", "child": "해당없음", "work": "조건부", "reli": "확정", "living": 1539721, "living_incl": null, "rate": "37"}, {"id": "KR-05", "country": "한국", "city": "서울(신촌)", "inst": "이화여대 언어교육원", "name": "한국어 정규과정(10주)", "region": "아시아", "hours": "20h", "type": "대학부설", "t": [null, 1740000, 3480000], "a": [700000, 2100000, 4200000], "i": [0, 0, 240000], "v": [null, 60000, 60000], "tot": [null, 4036000, 8173000], "at": "기숙사 또는 콜리빙", "visa": "해당없음(자국)", "child": "해당없음", "work": "조건부", "reli": "확정", "living": 1539721, "living_incl": null, "rate": "37"}, {"id": "KR-06", "country": "한국", "city": "서울(종로)", "inst": "성균관대 한국어학습센터", "name": "한국어 정규과정(10주)", "region": "아시아", "hours": "20h", "type": "대학부설", "t": [null, 1780000, 3560000], "a": [700000, 2100000, 4200000], "i": [0, 0, 240000], "v": [null, 60000, 60000], "tot": [null, 4080000, 8260000], "at": "기숙사 또는 콜리빙", "visa": "해당없음(자국)", "child": "해당없음", "work": "조건부", "reli": "확정", "living": 1539721, "living_incl": null, "rate": "37"}, {"id": "JP-01", "country": "일본", "city": "도쿄(분쿄)", "inst": "ARC 도쿄일본어학교", "name": "일반유학 1년 / 집중일본어 3개월", "region": "아시아", "hours": "20h", "type": "어학교(법무성 고시)", "t": [593000, 1789000, 3578000], "a": [752000, 2257000, 4514000], "i": [0, 0, 0], "v": [null, null, null], "tot": [1346000, 4046000, 8092000], "at": "게스트하우스 월 65,000~80,000엔 / 기숙사", "visa": "가능(단기체류 90일 이내)", "child": "해당없음", "work": "가능", "reli": "확정", "living": 1165130, "living_incl": null, "rate": "57"}, {"id": "JP-02", "country": "일본", "city": "도쿄(신주쿠)", "inst": "나가누마스쿨(도쿄일본어학교)", "name": "커뮤니케이션 일본어(4주·3개월·1년)", "region": "아시아", "hours": "20h", "type": "어학교(법무성 고시)", "t": [1530000, 2758000, 5517000], "a": [752000, 2257000, 4514000], "i": [0, 0, 0], "v": [null, null, null], "tot": [2282000, 5015000, 10031000], "at": "게스트하우스 / 홈스테이 4주 102,400엔", "visa": "가능(단기체류 90일 이내)", "child": "해당없음", "work": "가능", "reli": "확정", "living": 1165130, "living_incl": null, "rate": "57"}, {"id": "TW-01", "country": "대만", "city": "타이베이", "inst": "국립대만사범대학 중국어교육원(MTC)", "name": "정규반 A(주 15시간, 6~10명)", "region": "아시아", "hours": "15h", "type": "대학부설", "t": [null, 1216000, 2432000], "a": [364000, 1091000, 2182000], "i": [0, 11000, 22000], "v": [null, null, null], "tot": [null, 2500000, 4899000], "at": "기숙사·셰어(월 NT$8,000~12,000)", "visa": "가능(90일 무비자로 1학기)", "child": "해당없음", "work": "조건부", "reli": "확정", "living": 1099631, "living_incl": null, "rate": "40"}, {"id": "TW-02", "country": "대만", "city": "타이베이", "inst": "국립대만사범대학 MTC", "name": "집중반 A(주 15시간, 6~9명)", "region": "아시아", "hours": "15h", "type": "대학부설", "t": [null, 1640000, 3280000], "a": [364000, 1091000, 2182000], "i": [0, 11000, 22000], "v": [null, null, null], "tot": [null, 2924000, 5747000], "at": "기숙사·셰어", "visa": "가능(90일 무비자로 1학기)", "child": "해당없음", "work": "조건부", "reli": "확정", "living": 1099631, "living_incl": null, "rate": "40"}, {"id": "CN-01", "country": "중국", "city": "베이징", "inst": "베이징어언대학(BLCU)", "name": "일반 중국어(학기)", "region": "아시아", "hours": "20h", "type": "대학부설", "t": [998000, 2075000, 4151000], "a": [599000, 1796000, 3592000], "i": [0, 0, 0], "v": [null, null, null], "tot": [1716000, 4390000, 8262000], "at": "캠퍼스 기숙사(월 RMB 2,500~3,500)", "visa": "불가(무비자로 수업 불가)", "child": "해당없음", "work": "불가", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "CN-02", "country": "중국", "city": "베이징", "inst": "베이징어언대학(BLCU)", "name": "단기 집중 중국어(4~8주)", "region": "아시아", "hours": "20h", "type": "대학부설", "t": [1197000, null, null], "a": [599000, 1796000, 3592000], "i": [0, 0, 0], "v": [null, null, null], "tot": [1916000, null, null], "at": "캠퍼스 기숙사", "visa": "불가(무비자로 수업 불가)", "child": "해당없음", "work": "불가", "reli": "추정", "living": null, "living_incl": null, "rate": ""}, {"id": "VN-01", "country": "베트남", "city": "호치민", "inst": "USSH 외국인 베트남어센터", "name": "정규 베트남어(2개월·80교시)", "region": "아시아", "hours": "주 4~5회", "type": "대학부설", "t": [186000, 559000, 1118000], "a": [414000, 1242000, 2484000], "i": [0, 0, 0], "v": [null, null, null], "tot": [600000, 1801000, 3602000], "at": "아파트·룸셰어(월 800만동~)", "visa": "조건부(45일 이내 단기)", "child": "해당없음", "work": "불가", "reli": "추정", "living": 638927, "living_incl": null, "rate": ""}, {"id": "VN-02", "country": "베트남", "city": "하노이", "inst": "ILCRA 문화언어교육원", "name": "베트남어 기초반(주 3회·1회 285,000동)", "region": "아시아", "hours": "7.5h", "type": "사설어학원", "t": [207000, 620000, 1239000], "a": [362000, 1087000, 2174000], "i": [0, 0, 0], "v": [null, null, null], "tot": [569000, 1707000, 3413000], "at": "아파트·룸셰어(월 700만동~)", "visa": "조건부(45일 이내 단기)", "child": "해당없음", "work": "불가", "reli": "추정", "living": null, "living_incl": null, "rate": ""}, {"id": "VN-03", "country": "베트남", "city": "호치민", "inst": "Saigon Language Center", "name": "베트남어 20회(개인·소그룹)", "region": "아시아", "hours": "회당 45분", "type": "사설어학원", "t": [373000, 1118000, 2236000], "a": [414000, 1242000, 2484000], "i": [0, 0, 0], "v": [null, null, null], "tot": [787000, 2360000, 4721000], "at": "아파트·룸셰어", "visa": "조건부(45일 이내 단기)", "child": "해당없음", "work": "불가", "reli": "추정", "living": 638927, "living_incl": null, "rate": ""}, {"id": "TH-01", "country": "태국", "city": "방콕", "inst": "Bangkok Language School", "name": "영어 + ED비자 패키지(7.5·12개월)", "region": "아시아", "hours": "주 2회", "type": "사설어학원", "t": [294000, 882000, 1785000], "a": [471000, 1412000, 2824000], "i": [0, 0, 0], "v": [null, null, null], "tot": [765000, 2294000, 4608000], "at": "콘도 월 10,000~15,000바트", "visa": "가능(90일 이내 단기)", "child": "해당없음", "work": "불가", "reli": "확정", "living": 925659, "living_incl": null, "rate": ""}, {"id": "TH-02", "country": "태국", "city": "방콕", "inst": "Duke Language School", "name": "영어 30시간 과정(1~10과정)", "region": "아시아", "hours": "30h/과정", "type": "사설어학원", "t": [388000, 1055000, 2012000], "a": [471000, 1412000, 2824000], "i": [0, 0, 0], "v": [null, null, null], "tot": [882000, 2490000, 4859000], "at": "콘도·아파트", "visa": "가능(90일 이내 단기)", "child": "해당없음", "work": "불가", "reli": "추정", "living": 925659, "living_incl": null, "rate": ""}, {"id": "US-01", "country": "미국", "city": "전 지점(11곳)", "inst": "ELS Language Centers", "name": "Intensive English 30레슨", "region": "북미", "hours": "30레슨", "type": "사설어학원(대학 캠퍼스)", "t": [3036000, 8469000, 15979000], "a": [1465000, 4394000, 8788000], "i": [266000, 799000, 1598000], "v": [712000, 712000, 712000], "tot": [5892000, 15080000, 28222000], "at": "홈스테이(주 $250 내외)", "visa": "불가(B1/B2·ESTA 정규 어학 불가)", "child": "해당없음(학군별 유료)", "work": "", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "US-02", "country": "미국", "city": "뉴욕", "inst": "Kaplan International New York", "name": "General English 20레슨", "region": "북미", "hours": "15h", "type": "사설어학원", "t": [2983000, 7989000, 14381000], "a": [2290000, 6871000, 13742000], "i": [0, 0, 0], "v": [712000, 712000, 712000], "tot": [6251000, 15839000, 29101000], "at": "홈스테이(주 $430)", "visa": "불가(B1/B2·ESTA 정규 어학 불가)", "child": "해당없음(학군별 유료)", "work": "", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "UK-01", "country": "영국", "city": "런던", "inst": "EC London", "name": "General English 20레슨", "region": "유럽", "hours": "15h", "type": "사설어학원", "t": [1786000, 5358000, 9911000], "a": [1825000, 5474000, 10947000], "i": [0, 253000, 505000], "v": [null, null, null], "tot": [3716000, 11337000, 21653000], "at": "홈스테이 싱글 B&B(주 £240)", "visa": "가능(방문자 6개월 이내)", "child": "해당없음", "work": "조건부", "reli": "확정", "living": 1942110, "living_incl": null, "rate": "20"}, {"id": "UK-02", "country": "영국", "city": "런던", "inst": "St Giles London Central", "name": "Peak Morning 20레슨", "region": "유럽", "hours": "16.7h", "type": "사설어학원", "t": [2695000, 7158000, 12590000], "a": [2082000, 6247000, 12495000], "i": [0, 0, 0], "v": [null, null, null], "tot": [4926000, 13633000, 25312000], "at": "홈스테이 싱글 하프보드(주 £274)", "visa": "가능(방문자 6개월 이내)", "child": "해당없음", "work": "조건부", "reli": "확정", "living": 1942110, "living_incl": null, "rate": "20"}, {"id": "AU-01", "country": "호주", "city": "시드니", "inst": "ILSC Sydney", "name": "Full-Time Morning 24레슨(20h)", "region": "오세아니아", "hours": "20h", "type": "사설어학원(CRICOS)", "t": [1647000, 4727000, 9024000], "a": [1253000, 3760000, 7520000], "i": [50000, 150000, 301000], "v": [null, 1835000, 1835000], "tot": [3228000, 10857000, 19307000], "at": "홈스테이(주 A$350)", "visa": "가능(방문자 3개월 이내)", "child": "불가(ELICOS 자녀 유료)", "work": "가능", "reli": "확정", "living": 1647816, "living_incl": null, "rate": "62"}, {"id": "AU-02", "country": "호주", "city": "시드니", "inst": "Kaplan Business School", "name": "English for Academic Purposes 20h", "region": "오세아니아", "hours": "20h", "type": "컬리지(ELICOS)", "t": [1719000, 5157000, 10313000], "a": [1253000, 3760000, 7520000], "i": [50000, 150000, 301000], "v": [null, 1835000, 1835000], "tot": [3291000, 11171000, 20238000], "at": "홈스테이·셰어", "visa": "가능(방문자 3개월 이내)", "child": "불가(ELICOS 자녀 유료)", "work": "가능", "reli": "확정", "living": 1647816, "living_incl": null, "rate": "62"}, {"id": "NZ-01", "country": "뉴질랜드", "city": "오클랜드", "inst": "Languages International", "name": "General English Full-time(23h)", "region": "오세아니아", "hours": "23h", "type": "사설어학원(English NZ)", "t": [1449000, 4348000, 8697000], "a": [1269000, 3806000, 7612000], "i": [0, 0, 0], "v": [null, 622000, 622000], "tot": [3022000, 9080000, 17235000], "at": "홈스테이(주 NZ$400, 3식)", "visa": "가능(방문자 3개월 이내)", "child": "불가(국제학생 학비)", "work": "조건부", "reli": "확정", "living": 1358850, "living_incl": null, "rate": "65"}, {"id": "NZ-02", "country": "뉴질랜드", "city": "오클랜드", "inst": "Kaplan International Auckland", "name": "General English 20레슨", "region": "오세아니아", "hours": "15h", "type": "사설어학원", "t": [1318000, 3865000, 7555000], "a": [1269000, 3806000, 7612000], "i": [0, 0, 0], "v": [null, 622000, 622000], "tot": [2733000, 8440000, 15935000], "at": "홈스테이(주 NZ$400)", "visa": "가능(방문자 3개월 이내)", "child": "불가(국제학생 학비)", "work": "조건부", "reli": "추정", "living": 1358850, "living_incl": null, "rate": "65"}, {"id": "CA-ON-01", "country": "캐나다(온타리오)", "city": "토론토", "inst": "ILSC Toronto", "name": "Full-Time Morning 24레슨", "region": "북미", "hours": "20h", "type": "사설어학원(DLI)", "t": [1600000, 4800000, 9153000], "a": [1163000, 3488000, 6977000], "i": [78000, 234000, 469000], "v": [null, 260000, 260000], "tot": [3101000, 9155000, 17482000], "at": "홈스테이(월 CAD 1,250)", "visa": "가능(6개월 이내)", "child": "불가(온타리오 국제학생 학비)", "work": "조건부", "reli": "확정", "living": 1343159, "living_incl": null, "rate": "54"}, {"id": "CA-BC-01", "country": "캐나다(BC)", "city": "밴쿠버", "inst": "ILSC Vancouver", "name": "Full-Time Morning 24레슨", "region": "북미", "hours": "20h", "type": "사설어학원(DLI)", "t": [1600000, 4800000, 9153000], "a": [1163000, 3488000, 6977000], "i": [78000, 234000, 469000], "v": [null, 260000, 260000], "tot": [3101000, 9155000, 17482000], "at": "홈스테이(월 CAD 1,250)", "visa": "가능(6개월 이내)", "child": "불가(BC주 국제학생 학비)", "work": "조건부", "reli": "확정", "living": 1332741, "living_incl": null, "rate": "53"}, {"id": "FR-01", "country": "프랑스", "city": "파리", "inst": "알리앙스 프랑세즈 파리", "name": "집중 프랑스어 72시간(4주)", "region": "유럽", "hours": "18h", "type": "사립어학원(공인)", "t": [2135000, 6404000, 12807000], "a": [1462000, 4386000, 8772000], "i": [0, 0, 0], "v": [null, null, null], "tot": [3743000, 10936000, 21725000], "at": "스튜디오·홈스테이(월 €900~1,100)", "visa": "가능(90일 이내 단기)", "child": "가능(거주 시 공립 무료)", "work": "가능", "reli": "확정", "living": 1527780, "living_incl": null, "rate": "46"}, {"id": "FR-02", "country": "프랑스", "city": "비시", "inst": "CAVILAM - Alliance Française", "name": "집중 프랑스어 20시간/주", "region": "유럽", "hours": "20h", "type": "사립어학원(공인)", "t": [1696000, 4825000, 9211000], "a": [1243000, 3728000, 7456000], "i": [0, 0, 0], "v": [null, null, null], "tot": [3056000, 8670000, 16784000], "at": "홈스테이·레지던스(월 €800~900)", "visa": "가능(90일 이내 단기)", "child": "가능(거주 시 공립 무료)", "work": "가능", "reli": "추정", "living": null, "living_incl": null, "rate": ""}, {"id": "ES-01", "country": "스페인", "city": "마드리드", "inst": "don Quijote Madrid", "name": "Intensive 20 (주 20레슨)", "region": "유럽", "hours": "18.3h", "type": "사립어학원( Instituto Cervantes 인증)", "t": [1491000, 4035000, 6667000], "a": [1868000, 5605000, 11211000], "i": [0, 0, 0], "v": [null, null, null], "tot": [3477000, 9757000, 17994000], "at": "홈스테이 싱글 하프보드(주 €295)", "visa": "가능(90일 이내 단기)", "child": "가능(거주 등록 시 공립 무료)", "work": "가능", "reli": "확정", "living": 1199563, "living_incl": null, "rate": ""}, {"id": "ES-02", "country": "스페인", "city": "바르셀로나", "inst": "don Quijote Barcelona", "name": "Intensive 20 (주 20레슨)", "region": "유럽", "hours": "18.3h", "type": "사립어학원(Instituto Cervantes 인증)", "t": [1491000, 4035000, 6667000], "a": [2076000, 6228000, 12456000], "i": [0, 0, 0], "v": [null, null, null], "tot": [3684000, 10380000, 19240000], "at": "셰어 아파트 싱글(주 €329)", "visa": "가능(90일 이내 단기)", "child": "가능(거주 등록 시 공립 무료)", "work": "가능", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "PT-01", "country": "포르투갈", "city": "리스본", "inst": "CIAL", "name": "그룹 포르투갈어(일 4레슨)", "region": "유럽", "hours": "16.7h", "type": "사립어학원", "t": [1749000, 4719000, 8386000], "a": [1425000, 4276000, 8553000], "i": [0, 0, 0], "v": [null, null, null], "tot": [3174000, 8996000, 16939000], "at": "셰어 아파트 싱글(주 €225)", "visa": "가능(90일 이내 단기)", "child": "가능(체류허가 없이도 등록)", "work": "조건부", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "PT-02", "country": "포르투갈", "city": "리스본", "inst": "CIAL", "name": "그룹+워크숍(일 5레슨)", "region": "유럽", "hours": "20.8h", "type": "사립어학원", "t": [2281000, 6158000, 10947000], "a": [1425000, 4276000, 8553000], "i": [0, 0, 0], "v": [null, null, null], "tot": [3706000, 10434000, 19500000], "at": "셰어 아파트 싱글(주 €225)", "visa": "가능(90일 이내 단기)", "child": "가능(체류허가 없이도 등록)", "work": "조건부", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "DE-02", "country": "독일", "city": "베를린", "inst": "GLS Campus Berlin", "name": "Intensive 20레슨", "region": "유럽", "hours": "15h", "type": "사립어학원(IALC)", "t": [1170000, 2982000, 4912000], "a": [1773000, 5320000, 10640000], "i": [25000, 75000, 149000], "v": [null, 150000, 150000], "tot": [3048000, 8666000, 16078000], "at": "홈스테이 셀프케어링(주 €280, 5주+)", "visa": "가능(90일 이내 단기)", "child": "가능(공립 무료) / 단 어학비자로는 가족 동반 불가", "work": "가능", "reli": "확정", "living": 1532312, "living_incl": null, "rate": "59"}, {"id": "DE-03", "country": "독일", "city": "뮌헨", "inst": "did deutsch-institut München", "name": "Intensive 20레슨", "region": "유럽", "hours": "15h", "type": "사립어학원", "t": [1287000, 3421000, 5614000], "a": [1608000, 4825000, 9649000], "i": [25000, 75000, 149000], "v": [null, 150000, 150000], "tot": [3037000, 8646000, 15825000], "at": "홈스테이·레지던스(월 €1,000~1,200)", "visa": "가능(90일 이내 단기)", "child": "가능(공립 무료) / 어학비자로는 동반 불가", "work": "가능", "reli": "추정", "living": null, "living_incl": null, "rate": ""}, {"id": "IT-01", "country": "이탈리아", "city": "피렌체", "inst": "Scuola Leonardo da Vinci", "name": "Intensive 20레슨", "region": "유럽", "hours": "15h", "type": "사립어학원(MIUR 공인)", "t": [1316000, 3070000, 5263000], "a": [1901000, 5702000, 11404000], "i": [0, 0, 0], "v": [null, null, null], "tot": [3333000, 8889000, 16784000], "at": "셰어 아파트 싱글(1박 €43)", "visa": "가능(90일 이내 단기)", "child": "가능(신분 불문 공립 무료)", "work": "가능", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "IT-02", "country": "이탈리아", "city": "로마", "inst": "Dilit International House", "name": "Intensive 20레슨", "region": "유럽", "hours": "15h", "type": "사립어학원", "t": [1287000, 3333000, 5789000], "a": [1827000, 5482000, 10965000], "i": [0, 0, 0], "v": [null, null, null], "tot": [3216000, 8918000, 16857000], "at": "셰어 아파트·홈스테이(월 €1,200~1,300)", "visa": "가능(90일 이내 단기)", "child": "가능(신분 불문 공립 무료)", "work": "가능", "reli": "추정", "living": 1320616, "living_incl": null, "rate": ""}, {"id": "PH-05", "country": "필리핀", "city": "세부(막탄)", "inst": "CIA (Cebu International Academy)", "name": "Regular ESL (1:1 4 + 그룹 4)", "region": "아시아", "hours": "주 8시간(1:1 4·그룹 4)", "type": "사설어학원", "t": [1198000, 3595000, 7190000], "a": [1132000, 3395000, 6791000], "i": [0, 0, 0], "v": [266000, 601000, 882000], "tot": [2729000, 7725000, 14997000], "at": "기숙사 4인실(3식 포함)", "visa": "가능(SSP 필수)", "child": "해당없음", "work": "불가", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "PH-06", "country": "필리핀", "city": "세부(막탄)", "inst": "SMEAG Global Education (엔칸토)", "name": "ESL (1:1 4 + 1:4 2 + 특별수업)", "region": "아시아", "hours": "주 8시간+", "type": "사설어학원", "t": [1119000, 3356000, 6711000], "a": [1758000, 5273000, 10546000], "i": [0, 0, 0], "v": [257000, 588000, 866000], "tot": [3266000, 9350000, 18256000], "at": "기숙사 2인실(3식 포함, 리조트피 주 $75 포함)", "visa": "가능(SSP 필수)", "child": "해당없음", "work": "불가", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "PH-07", "country": "필리핀", "city": "세부(막탄·푸속)", "inst": "Philinter Academy", "name": "General ESL (1:1 3 + 1:8 3 + 1:15 2)", "region": "아시아", "hours": "주 8시간", "type": "사설어학원", "t": [1150000, 3450000, 6900000], "a": [1000000, 3000000, 6000000], "i": [0, 0, 0], "v": [420000, 1072000, 1847000], "tot": [2730000, 7682000, 14907000], "at": "기숙사 3인실(3식 포함)", "visa": "가능(SSP 필수)", "child": "해당없음", "work": "불가", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "PH-08", "country": "필리핀", "city": "바기오", "inst": "PINES International Academy (스피킹 캠퍼스)", "name": "Power Speaking (1:1 4 + 1:4 4)", "region": "아시아", "hours": "주 8시간", "type": "사설어학원", "t": [1238000, 3715000, 7430000], "a": [932000, 2796000, 5593000], "i": [0, 0, 0], "v": [257000, 574000, 934000], "tot": [2601000, 7258000, 14130000], "at": "기숙사 4인실(평일 3식·토 조식 포함)", "visa": "가능(SSP 필수)", "child": "해당없음", "work": "불가", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "PH-09", "country": "필리핀", "city": "바기오", "inst": "BECI (API BECI EOP 캠퍼스)", "name": "Speed ESL", "region": "아시아", "hours": "주 8시간+", "type": "사설어학원", "t": [1158000, 3475000, 6951000], "a": [759000, 2277000, 4554000], "i": [0, 0, 0], "v": [262000, 579000, 929000], "tot": [2313000, 6464000, 12567000], "at": "기숙사 4인실(3식 포함)", "visa": "가능(SSP 필수)", "child": "해당없음", "work": "불가", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "PH-10", "country": "필리핀", "city": "바기오", "inst": "MONOL International Education Institute", "name": "General ESL (1:1 5 + 그룹 4)", "region": "아시아", "hours": "주 9시간", "type": "사설어학원", "t": [1198000, 3595000, 7190000], "a": [533000, 1598000, 3196000], "i": [0, 0, 0], "v": [257000, 574000, 935000], "tot": [2121000, 5900000, 11454000], "at": "기숙사 4인 캡슐룸(식사 미포함)", "visa": "가능(SSP 필수)", "child": "해당없음", "work": "불가", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "PH-11", "country": "필리핀", "city": "클락(앙헬레스)", "inst": "CIP English (Clark Institute of the Philippines)", "name": "Regular ESL (원어민 1:1 선택)", "region": "아시아", "hours": "주 5~12시간", "type": "사설어학원", "t": [1092000, 3276000, 6551000], "a": [945000, 2836000, 5672000], "i": [0, 0, 0], "v": [231000, 588000, 930000], "tot": [2401000, 6833000, 13287000], "at": "기숙사 2인실(3식 포함)", "visa": "가능(SSP 필수)", "child": "해당없음", "work": "불가", "reli": "추정", "living": null, "living_incl": null, "rate": ""}, {"id": "PH-12", "country": "필리핀", "city": "클락(클락 프리포트)", "inst": "HELP English Academy (클락 캠퍼스)", "name": "ESL (1:1 4 + 1:4 2)", "region": "아시아", "hours": "주 6시간", "type": "사설어학원", "t": [1198000, 3595000, 7190000], "a": [866000, 2597000, 5193000], "i": [0, 0, 0], "v": [257000, 574000, 840000], "tot": [2421000, 6866000, 13323000], "at": "기숙사 4인실(3식·식수 포함)", "visa": "가능(SSP 필수)", "child": "해당없음", "work": "불가", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "PH-13", "country": "필리핀", "city": "일로일로", "inst": "PIA (Polyglot International Academy)", "name": "ESL1 (1:1 4 + 그룹 2)", "region": "아시아", "hours": "주 6시간", "type": "사설어학원", "t": [800000, 2400000, 4800000], "a": [900000, 2700000, 5400000], "i": [0, 0, 0], "v": [230000, 531000, 693000], "tot": [2063000, 5764000, 11026000], "at": "기숙사 2인실(3식 포함)", "visa": "가능(SSP 필수)", "child": "해당없음", "work": "불가", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "MP-01", "country": "사이판(CNMI)", "city": "사이판", "inst": "Northern Marianas College (NMC)", "name": "ELI(영어연수) → 학위과정, 학기 12학점", "region": "오세아니아", "hours": "주 12학점", "type": "컬리지·직업학교(공립)", "t": [null, 3036000, 6072000], "a": [1265000, 3795000, 7590000], "i": [0, 0, 0], "v": [712000, 712000, 712000], "tot": [null, 7876000, 14707000], "at": "기숙사·룸보드(연 US$8,550)", "visa": "조건부(ESTA·G-CNMI 45일로는 정규 학업 불가)", "child": "조건부(F-2 자녀 공립 K-12 가능)", "work": "조건부", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "MP-02", "country": "사이판(CNMI)", "city": "사이판(아스리토)", "inst": "Saipan International School (단기 방문)", "name": "Classroom Immersion 단기(최대 3개월)", "region": "오세아니아", "hours": "정규수업 참여(주 30시간)", "type": "국제학교", "t": [1997000, 5992000, null], "a": [null, null, null], "i": [0, 0, 0], "v": [54000, 54000, 54000], "tot": [2051000, 6046000, null], "at": "숙소 미포함(현지 렌트·호텔 월 $900~1,800 별도·추정)", "visa": "조건부(단기 방문·F-1 필요 여부 확인)", "child": "해당없음(자녀 유학 과정)", "work": "조건부", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "MP-03", "country": "사이판(CNMI)", "city": "사이판(차란카노아)", "inst": "Mount Carmel School", "name": "단기 감사(Audit) 프로그램", "region": "오세아니아", "hours": "정규수업 참여", "type": "국제학교(사립 K-12)", "t": [1864000, 5593000, null], "a": [null, null, null], "i": [0, 0, 0], "v": [54000, 54000, 54000], "tot": [2051000, 5780000, null], "at": "숙소 미포함(기숙사 없음·현지 렌트 월 $900~1,800 별도·추정)", "visa": "조건부(단기 감사·F-1 필요 여부 확인)", "child": "해당없음(자녀 유학 과정)", "work": "조건부", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "MP-04", "country": "사이판(CNMI)", "city": "사이판", "inst": "Saipan Community School", "name": "정규 학기(K~8)", "region": "오세아니아", "hours": "주 30시간", "type": "국제학교(사립 K-8)", "t": [433000, 1298000, 2597000], "a": [null, null, null], "i": [0, 0, 0], "v": [712000, 712000, 712000], "tot": [1811000, 2676000, 3974000], "at": "숙소 미포함(통학·현지 렌트 월 $900~1,800 별도·추정)", "visa": "불가(정규 유학은 F-1)", "child": "해당없음(자녀 유학 과정)", "work": "조건부", "reli": "부분확인", "living": null, "living_incl": null, "rate": ""}, {"id": "MP-05", "country": "사이판(CNMI)", "city": "사이판", "inst": "Agape Christian School", "name": "정규 학년(기숙·3식 포함)", "region": "오세아니아", "hours": "주 30시간", "type": "국제학교(사립 K-12·기숙)", "t": [2397000, 7190000, null], "a": [null, null, null], "i": [0, 0, 0], "v": [712000, 712000, 712000], "tot": [3309000, 8102000, null], "at": "기숙사·3식 포함(학비에 포함)", "visa": "불가(정규 유학은 F-1)", "child": "해당없음(자녀 유학 과정)", "work": "조건부", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "MP-06", "country": "사이판(CNMI)", "city": "사이판(네이비힐)", "inst": "Grace Christian Academy", "name": "정규 학년(F-1)", "region": "오세아니아", "hours": "주 30시간", "type": "국제학교(사립 K-12)", "t": [null, null, null], "a": [null, null, null], "i": [0, 0, 0], "v": [712000, 712000, 712000], "tot": [null, null, null], "at": "숙소 미포함(가디언 체류 필요·현지 렌트 월 $1,000~2,000 별도·추정)", "visa": "불가(정규 유학은 F-1)", "child": "해당없음(자녀 유학 과정)", "work": "조건부", "reli": "확인필요", "living": null, "living_incl": null, "rate": ""}, {"id": "GU-01", "country": "괌", "city": "망길라오", "inst": "University of Guam — English Language Institute (ELI)", "name": "ELI 집중영어(14주 세션, 주 20시간+)", "region": "오세아니아", "hours": "주 20시간+", "type": "대학부설", "t": [null, 3728000, 7457000], "a": [null, null, null], "i": [0, 0, 0], "v": [712000, 712000, 712000], "tot": [null, 5012000, 8740000], "at": "기숙사 미운영(오프캠퍼스 렌트 월 $800~1,500)", "visa": "불가(정규 어학은 F-1)", "child": "조건부(F-2 자녀 공립 K-12 가능)", "work": "조건부", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "GU-02", "country": "괌", "city": "망길라오", "inst": "Guam Community College (GCC)", "name": "학위·자격과정(학기 12학점)", "region": "오세아니아", "hours": "주 12학점", "type": "컬리지·직업학교(공립)", "t": [null, 2876000, 5752000], "a": [null, null, null], "i": [0, 0, 0], "v": [712000, 712000, 712000], "tot": [null, 3784000, 6660000], "at": "기숙사 없음(오프캠퍼스 렌트 월 $1,000~2,000 별도·추정)", "visa": "불가(정규 유학은 F-1)", "child": "조건부(F-2 자녀 공립 K-12 가능)", "work": "조건부", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "GU-03", "country": "괌", "city": "타무닝(어퍼투몬)", "inst": "St. John's School", "name": "정규 학년(ESL 지원 포함)", "region": "오세아니아", "hours": "주 30시간", "type": "국제학교(사립 K-12·IB)", "t": [1811000, 5433000, 10866000], "a": [null, null, null], "i": [0, 0, 0], "v": [712000, 712000, 712000], "tot": [2723000, 6344000, 11777000], "at": "숙소 미포함(가디언 체류 필요·현지 렌트 월 $1,000~2,000 별도·추정)", "visa": "불가(정규 유학은 F-1)", "child": "해당없음(자녀 유학 과정)", "work": "조건부", "reli": "추정", "living": null, "living_incl": null, "rate": ""}, {"id": "GU-04", "country": "괌", "city": "망길라오", "inst": "Harvest Christian Academy", "name": "정규 학년(AES 영어지원)", "region": "오세아니아", "hours": "주 30시간", "type": "국제학교(사립 K-12·기독교)", "t": [1210000, 3631000, 7262000], "a": [null, null, null], "i": [0, 0, 0], "v": [712000, 712000, 712000], "tot": [2388000, 4809000, 8440000], "at": "숙소 미포함(가디언 체류 필요·현지 렌트 월 $1,000~2,000 별도·추정)", "visa": "불가(정규 유학은 F-1)", "child": "해당없음(자녀 유학 과정)", "work": "조건부", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "GU-05", "country": "괌", "city": "요나", "inst": "Guam Adventist Academy (SEIP 단기 영어몰입)", "name": "SEIP 단기 영어몰입(최대 10주)", "region": "오세아니아", "hours": "정규수업 참여", "type": "국제학교(사립 K-12)", "t": [999000, 2996000, null], "a": [null, null, null], "i": [0, 0, 0], "v": [54000, 54000, 54000], "tot": [1252000, 3250000, null], "at": "숙소 미포함(현지 렌트 월 $1,000~2,000 별도·추정)", "visa": "조건부(단기·F-1 필요 여부 확인)", "child": "해당없음(자녀 유학 과정)", "work": "조건부", "reli": "부분확인", "living": null, "living_incl": null, "rate": ""}, {"id": "GU-06", "country": "괌", "city": "투몬", "inst": "English Club (괌 사설 어학원)", "name": "성인·주니어 영어회화(그룹·1:1)", "region": "오세아니아", "hours": "확인필요", "type": "사설어학원", "t": [null, null, null], "a": [null, null, null], "i": [0, 0, 0], "v": [54000, 54000, 54000], "tot": [null, null, null], "at": "숙소 미포함(현지 렌트 월 $1,000~2,000 별도·추정)", "visa": "조건부(주 18시간 미만·비정규만)", "child": "확인필요", "work": "조건부", "reli": "확인필요", "living": null, "living_incl": null, "rate": ""}, {"id": "HI-01", "country": "미국(하와이)", "city": "호놀룰루(와이키키)", "inst": "IIE Hawaii (Institute of Intensive English)", "name": "STEP 일반영어 20레슨(주 15시간, 무비자 가능)", "region": "북미", "hours": "15h", "type": "사설어학원(CEA 인증)", "t": [1891000, 5033000, 8948000], "a": [2264000, 6791000, 13582000], "i": [0, 0, 0], "v": [54000, 54000, 54000], "tot": [4488000, 12238000, 23063000], "at": "홈스테이(주 $425, 18세+) / 레지던스 스탠다드 주 $625", "visa": "조건부(주 18시간 미만·비정규만)", "child": "조건부(F-2 자녀 공립 K-12 가능)", "work": "조건부", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "HI-02", "country": "미국(하와이)", "city": "호놀룰루", "inst": "Central Pacific College (CPC)", "name": "STEP 단기영어 16시간/주(무비자 가능)", "region": "북미", "hours": "16h", "type": "사설어학원(SEVP)", "t": [1497000, 4186000, 7510000], "a": [1678000, 5033000, 10067000], "i": [0, 0, 0], "v": [54000, 54000, 54000], "tot": [3628000, 9673000, 18030000], "at": "콘도 쿼드(주 $315, 식사 미포함) / 홈스테이 2인실 주 $450", "visa": "조건부(주 18시간 미만·비정규만)", "child": "조건부(F-2 자녀 공립 K-12 가능)", "work": "조건부", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "HI-03", "country": "미국(하와이)", "city": "호놀룰루", "inst": "Global Village Hawaii (GV Hawaii)", "name": "GEP 20레슨(주 16.7시간)", "region": "북미", "hours": "16.7h", "type": "사설어학원(IALC 인증)", "t": [1864000, 4953000, 9427000], "a": [2509000, 7526000, 15052000], "i": [0, 0, 0], "v": [54000, 54000, 54000], "tot": [4717000, 12898000, 25010000], "at": "홈스테이 풀보드(주 $471) / 기숙사 스탠다드 주 $535", "visa": "조건부(주 18시간 미만·비정규만)", "child": "조건부(F-2 자녀 공립 K-12 가능)", "work": "조건부", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "HI-04", "country": "미국(하와이)", "city": "호놀룰루(마노아)", "inst": "UH Mānoa HELP (Hawaii English Language Program)", "name": "Intensive English 8주(주 20시간)", "region": "북미", "hours": "20h", "type": "대학부설", "t": [2597000, 6391000, 11385000], "a": [1431000, 4294000, 8589000], "i": [266000, 799000, 1598000], "v": [712000, 712000, 712000], "tot": [5173000, 12363000, 22450000], "at": "오프캠퍼스(공식 생활비 추정 $5,000/8주 − 학비)", "visa": "불가(정규 어학은 F-1)", "child": "조건부(F-2 자녀 공립 K-12 가능)", "work": "조건부", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "US-03", "country": "미국", "city": "로스앤젤레스", "inst": "USC International Academy (서던캘리포니아대 부설)", "name": "Intensive English (Academic Semester 14주·주 20시간)", "region": "북미", "hours": "20h", "type": "대학부설", "t": [2474000, 7421000, 14842000], "a": [3121000, 9363000, 18724000], "i": [400000, 1199000, 2398000], "v": [713000, 713000, 713000], "tot": [6968000, 18956000, 36937000], "at": "USC Cardinal Gardens 트윈룸(14주·식사 60회) — 14주 $8,200", "visa": "조건부(주 18시간 미만 파트타임만·ESTA 90일)", "child": "조건부(부모 F-1 유지 시 F-2 자녀 공립 K-12)", "work": "조건부", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "US-04", "country": "미국", "city": "어바인", "inst": "UC Irvine Division of Continuing Education", "name": "Academic Study Abroad Program – Customized Success Language Track (6개월·어학집중)", "region": "북미", "hours": "20h 내외", "type": "대학부설", "t": [3177000, 9529000, 19058000], "a": [0, 0, 0], "i": [1132000, 1132000, 2264000], "v": [713000, 713000, 713000], "tot": [5288000, 12173000, 22301000], "at": "홈스테이·아파트(공식 요금 비공시)", "visa": "조건부(주 18시간 미만 파트타임만·ESTA 90일)", "child": "조건부(부모 F-1 유지 시 F-2 자녀 공립 K-12)", "work": "조건부", "reli": "부분확인", "living": null, "living_incl": null, "rate": ""}, {"id": "US-05", "country": "미국", "city": "보스턴", "inst": "UMass Boston English Language Program (ELP)", "name": "Intensive English & University Preparation (학기 15주·주 19시간)", "region": "북미", "hours": "19h", "type": "대학부설", "t": [1421000, 4262000, 8525000], "a": [0, 0, 0], "i": [0, 0, 0], "v": [713000, 713000, 713000], "tot": [2134000, 4975000, 9238000], "at": "기숙사·홈스테이(요금 비공시, 생활비 학기 $11,550)", "visa": "조건부(주 18시간 미만 파트타임만·ESTA 90일)", "child": "조건부(부모 F-1 유지 시 F-2 자녀 공립 K-12)", "work": "조건부", "reli": "부분확인", "living": null, "living_incl": null, "rate": ""}, {"id": "UK-03", "country": "영국", "city": "맨체스터", "inst": "University of Manchester — University Centre for Academic English (UCAE)", "name": "Pre-sessional English 10주(2027) / Pathways 연중과정", "region": "유럽", "hours": "주 23시간", "type": "대학부설", "t": [4245000, 10612000, 18312000], "a": [0, 0, 0], "i": [0, 0, 0], "v": [0, 0, 0], "tot": [4245000, 10612000, 18312000], "at": "여름 기숙사·민간 숙소(요금 비공시)", "visa": "가능(방문비자 6개월 이내 단기과정)", "child": "해당없음", "work": "조건부", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "UK-04", "country": "영국", "city": "런던", "inst": "King's College London — Pre-sessional English", "name": "Pre-sessional English 16주·11주·6주(온캠퍼스/온라인)", "region": "유럽", "hours": "주 20시간 내외", "type": "대학부설", "t": [null, null, null], "a": [0, 0, 0], "i": [0, 0, 0], "v": [0, 0, 0], "tot": [null, null, null], "at": "King's 거주관·민간 숙소(요금 비공시)", "visa": "가능(방문비자 6개월 이내 단기과정)", "child": "해당없음", "work": "조건부", "reli": "부분확인", "living": 1942110, "living_incl": null, "rate": "20"}, {"id": "CA-BC-02", "country": "캐나다(BC)", "city": "밴쿠버", "inst": "UBC English Language Institute (ELI)", "name": "English for Academic Purposes (8주·주 21시간)", "region": "북미", "hours": "21h", "type": "대학부설", "t": [1814000, 5440000, 10881000], "a": [0, 0, 0], "i": [0, 0, 0], "v": [0, 0, 0], "tot": [2000000, 5905000, 11067000], "at": "UBC 기숙사·홈스테이(공식 요금 비공시)", "visa": "조건부(6개월 미만 단기과정은 방문비자/eTA)", "child": "조건부(Study Permit 보유 시 주별 상이)", "work": "조건부", "reli": "확정", "living": 1332741, "living_incl": null, "rate": "53"}, {"id": "CA-ON-02", "country": "캐나다(온타리오)", "city": "토론토", "inst": "University of Toronto — English Language Program (SCS)", "name": "Academic English (12주·주 20시간, 레벨 60까지)", "region": "북미", "hours": "20h", "type": "대학부설", "t": [1888000, 5664000, 11327000], "a": [0, 0, 0], "i": [0, 0, 0], "v": [0, 0, 0], "tot": [2028000, 5804000, 11467000], "at": "홈스테이·기숙사(공식 요금 비공시)", "visa": "조건부(6개월 미만 단기과정은 방문비자/eTA)", "child": "조건부(Study Permit 보유 시 주별 상이)", "work": "조건부", "reli": "부분확인", "living": 1343159, "living_incl": null, "rate": "54"}, {"id": "CA-QC-02", "country": "캐나다(퀘벡)", "city": "몬트리올", "inst": "McGill University — School of Continuing Studies (IELC)", "name": "Intensive English Language & Culture (레벨당 6주·주 25시간)", "region": "북미", "hours": "25h", "type": "대학부설", "t": [1679000, 5035000, 10070000], "a": [0, 0, 0], "i": [0, 0, 0], "v": [0, 0, 0], "tot": [1763000, 5119000, 10154000], "at": "홈스테이·아파트(공식 요금 비공시)", "visa": "조건부(6개월 미만 단기과정은 방문비자/eTA)", "child": "조건부(Study Permit 보유 시 주별 상이)", "work": "조건부", "reli": "부분확인", "living": 1228741, "living_incl": null, "rate": "64"}, {"id": "CA-BC-03", "country": "캐나다(BC)", "city": "빅토리아", "inst": "University of Victoria — English Language Centre (ELC)", "name": "Intensive English (ELPI 12주·342시간)", "region": "북미", "hours": "주 22시간", "type": "대학부설", "t": [1451000, 4352000, 8705000], "a": [1256000, 3766000, 7533000], "i": [165000, 495000, 990000], "v": [0, 0, 0], "tot": [3012000, 8753000, 17368000], "at": "홈스테이(식사 포함) 12주 $4,050", "visa": "조건부(6개월 미만 단기과정은 방문비자/eTA)", "child": "조건부(Study Permit 보유 시 주별 상이)", "work": "조건부", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "AU-03", "country": "호주", "city": "시드니", "inst": "UNSW College — Academic English", "name": "University English Entry Course (UEEC 10~20주·주 20시간)", "region": "오세아니아", "hours": "20h", "type": "대학부설", "t": [2485000, 7454000, 14907000], "a": [0, 0, 0], "i": [0, 0, 0], "v": [0, 0, 0], "tot": [2807000, 7776000, 15229000], "at": "시드니 렌트·홈스테이(공식 요금 비공시)", "visa": "조건부(방문비자 최대 3개월·8201 조건)", "child": "해당없음", "work": "가능", "reli": "확정", "living": 1647816, "living_incl": null, "rate": "62"}, {"id": "AU-04", "country": "호주", "city": "브리즈번", "inst": "UQ College (구 ICTE-UQ)", "name": "Integrated English (일반영어 5주 단위·주 20시간)", "region": "오세아니아", "hours": "20h", "type": "대학부설", "t": [2220000, 6193000, 10167000], "a": [0, 0, 0], "i": [0, 0, 0], "v": [0, 0, 0], "tot": [2453000, 6426000, 10400000], "at": "브리즈번 렌트·홈스테이(공식 요금 비공시)", "visa": "조건부(방문비자 최대 3개월·8201 조건)", "child": "해당없음", "work": "가능", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "NZ-03", "country": "뉴질랜드", "city": "오클랜드", "inst": "University of Auckland — English Language Academy (ELA)", "name": "General English (주 20시간) / Academic English 10주", "region": "오세아니아", "hours": "20h", "type": "대학부설", "t": [1479000, 4436000, 8872000], "a": [1518000, 3566000, 7133000], "i": [0, 0, 0], "v": [0, 0, 0], "tot": [3231000, 8317000, 16239000], "at": "홈스테이 4주 NZD 1,624(평일 2식) + 배정비 450", "visa": "조건부(방문비자 3개월 이내)", "child": "해당없음", "work": "조건부", "reli": "부분확인", "living": 1358850, "living_incl": null, "rate": "65"}, {"id": "IE-04", "country": "아일랜드", "city": "더블린", "inst": "DCU International Academy (구 DCU Language Services)", "name": "Pre-sessional English 10주·5주 / 25주 Work & Study", "region": "유럽", "hours": "주 20시간", "type": "대학부설", "t": [2222000, 6667000, 13333000], "a": [0, 0, 0], "i": [0, 0, 0], "v": [0, 0, 0], "tot": [2463000, 6908000, 13574000], "at": "DCU 캠퍼스·민간 숙소(요금 비공시)", "visa": "조건부(3개월 이내 단기)", "child": "해당없음", "work": "가능", "reli": "부분확인", "living": 1593131, "living_incl": null, "rate": "40"}, {"id": "IE-05", "country": "아일랜드", "city": "더블린", "inst": "UCD Centre for English and Global Languages (구 Applied Language Centre)", "name": "Pre-sessional English 10주·6주", "region": "유럽", "hours": "주 20시간", "type": "대학부설", "t": [2281000, 5702000, 11404000], "a": [0, 0, 0], "i": [0, 0, 0], "v": [0, 0, 0], "tot": [2281000, 5702000, 11404000], "at": "UCD 캠퍼스·민간 숙소(요금 비공시)", "visa": "조건부(3개월 이내 단기)", "child": "해당없음", "work": "가능", "reli": "확정", "living": 1593131, "living_incl": null, "rate": "40"}, {"id": "KR-07", "country": "한국", "city": "서울(동대문)", "inst": "경희대학교 한국어센터(KLC)", "name": "한국어 정규과정(10주·200시간, 오전반)", "region": "아시아", "hours": "20h", "type": "대학부설", "t": [null, 1610000, 3220000], "a": [600000, 1800000, 3600000], "i": [0, 0, 0], "v": [0, 60000, 120000], "tot": [null, 3550000, 7020000], "at": "기숙사·콜리빙(요금 비공시·추정)", "visa": "해당없음(자국)", "child": "해당없음", "work": "조건부", "reli": "확정", "living": 1539721, "living_incl": null, "rate": "37"}, {"id": "KR-08", "country": "한국", "city": "서울(동대문)", "inst": "한국외국어대학교 한국어문화교육원", "name": "한국어 정규과정(10주·약 200시간)", "region": "아시아", "hours": "20h", "type": "대학부설", "t": [null, 1600000, 3200000], "a": [600000, 1800000, 3600000], "i": [0, 30000, 60000], "v": [0, 60000, 120000], "tot": [null, 3590000, 7080000], "at": "기숙사·콜리빙(요금 비공시·추정)", "visa": "해당없음(자국)", "child": "해당없음", "work": "조건부", "reli": "확정", "living": 1539721, "living_incl": null, "rate": "37"}, {"id": "KR-09", "country": "한국", "city": "서울(왕십리)", "inst": "한양대학교 국제교육원(IIE)", "name": "한국어 정규과정(10주·주 20시간)", "region": "아시아", "hours": "20h", "type": "대학부설", "t": [null, 1850000, 3700000], "a": [627000, 1880000, 3760000], "i": [0, 0, 0], "v": [0, 60000, 120000], "tot": [null, 3940000, 7730000], "at": "제6생활관(여) 1,880,000 / 제7생활관(남) 1,627,000·학기", "visa": "해당없음(자국)", "child": "해당없음", "work": "조건부", "reli": "확정", "living": 1539721, "living_incl": null, "rate": "37"}, {"id": "KR-10", "country": "한국", "city": "부산(금정)", "inst": "부산대학교 언어교육원", "name": "한국어 정규과정(10주·200시간, 오전반)", "region": "아시아", "hours": "20h", "type": "대학부설", "t": [null, 1500000, 3000000], "a": [450000, 1350000, 2700000], "i": [0, 0, 0], "v": [0, 60000, 120000], "tot": [null, 2990000, 5900000], "at": "기숙사·콜리빙(요금 비공시·추정)", "visa": "해당없음(자국)", "child": "해당없음", "work": "조건부", "reli": "확정", "living": 1528762, "living_incl": null, "rate": "39"}, {"id": "KR-11", "country": "한국", "city": "대구(북구)", "inst": "경북대학교 글로벌교육센터", "name": "한국어연수과정(10주·200시간)", "region": "아시아", "hours": "20h", "type": "대학부설", "t": [null, 1400000, 2800000], "a": [400000, 1200000, 2400000], "i": [0, 0, 0], "v": [0, 60000, 120000], "tot": [null, 2730000, 5390000], "at": "기숙사(요금 비공시·추정)", "visa": "해당없음(자국)", "child": "해당없음", "work": "조건부", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "KR-12", "country": "한국", "city": "제주(아라)", "inst": "제주대학교 국제교류처 한국어연수과정", "name": "한국어연수 정규과정(20주·400시간, 연 2학기)", "region": "아시아", "hours": "20h", "type": "대학부설", "t": [null, 1200000, 2400000], "a": [400000, 1200000, 2400000], "i": [0, 0, 0], "v": [0, 60000, 120000], "tot": [null, 2510000, 4970000], "at": "기숙사(학기 40만 원대·추정)", "visa": "해당없음(자국)", "child": "해당없음", "work": "조건부", "reli": "부분확인", "living": null, "living_incl": null, "rate": ""}, {"id": "JP-03", "country": "일본", "city": "오사카(우메다)", "inst": "ECC국제외어전문학교 일본어학과", "name": "장기 일본어과정(1년·900시간, 주 25교시)", "region": "아시아", "hours": "25교시", "type": "전문학교 부설", "t": [585000, 1756000, 3511000], "a": [250000, 752000, 1504000], "i": [0, 0, 0], "v": [0, 0, 0], "tot": [1730000, 3403000, 5910000], "at": "기숙사·게스트하우스(월 5~7만 엔·추정)", "visa": "가능(단기체류 90일 이내)", "child": "해당없음", "work": "가능", "reli": "확정", "living": 1078165, "living_incl": null, "rate": "68"}, {"id": "JP-04", "country": "일본", "city": "후쿠오카(오고리)", "inst": "NILS (니루스) 일본어학교", "name": "종합일본어 1년과정(주 20단위·760단위)", "region": "아시아", "hours": "20단위", "type": "어학교", "t": [568000, 1714000, 3428000], "a": [200000, 600000, 1200000], "i": [0, 0, 0], "v": [0, 0, 0], "tot": [768000, 2314000, 4628000], "at": "기숙사·게스트하우스(월 5만 엔대·추정)", "visa": "가능(단기체류 90일 이내)", "child": "해당없음", "work": "가능", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "FR-03", "country": "프랑스", "city": "리옹", "inst": "Université Lumière Lyon 2 — CIEF", "name": "DU Etudes Françaises (DUEF, 학기 220시간·12~13주)", "region": "유럽", "hours": "주 18시간 내외", "type": "대학부설", "t": [962000, 2887000, 5775000], "a": [731000, 2193000, 4386000], "i": [0, 0, 0], "v": [0, 0, 0], "tot": [1993000, 5380000, 10461000], "at": "스튜디오·홈스테이(월 €500 내외·추정)", "visa": "가능(90일 이내 단기)", "child": "해당없음", "work": "가능", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "ES-03", "country": "스페인", "city": "살라망카", "inst": "Universidad de Salamanca — Cursos Internacionales", "name": "Curso Trimestral (10주·주 20시간)", "region": "유럽", "hours": "20h", "type": "대학부설", "t": [1243000, 3105000, 6211000], "a": [1023000, 3070000, 6140000], "i": [0, 0, 0], "v": [0, 0, 0], "tot": [2266000, 6175000, 12351000], "at": "홈스테이·레지던스(월 €700 내외·추정)", "visa": "가능(90일 이내 단기)", "child": "해당없음", "work": "가능", "reli": "부분확인", "living": null, "living_incl": null, "rate": ""}, {"id": "DE-04", "country": "독일", "city": "프랑크푸르트", "inst": "Goethe-Institut Frankfurt", "name": "Deutsch Intensiv (3주·75수업, 주 25수업)", "region": "유럽", "hours": "25수업", "type": "문화원 부설", "t": [2240000, 6719000, 13439000], "a": [892000, 2675000, 5351000], "i": [0, 0, 0], "v": [0, 0, 0], "tot": [3132000, 9394000, 18790000], "at": "호텔·게스트하우스(4주 €610 내외·추정)", "visa": "가능(90일 이내 단기)", "child": "해당없음", "work": "가능", "reli": "확정", "living": null, "living_incl": null, "rate": ""}, {"id": "TW-03", "country": "대만", "city": "타이베이(원산)", "inst": "국립정치대학교 중국어교육원(NCCU CLC)", "name": "정규반(3개월·주 15시간 내외)", "region": "아시아", "hours": "15h", "type": "대학부설", "t": [485000, 1454000, 2909000], "a": [312000, 935000, 1871000], "i": [69000, 69000, 138000], "v": [0, 0, 0], "tot": [906000, 2555000, 4958000], "at": "대학부설 기숙사 2인실 3개월 NT$23,150(보증금 1,000 포함)", "visa": "가능(90일 무비자로 1학기)", "child": "해당없음", "work": "조건부", "reli": "확정", "living": 1099631, "living_incl": null, "rate": "40"}];</script>
+<script>
+(function(){
+  var CFG = window.__CFG__, DATA = window.__DATA__;
+  var LS = CFG.ls || 'sbx';
+  function load(k, d){ try{ var v=JSON.parse(localStorage.getItem(LS+':'+k)); return v||d; }catch(e){ return d; } }
+  function save(k, v){ try{ localStorage.setItem(LS+':'+k, JSON.stringify(v)); }catch(e){} }
+  var saved = load('saved', []), cmp = load('cmp', []);
+  var st = {q:'', sort: CFG.defaultSort || 'new'};
+  (CFG.filters||[]).forEach(function(f){ st[f.key]=[]; });
+  var byId = {}; DATA.forEach(function(d){ byId[d.id]=d; });
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
+  function el(id){ return document.getElementById(id); }
+  function chipsHtml(f){
+    var counts = {};
+    DATA.forEach(function(d){ var v = d[f.key]; if(!v) return; (Array.isArray(v)?v:[v]).forEach(function(x){ counts[x]=(counts[x]||0)+1; }); });
+    var vals = f.values || Object.keys(counts).sort(function(a,b){ return counts[b]-counts[a]; });
+    if(f.limit) vals = vals.slice(0, f.limit);
+    return vals.map(function(v){
+      return '<button class="chip" data-k="'+f.key+'" data-v="'+esc(v)+'">'+esc(f.labelOf?f.labelOf(v):v)+'<em>'+(counts[v]||0)+'</em></button>';
+    }).join('');
+  }
+  function renderFilters(){
+    var host = el('filters'); if(!host) return;
+    host.innerHTML = (CFG.filters||[]).map(function(f){
+      return '<div class="fgroup"><span class="flab">'+esc(f.label)+'</span>'+chipsHtml(f)+'</div>';
+    }).join('');
+    host.querySelectorAll('.chip').forEach(function(b){
+      b.addEventListener('click', function(){
+        var k=b.dataset.k, v=b.dataset.v, arr=st[k];
+        var i=arr.indexOf(v); if(i<0) arr.push(v); else arr.splice(i,1);
+        b.classList.toggle('on', arr.indexOf(v)>=0);
+        apply(); updateChips();
+      });
+    });
+  }
+  function updateChips(){
+    document.querySelectorAll('#filters .chip').forEach(function(b){
+      b.classList.toggle('on', (st[b.dataset.k]||[]).indexOf(b.dataset.v)>=0);
+    });
+  }
+  function matches(d){
+    for(var k in st){
+      if(k==='q'||k==='sort') continue;
+      var want=st[k]; if(!want || !want.length) continue;
+      var have = Array.isArray(d[k])?d[k]:[d[k]];
+      if(!want.some(function(w){ return have.indexOf(w)>=0; })) return false;
+    }
+    if(st.q){
+      var hay=(d.search||[d.title,d.sub,d.desc,d.region,d.tag,d.extra].join(' ')).toLowerCase();
+      if(hay.indexOf(st.q)<0) return false;
+    }
+    return true;
+  }
+  function card(d){
+    var tags='';
+    if(d.corner) tags += '<span class="tag acc">'+esc(d.corner)+'</span>';
+    if(d.region) tags += '<span class="tag">'+esc(d.region)+'</span>';
+    if(d.tag) tags += '<span class="tag">'+esc(d.tag)+'</span>';
+    if(d.badge) tags += '<span class="tag">'+esc(d.badge)+'</span>';
+    var title = d.url ? '<a href="'+esc(d.url)+'" target="_blank" rel="noopener">'+esc(d.title)+'</a>' : esc(d.title);
+    var meta = [];
+    if(d.sub) meta.push('<span>'+esc(d.sub)+'</span>');
+    if(d.meta) meta.push('<span>'+esc(d.meta)+'</span>');
+    if(d.date) meta.push('<span>'+esc(d.date)+'</span>');
+    var onS = saved.indexOf(d.id)>=0, onC = cmp.indexOf(d.id)>=0;
+    var acts = '<div class="cardacts"><button class="mini'+(onS?' on':'')+'" data-act="save" data-id="'+esc(d.id)+'">'+(onS?'★ 저장됨':'☆ 저장')+'</button>';
+    if(CFG.compare && d.cmp) acts += '<button class="mini'+(onC?' on':'')+'" data-act="cmp" data-id="'+esc(d.id)+'">'+(onC?'✓ 비교 담김':'＋ 비교')+'</button>';
+    if(d.url) acts += '<a class="mini ghost" href="'+esc(d.url)+'" target="_blank" rel="noopener">원문 ↗</a>';
+    if(d.link) acts += '<a class="mini ghost" href="'+esc(d.link.href)+'" target="'+esc(d.link.target||'_self')+'">'+esc(d.link.label)+'</a>';
+    acts += '</div>';
+    return '<article class="card"><div class="tags">'+tags+'</div><h3>'+title+'</h3>'+
+      (d.desc?'<p class="clamp">'+esc(d.desc)+'</p>':'')+
+      '<div class="meta">'+meta.join('<span class="dot">·</span>')+'</div>'+acts+'</article>';
+  }
+  function apply(){
+    var rows = DATA.filter(matches);
+    var s = st.sort;
+    rows.sort(function(a,b){
+      if(s==='new') return String(b.date||'').localeCompare(String(a.date||''));
+      if(s==='old') return String(a.date||'').localeCompare(String(b.date||''));
+      if(s==='title') return String(a.title||'').localeCompare(String(b.title||''),'ko');
+      return 0;
+    });
+    var host=el('list');
+    if(!host) return;
+    host.innerHTML = rows.map(card).join('');
+    if(el('count')) el('count').innerHTML = '전체 <b>'+DATA.length+'</b>건 중 <b>'+rows.length+'</b>건';
+    if(el('empty')) el('empty').style.display = rows.length? 'none':'block';
+    bindActs();
+    updateTray();
+  }
+  function bindActs(){
+    document.querySelectorAll('#list [data-act]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var id=b.dataset.id;
+        if(b.dataset.act==='save'){
+          var i=saved.indexOf(id); if(i<0) saved.push(id); else saved.splice(i,1);
+          save('saved', saved);
+        } else {
+          var j=cmp.indexOf(id); if(j<0){ if(cmp.length>=3){ flash('비교는 최대 3개까지 담을 수 있습니다.'); return; } cmp.push(id); } else cmp.splice(j,1);
+          save('cmp', cmp);
+        }
+        apply();
+      });
+    });
+  }
+  var flashT;
+  function flash(msg){
+    var f=el('flash'); if(!f) return;
+    f.textContent=msg; f.style.opacity='1'; clearTimeout(flashT);
+    flashT=setTimeout(function(){ f.style.opacity='0'; }, 2400);
+  }
+  function updateTray(){
+    if(!el('tray')) return;
+    if(el('nSaved')) el('nSaved').textContent = saved.length;
+    if(el('nCmp')) el('nCmp').textContent = cmp.length;
+    if(el('cmpBtn')) el('cmpBtn').style.display = CFG.compare? 'inline-flex':'none';
+  }
+  function openSaved(){
+    var rows = saved.map(function(id){ return byId[id]; }).filter(Boolean);
+    var body = rows.length ? '<table class="cmp"><tr><td>항목</td><td>내용</td><td></td></tr>'+rows.map(function(d){
+      return '<tr><td>'+esc(d.corner||d.region||'')+'</td><td><b>'+esc(d.title)+'</b><div style="color:#7a8580;font-size:11.5px">'+esc(d.meta||d.sub||'')+'</div></td>'+
+        '<td><button class="mini" data-rm="'+esc(d.id)+'">빼기</button></td></tr>';
+    }).join('')+'</table>' : '<p class="lead">저장한 항목이 없습니다. 카드의 ☆ 저장을 눌러 모아두세요.</p>';
+    showPanel('저장함 · '+rows.length+'건','브라우저(localStorage)에 저장됩니다. 같은 사이트의 다른 페이지에서도 유지됩니다.', body);
+    document.querySelectorAll('[data-rm]').forEach(function(b){
+      b.addEventListener('click', function(){ var i=saved.indexOf(b.dataset.rm); if(i>=0) saved.splice(i,1); save('saved',saved); openSaved(); apply(); });
+    });
+  }
+  function openCmp(){
+    var rows = cmp.map(function(id){ return byId[id]; }).filter(Boolean).filter(function(d){ return d.cmp; });
+    if(rows.length<2){ flash('비교할 항목을 2개 이상 담아주세요.'); return; }
+    var fields = CFG.compare;
+    var head = '<tr><th>항목</th>'+rows.map(function(d){ return '<th>'+esc(d.title)+'</th>'; }).join('')+'</tr>';
+    var body = fields.map(function(f){
+      return '<tr><th>'+esc(f.label)+'</th>'+rows.map(function(d){
+        var v = d.cmp[f.key]; return '<td>'+(v==null||v===''?'—':esc(v))+'</td>';
+      }).join('')+'</tr>';
+    }).join('');
+    var links = '<tr><th>링크</th>'+rows.map(function(d){
+      return '<td>'+(d.url?'<a href="'+esc(d.url)+'" target="_blank" rel="noopener">원문/홈페이지 ↗</a>':'—')+(d.link?'<br><a href="'+esc(d.link.href)+'" target="'+esc(d.link.target||'_self')+'">'+esc(d.link.label)+'</a>':'')+'</td>';
+    }).join('')+'</tr>';
+    showPanel('비교 · '+rows.length+'개','', '<div class="scrollx"><table class="cmp">'+head+body+links+'</table></div>');
+  }
+  function showPanel(title, sub, body){
+    el('pTitle').textContent = title; el('pSub').textContent = sub||'';
+    el('pBody').innerHTML = body; el('panel').classList.add('open');
+  }
+  function init(){
+    renderFilters();
+    var q=el('q'); if(q){ q.addEventListener('input', function(){ st.q=q.value.trim().toLowerCase(); apply(); }); }
+    var so=el('sort'); if(so){ so.addEventListener('change', function(){ st.sort=so.value; apply(); }); }
+    var r=el('reset'); if(r){ r.addEventListener('click', function(){
+      st.q=''; if(q) q.value=''; (CFG.filters||[]).forEach(function(f){ st[f.key]=[]; }); st.sort=CFG.defaultSort||'new'; if(so) so.value=st.sort;
+      updateChips(); apply(); }); }
+    var sb=el('savedBtn'); if(sb) sb.addEventListener('click', openSaved);
+    var cb=el('cmpBtn'); if(cb) cb.addEventListener('click', openCmp);
+    var px=el('pClose'); if(px) px.addEventListener('click', function(){ el('panel').classList.remove('open'); });
+    var pn=el('panel'); if(pn) pn.addEventListener('click', function(e){ if(e.target===pn) pn.classList.remove('open'); });
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ el('panel').classList.remove('open'); } });
+    apply();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+
+<script>
+(function(){
+  var P = window.__DATA__;
+  var byId={}; P.forEach(function(p){ byId[p.id]=p; });
+  var won=function(v){ return v==null? '—' : Math.round(v/10000).toLocaleString('ko-KR')+'만원'; };
+  var wonFull=function(v){ return v==null? '—' : Math.round(v).toLocaleString('ko-KR')+'원'; };
+  var selC=document.getElementById('cCountry'), selP=document.getElementById('cCourse'),
+      selW=document.getElementById('cWeeks'), mon=document.getElementById('cMonths'), monLbl=document.getElementById('cMonLbl');
+  var countries=[]; P.forEach(function(p){ if(countries.indexOf(p.country)<0) countries.push(p.country); });
+  selC.innerHTML=countries.map(function(c){ return '<option>'+c+'</option>'; }).join('');
+  function fillCourses(){
+    var list=P.filter(function(p){ return p.country===selC.value; });
+    selP.innerHTML=list.map(function(p){ return '<option value="'+p.id+'">'+p.city+' · '+p.inst+' — '+p.name+'</option>'; }).join('');
+    calc();
+  }
+  function calc(){
+    var p=byId[selP.value]; if(!p) return;
+    var w=parseInt(selW.value,10), months=parseInt(mon.value,10);
+    monLbl.textContent=months+'개월';
+    var t=p.t[w], a=p.a[w], i=p.i[w], v=p.v[w], tot=p.tot[w], living=p.living;
+    var liv=living? living*months : null;
+    var grand=(tot||0)+(liv||0);
+    var refund=t? Math.round(t*0.15) : null;
+    var net=grand-(refund||0);
+    var parts=[['학비 ('+['4','12','24'][w]+'주)',t],['숙소',a],['보험',i],['비자·행정비',v]];
+    document.getElementById('cOut').innerHTML=
+      '<div class="obox"><span>과정 비용 합계</span><b>'+won(tot)+'</b></div>'+
+      '<div class="obox"><span>생활비 '+months+'개월</span><b>'+won(liv)+'</b></div>'+
+      '<div class="obox hl"><span>실질 부담 합계</span><b>'+won(grand)+'</b></div>'+
+      '<div class="obox good"><span>예상 장학금 환급</span><b>-'+won(refund)+'</b></div>'+
+      '<div class="obox"><span>환급 후 부담</span><b>'+won(net)+'</b></div>';
+    document.getElementById('cBrk').innerHTML=parts.map(function(x){
+      return '<div class="kv"><span>'+x[0]+'</span><b>'+wonFull(x[1])+'</b></div>'; }).join('')+
+      '<div class="kv"><span>12주 총비용(공시 기준)</span><b>'+wonFull(p.tot[1])+'</b></div>';
+    document.getElementById('cNote').textContent='숙소: '+(p.at||'—')+' · 도시 월 생활비(주거 제외): '+(p.living? wonFull(p.living):'자료 없음')+
+      ' · 무비자 수강: '+(p.visa||'—')+' · 자녀 공립: '+(p.child||'—')+' · 아르바이트: '+(p.work||'—');
+  }
+  selC.addEventListener('change', fillCourses);
+  selP.addEventListener('change', calc);
+  selW.addEventListener('change', calc);
+  mon.addEventListener('input', calc);
+  fillCourses();
+
+  /* 비교 담기 — 목록 카드와 같은 저장소(localStorage 'sa:cmp') */
+  function load(){ try{ return JSON.parse(localStorage.getItem('sa:cmp'))||[]; }catch(e){ return []; } }
+  function save(v){ try{ localStorage.setItem('sa:cmp', JSON.stringify(v)); }catch(e){} }
+  function refreshCnt(){ document.getElementById('cCnt').textContent=load().length; var n=document.getElementById('nCmp'); if(n) n.textContent=load().length; }
+  document.getElementById('cAdd').addEventListener('click', function(){
+    var id=selP.value, arr=load();
+    if(arr.indexOf(id)>=0){ arr=arr.filter(function(x){ return x!==id; }); }
+    else { if(arr.length>=3){ alert('비교는 최대 3개까지 담을 수 있습니다.'); return; } arr.push(id); }
+    save(arr); refreshCnt(); if(window.__refreshList) window.__refreshList();
+  });
+  function openCmp(){
+    var arr=load().filter(function(id){ return byId[id]; });
+    if(arr.length<2){ alert('비교할 과정을 2개 이상 담아주세요.'); return; }
+    var rows=arr.map(function(id){ return byId[id]; });
+    var html='<div class="scrollx"><table class="cmp"><tr><th>항목</th>'+rows.map(function(p){ return '<th>'+p.country+' '+p.city+'<br><span style="font-weight:400;color:#7A8B9C">'+p.inst+'</span></th>'; }).join('')+'</tr>';
+    var fields=[['과정',function(p){ return p.name; }],['주당 수업',function(p){ return p.hours; }],
+      ['학비 12주',function(p){ return wonFull(p.t[1]); }],['숙소 12주',function(p){ return wonFull(p.a[1]); }],
+      ['보험·비자 12주',function(p){ return wonFull((p.i[1]||0)+(p.v[1]||0)); }],
+      ['12주 총비용',function(p){ return '<b>'+wonFull(p.tot[1])+'</b>'; }],
+      ['월 생활비(주거 제외)',function(p){ return wonFull(p.living); }],
+      ['예상 환급(학비 15%)',function(p){ return wonFull(Math.round((p.t[1]||0)*0.15)); }],
+      ['무비자 수강',function(p){ return p.visa||'—'; }],['자녀 공립 무상',function(p){ return p.child||'—'; }],
+      ['아르바이트',function(p){ return p.work||'—'; }],['신뢰도',function(p){ return p.reli||'—'; }]];
+    html+=fields.map(function(f){ return '<tr><th>'+f[0]+'</th>'+rows.map(function(p){ return '<td>'+f[1](p)+'</td>'; }).join('')+'</tr>'; }).join('');
+    html+='</table></div><div class="pickbtns"><a class="btn sm" href="'+'https://sites.google.com/view/studyabroad-kr/contact' + '">이 조건으로 상담 신청</a></div>';
+    document.getElementById('pTitle').textContent='과정 비교 · '+rows.length+'개';
+    document.getElementById('pSub').textContent='12주 기준 공시 금액입니다. 생활비는 도시 월 생활비(주거 제외)입니다.';
+    document.getElementById('pBody').innerHTML=html;
+    document.getElementById('panel').classList.add('open');
+  }
+  document.getElementById('cCmp').addEventListener('click', openCmp);
+  var px=document.getElementById('pClose'); if(px) px.addEventListener('click', function(){ document.getElementById('panel').classList.remove('open'); });
+  var pn=document.getElementById('panel'); if(pn) pn.addEventListener('click', function(e){ if(e.target===pn) pn.classList.remove('open'); });
+  refreshCnt();
+
+  /* 목록 카드용 비교 필드 주입 */
+  P.forEach(function(p){
+    p.cmp={'place':p.country+' · '+p.city,'course':p.inst+' — '+p.name,'tuition':wonFull(p.t[1]),
+      'accom':wonFull(p.a[1]),'total':wonFull(p.tot[1]),'hours':p.hours,'visa':p.visa,'child':p.child,
+      'work':p.work,'reli':p.reli};
+    p.sub=p.country+' · '+p.city+' · '+p.type;
+    p.meta=p.inst;
+    p.title=p.name;
+    p.desc='학비 12주 '+wonFull(p.t[1])+' · 총비용 12주 '+wonFull(p.tot[1])+' · 숙소 '+(p.at||'—');
+    p.search=[p.country,p.city,p.inst,p.name,p.type,p.region].join(' ');
+    p.date=String(999999999-(p.tot[1]||0)).padStart(9,'0');
+  });
+  window.__refreshList=function(){ /* 목록 새로고침 (공통 스크립트) */
+    document.querySelectorAll('#list [data-act="cmp"]').forEach(function(b){
+      var on=load().indexOf(b.dataset.id)>=0; b.classList.toggle('on',on); b.textContent=on?'✓ 비교 담김':'＋ 비교';
+    });
+  };
+  var so=document.getElementById('sort');
+  if(so){ so.value='new'; }
+})();
+</script>
+
+</body></html>

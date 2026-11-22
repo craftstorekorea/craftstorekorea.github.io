@@ -1,0 +1,517 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>K-Social Bridge — Global Buyers</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap');
+:root{--bg:#F6F9F7;--bg-soft:#EDF3EF;--ink:#0C2622;--body:#3E534E;--muted:#76887F;
+--line:#DDE7E1;--line2:#CBDAD2;--acc:#15705F;--acc-ink:#0E4E42;--acc-soft:#E6F2EC;
+--acc-line:#B4D6C8;--chip-bg:#EEF4F0;--chip-ink:#3D5650;--chip-line:#DDE7E1;
+--hero:linear-gradient(135deg,#082521 0%,#0E3B36 50%,#17604F 100%);--hero-soft:#C9DED6;--hero-eyebrow:#7FC0AA}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'Nanum Gothic','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+     font-size:14px;line-height:1.62;-webkit-text-size-adjust:100%;overflow-x:hidden}
+a{color:var(--acc);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:1120px;margin:0 auto;padding:18px 18px 26px}
+button{font-family:inherit}
+/* hero */
+.hero{background:var(--hero);color:#fff;border-radius:18px;padding:26px 24px;position:relative;overflow:hidden}
+.hero:after{content:'';position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;
+  background:rgba(255,255,255,.07)}
+.eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--hero-eyebrow);margin:0 0 8px}
+.hero h1{margin:0 0 8px;font-size:26px;line-height:1.28;letter-spacing:-.02em;font-weight:800;color:#fff}
+.hero p{margin:0;font-size:13.5px;line-height:1.62;color:var(--hero-soft);max-width:760px}
+.stats{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0}
+.stat{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:11px;padding:7px 12px;min-width:96px}
+.stat b{display:block;font-size:18px;line-height:1.25;color:#fff;font-weight:800}
+.stat span{font-size:11px;color:var(--hero-soft)}
+/* section head */
+h2.sec{margin:26px 0 10px;font-size:17px;letter-spacing:-.01em;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px}
+h2.sec em{font-style:normal;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.04em}
+.lead{font-size:13px;color:var(--muted);margin:-4px 0 12px}
+/* cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:12px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 15px;display:flex;flex-direction:column;
+  gap:7px;transition:box-shadow .15s,border-color .15s;position:relative}
+.card:hover{border-color:var(--acc-line);box-shadow:0 6px 18px rgba(20,30,25,.07)}
+.card .tags{display:flex;flex-wrap:wrap;gap:5px}
+.tag{display:inline-flex;align-items:center;font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:2px 8px;border-radius:20px;
+  background:var(--chip-bg);color:var(--chip-ink);border:1px solid var(--chip-line)}
+.tag.acc{background:var(--acc-soft);color:var(--acc-ink);border-color:var(--acc-line)}
+.card h3{margin:0;font-size:14.5px;line-height:1.45;font-weight:800;letter-spacing:-.01em;color:var(--ink)}
+.card h3 a{color:inherit}
+.card p{margin:0;font-size:12.5px;line-height:1.62;color:var(--body)}
+.card .meta{margin-top:auto;font-size:11.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.card .meta .dot{opacity:.4}
+.clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.cardacts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.mini{font-size:11.5px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--body);border-radius:8px;
+  padding:4px 9px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.mini:hover{border-color:var(--acc-line);color:var(--acc)}
+.mini.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.mini.ghost{background:transparent}
+a.mini{text-decoration:none}
+/* filter bar */
+.bar{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin:16px 0 14px;position:relative;z-index:1}
+.searchrow{display:flex;gap:8px;flex-wrap:wrap}
+.searchrow input[type=search]{flex:1 1 240px;min-width:0;height:38px;border:1px solid var(--line2);border-radius:10px;
+  padding:0 12px;font-size:13.5px;font-family:inherit;background:var(--bg-soft);color:var(--ink)}
+.searchrow input[type=search]:focus{outline:2px solid var(--acc-line);outline-offset:-1px;border-color:var(--acc);background:#fff}
+.searchrow select{height:38px;border:1px solid var(--line2);border-radius:10px;padding:0 8px;font-size:12.5px;background:#fff;
+  color:var(--ink);font-family:inherit}
+.fgroup{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:8px}
+.flab{font-size:10.5px;font-weight:800;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-right:3px;min-width:34px}
+.chip{border:1px solid var(--line2);background:#fff;color:var(--body);border-radius:20px;padding:4px 10px;font-size:11.5px;
+  cursor:pointer;font-weight:700;white-space:nowrap}
+.chip em{font-style:normal;color:var(--muted);font-weight:400;margin-left:3px}
+.chip:hover{border-color:var(--acc-line);color:var(--acc)}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.chip.on em{color:rgba(255,255,255,.75)}
+.barfoot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;padding-top:9px;border-top:1px dashed var(--line)}
+.count{font-size:12px;color:var(--body)}
+.count b{color:var(--ink)}
+.reset{margin-left:auto;border:1px solid var(--line2);background:#fff;color:var(--body);font-size:11.5px;font-weight:700;
+  height:29px;padding:0 11px;border-radius:8px;cursor:pointer}
+.reset:hover{border-color:var(--acc);color:var(--acc)}
+/* tray */
+.tray{position:sticky;bottom:0;z-index:5;margin-top:16px;background:rgba(255,255,255,.97);backdrop-filter:blur(6px);
+  border:1px solid var(--line);border-radius:13px;box-shadow:0 -4px 20px rgba(20,30,25,.08);padding:10px 12px;
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tray .tinfo{font-size:12px;color:var(--body);display:flex;gap:10px;flex-wrap:wrap}
+.tray .tinfo b{color:var(--acc)}
+.tray .sp{flex:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:34px;padding:0 14px;border-radius:9px;
+  font-size:12.5px;font-weight:800;border:1px solid var(--acc);background:var(--acc);color:#fff;cursor:pointer;text-decoration:none}
+.btn:hover{filter:brightness(1.05);text-decoration:none}
+.btn.sec{background:#fff;color:var(--acc)}
+.btn.ghost{background:transparent;border-color:var(--line2);color:var(--body)}
+.btn.sm{height:30px;padding:0 11px;font-size:11.5px}
+/* panels & modal */
+.panel{position:fixed;inset:0;background:rgba(18,26,22,.5);z-index:50;display:none;align-items:flex-start;justify-content:center;
+  padding:20px 12px;overflow:auto}
+.panel.open{display:flex}
+.sheet{background:#fff;border-radius:16px;max-width:960px;width:100%;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.sheet h3{margin:0 0 4px;font-size:17px;font-weight:800}
+.sheet .sub{font-size:12px;color:var(--muted);margin:0 0 12px}
+.sheet .x{float:right;border:0;background:var(--bg-soft);border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:15px;color:var(--body)}
+table.cmp{width:100%;border-collapse:collapse;font-size:12px}
+table.cmp th,table.cmp td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+table.cmp th{background:var(--bg-soft);font-size:11px;color:var(--muted);font-weight:800;letter-spacing:.03em;width:120px}
+table.cmp tr:first-child th{width:auto}
+.scrollx{overflow-x:auto}
+/* blocks */
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.block{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 16px}
+.block h3{margin:0 0 6px;font-size:14.5px;font-weight:800}
+.block p{margin:0;font-size:12.5px;color:var(--body)}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+.kv:last-child{border-bottom:0}
+.kv b{color:var(--ink)}
+.note{background:var(--bg-soft);border:1px dashed var(--line2);border-radius:12px;padding:11px 13px;font-size:11.5px;color:var(--muted);margin-top:16px}
+.foot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;font-size:12px;color:var(--muted)}
+.empty{display:none;text-align:center;padding:36px 12px;color:var(--muted);font-size:13px}
+@media (max-width:640px){
+  .wrap{padding:12px 11px 20px}
+  .hero{padding:20px 16px;border-radius:14px}
+  .hero h1{font-size:21px}
+  .hero p{font-size:12.5px}
+  .grid{grid-template-columns:1fr;gap:10px}
+  .stat{min-width:86px;padding:6px 10px}
+  .stat b{font-size:16px}
+  h2.sec{font-size:15.5px;margin-top:20px}
+  .searchrow input[type=search]{flex:1 1 100%}
+  .flab{min-width:100%}
+  .sheet{padding:14px;border-radius:13px}
+  .tray{border-radius:11px}
+}
+</style></head><body class="">
+<style>
+.lang{display:flex;gap:4px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:3px;width:max-content;margin-left:auto}
+.lang button{border:0;background:transparent;font-size:11.5px;font-weight:800;color:var(--muted);padding:5px 11px;border-radius:16px;cursor:pointer}
+.lang button.on{background:var(--acc);color:#fff}
+.toprow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.bcard{display:flex;flex-direction:column;gap:6px}
+.bcard .nm{display:flex;align-items:flex-start;gap:8px;justify-content:space-between}
+.bcard .nm h3{font-size:14px}
+.pick{border:1px solid var(--line2);background:#fff;border-radius:7px;width:24px;height:24px;flex:0 0 24px;cursor:pointer;
+  font-size:13px;line-height:1;color:var(--muted);display:inline-flex;align-items:center;justify-content:center}
+.pick.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.ln{font-size:12px;color:var(--body);display:flex;gap:6px}
+.ln b{color:var(--ink);font-weight:700;min-width:44px;display:inline-block}
+.tipbox{background:var(--bg-soft);border-left:3px solid var(--acc-line);border-radius:0 8px 8px 0;padding:7px 9px;font-size:11.5px;color:#41564F}
+.contact{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:2px}
+.rfqbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(255,255,255,.98);border-top:1px solid var(--line);
+  padding:10px 14px;display:flex;gap:9px;align-items:center;flex-wrap:wrap;box-shadow:0 -6px 20px rgba(10,30,25,.10)}
+.rfqbar .cnt{font-size:12.5px;color:var(--body)}
+.rfqbar .cnt b{color:var(--acc);font-size:15px}
+body{padding-bottom:70px}
+.prod{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+.pitem{border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:#fff;font-size:12px;display:flex;gap:8px;align-items:flex-start}
+.pitem b{display:block;font-size:12.5px;color:var(--ink)}
+.pitem span{color:var(--muted);font-size:11px}
+.prodsheet{max-width:1000px}
+</style>
+<div class="wrap">
+  <div class="toprow">
+    <div class="lang"><button data-l="ko" class="on">KO</button><button data-l="en">EN</button></div>
+  </div>
+  <section class="hero">
+    <p class="eyebrow" data-ko="BUYER DIRECTORY · VERIFIED 2026-11" data-en="BUYER DIRECTORY · VERIFIED 2026-11">BUYER DIRECTORY · VERIFIED 2026-11</p>
+    <h1 data-ko="해외 바이어 63곳, 조건으로 찾고 바로 견적 문의" data-en="63 verified channels in 25 countries">해외 바이어 63곳, 조건으로 찾고 바로 견적 문의</h1>
+    <p data-ko="공정무역·임팩트 리테일러, B2B 도매 마켓플레이스, 편집숍, 스페셜티푸드 도매상까지 — 이미 소규모 생산자와 거래하는 채널만 모았습니다. 대륙·품목으로 걸러 담고, 담은 바이어와 관심 품목으로 RFQ 견적 문의를 바로 열 수 있습니다."
+       data-en="Fair-trade retailers, impact-sourcing platforms, concept stores and specialty-food wholesalers that already source from small producers. Filter by continent and category, then open an RFQ with the selected buyers and products.">공정무역·임팩트 리테일러, B2B 도매 마켓플레이스, 편집숍, 스페셜티푸드 도매상까지 — 이미 소규모 생산자와 거래하는 채널만 모았습니다. 대륙·품목으로 걸러 담고, 담은 바이어와 관심 품목으로 RFQ 견적 문의를 바로 열 수 있습니다.</p>
+    <div class="stats" id="hstat"><div class="stat"><b>63</b><span>바이어</span></div><div class="stat"><b>25</b><span>국가</span></div><div class="stat"><b>7</b><span>대륙</span></div><div class="stat"><b>24</b><span>파일럿 상품</span></div></div>
+  </section>
+
+  <div class="bar">
+    <div class="searchrow"><input type="search" id="q" placeholder="바이어 이름·국가·품목·인증 검색 (예: fair trade, ceramics, UK)"></div>
+    <div id="filters"></div>
+    <div class="barfoot"><span class="count" id="count"></span><button class="reset" id="resetBtn">초기화</button></div>
+  </div>
+  <div class="grid" id="list"></div>
+  <p class="empty" id="empty">조건에 맞는 바이어가 없습니다.</p>
+  <p class="note" id="note">모든 이메일은 각 채널의 공식 웹사이트·연락처 페이지에서 확인한 값입니다(2026-11). 이메일을 공개하지 않는 채널은 문의 폼 링크를 대신 넣었습니다.</p>
+
+  <div class="rfqbar">
+    <span class="cnt" data-ko="선택한 바이어" data-en="Buyers selected">선택한 바이어</span> <b id="nb">0</b>
+    <span class="cnt" data-ko="· 품목" data-en="· products">· 품목</span> <b id="np">0</b>
+    <div style="flex:1"></div>
+    <button class="btn sm sec" id="prodBtn">관심 품목 고르기</button>
+    <button class="btn sm" id="rfqBtn">RFQ 견적 문의 열기</button>
+  </div>
+</div>
+<div class="panel" id="panel"><div class="sheet prodsheet"><button class="x" id="pClose">×</button><h3 id="pTitle"></h3><p class="sub" id="pSub"></p><div id="pBody"></div></div></div>
+
+<script>window.__BUYERS__ = [{"id": "b000", "name": "Ten Thousand Villages (US)", "country": "미국", "country_en": "United States", "region": "북미", "region_en": "North America", "cat": "1. 공정무역·임팩트 리테일러/도매", "cat_en": "Fair-trade & impact retail / wholesale", "type": "리테일·비영리 도매", "type_en": "리테일·비영리 도매", "products": "핸드크래프트·홈데코·주얼리·스페셜티푸드", "products_en": "handcraft·home décor·jewellery·specialty food", "certs": "WFTO·공정무역 원칙", "web": "https://www.tenthousandvillages.com", "contact": "https://wholesale.tenthousandvillages.com/pages/contact", "email": "inquiry@tenthousandvillages.com", "status": "확정(이메일)", "tip": "공식 공지로 신규 아티잔 그룹은 현재 미모집. 미국 내 도매 계정 첫 주문 $200 이상, 아티잔 제안은 inquiry@로."}, {"id": "b001", "name": "SERRV International", "country": "미국", "country_en": "United States", "region": "북미", "region_en": "North America", "cat": "1. 공정무역·임팩트 리테일러/도매", "cat_en": "Fair-trade & impact retail / wholesale", "type": "비영리 도매·임포터", "type_en": "비영리 도매·임포터", "products": "핸드크래프트·홀리데이·주얼리·스페셜티푸드", "products_en": "handcraft·홀리데이·jewellery·specialty food", "certs": "공정무역 10원칙(WFTO 기준)", "web": "https://www.serrv.org", "contact": "https://www.serrv.org/artisan-application/", "email": "문의폼(이메일 미공개)", "status": "확정(문의폼)", "tip": "인도·중국 신규 신청 접수 불가, 중남미 파트너 발굴 중. 신청 후 60일 내 서면 회신, 무단 샘플 발송 금지."}, {"id": "b002", "name": "Fair Trade Winds", "country": "미국", "country_en": "United States", "region": "북미", "region_en": "North America", "cat": "1. 공정무역·임팩트 리테일러/도매", "cat_en": "Fair-trade & impact retail / wholesale", "type": "리테일(다점포)", "type_en": "리테일(다점포)", "products": "공정무역 기프트·홈데코", "products_en": "fair trade 기프트·home décor", "certs": "공정무역 인증 제품 선호", "web": "https://www.fairtradewinds.net", "contact": "https://www.fairtradewinds.net/pages/faqs", "email": "orders@fairtradewinds.net", "status": "확정(이메일)", "tip": "버지니아 창고에서 미국 전역·EU 일부 배송. FAQ에 안내된 공식 주소로 소싱 문의."}, {"id": "b003", "name": "Global Goods Partners", "country": "미국", "country_en": "United States", "region": "북미", "region_en": "North America", "cat": "1. 공정무역·임팩트 리테일러/도매", "cat_en": "Fair-trade & impact retail / wholesale", "type": "비영리 도매·임팩트 브랜드", "type_en": "비영리 도매·임팩트 브랜드", "products": "펠트·핸드크래프트·액세서리", "products_en": "felt·handcraft·accessories", "certs": "공정무역(2006~)", "web": "https://wholesale.globalgoodspartners.org", "contact": "https://wholesale.globalgoodspartners.org/pages/contact-us", "email": "wholesale@globalgoodspartners.org", "status": "확정(이메일)", "tip": "아티잔 사회적기업과 직접 협업. 최소 오픈오더 $300·2개 MOQ, 6개월 거래 후 Net30 신청."}, {"id": "b004", "name": "Goodee", "country": "캐나다", "country_en": "Canada", "region": "북미", "region_en": "North America", "cat": "2. 공예·리빙·지속가능 편집숍", "cat_en": "Craft, living & sustainable concept store", "type": "편집숍·플랫폼", "type_en": "편집숍·플랫폼", "products": "지속가능 디자인 홈·라이프스타일", "products_en": "지속가능 디자인 home·라이프스타일", "certs": "B Corp·40+ 글로벌 메이커", "web": "https://www.goodeeworld.com", "contact": "https://www.goodeeworld.com/pages/contact-us", "email": "submissions@goodeeworld.com", "status": "확정(이메일)", "tip": "브랜드·제품 제출 전담 주소. 디자인 완성도·스토리 중심 심사, 트레이드 문의는 trade@goodeeworld.com."}, {"id": "b005", "name": "Buy Social Canada", "country": "캐나다", "country_en": "Canada", "region": "북미", "region_en": "North America", "cat": "6. B2B 홀세일·임팩트 소싱 플랫폼", "cat_en": "B2B wholesale & impact sourcing platform", "type": "임팩트 소싱 네트워크·인증", "type_en": "임팩트 소싱 네트워크·인증", "products": "전 카테고리(사회적기업 제품·서비스)", "products_en": "전 카테고리(사회적기업 제품·서비스)", "certs": "캐나다 사회적기업 인증·사회적 조달", "web": "https://www.buysocialcanada.com", "contact": "https://www.buysocialcanada.com/contact/", "email": "info@buysocialcanada.com", "status": "확정(이메일)", "tip": "인증은 캐나다 소재 사회적기업 대상이라 한국 법인은 직접 대상 아님. 캐나다 바이어·파트너 연결 문의용으로 활용."}, {"id": "b006", "name": "Faire", "country": "미국", "country_en": "United States", "region": "북미", "region_en": "North America", "cat": "6. B2B 홀세일·임팩트 소싱 플랫폼", "cat_en": "B2B wholesale & impact sourcing platform", "type": "B2B 도매 마켓플레이스", "type_en": "B2B 도매 마켓플레이스", "products": "전 카테고리(뷰티·리빙·패션·식품)", "products_en": "전 카테고리(beauty·living·fashion·food)", "certs": "B Corp(마켓플레이스)", "web": "https://www.faire.com", "contact": "https://www.faire.com/brands", "email": "문의폼(이메일 미공개)", "status": "확정(문의폼)", "tip": "신규 고객 수수료 25%·재주문 15%. 한국 브랜드 승인 여부는 신청 후 확인 필요(카테고리 수급·SKU·기존 도매 실적 심사)."}, {"id": "b007", "name": "Credo Beauty", "country": "미국", "country_en": "United States", "region": "북미", "region_en": "North America", "cat": "4. 클린뷰티·퍼스널케어", "cat_en": "Clean beauty & personal care", "type": "리테일(클린뷰티 최대)", "type_en": "리테일(클린beauty 최대)", "products": "클린뷰티·스킨케어·메이크업", "products_en": "클린beauty·skincare·메이크업", "certs": "Credo Clean Standard(2,700+ 금지·제한 성분)", "web": "https://credobeauty.com", "contact": "https://credobeauty.com/pages/credo-faq", "email": "FAQ 'Submissions' 항목에 브랜드 제출 이메일 안내(직접 확인 필요)", "status": "부분확인", "tip": "제출 시 전 제품 전성분(INCI) 필수, Dirty List 미충족 시 심사 불가. 이메일 주소는 사이트 내 링크로만 노출되어 직접 확인 필요."}, {"id": "b008", "name": "The Detox Market", "country": "미국", "country_en": "United States", "region": "북미", "region_en": "North America", "cat": "4. 클린뷰티·퍼스널케어", "cat_en": "Clean beauty & personal care", "type": "리테일", "type_en": "리테일", "products": "클린뷰티·스킨케어", "products_en": "클린beauty·skincare", "certs": "Banned Ingredients List", "web": "https://www.thedetoxmarket.com", "contact": "https://www.thedetoxmarket.com/pages/brand-submission", "email": "문의폼(이메일 미공개)", "status": "확정(문의폼)", "tip": "미국·캐나다 운영(온라인·매장). 2025년 VIOLET GREY에 인수. 제출 후 8~12주 제품 테스트, 무단 샘플·매장 방문 금지."}, {"id": "b009", "name": "Ohlolly", "country": "미국", "country_en": "United States", "region": "북미", "region_en": "North America", "cat": "4. 클린뷰티·퍼스널케어", "cat_en": "Clean beauty & personal care", "type": "리테일+도매(K-뷰티 유통)", "type_en": "리테일+도매(K-beauty 유통)", "products": "K-뷰티 스킨케어", "products_en": "K-beauty skincare", "certs": "한국 스킨케어 전문 큐레이션", "web": "https://ohlolly.com", "contact": "https://ohlolly.com/pages/contact-us", "email": "hello@ohlolly.com", "status": "확정(이메일)", "tip": "'Ohlolly Plus' B2B로 Bloomingdale's·Nordstrom·Target에 유통. 브랜드·도매 문의 동일 주소."}, {"id": "b010", "name": "Soko Glam", "country": "미국", "country_en": "United States", "region": "북미", "region_en": "North America", "cat": "4. 클린뷰티·퍼스널케어", "cat_en": "Clean beauty & personal care", "type": "리테일(K-뷰티)", "type_en": "리테일(K-beauty)", "products": "K-뷰티 스킨케어", "products_en": "K-beauty skincare", "certs": "K-뷰티 큐레이션", "web": "https://sokoglam.com", "contact": "https://sokoglam.com/pages/contact", "email": "hello@sokoglam.com", "status": "확정(이메일)", "tip": "공식 사이트에 확인되는 대표 주소는 hello@. 파트너십 전용 주소는 2차 출처만 있어 미확인."}, {"id": "b011", "name": "Kim'C Market", "country": "미국", "country_en": "United States", "region": "북미", "region_en": "North America", "cat": "5. 스페셜티푸드·차·식품", "cat_en": "Specialty food, tea & food", "type": "도매(B2B)+리테일", "type_en": "도매(B2B)+리테일", "products": "한국 식품·장류·쌀·김치", "products_en": "한국 food·sauces·쌀·seaweed치", "certs": "산지 직거래·클린 K푸드", "web": "https://biz.kimcmarket.com", "contact": "https://biz.kimcmarket.com/pages/contact", "email": "hello@kimcmarket.com", "status": "확정(이메일)", "tip": "B2B 페이지에서 제품 제안 적극 수용. 미쉐린 레스토랑 납품, 12개 내부 기준 심사. info@kimcmarket.com 병행."}, {"id": "b012", "name": "H Mart", "country": "미국", "country_en": "United States", "region": "북미", "region_en": "North America", "cat": "5. 스페셜티푸드·차·식품", "cat_en": "Specialty food, tea & food", "type": "리테일 체인(아시안)", "type_en": "리테일 체인(아시안)", "products": "아시안 식품·잡화·K푸드", "products_en": "아시안 food·goods·K푸드", "certs": "-", "web": "https://www.hmart.com", "contact": "https://support.hmart.com/hc/en-us/articles/4407132829843", "email": "문의폼(이메일 미공개)", "status": "확정(문의폼)", "tip": "'Online & Store Affiliates'로 회사명·아이템 제안·연락처 제출. 미국 최대 아시안 그로서리 체인."}, {"id": "b013", "name": "Shared Earth", "country": "영국", "country_en": "United Kingdom", "region": "서유럽·북유럽", "region_en": "Western & Northern Europe", "cat": "1. 공정무역·임팩트 리테일러/도매", "cat_en": "Fair-trade & impact retail / wholesale", "type": "도매·디스트리뷰터", "type_en": "도매·디스트리뷰터", "products": "에코·공정무역 기프트·홈·패션", "products_en": "에코·fair trade 기프트·home·fashion", "certs": "WFTO 정기 감사", "web": "https://www.sharedearth-trade.co.uk", "contact": "https://www.sharedearth-trade.co.uk/contact_us", "email": "sales@sharedearth.co.uk", "status": "확정(이메일)", "tip": "20개국 50+ 공급사, 최소주문 없음. 무역계정 등록 폼 별도 운영, 요크 소재."}, {"id": "b014", "name": "GEPA – The Fair Trade Company", "country": "독일", "country_en": "Germany", "region": "서유럽·북유럽", "region_en": "Western & Northern Europe", "cat": "1. 공정무역·임팩트 리테일러/도매", "cat_en": "Fair-trade & impact retail / wholesale", "type": "도매·임포터", "type_en": "도매·임포터", "products": "식품·공예·봉제", "products_en": "food·craft·봉제", "certs": "WFTO·공정무역", "web": "https://www.gepa.de", "contact": "https://www.gepa.de/kontakt", "email": "info@gepa.de", "status": "확정(이메일)", "tip": "유럽 최대 공정무역 임포터 중 하나. 월드숍·식품유통 채널 보유, 제품 제안은 본사 대표 주소로."}, {"id": "b015", "name": "Fairtrade Original", "country": "네덜란드", "country_en": "Netherlands", "region": "서유럽·북유럽", "region_en": "Western & Northern Europe", "cat": "1. 공정무역·임팩트 리테일러/도매", "cat_en": "Fair-trade & impact retail / wholesale", "type": "도매·임포터", "type_en": "도매·임포터", "products": "식품(커피·차·소스·스낵)", "products_en": "food(coffee·tea·소스·snacks)", "certs": "Fairtrade 인증", "web": "https://www.fairtradeoriginal.nl", "contact": "https://www.fairtradeoriginal.nl/contact/", "email": "info@fairtradeoriginal.nl", "status": "확정(이메일)", "tip": "네덜란드 월드숍·슈퍼 채널. 'Zakelijk' 페이지에서 소매·도매 문의 경로 안내."}, {"id": "b016", "name": "El Puente", "country": "독일", "country_en": "Germany", "region": "서유럽·북유럽", "region_en": "Western & Northern Europe", "cat": "1. 공정무역·임팩트 리테일러/도매", "cat_en": "Fair-trade & impact retail / wholesale", "type": "도매·임포터", "type_en": "도매·임포터", "products": "공예·식품·패션·홈", "products_en": "craft·food·fashion·home", "certs": "WFTO 인증", "web": "https://www.el-puente.de", "contact": "https://www.el-puente.de/kontakt", "email": "info@el-puente.de", "status": "확정(이메일)", "tip": "신규 파트너는 'Projektpartnerausschuss'(월드숍·협회 위원 포함) 심사. 영업 vertrieb@el-puente.de."}, {"id": "b017", "name": "claro fair trade AG", "country": "스위스", "country_en": "Switzerland", "region": "서유럽·북유럽", "region_en": "Western & Northern Europe", "cat": "1. 공정무역·임팩트 리테일러/도매", "cat_en": "Fair-trade & impact retail / wholesale", "type": "도매·임포터·소매", "type_en": "도매·임포터·소매", "products": "식품·공예·뷰티", "products_en": "food·craft·beauty", "certs": "WFTO", "web": "https://www.claro.ch", "contact": "https://www.claro.ch/pages/contact", "email": "mail@claro.ch", "status": "확정(이메일)", "tip": "스위스 최대 공정무역 유통. 주문·제품 문의 shop@claro.ch."}, {"id": "b018", "name": "Altromercato (CTM)", "country": "이탈리아", "country_en": "Italy", "region": "서유럽·북유럽", "region_en": "Western & Northern Europe", "cat": "1. 공정무역·임팩트 리테일러/도매", "cat_en": "Fair-trade & impact retail / wholesale", "type": "도매·임포터(200+ 부티크)", "type_en": "도매·임포터(200+ 부티크)", "products": "식품·공예·패션·코스메틱", "products_en": "food·craft·fashion·코스메틱", "certs": "WFTO·155개 생산자 조직", "web": "https://www.altromercato.it", "contact": "https://www.altromercato.it/contatti/", "email": "info@altromercato.it", "status": "확정(이메일)", "tip": "이탈리아 최대 공정무역 네트워크, 45개국 생산자와 거래. 'Filiere' 사업부가 기업용 소싱 담당."}, {"id": "b019", "name": "EZA Fairer Handel", "country": "오스트리아", "country_en": "Austria", "region": "서유럽·북유럽", "region_en": "Western & Northern Europe", "cat": "1. 공정무역·임팩트 리테일러/도매", "cat_en": "Fair-trade & impact retail / wholesale", "type": "도매·임포터", "type_en": "도매·임포터", "products": "공예·식품", "products_en": "craft·food", "certs": "WFTO", "web": "https://www.eza.at", "contact": "https://www.eza.at/kontakt", "email": "office@eza.at", "status": "확정(이메일)", "tip": "신규 생산자용 'EZA Probelieferanten'(시범 공급) 제도 운영. 파트너정책 담당 birgit.calix@eza.cc."}, {"id": "b020", "name": "Oxfam Fair Trade (Belgium)", "country": "벨기에", "country_en": "Belgium", "region": "서유럽·북유럽", "region_en": "Western & Northern Europe", "cat": "1. 공정무역·임팩트 리테일러/도매", "cat_en": "Fair-trade & impact retail / wholesale", "type": "도매·임포터·월드숍", "type_en": "도매·임포터·월드숍", "products": "식품·공예·패션", "products_en": "food·craft·fashion", "certs": "WFTO·공정무역", "web": "https://www.oxfamfairtrade.be", "contact": "https://www.oxfamfairtrade.be/nl/contact/", "email": "info@oft.be", "status": "확정(이메일)", "tip": "수출 담당 martine.vanderhaegen@oft.be, B2B 세일즈 별도. 벨기에 월드숍 200여 곳 공급."}, {"id": "b021", "name": "FOLKDAYS", "country": "독일", "country_en": "Germany", "region": "서유럽·북유럽", "region_en": "Western & Northern Europe", "cat": "2. 공예·리빙·지속가능 편집숍", "cat_en": "Craft, living & sustainable concept store", "type": "편집숍", "type_en": "편집숍", "products": "공정무역 주얼리·액세서리·인테리어·의류", "products_en": "fair trade jewellery·accessories·인테리어·apparel", "certs": "공정무역·사회적기업 파트너만", "web": "https://folkdays.de", "contact": "https://folkdays.de/pages/stockists", "email": "b2b@folkdays.com", "status": "확정(이메일)", "tip": "2024.11부터 White Label Project를 통해 유통. 고객문의 hello@folkdays.com, B2B는 b2b@."}, {"id": "b022", "name": "Avocadostore", "country": "독일", "country_en": "Germany", "region": "서유럽·북유럽", "region_en": "Western & Northern Europe", "cat": "2. 공예·리빙·지속가능 편집숍", "cat_en": "Craft, living & sustainable concept store", "type": "지속가능 마켓플레이스", "type_en": "지속가능 마켓플레이스", "products": "에코패션·그린 뷰티·인테리어", "products_en": "에코fashion·그린 beauty·인테리어", "certs": "10개 지속가능 기준·약 7,000 브랜드", "web": "https://www.avocadostore.de", "contact": "https://www.avocadostore.de/merchant_service", "email": "shop@avocadostore.de", "status": "확정(이메일)", "tip": "독일 최대 그린 마켓플레이스. 신규는 'Händler:in anmelden'으로 신청, EU 내 재고·배송 체계 필요 여부 사전 확인."}, {"id": "b023", "name": "Ethical Superstore", "country": "영국", "country_en": "United Kingdom", "region": "서유럽·북유럽", "region_en": "Western & Northern Europe", "cat": "2. 공예·리빙·지속가능 편집숍", "cat_en": "Craft, living & sustainable concept store", "type": "리테일(온라인)", "type_en": "리테일(온라인)", "products": "공정무역·유기농·에코 3,000+ SKU", "products_en": "fair trade·organic·에코 3,000+ SKU", "certs": "공정무역·유기농", "web": "https://www.ethicalsuperstore.com", "contact": "https://www.ethicalsuperstore.com/contact-us/", "email": "enquiries@ethicalsuperstore.com", "status": "확정(이메일)", "tip": "Spark Etail 운영. 대표 문의 주소이며 구매팀 직통은 아님 — 브랜드 제안 시 구매팀 연결 요청 문구 필요."}, {"id": "b024", "name": "Oh My Cream", "country": "프랑스", "country_en": "France", "region": "서유럽·북유럽", "region_en": "Western & Northern Europe", "cat": "4. 클린뷰티·퍼스널케어", "cat_en": "Clean beauty & personal care", "type": "리테일(클린뷰티)", "type_en": "리테일(클린beauty)", "products": "클린뷰티·스킨케어", "products_en": "클린beauty·skincare", "certs": "클린·이성분주의 큐레이션", "web": "https://www.ohmycream.com", "contact": "https://www.ohmycream.com/pages/contact", "email": "demarchage@ohmycream.com", "status": "확정(이메일)", "tip": "'demarchage@'가 클린 브랜드 입점 제안 전용 주소. 우편 제출: Service Achats & Offre, 47 rue de Babylone, 75007 Paris."}, {"id": "b025", "name": "Grandpa", "country": "스웨덴", "country_en": "Sweden", "region": "서유럽·북유럽", "region_en": "Western & Northern Europe", "cat": "3. 업사이클·친환경 패션·잡화", "cat_en": "Upcycled & eco fashion / goods", "type": "편집숍(4개 매장)", "type_en": "편집숍(4개 매장)", "products": "지속가능 패션·라이프스타일", "products_en": "지속가능 fashion·라이프스타일", "certs": "지속가능성·큐레이션", "web": "https://www.grandpastore.com", "contact": "https://www.grandpastore.com/en/about-grandpa/contact", "email": "shop@grandpastore.com", "status": "확정(이메일)", "tip": "스톡홀름·예테보리·말뫼·웁살라 4개 매장. 대표 주소로 바이어 연결 요청."}, {"id": "b026", "name": "Ankorstore", "country": "프랑스", "country_en": "France", "region": "서유럽·북유럽", "region_en": "Western & Northern Europe", "cat": "6. B2B 홀세일·임팩트 소싱 플랫폼", "cat_en": "B2B wholesale & impact sourcing platform", "type": "B2B 도매 마켓플레이스", "type_en": "B2B 도매 마켓플레이스", "products": "식품·홈·키즈·패션·주얼리", "products_en": "food·home·키즈·fashion·jewellery", "certs": "독립 브랜드 큐레이션", "web": "https://www.ankorstore.com", "contact": "https://www.ankorstore.com/", "email": "문의폼(이메일 미공개)", "status": "확정(문의폼)", "tip": "EU/UK 소재 등록 법인만 입점 가능(한국 법인 직접 불가) — 유럽 총판·에이전트 계약 후 입점 검토. 심사 48시간 내 회신."}, {"id": "b027", "name": "Orderchamp", "country": "네덜란드", "country_en": "Netherlands", "region": "서유럽·북유럽", "region_en": "Western & Northern Europe", "cat": "6. B2B 홀세일·임팩트 소싱 플랫폼", "cat_en": "B2B wholesale & impact sourcing platform", "type": "B2B 도매 마켓플레이스", "type_en": "B2B 도매 마켓플레이스", "products": "전 카테고리", "products_en": "전 카테고리", "certs": "200,000 리테일러", "web": "https://www.orderchamp.com", "contact": "https://www.orderchamp.com/signup/brands", "email": "문의폼(이메일 미공개)", "status": "확정(문의폼)", "tip": "EU VAT 번호+EU 창고 필수, 카탈로그 20개 이상. 수수료 18%/재주문 7%. 한국 법인은 EU 법인 설립 후 신청 가능."}, {"id": "b028", "name": "Creoate", "country": "영국", "country_en": "United Kingdom", "region": "서유럽·북유럽", "region_en": "Western & Northern Europe", "cat": "6. B2B 홀세일·임팩트 소싱 플랫폼", "cat_en": "B2B wholesale & impact sourcing platform", "type": "B2B 도매 마켓플레이스", "type_en": "B2B 도매 마켓플레이스", "products": "전 카테고리(식품 제외 일부)", "products_en": "전 카테고리(food 제외 일부)", "certs": "독립 브랜드·250,000 B2B 바이어", "web": "https://www.creoate.com", "contact": "https://www.creoate.com/join-as-a-brand", "email": "hello@creoate.com", "status": "확정(이메일)", "tip": "UK/EU/US 소재만 신청 가능. 커스텀 도메인 이메일·인스타그램·도매 사이트·5개 이상 SKU 필수, 심사 약 4주."}, {"id": "b029", "name": "Shop Like You Give a Damn", "country": "네덜란드", "country_en": "Netherlands", "region": "서유럽·북유럽", "region_en": "Western & Northern Europe", "cat": "3. 업사이클·친환경 패션·잡화", "cat_en": "Upcycled & eco fashion / goods", "type": "마켓플레이스(비건 패션·홈)", "type_en": "마켓플레이스(비건 fashion·home)", "products": "100% 비건 패션·슈즈·홈", "products_en": "100% 비건 fashion·슈즈·home", "certs": "5개 가치(비건·공정·지속가능·포용·사회) 검증", "web": "https://www.shoplikeyougiveadamn.com", "contact": "https://www.shoplikeyougiveadamn.com/become_seller", "email": "sellers@shoplikeyougiveadamn.com", "status": "확정(이메일)", "tip": "유럽 최대 100% 비건몰(230+ 브랜드). 셀러 전용 주소로 컬렉션·소재·임금 정보 제출. 2026년 Immaculate Vegan 자산 인수."}, {"id": "b030", "name": "Ziracle (구 Wearth·Veo)", "country": "영국", "country_en": "United Kingdom", "region": "서유럽·북유럽", "region_en": "Western & Northern Europe", "cat": "2. 공예·리빙·지속가능 편집숍", "cat_en": "Craft, living & sustainable concept store", "type": "지속가능 마켓플레이스", "type_en": "지속가능 마켓플레이스", "products": "뷰티·패션·홈·식품·키즈·리필 7개 부문", "products_en": "beauty·fashion·home·food·키즈·리필 7개 부문", "certs": "Kind·Healthy·Sustainable 3기준·B Corp 계보", "web": "https://www.ziracle.com", "contact": "https://www.ziracle.com/join/", "email": "brands@ziracle.com", "status": "확정(이메일)", "tip": "공식 FAQ에 '해외 브랜드 환영(영국 배송 가능 조건)' 명시 — 한국 브랜드 직접 신청 가능. 5영업일 내 1차 심사, 가입·등재비 없음."}, {"id": "b031", "name": "World Fair Trade Organization (WFTO)", "country": "네덜란드", "country_en": "Netherlands", "region": "서유럽·북유럽", "region_en": "Western & Northern Europe", "cat": "6. B2B 홀세일·임팩트 소싱 플랫폼", "cat_en": "B2B wholesale & impact sourcing platform", "type": "공정무역 회원 네트워크", "type_en": "fair trade 회원 네트워크", "products": "전 카테고리(회원사 제품)", "products_en": "전 카테고리(회원사 제품)", "certs": "WFTO 10원칙·인증 체계", "web": "https://wfto.com", "contact": "https://wfto.com/contact-us/", "email": "info@wfto.com", "status": "확정(이메일)", "tip": "'Verified WFTO Member Search'로 국가·카테고리별 바이어/공급사 검색 가능. 회원가입·소싱 문의 모두 info@."}, {"id": "b032", "name": "Social Enterprise UK", "country": "영국", "country_en": "United Kingdom", "region": "서유럽·북유럽", "region_en": "Western & Northern Europe", "cat": "6. B2B 홀세일·임팩트 소싱 플랫폼", "cat_en": "B2B wholesale & impact sourcing platform", "type": "사회적기업 네트워크·조달", "type_en": "사회적기업 네트워크·조달", "products": "전 카테고리", "products_en": "전 카테고리", "certs": "영국 최대 사회적기업 디렉터리", "web": "https://www.socialenterprise.org.uk", "contact": "https://www.socialenterprise.org.uk/get-involved/about-seuk-membership-legacy/", "email": "membership@socialenterprise.org.uk", "status": "확정(이메일)", "tip": "회원은 영국 소재 사회적기업 대상(연매출 £100K 미만 무료). 'Buy Social Corporate Challenge'·추천 공급사 네트워크가 실질 채널."}, {"id": "b033", "name": "The Social Space", "country": "싱가포르", "country_en": "Singapore", "region": "동아시아·동남아", "region_en": "East & Southeast Asia", "cat": "1. 공정무역·임팩트 리테일러/도매", "cat_en": "Fair-trade & impact retail / wholesale", "type": "편집숍·사회적기업 플랫폼", "type_en": "편집숍·사회적기업 플랫폼", "products": "공정무역·제로웨이스트·기프트", "products_en": "fair trade·제로웨이스트·기프트", "certs": "싱가포르 인증 사회적기업", "web": "https://thesocialspace.co", "contact": "https://thesocialspace.co/pages/shop-by-brand", "email": "hello@thesocialspace.co", "status": "확정(이메일)", "tip": "60개 사회적기업·비영리에서 소싱, 크레타아예르·포통파시르 2개 매장+온라인. 카페·네일샵 병행."}, {"id": "b034", "name": "Slowood / Greenroot", "country": "홍콩", "country_en": "Hong Kong", "region": "동아시아·동남아", "region_en": "East & Southeast Asia", "cat": "2. 공예·리빙·지속가능 편집숍", "cat_en": "Craft, living & sustainable concept store", "type": "리테일+도매", "type_en": "리테일+도매", "products": "제로웨이스트·그로서리·리빙", "products_en": "제로웨이스트·그로서리·living", "certs": "제로웨이스트·친환경", "web": "https://www.slowood.hk", "contact": "https://www.slowood.hk/pages/corporate-solutions", "email": "corporate@slowood.hk", "status": "확정(이메일)", "tip": "도매·유통은 자회사 Greenroot(order@greenroot.hk)가 담당, HK MOQ HK$2,000. 공항 포함 5개 매장."}, {"id": "b035", "name": "Ethical&SEA (주식회사 플래그)", "country": "일본", "country_en": "Japan", "region": "동아시아·동남아", "region_en": "East & Southeast Asia", "cat": "2. 공예·리빙·지속가능 편집숍", "cat_en": "Craft, living & sustainable concept store", "type": "편집숍 체인", "type_en": "편집숍 체인", "products": "에시컬·오가닉·라이프스타일", "products_en": "에시컬·오가닉·라이프스타일", "certs": "플라스틱프리·페어트레이드·비건·내추럴", "web": "https://ethicalsea.com", "contact": "https://ethicalsea.com/contact/", "email": "contact@ml.flag-support.jp", "status": "확정(이메일)", "tip": "이온스타일 포함 13개 매장. 바이어 문의는 contact 폼(법인 대표 메일 병기)."}, {"id": "b036", "name": "People Tree Japan (페어트레이드컴퍼니)", "country": "일본", "country_en": "Japan", "region": "동아시아·동남아", "region_en": "East & Southeast Asia", "cat": "3. 업사이클·친환경 패션·잡화", "cat_en": "Upcycled & eco fashion / goods", "type": "도매·리테일(공정무역 패션)", "type_en": "도매·리테일(fair trade fashion)", "products": "공정무역 의류·잡화·초콜릿", "products_en": "fair trade apparel·goods·chocolate", "certs": "WFTO·공정무역 전문 브랜드", "web": "https://peopletree.co.jp", "contact": "https://peopletree.co.jp/pages/shop_oroshi-shinki", "email": "문의폼(이메일 미공개)", "status": "확정(문의폼)", "tip": "도매 문의는 전용 폼으로만 접수(담당자 확인 후 회신). 전국 300+ 취급점 보유."}, {"id": "b037", "name": "Little Farms", "country": "싱가포르", "country_en": "Singapore", "region": "동아시아·동남아", "region_en": "East & Southeast Asia", "cat": "5. 스페셜티푸드·차·식품", "cat_en": "Specialty food, tea & food", "type": "리테일(5개 매장+이커머스)", "type_en": "리테일(5개 매장+이커머스)", "products": "유기농·자연식·신선식품", "products_en": "organic·자연식·신선food", "certs": "200+ 금지성분 리스트 운영", "web": "https://littlefarms.com", "contact": "https://littlefarms.com/frequently-asked-questions/", "email": "info@littlefarms.com", "status": "확정(이메일)", "tip": "구매담당 인터뷰 기준: MOQ 유연성·짧은 리드타임·프로모션 지원을 중시. 오스트레일리아·유럽 공급사 중심."}, {"id": "b038", "name": "Scoop Wholefoods Singapore", "country": "싱가포르", "country_en": "Singapore", "region": "동아시아·동남아", "region_en": "East & Southeast Asia", "cat": "5. 스페셜티푸드·차·식품", "cat_en": "Specialty food, tea & food", "type": "리테일(벌크·리필)", "type_en": "리테일(벌크·리필)", "products": "벌크 식품·뷰티·리필", "products_en": "벌크 food·beauty·리필", "certs": "유기농 80%·제로웨이스트", "web": "https://scoopwholefoods.com", "contact": "https://scoopwholefoods.com/about", "email": "info@scoopwholefoods.com.sg", "status": "확정(이메일)", "tip": "싱가포르 100+ 공급사, 대부분 호주 유기농. 팝업 자리로 사회적기업 제품 입점 사례 있음."}, {"id": "b039", "name": "NTUC FairPrice Group", "country": "싱가포르", "country_en": "Singapore", "region": "동아시아·동남아", "region_en": "East & Southeast Asia", "cat": "5. 스페셜티푸드·차·식품", "cat_en": "Specialty food, tea & food", "type": "리테일 체인(600+ 매장)", "type_en": "리테일 체인(600+ 매장)", "products": "식품·생필품 전 카테고리", "products_en": "food·생필품 전 카테고리", "certs": "공급사 행동강령", "web": "https://www.fairpricegroup.com.sg", "contact": "https://www.fairpricegroup.com.sg/contact-us/suppliers/", "email": "문의폼(이메일 미공개)", "status": "확정(문의폼)", "tip": "4,000+ 공급사·40개국. 웹폼에서 'General Store Feedback' 선택 후 회사소개·제품스펙·제품목록·사진 제출."}, {"id": "b040", "name": "Trade Aid", "country": "뉴질랜드", "country_en": "New Zealand", "region": "오세아니아", "region_en": "Oceania", "cat": "1. 공정무역·임팩트 리테일러/도매", "cat_en": "Fair-trade & impact retail / wholesale", "type": "도매·리테일(공정무역)", "type_en": "도매·리테일(fair trade)", "products": "공정무역 식품·공예·커피", "products_en": "fair trade food·craft·coffee", "certs": "WFTO·공정무역", "web": "https://www.tradeaid.org.nz", "contact": "https://www.tradeaid.org.nz/trade/trade-customer-care/contact-us/", "email": "customerservice@tradeaid.org.nz", "status": "확정(이메일)", "tip": "뉴질랜드 최대 공정무역 그린커피 공급사. 도매계정 신청서 운영, 소싱 제안은 customer service로."}, {"id": "b041", "name": "Flora & Fauna", "country": "호주", "country_en": "Australia", "region": "오세아니아", "region_en": "Oceania", "cat": "2. 공예·리빙·지속가능 편집숍", "cat_en": "Craft, living & sustainable concept store", "type": "리테일(온라인, B Corp)", "type_en": "리테일(온라인, B Corp)", "products": "비건·클린뷰티·에코 리빙", "products_en": "비건·클린beauty·에코 living", "certs": "B Corp·비건·크루얼티프리", "web": "https://www.floraandfauna.com.au", "contact": "https://www.floraandfauna.com.au/pages/brand-suggestions", "email": "info@floraandfauna.com.au", "status": "확정(이메일)", "tip": "'Apply to stock your products' 폼으로 브랜드 신청, 심사 2~4주. 친환경 패키징·추적가능 공급망 중시."}, {"id": "b042", "name": "GoodFor", "country": "뉴질랜드", "country_en": "New Zealand", "region": "오세아니아", "region_en": "Oceania", "cat": "5. 스페셜티푸드·차·식품", "cat_en": "Specialty food, tea & food", "type": "리테일(리필러리 5개 매장)", "type_en": "리테일(리필러리 5개 매장)", "products": "벌크 식품·리빙·제로웨이스트", "products_en": "벌크 food·living·제로웨이스트", "certs": "제로웨이스트·유기농 80%", "web": "https://goodfor.co.nz", "contact": "https://goodfor.co.nz/pages/stores", "email": "hello@goodfor.co.nz", "status": "확정(이메일)", "tip": "오클랜드·웰링턴·넬슨·크라이스트처치 5개 매장. 대표 주소로 공급 제안."}, {"id": "b043", "name": "Hello Charlie", "country": "호주", "country_en": "Australia", "region": "오세아니아", "region_en": "Oceania", "cat": "3. 업사이클·친환경 패션·잡화", "cat_en": "Upcycled & eco fashion / goods", "type": "리테일+도매(에코 베이비)", "type_en": "리테일+도매(에코 baby)", "products": "에코 베이비·생활용품", "products_en": "에코 baby·생활용품", "certs": "친환경·비건·생분해", "web": "https://hellocharlie.com.au", "contact": "https://hellocharlie.com.au/pages/faqs", "email": "info@hellocharlie.com.au", "status": "확정(이메일)", "tip": "브랜드는 'New Product Submissions' 페이지로 제출(제품·성분·소재·도매가·인증 정보 필수). 호주 사업자만 도매 가능."}, {"id": "b044", "name": "Nudie Glow", "country": "호주", "country_en": "Australia", "region": "오세아니아", "region_en": "Oceania", "cat": "4. 클린뷰티·퍼스널케어", "cat_en": "Clean beauty & personal care", "type": "리테일(K-뷰티)", "type_en": "리테일(K-beauty)", "products": "K-뷰티 스킨케어·뷰티툴", "products_en": "K-beauty skincare·beauty툴", "certs": "K-뷰티 큐레이션", "web": "https://nudieglow.com", "contact": "https://nudieglow.com/pages/business-contact-info", "email": "hello@nudieglow.com", "status": "확정(이메일)", "tip": "멜버른 기반 K-뷰티 전문몰. 비즈니스 주소로 브랜드 제안, 자체 도매 문의는 wholesale@nudieglow.com."}, {"id": "b045", "name": "Kibsons International", "country": "아랍에미리트", "country_en": "UAE", "region": "중동", "region_en": "Middle East", "cat": "5. 스페셜티푸드·차·식품", "cat_en": "Specialty food, tea & food", "type": "임포터·리테일(온라인)", "type_en": "임포터·리테일(온라인)", "products": "신선식품·스페셜티·비식품", "products_en": "신선food·스페셜티·비food", "certs": "ISO 인증·40년 임포팅", "web": "https://www.kibsons.com", "contact": "https://www.kibsons.com/_next/becomesupplier", "email": "문의폼(이메일 미공개)", "status": "확정(문의폼)", "tip": "'Become a Kibsons Supplier' 폼에 제품·인증·회사소개서 첨부(최대 20MB). 항공사·호텔·슈퍼 납품, UAE 전역 배송."}, {"id": "b046", "name": "Scoop Wholefoods UAE", "country": "아랍에미리트", "country_en": "UAE", "region": "중동", "region_en": "Middle East", "cat": "5. 스페셜티푸드·차·식품", "cat_en": "Specialty food, tea & food", "type": "리테일(벌크·리필)", "type_en": "리테일(벌크·리필)", "products": "벌크 식품·뷰티·리필", "products_en": "벌크 food·beauty·리필", "certs": "유기농·제로웨이스트", "web": "https://scoopwholefoods.com", "contact": "https://scoopwholefoods.com/about", "email": "info.uae@scoopwholefoods.com", "status": "확정(이메일)", "tip": "UAE 지역 담당 주소가 공식 사이트에 명시. 두바이 매장 중심."}, {"id": "b047", "name": "Organic Foods & Café", "country": "아랍에미리트", "country_en": "UAE", "region": "중동", "region_en": "Middle East", "cat": "5. 스페셜티푸드·차·식품", "cat_en": "Specialty food, tea & food", "type": "리테일(유기농 슈퍼 3개점)+F&B 유통", "type_en": "리테일(organic 슈퍼 3개점)+F&B 유통", "products": "유기농 식품·화장품·베이커리", "products_en": "organic food·cosmetics·베이커리", "certs": "유기농·비오다이나믹", "web": "https://organicfoodsandcafe.com", "contact": "https://organicfoodsandcafe.com/contact-us", "email": "문의폼(이메일 미공개)", "status": "부분확인", "tip": "UAE 유일 유기농 슈퍼마켓 체인, 호텔·항공사 Food Service 사업부 보유. 이메일은 사이트에 비노출 — 폼/전화(+971 4 338 2911)로 담당 연결."}, {"id": "b048", "name": "Mumzworld", "country": "아랍에미리트", "country_en": "UAE", "region": "중동", "region_en": "Middle East", "cat": "2. 공예·리빙·지속가능 편집숍", "cat_en": "Craft, living & sustainable concept store", "type": "마켓플레이스(맘·베이비)", "type_en": "마켓플레이스(맘·baby)", "products": "유아·아동·맘 케어 전 카테고리", "products_en": "유아·kids·맘 케어 전 카테고리", "certs": "GCC 최대 맘·베이비 이커머스", "web": "https://www.mumzworld.com", "contact": "https://www.mumzworld.com/en/sell", "email": "문의폼(이메일 미공개)", "status": "확정(문의폼)", "tip": "UAE·KSA 3P 마켓플레이스. 무역면허·은행정보·브랜드 자료 제출 후 심사, 크로스보더 셀러 프로그램 운영."}, {"id": "b049", "name": "Terranatura México", "country": "멕시코", "country_en": "Mexico", "region": "중남미", "region_en": "Latin America", "cat": "5. 스페셜티푸드·차·식품", "cat_en": "Specialty food, tea & food", "type": "리테일(유기농·자연식)+도매", "type_en": "리테일(organic·자연식)+도매", "products": "유기농 식품·자연주의 제품", "products_en": "organic food·자연주의 제품", "certs": "유기농·무첨가", "web": "https://terranatura.com.mx", "contact": "https://terranatura.com.mx/pages/preguntas-frecuentes", "email": "proveedores@terranatura.com.mx", "status": "확정(이메일)", "tip": "공식 FAQ에 'proveedores@'(공급사 전용) 주소를 명시 — 멕시코 진입 시 가장 직접적인 창구. 메일 제목에 브랜드명 기재 요청."}, {"id": "b050", "name": "Nabesta", "country": "멕시코", "country_en": "Mexico", "region": "중남미", "region_en": "Latin America", "cat": "5. 스페셜티푸드·차·식품", "cat_en": "Specialty food, tea & food", "type": "B2B·소매(재생 농업)", "type_en": "B2B·소매(재생 농업)", "products": "재생농업 식품·B2B 도매", "products_en": "재생농업 food·B2B 도매", "certs": "공정무역·재생농업·추적성", "web": "https://www.nabesta.com", "contact": "https://www.nabesta.com/contacto", "email": "hola@nabesta.com", "status": "확정(이메일)", "tip": "'Nabesta para mi negocio' B2B 견적·소매·호텔 납품 채널. 오아하카 기반, 멕시코 전역 유통."}, {"id": "b051", "name": "Sanomundo", "country": "멕시코", "country_en": "Mexico", "region": "중남미", "region_en": "Latin America", "cat": "5. 스페셜티푸드·차·식품", "cat_en": "Specialty food, tea & food", "type": "리테일(비건·유기농)+유통", "type_en": "리테일(비건·organic)+유통", "products": "비건·유기농 식품", "products_en": "비건·organic food", "certs": "비건·크루얼티프리", "web": "https://sanomundo.mx", "contact": "https://sanomundo.mx/", "email": "info@sanomundo.com.mx", "status": "확정(이메일)", "tip": "16개 도시·30+ 유통사 네트워크. 신제품 제안은 info@로, 도매는 WhatsApp 병행."}, {"id": "b052", "name": "Naturally S.A.", "country": "칠레", "country_en": "Chile", "region": "중남미", "region_en": "Latin America", "cat": "4. 클린뷰티·퍼스널케어", "cat_en": "Clean beauty & personal care", "type": "임포터·디스트리뷰터(칠레·우루과이)", "type_en": "임포터·디스트리뷰터(칠레·우루과이)", "products": "그린 코스메틱·위생용품", "products_en": "그린 코스메틱·위생용품", "certs": "유럽 친환경 인증 브랜드", "web": "https://www.herbatint.cl", "contact": "https://www.herbatint.cl/quienes-somos/", "email": "ventas@naturally.cl", "status": "확정(이메일)", "tip": "유럽 지속가능 코스메틱을 칠레·우루과이에 독점 수입·유통. 한국 클린뷰티 브랜드의 남미 진입 파트너로 적합."}, {"id": "b053", "name": "ComeS (ComeS Pro)", "country": "칠레", "country_en": "Chile", "region": "중남미", "region_en": "Latin America", "cat": "6. B2B 홀세일·임팩트 소싱 플랫폼", "cat_en": "B2B wholesale & impact sourcing platform", "type": "B2B 소싱 플랫폼", "type_en": "B2B 소싱 플랫폼", "products": "식품·로컬 생산자 연결", "products_en": "food·로컬 생산자 연결", "certs": "ESG·지속가능 공급망", "web": "https://comes.cl", "contact": "https://comes.cl/", "email": "hola@comes.global", "status": "확정(이메일)", "tip": "칠레·페루 운영. 점포와 로컬 생산자를 연결하는 B2B. 공급사 등록·ESG 조달 문의는 hola@로."}, {"id": "b054", "name": "KIKO SORI", "country": "브라질", "country_en": "Brazil", "region": "중남미", "region_en": "Latin America", "cat": "4. 클린뷰티·퍼스널케어", "cat_en": "Clean beauty & personal care", "type": "K-뷰티 임포터·B2B 에이전시", "type_en": "K-beauty 임포터·B2B 에이전시", "products": "K-뷰티 스킨케어", "products_en": "K-beauty skincare", "certs": "ANVISA 등록·규제 대행", "web": "https://kikosori.com", "contact": "https://kikosori.com/pt/", "email": "contato@kikosori.com", "status": "확정(이메일)", "tip": "한국 브랜드를 발굴해 ANVISA 등록·수입·현지 유통까지 턴키 운영. 브라질 법인 없이도 진입 가능하다고 명시."}, {"id": "b055", "name": "MIHO Asian Beauty", "country": "브라질", "country_en": "Brazil", "region": "중남미", "region_en": "Latin America", "cat": "4. 클린뷰티·퍼스널케어", "cat_en": "Clean beauty & personal care", "type": "K-뷰티 임포터·B2B 도매", "type_en": "K-beauty 임포터·B2B 도매", "products": "K-뷰티(ANUA 등)", "products_en": "K-beauty(ANUA 등)", "certs": "ANVISA 100% 등록·직수입", "web": "https://revenda.shopmiho.com", "contact": "https://revenda.shopmiho.com/", "email": "revenda@shopmiho.com", "status": "확정(이메일)", "tip": "쿠리치바 기반, 19개 주 유통. 첫 주문 최소 R$3,000 — 소량 테스트 후 확장 구조."}, {"id": "b056", "name": "Harth Beauty Brasil", "country": "브라질", "country_en": "Brazil", "region": "중남미", "region_en": "Latin America", "cat": "4. 클린뷰티·퍼스널케어", "cat_en": "Clean beauty & personal care", "type": "임포터·디스트리뷰터", "type_en": "임포터·디스트리뷰터", "products": "K-뷰티 스킨케어", "products_en": "K-beauty skincare", "certs": "ANVISA 등록·현지 마케팅", "web": "https://harthbeauty.com.br", "contact": "https://harthbeauty.com.br/international/", "email": "geral@harthbrazil.com.br", "status": "확정(이메일)", "tip": "공식 'International Partnerships' 페이지에서 한국 제조사·브랜드 파트너를 직접 모집 중 — 영문 제안 가능."}, {"id": "b057", "name": "Valorable", "country": "콜롬비아", "country_en": "Colombia", "region": "중남미", "region_en": "Latin America", "cat": "2. 공예·리빙·지속가능 편집숍", "cat_en": "Craft, living & sustainable concept store", "type": "에코 마켓플레이스·도매", "type_en": "에코 마켓플레이스·도매", "products": "에코·지속가능 생활용품", "products_en": "에코·지속가능 생활용품", "certs": "BIC 인증·Menos Carbono", "web": "https://valorable.com", "contact": "https://valorable.com/compra-al-por-mayor/", "email": "info@valorable.com", "status": "확정(이메일)", "tip": "'Compra al por mayor'로 도매 카탈로그 요청. 보고타 기반, 콜롬비아 전역 배송, 기업 선물·맞춤 키트 가능."}, {"id": "b058", "name": "Faithful to Nature", "country": "남아프리카공화국", "country_en": "South Africa", "region": "아프리카", "region_en": "Africa", "cat": "2. 공예·리빙·지속가능 편집숍", "cat_en": "Craft, living & sustainable concept store", "type": "리테일(온라인+오프라인)", "type_en": "리테일(온라인+오프라인)", "products": "내추럴·유기농·뷰티·리빙 11,000+ SKU", "products_en": "내추럴·organic·beauty·living 11,000+ SKU", "certs": "자체 Ingredient Policy·Better Product Pillars", "web": "https://www.faithful-to-nature.co.za", "contact": "https://www.faithful-to-nature.co.za/wholesale", "email": "support@faithful-to-nature.co.za", "status": "확정(이메일)", "tip": "남아공 최대 윤리적 리테일러(400+ 공급사, 80% 현지). 입점 심사가 매우 엄격 — 전성분·인증·패키징 자료 필수."}, {"id": "b059", "name": "Wellness Warehouse", "country": "남아프리카공화국", "country_en": "South Africa", "region": "아프리카", "region_en": "Africa", "cat": "2. 공예·리빙·지속가능 편집숍", "cat_en": "Craft, living & sustainable concept store", "type": "리테일(약 40개 매장)", "type_en": "리테일(약 40개 매장)", "products": "웰니스·건강식·내추럴 뷰티·에코홈", "products_en": "웰니스·건강식·내추럴 beauty·에코home", "certs": "성분 검증·지속가능", "web": "https://wellnesswarehouse.com", "contact": "https://wellnesswarehouse.com/pages/contact", "email": "support@wellnesswarehouse.com", "status": "확정(이메일)", "tip": "케이프타운 기반 40개 매장+온라인. 대표 주소로 공급 제안 후 구매팀 연결 요청."}, {"id": "b060", "name": "ALÁRA", "country": "나이지리아", "country_en": "Nigeria", "region": "아프리카", "region_en": "Africa", "cat": "3. 업사이클·친환경 패션·잡화", "cat_en": "Upcycled & eco fashion / goods", "type": "편집숍(럭셔리 컨셉스토어)", "type_en": "편집숍(럭셔리 컨셉스토어)", "products": "컨템포러리 아프리카 디자인·패션·오브제", "products_en": "컨템포러리 아프리카 디자인·fashion·오브제", "certs": "공예·커뮤니티 임팩트", "web": "https://alaralagos.com", "contact": "https://alaralagos.com/contact/", "email": "store@alaralagos.com", "status": "확정(이메일)", "tip": "라고스 빅토리아 아일랜드. 아프리카 디자이너 큐레이션이 중심이나 해외 공예·리빙 브랜드 병행 — 매장 주소로 제안서 발송."}, {"id": "b061", "name": "Trina Shoppy", "country": "케냐", "country_en": "Kenya", "region": "아프리카", "region_en": "Africa", "cat": "3. 업사이클·친환경 패션·잡화", "cat_en": "Upcycled & eco fashion / goods", "type": "유통·리셀러 네트워크", "type_en": "유통·리셀러 네트워크", "products": "패션·액세서리·생활잡화", "products_en": "fashion·accessories·생활goods", "certs": "여성·청년 고용 임팩트", "web": "https://trinashoppy.com", "contact": "https://trinashoppy.com/partners/", "email": "info@trinashoppy.com", "status": "확정(이메일)", "tip": "공식 파트너 페이지에서 '해외 제조사·수출자·브랜드'를 명시적으로 환영. 파일럿 우선·실사 기반으로 케냐 유통 테스트 가능."}, {"id": "b062", "name": "Goji.ma", "country": "모로코", "country_en": "Morocco", "region": "아프리카", "region_en": "Africa", "cat": "5. 스페셜티푸드·차·식품", "cat_en": "Specialty food, tea & food", "type": "도매·리테일(자연·유기농)", "type_en": "도매·리테일(자연·organic)", "products": "자연식품·건과·허브티·향신료", "products_en": "자연food·dried fruit·허브티·spices", "certs": "유기농·내추럴", "web": "https://www.goji.ma", "contact": "https://www.goji.ma/fr-ma/pages/a-propos", "email": "services@goji.ma", "status": "확정(이메일)", "tip": "'Fournisseurs, import/export' 전용 주소(services@)를 공식 페이지에 명시. 카사블랑카 기반, 모로코 전역 배송."}];window.__PRODUCTS__ = [{"cat": "Fair Trade & Living / Crafts", "name": "Handmade Ceramic Mug, 320 ml (Set of 2)", "ko": "수제 도자기 머그 2개 세트", "supplier": "Dada Ceramic Cooperative", "org": "Social Enterprise", "hs": "6912.00", "moq": "300", "unit": "sets", "fob": "6.80", "lead": "21", "certs": ["FDA", "Food-contact", "Handmade"], "svi": "78.2", "sku": "KS-01"}, {"cat": "Fair Trade & Living / Crafts", "name": "Ottchil Lacquered Serving Tray, 30 cm", "ko": "옻칠 서빙 트레이 30cm", "supplier": "Naju Lacquer Craft Social Enterprise", "org": "Social Enterprise", "hs": "4419.19", "moq": "100", "unit": "pcs", "fob": "18.50", "lead": "35", "certs": ["FSC", "Food-safe", "Handmade"], "svi": "74.5", "sku": "KS-02"}, {"cat": "Fair Trade & Living / Crafts", "name": "Handwoven Raffia Tote Bag, Natural", "ko": "손뜨개 라피아 토트백", "supplier": "Jindo Straw Craft Cooperative", "org": "Cooperative", "hs": "4602.19", "moq": "200", "unit": "pcs", "fob": "5.40", "lead": "25", "certs": ["OEKO-TEX", "Women-led"], "svi": "71.8", "sku": "KS-03"}, {"cat": "Fair Trade & Living / Crafts", "name": "Hanji Mulberry Paper Lampshade, 40 cm", "ko": "한지 전등갓 40cm", "supplier": "Jeonju Hanji Cooperative", "org": "Cooperative", "hs": "9405.29", "moq": "150", "unit": "pcs", "fob": "12.40", "lead": "28", "certs": ["FSC", "Handmade"], "svi": "69.4", "sku": "KS-04"}, {"cat": "Upcycled Fashion / Goods", "name": "Upcycled Firefighter-Suit Tote", "ko": "소방복 업사이클 토트백", "supplier": "Firewear Upcycle Lab", "org": "Social Enterprise", "hs": "4202.22", "moq": "150", "unit": "pcs", "fob": "14.20", "lead": "30", "certs": ["REACH", "Upcycled"], "svi": "76.1", "sku": "KS-05"}, {"cat": "Upcycled Fashion / Goods", "name": "Recycled PET Crossbody Bag", "ko": "재생 페트 크로스백", "supplier": "Greenloop Upcycle Cooperative", "org": "Cooperative", "hs": "4202.92", "moq": "300", "unit": "pcs", "fob": "8.90", "lead": "24", "certs": ["GRS", "REACH"], "svi": "72.3", "sku": "KS-06"}, {"cat": "Upcycled Fashion / Goods", "name": "Denim Patchwork Kitchen Apron", "ko": "데님 패치워크 앞치마", "supplier": "Re:Denim Social Workshop", "org": "Standard Workplace", "hs": "6211.42", "moq": "200", "unit": "pcs", "fob": "9.50", "lead": "27", "certs": ["OEKO-TEX", "Upcycled"], "svi": "73.6", "sku": "KS-07"}, {"cat": "Upcycled Fashion / Goods", "name": "Inner-Tube Card Wallet", "ko": "타이어 튜브 카드지갑", "supplier": "Loop Tire Craft Village Enterprise", "org": "Village Enterprise", "hs": "4202.31", "moq": "500", "unit": "pcs", "fob": "3.10", "lead": "22", "certs": ["REACH", "Upcycled"], "svi": "68.9", "sku": "KS-08"}, {"cat": "Clean Beauty", "name": "Cold-Process Natural Soap Bar, 100 g", "ko": "저온 숙성 천연 비누 100g", "supplier": "Saessak Standard Workplace", "org": "Standard Workplace", "hs": "3401.11", "moq": "500", "unit": "pcs", "fob": "1.35", "lead": "18", "certs": ["Vegan", "CPNP-ready"], "svi": "73.0", "sku": "KS-09"}, {"cat": "Clean Beauty", "name": "Solid Shampoo Bar, 90 g", "ko": "고체 샴푸바 90g", "supplier": "Bare Earth Social Enterprise", "org": "Social Enterprise", "hs": "3401.30", "moq": "500", "unit": "pcs", "fob": "2.60", "lead": "20", "certs": ["Vegan", "CPNP-ready", "Plastic-free"], "svi": "70.5", "sku": "KS-10"}, {"cat": "Clean Beauty", "name": "Centella Calming Cream, 50 ml", "ko": "병풀 진정 크림 50ml", "supplier": "Herb Field Cooperative", "org": "Cooperative", "hs": "3304.99", "moq": "1000", "unit": "pcs", "fob": "4.80", "lead": "40", "certs": ["CPNP", "ISO 22716", "Dermatest"], "svi": "67.2", "sku": "KS-11"}, {"cat": "Clean Beauty", "name": "Natural Tinted Lip Balm, 4.5 g", "ko": "천연 컬러 립밤 4.5g", "supplier": "Saessak Standard Workplace", "org": "Standard Workplace", "hs": "3304.10", "moq": "1000", "unit": "pcs", "fob": "1.10", "lead": "19", "certs": ["Vegan", "CPNP-ready"], "svi": "71.4", "sku": "KS-12"}, {"cat": "Specialty Food & Tea", "name": "Dried Persimmon & Jujube Mix, 200 g", "ko": "곶감·대추 건과 믹스 200g", "supplier": "Sancheong Agricultural Cooperative", "org": "Cooperative", "hs": "0813.40", "moq": "1000", "unit": "ea", "fob": "2.10", "lead": "30", "certs": ["HACCP", "Organic KR"], "svi": "69.8", "sku": "KS-13"}, {"cat": "Specialty Food & Tea", "name": "Organic Green Tea, Loose Leaf 40 g", "ko": "유기농 녹차 잎차 40g", "supplier": "Boseong Tea Village Enterprise", "org": "Village Enterprise", "hs": "0902.10", "moq": "500", "unit": "ea", "fob": "4.40", "lead": "25", "certs": ["HACCP", "Organic KR", "EU Organic"], "svi": "72.9", "sku": "KS-14"}, {"cat": "Specialty Food & Tea", "name": "Roasted Laver Snack, 4 g × 12 packs", "ko": "구운 김 스낵 4g×12봉", "supplier": "Wando Seaweed Social Cooperative", "org": "Cooperative", "hs": "2008.99", "moq": "2000", "unit": "ea", "fob": "1.80", "lead": "28", "certs": ["HACCP", "FDA facility"], "svi": "66.5", "sku": "KS-15"}, {"cat": "Specialty Food & Tea", "name": "Handmade Yuja Marmalade, 300 g", "ko": "수제 유자 마멀레이드 300g", "supplier": "Goheung Yuja Village Enterprise", "org": "Village Enterprise", "hs": "2007.99", "moq": "1000", "unit": "ea", "fob": "2.90", "lead": "26", "certs": ["HACCP", "Organic KR"], "svi": "70.1", "sku": "KS-16"}, {"cat": "Eco Stationery / Gifts", "name": "Recycled Paper Notebook, A5, 120 p.", "ko": "재생지 노트 A5 120매", "supplier": "Paper Forest Social Enterprise", "org": "Social Enterprise", "hs": "4820.10", "moq": "1000", "unit": "pcs", "fob": "1.45", "lead": "20", "certs": ["FSC", "Recycled 100%"], "svi": "71.0", "sku": "KS-17"}, {"cat": "Eco Stationery / Gifts", "name": "Plantable Seed Pencil (Set of 5)", "ko": "심을 수 있는 씨앗 연필 5자루", "supplier": "Sprout Workshop Cooperative", "org": "Cooperative", "hs": "9609.10", "moq": "2000", "unit": "sets", "fob": "0.42", "lead": "18", "certs": ["FSC", "Plastic-free"], "svi": "68.2", "sku": "KS-18"}, {"cat": "Eco Stationery / Gifts", "name": "Hanji Gift Box & Wrapping Set", "ko": "한지 선물 상자·포장 세트", "supplier": "Jeonju Hanji Cooperative", "org": "Cooperative", "hs": "4819.20", "moq": "500", "unit": "sets", "fob": "1.95", "lead": "23", "certs": ["FSC", "Handmade"], "svi": "69.4", "sku": "KS-19"}, {"cat": "Eco Stationery / Gifts", "name": "Bamboo Desk Organizer, 4-slot", "ko": "대나무 데스크 정리함 4칸", "supplier": "Bamboo Craft Village Enterprise", "org": "Village Enterprise", "hs": "4420.90", "moq": "300", "unit": "pcs", "fob": "6.10", "lead": "26", "certs": ["FSC", "Formaldehyde-free"], "svi": "65.7", "sku": "KS-20"}, {"cat": "Social Care / Barrier-free", "name": "Braille & Tactile Signage Set", "ko": "점자·촉지 안내 사인 세트", "supplier": "Barrier-free Design Social Enterprise", "org": "Social Enterprise", "hs": "4911.99", "moq": "200", "unit": "sets", "fob": "6.20", "lead": "22", "certs": ["KS B 5363", "UV-stable"], "svi": "79.1", "sku": "KS-21"}, {"cat": "Social Care / Barrier-free", "name": "Weighted Ergonomic Cutlery Set", "ko": "무게감 있는 인체공학 수저 세트", "supplier": "Hands Together Standard Workplace", "org": "Standard Workplace", "hs": "8215.99", "moq": "300", "unit": "sets", "fob": "7.80", "lead": "25", "certs": ["FDA", "Food-contact"], "svi": "77.6", "sku": "KS-22"}, {"cat": "Social Care / Barrier-free", "name": "Folding Walking Stick, Ergonomic Grip", "ko": "접이식 지팡이 (인체공학 손잡이)", "supplier": "Access Care Cooperative", "org": "Cooperative", "hs": "6602.00", "moq": "200", "unit": "pcs", "fob": "9.40", "lead": "28", "certs": ["CE (MDR class I)", "ISO 13485"], "svi": "74.8", "sku": "KS-23"}, {"cat": "Social Care / Barrier-free", "name": "Sensory-friendly Weighted Lap Pad", "ko": "감각 안정용 무게 담요 패드", "supplier": "Quiet Hands Social Workshop", "org": "Standard Workplace", "hs": "9404.90", "moq": "150", "unit": "pcs", "fob": "15.60", "lead": "30", "certs": ["OEKO-TEX", "REACH"], "svi": "72.0", "sku": "KS-24"}];window.__CATEN__ = {"1. 공정무역·임팩트 리테일러/도매": "Fair-trade & impact retail / wholesale", "2. 공예·리빙·지속가능 편집숍": "Craft, living & sustainable concept store", "3. 업사이클·친환경 패션·잡화": "Upcycled & eco fashion / goods", "4. 클린뷰티·퍼스널케어": "Clean beauty & personal care", "5. 스페셜티푸드·차·식품": "Specialty food, tea & food", "6. B2B 홀세일·임팩트 소싱 플랫폼": "B2B wholesale & impact sourcing platform"};window.__REGIONEN__ = {"서유럽·북유럽": "Western & Northern Europe", "북미": "North America", "중남미": "Latin America", "동아시아·동남아": "East & Southeast Asia", "오세아니아": "Oceania", "아프리카": "Africa", "중동": "Middle East"};window.__RFQ__ = "https://docs.google.com/forms/d/e/1FAIpQLSdAYmbdQa3G_rd3A6ItD440Cb01bVciM1MqzkZpO0Xth2fGKA/viewform";window.__EP__ = "entry.1640705457";window.__EM__ = "entry.59224579";window.__PRODCAT__ = {"Fair Trade & Living / Crafts": "공정무역·리빙·공예", "Upcycled Fashion / Goods": "업사이클 패션·잡화", "Clean Beauty": "클린뷰티", "Specialty Food & Tea": "스페셜티푸드·차", "Eco Stationery / Gifts": "친환경 문구·선물", "Social Care / Barrier-free": "사회적 돌봄·무장애"};
+window.__CFG__ = {};window.__DATA__ = [];</script>
+<script>
+(function(){
+  var CFG = window.__CFG__, DATA = window.__DATA__;
+  var LS = CFG.ls || 'sbx';
+  function load(k, d){ try{ var v=JSON.parse(localStorage.getItem(LS+':'+k)); return v||d; }catch(e){ return d; } }
+  function save(k, v){ try{ localStorage.setItem(LS+':'+k, JSON.stringify(v)); }catch(e){} }
+  var saved = load('saved', []), cmp = load('cmp', []);
+  var st = {q:'', sort: CFG.defaultSort || 'new'};
+  (CFG.filters||[]).forEach(function(f){ st[f.key]=[]; });
+  var byId = {}; DATA.forEach(function(d){ byId[d.id]=d; });
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
+  function el(id){ return document.getElementById(id); }
+  function chipsHtml(f){
+    var counts = {};
+    DATA.forEach(function(d){ var v = d[f.key]; if(!v) return; (Array.isArray(v)?v:[v]).forEach(function(x){ counts[x]=(counts[x]||0)+1; }); });
+    var vals = f.values || Object.keys(counts).sort(function(a,b){ return counts[b]-counts[a]; });
+    if(f.limit) vals = vals.slice(0, f.limit);
+    return vals.map(function(v){
+      return '<button class="chip" data-k="'+f.key+'" data-v="'+esc(v)+'">'+esc(f.labelOf?f.labelOf(v):v)+'<em>'+(counts[v]||0)+'</em></button>';
+    }).join('');
+  }
+  function renderFilters(){
+    var host = el('filters'); if(!host) return;
+    host.innerHTML = (CFG.filters||[]).map(function(f){
+      return '<div class="fgroup"><span class="flab">'+esc(f.label)+'</span>'+chipsHtml(f)+'</div>';
+    }).join('');
+    host.querySelectorAll('.chip').forEach(function(b){
+      b.addEventListener('click', function(){
+        var k=b.dataset.k, v=b.dataset.v, arr=st[k];
+        var i=arr.indexOf(v); if(i<0) arr.push(v); else arr.splice(i,1);
+        b.classList.toggle('on', arr.indexOf(v)>=0);
+        apply(); updateChips();
+      });
+    });
+  }
+  function updateChips(){
+    document.querySelectorAll('#filters .chip').forEach(function(b){
+      b.classList.toggle('on', (st[b.dataset.k]||[]).indexOf(b.dataset.v)>=0);
+    });
+  }
+  function matches(d){
+    for(var k in st){
+      if(k==='q'||k==='sort') continue;
+      var want=st[k]; if(!want || !want.length) continue;
+      var have = Array.isArray(d[k])?d[k]:[d[k]];
+      if(!want.some(function(w){ return have.indexOf(w)>=0; })) return false;
+    }
+    if(st.q){
+      var hay=(d.search||[d.title,d.sub,d.desc,d.region,d.tag,d.extra].join(' ')).toLowerCase();
+      if(hay.indexOf(st.q)<0) return false;
+    }
+    return true;
+  }
+  function card(d){
+    var tags='';
+    if(d.corner) tags += '<span class="tag acc">'+esc(d.corner)+'</span>';
+    if(d.region) tags += '<span class="tag">'+esc(d.region)+'</span>';
+    if(d.tag) tags += '<span class="tag">'+esc(d.tag)+'</span>';
+    if(d.badge) tags += '<span class="tag">'+esc(d.badge)+'</span>';
+    var title = d.url ? '<a href="'+esc(d.url)+'" target="_blank" rel="noopener">'+esc(d.title)+'</a>' : esc(d.title);
+    var meta = [];
+    if(d.sub) meta.push('<span>'+esc(d.sub)+'</span>');
+    if(d.meta) meta.push('<span>'+esc(d.meta)+'</span>');
+    if(d.date) meta.push('<span>'+esc(d.date)+'</span>');
+    var onS = saved.indexOf(d.id)>=0, onC = cmp.indexOf(d.id)>=0;
+    var acts = '<div class="cardacts"><button class="mini'+(onS?' on':'')+'" data-act="save" data-id="'+esc(d.id)+'">'+(onS?'★ 저장됨':'☆ 저장')+'</button>';
+    if(CFG.compare && d.cmp) acts += '<button class="mini'+(onC?' on':'')+'" data-act="cmp" data-id="'+esc(d.id)+'">'+(onC?'✓ 비교 담김':'＋ 비교')+'</button>';
+    if(d.url) acts += '<a class="mini ghost" href="'+esc(d.url)+'" target="_blank" rel="noopener">원문 ↗</a>';
+    if(d.link) acts += '<a class="mini ghost" href="'+esc(d.link.href)+'" target="'+esc(d.link.target||'_self')+'">'+esc(d.link.label)+'</a>';
+    acts += '</div>';
+    return '<article class="card"><div class="tags">'+tags+'</div><h3>'+title+'</h3>'+
+      (d.desc?'<p class="clamp">'+esc(d.desc)+'</p>':'')+
+      '<div class="meta">'+meta.join('<span class="dot">·</span>')+'</div>'+acts+'</article>';
+  }
+  function apply(){
+    var rows = DATA.filter(matches);
+    var s = st.sort;
+    rows.sort(function(a,b){
+      if(s==='new') return String(b.date||'').localeCompare(String(a.date||''));
+      if(s==='old') return String(a.date||'').localeCompare(String(b.date||''));
+      if(s==='title') return String(a.title||'').localeCompare(String(b.title||''),'ko');
+      return 0;
+    });
+    var host=el('list');
+    if(!host) return;
+    host.innerHTML = rows.map(card).join('');
+    if(el('count')) el('count').innerHTML = '전체 <b>'+DATA.length+'</b>건 중 <b>'+rows.length+'</b>건';
+    if(el('empty')) el('empty').style.display = rows.length? 'none':'block';
+    bindActs();
+    updateTray();
+  }
+  function bindActs(){
+    document.querySelectorAll('#list [data-act]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var id=b.dataset.id;
+        if(b.dataset.act==='save'){
+          var i=saved.indexOf(id); if(i<0) saved.push(id); else saved.splice(i,1);
+          save('saved', saved);
+        } else {
+          var j=cmp.indexOf(id); if(j<0){ if(cmp.length>=3){ flash('비교는 최대 3개까지 담을 수 있습니다.'); return; } cmp.push(id); } else cmp.splice(j,1);
+          save('cmp', cmp);
+        }
+        apply();
+      });
+    });
+  }
+  var flashT;
+  function flash(msg){
+    var f=el('flash'); if(!f) return;
+    f.textContent=msg; f.style.opacity='1'; clearTimeout(flashT);
+    flashT=setTimeout(function(){ f.style.opacity='0'; }, 2400);
+  }
+  function updateTray(){
+    if(!el('tray')) return;
+    if(el('nSaved')) el('nSaved').textContent = saved.length;
+    if(el('nCmp')) el('nCmp').textContent = cmp.length;
+    if(el('cmpBtn')) el('cmpBtn').style.display = CFG.compare? 'inline-flex':'none';
+  }
+  function openSaved(){
+    var rows = saved.map(function(id){ return byId[id]; }).filter(Boolean);
+    var body = rows.length ? '<table class="cmp"><tr><td>항목</td><td>내용</td><td></td></tr>'+rows.map(function(d){
+      return '<tr><td>'+esc(d.corner||d.region||'')+'</td><td><b>'+esc(d.title)+'</b><div style="color:#7a8580;font-size:11.5px">'+esc(d.meta||d.sub||'')+'</div></td>'+
+        '<td><button class="mini" data-rm="'+esc(d.id)+'">빼기</button></td></tr>';
+    }).join('')+'</table>' : '<p class="lead">저장한 항목이 없습니다. 카드의 ☆ 저장을 눌러 모아두세요.</p>';
+    showPanel('저장함 · '+rows.length+'건','브라우저(localStorage)에 저장됩니다. 같은 사이트의 다른 페이지에서도 유지됩니다.', body);
+    document.querySelectorAll('[data-rm]').forEach(function(b){
+      b.addEventListener('click', function(){ var i=saved.indexOf(b.dataset.rm); if(i>=0) saved.splice(i,1); save('saved',saved); openSaved(); apply(); });
+    });
+  }
+  function openCmp(){
+    var rows = cmp.map(function(id){ return byId[id]; }).filter(Boolean).filter(function(d){ return d.cmp; });
+    if(rows.length<2){ flash('비교할 항목을 2개 이상 담아주세요.'); return; }
+    var fields = CFG.compare;
+    var head = '<tr><th>항목</th>'+rows.map(function(d){ return '<th>'+esc(d.title)+'</th>'; }).join('')+'</tr>';
+    var body = fields.map(function(f){
+      return '<tr><th>'+esc(f.label)+'</th>'+rows.map(function(d){
+        var v = d.cmp[f.key]; return '<td>'+(v==null||v===''?'—':esc(v))+'</td>';
+      }).join('')+'</tr>';
+    }).join('');
+    var links = '<tr><th>링크</th>'+rows.map(function(d){
+      return '<td>'+(d.url?'<a href="'+esc(d.url)+'" target="_blank" rel="noopener">원문/홈페이지 ↗</a>':'—')+(d.link?'<br><a href="'+esc(d.link.href)+'" target="'+esc(d.link.target||'_self')+'">'+esc(d.link.label)+'</a>':'')+'</td>';
+    }).join('')+'</tr>';
+    showPanel('비교 · '+rows.length+'개','', '<div class="scrollx"><table class="cmp">'+head+body+links+'</table></div>');
+  }
+  function showPanel(title, sub, body){
+    el('pTitle').textContent = title; el('pSub').textContent = sub||'';
+    el('pBody').innerHTML = body; el('panel').classList.add('open');
+  }
+  function init(){
+    renderFilters();
+    var q=el('q'); if(q){ q.addEventListener('input', function(){ st.q=q.value.trim().toLowerCase(); apply(); }); }
+    var so=el('sort'); if(so){ so.addEventListener('change', function(){ st.sort=so.value; apply(); }); }
+    var r=el('reset'); if(r){ r.addEventListener('click', function(){
+      st.q=''; if(q) q.value=''; (CFG.filters||[]).forEach(function(f){ st[f.key]=[]; }); st.sort=CFG.defaultSort||'new'; if(so) so.value=st.sort;
+      updateChips(); apply(); }); }
+    var sb=el('savedBtn'); if(sb) sb.addEventListener('click', openSaved);
+    var cb=el('cmpBtn'); if(cb) cb.addEventListener('click', openCmp);
+    var px=el('pClose'); if(px) px.addEventListener('click', function(){ el('panel').classList.remove('open'); });
+    var pn=el('panel'); if(pn) pn.addEventListener('click', function(e){ if(e.target===pn) pn.classList.remove('open'); });
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ el('panel').classList.remove('open'); } });
+    apply();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+
+
+<script>
+(function(){
+  var B = window.__BUYERS__, PR = window.__PRODUCTS__;
+  var lang = 'ko', sel = {}, psel = {}, st = {q:'', region:[], cat:[]};
+  var catKeys = Object.keys(window.__CATEN__);
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];}); }
+  function el(id){ return document.getElementById(id); }
+  var TX = {
+    ko: {lead:'세계 25개국 63곳의 바이어·입점처입니다. 대륙과 품목으로 걸러 담고, 담은 바이어와 관심 품목으로 RFQ 견적 문의를 바로 열 수 있습니다.',
+         region:'대륙', cat:'품목·채널', search:'바이어 이름·국가·품목·인증 검색 (예: fair trade, ceramics, UK)',
+         count:'63곳 중', countEnd:'곳 표시', pick:'RFQ에 담기', picked:'담김', email:'이메일', form:'문의 폼',
+         web:'웹사이트', approach:'진입 팁', need:'RFQ 담기', tray:'선택한 바이어', prods:'선택한 품목',
+         rfq:'RFQ 견적 문의 열기', prodbtn:'관심 품목 고르기', reset:'초기화', none:'조건에 맞는 바이어가 없습니다.',
+         pt:'관심 품목 선택 (파일럿 상품 24종)', psub:'품목을 고르면 RFQ의 "관심 상품" 칸에 SKU와 함께 자동으로 채워집니다.',
+         pclose:'닫기', note:'모든 이메일은 각 채널의 공식 웹사이트·연락처 페이지에서 확인한 값입니다(2026-11). 이메일을 공개하지 않는 채널은 문의 폼 링크를 대신 넣었습니다.'},
+    en: {lead:'63 verified channels in 25 countries — fair-trade retailers, impact-sourcing platforms, concept stores and specialty-food wholesalers. Filter by continent and category, then open an RFQ with the selected buyers and products.',
+         region:'Region', cat:'Category', search:'Search name, country, product or certification (e.g. fair trade, ceramics, UK)',
+         count:'Showing', countEnd:'of 63 buyers', pick:'Add to RFQ', picked:'Added', email:'Email', form:'Contact form',
+         web:'Website', approach:'Approach', need:'Add', tray:'Buyers selected', prods:'Products selected',
+         rfq:'Open RFQ', prodbtn:'Pick products', reset:'Reset', none:'No buyer matches these filters.',
+         pt:'Select products of interest (24 pilot SKUs)', psub:'Selected items are written into the RFQ "product of interest" field with SKU and MOQ.',
+         pclose:'Close', note:'Every e-mail was verified on the channel\u2019s own website or contact page (Nov 2026). Where a channel publishes only a form, the form link is given instead.'}
+  };
+  var T = TX[lang];
+
+  function chips(){
+    var rs = Object.keys(window.__REGIONEN__), cs = catKeys;
+    var h = '<div class="fgroup"><span class="flab">'+T.region+'</span>';
+    h += rs.map(function(r){ var n=B.filter(function(b){return b.region===r;}).length;
+      return '<button class="chip'+(st.region.indexOf(r)>=0?' on':'')+'" data-k="region" data-v="'+esc(r)+'">'+esc(lang==='ko'?r:window.__REGIONEN__[r])+'<em>'+n+'</em></button>'; }).join('')+'</div>';
+    h += '<div class="fgroup"><span class="flab">'+T.cat+'</span>';
+    h += cs.map(function(c){ var n=B.filter(function(b){return b.cat===c;}).length;
+      return '<button class="chip'+(st.cat.indexOf(c)>=0?' on':'')+'" data-k="cat" data-v="'+esc(c)+'">'+esc(lang==='ko'?c.replace(/^\d\.\s*/,''):window.__CATEN__[c])+'<em>'+n+'</em></button>'; }).join('')+'</div>';
+    el('filters').innerHTML = h;
+    el('filters').querySelectorAll('.chip').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var k=btn.dataset.k, v=btn.dataset.v, a=st[k], i=a.indexOf(v);
+        if(i<0) a.push(v); else a.splice(i,1); render();
+      });
+    });
+  }
+  function matches(b){
+    if(st.region.length && st.region.indexOf(b.region)<0) return false;
+    if(st.cat.length && st.cat.indexOf(b.cat)<0) return false;
+    if(st.q){
+      var hay=(b.name+' '+b.country+' '+b.country_en+' '+b.products+' '+b.products_en+' '+b.certs+' '+b.cat_en).toLowerCase();
+      if(hay.indexOf(st.q)<0) return false;
+    }
+    return true;
+  }
+  function card(b){
+    var on = !!sel[b.id];
+    var nm = '<h3>'+(b.web?'<a href="'+esc(b.web)+'" target="_blank" rel="noopener">'+esc(b.name)+'</a>':esc(b.name))+'</h3>';
+    var contact = b.email && b.email.indexOf('@')>0
+      ? '<a class="mini" href="mailto:'+esc(b.email)+'">✉ '+esc(b.email)+'</a>'
+      : '<a class="mini" href="'+esc(b.contact||b.web)+'" target="_blank" rel="noopener">'+T.form+' ↗</a>';
+    var tip = lang==='ko'
+      ? '<div class="tipbox"><b>'+T.approach+'</b> · '+esc(b.tip)+'</div>'
+      : '<div class="tipbox"><b>'+T.approach+'</b> · '+esc(b.type_en)+(b.certs?' · '+esc(b.certs):'')+'</div>';
+    return '<article class="card bcard">'+
+      '<div class="nm">'+nm+'<button class="pick'+(on?' on':'')+'" data-b="'+esc(b.id)+'" title="'+T.pick+'">'+(on?'✓':'+')+'</button></div>'+
+      '<div class="tags"><span class="tag acc">'+esc(lang==='ko'?b.cat.replace(/^\d\.\s*/,''):b.cat_en)+'</span>'+
+        '<span class="tag">'+esc(lang==='ko'?b.country:b.country_en)+'</span>'+
+        '<span class="tag">'+esc(lang==='ko'?b.type:b.type_en)+'</span></div>'+
+      '<div class="ln"><b>'+(lang==='ko'?'품목':'Range')+'</b>'+esc(lang==='ko'?b.products:b.products_en)+'</div>'+
+      (b.certs?'<div class="ln"><b>'+(lang==='ko'?'인증':'Focus')+'</b>'+esc(b.certs)+'</div>':'')+
+      tip+
+      '<div class="contact">'+contact+
+        '<a class="mini ghost" href="'+esc(b.web||b.contact)+'" target="_blank" rel="noopener">'+T.web+' ↗</a>'+
+        (b.contact && b.email && b.contact!==b.web ? '<a class="mini ghost" href="'+esc(b.contact)+'" target="_blank" rel="noopener">'+T.form+' ↗</a>':'')+
+      '</div></article>';
+  }
+  function render(){
+    T = TX[lang];
+    chips();
+    var rows = B.filter(matches);
+    el('list').innerHTML = rows.map(card).join('');
+    el('count').innerHTML = lang==='ko' ? ('<b>'+rows.length+'</b>곳 표시 / 전체 63곳') : ('Showing <b>'+rows.length+'</b> of 63 buyers');
+    el('empty').style.display = rows.length? 'none':'block';
+    el('list').querySelectorAll('.pick').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id=btn.dataset.b;
+        if(sel[id]) delete sel[id]; else sel[id]=true;
+        render(); tray();
+      });
+    });
+    applyLang();
+  }
+  function tray(){
+    var nb = Object.keys(sel).length, np = Object.keys(psel).length;
+    el('nb').textContent = nb; el('np').textContent = np;
+  }
+  function openProducts(){
+    var cats = []; PR.forEach(function(p){ if(cats.indexOf(p.cat)<0) cats.push(p.cat); });
+    var h = '<p class="sub">'+T.psub+'</p>';
+    cats.forEach(function(c){
+      var items = PR.filter(function(p){ return p.cat===c; });
+      h += '<h4 style="margin:14px 0 7px;font-size:13px">'+esc(lang==='ko'?(window.__PRODCAT__[c]||c)+' <span style="color:#76887F;font-weight:400">('+c+')</span>':c)+'</h4><div class="prod">';
+      h += items.map(function(p,i){
+        var id = p.sku; var on = !!psel[id];
+        return '<label class="pitem"><input type="checkbox" data-p="'+esc(id)+'" '+(on?'checked':'')+' style="margin-top:3px">'+
+          '<span style="flex:1"><b>'+esc(p.name)+'</b>'+esc(p.ko)+'<br><span>SKU '+esc(p.sku)+' · MOQ '+p.moq+' '+esc(p.unit)+' · FOB $'+p.fob+' · '+esc(p.certs.join(', '))+'</span></span></label>';
+      }).join('');
+      h += '</div>';
+    });
+    el('pTitle').textContent = T.pt; el('pSub').textContent = '';
+    el('pBody').innerHTML = h;
+    el('panel').classList.add('open');
+    el('pBody').querySelectorAll('input[data-p]').forEach(function(cb){
+      cb.addEventListener('change', function(){ if(cb.checked) psel[cb.dataset.p]=true; else delete psel[cb.dataset.p]; tray(); });
+    });
+  }
+  function openRfq(){
+    var bl = B.filter(function(b){ return sel[b.id]; });
+    var pl = PR.filter(function(p){ return psel[p.sku]; });
+    var prodTxt = [];
+    if(pl.length){
+      prodTxt.push('Categories: '+Array.from(new Set(pl.map(function(p){ return p.cat; }))).join(' / '));
+      prodTxt.push(pl.map(function(p){ return 'SKU '+p.sku+' — '+p.name+' (MOQ '+p.moq+' '+p.unit+', target FOB $'+p.fob+')'; }).join('; '));
+    }
+    if(!prodTxt.length && bl.length){
+      prodTxt.push('Categories: '+Array.from(new Set(bl.map(function(b){ return b.cat_en; }))).join(' / '));
+    }
+    var msg = [];
+    if(bl.length) msg.push('Buyers of interest: '+bl.map(function(b){ return b.name+' ('+(b.country_en||b.country)+')'; }).join('; '));
+    if(pl.length) msg.push('Selected SKUs: '+pl.map(function(p){ return p.sku; }).join(', '));
+    msg.push('Source: K-Social Bridge Global Buyers directory (2026-11).');
+    var url = window.__RFQ__ + '?usp=pp_url&' + window.__EP__ + '=' + encodeURIComponent(prodTxt.join(' — ')) +
+              '&' + window.__EM__ + '=' + encodeURIComponent(msg.join('\n'));
+    window.open(url, '_blank', 'noopener');
+  }
+  function applyLang(){
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-ko]').forEach(function(n){ n.textContent = lang==='ko'? n.dataset.ko : n.dataset.en; });
+    document.querySelectorAll('.lang button').forEach(function(b){ b.classList.toggle('on', b.dataset.l===lang); });
+    var q=el('q'); if(q) q.placeholder = T.search;
+    var rb=el('resetBtn'); if(rb) rb.textContent = T.reset;
+    var pb=el('prodBtn'); if(pb) pb.textContent = T.prodbtn;
+    var rf=el('rfqBtn'); if(rf) rf.textContent = T.rfq;
+    var hs=el('hstat'); if(hs) hs.innerHTML = lang==='ko'
+      ? '<div class="stat"><b>63</b><span>바이어</span></div><div class="stat"><b>25</b><span>국가</span></div><div class="stat"><b>7</b><span>대륙</span></div><div class="stat"><b>24</b><span>파일럿 상품</span></div>'
+      : '<div class="stat"><b>63</b><span>buyers</span></div><div class="stat"><b>25</b><span>countries</span></div><div class="stat"><b>7</b><span>regions</span></div><div class="stat"><b>24</b><span>pilot SKUs</span></div>';
+    var nt=el('note'); if(nt) nt.textContent = T.note;
+  }
+  document.querySelectorAll('.lang button').forEach(function(b){
+    b.addEventListener('click', function(){ lang=b.dataset.l; T=TX[lang]; render(); });
+  });
+  var q=el('q'); if(q) q.addEventListener('input', function(){ st.q=q.value.trim().toLowerCase(); render(); });
+  var rb=el('resetBtn'); if(rb) rb.addEventListener('click', function(){ st.q=''; if(q) q.value=''; st.region=[]; st.cat=[]; render(); });
+  el('prodBtn').addEventListener('click', openProducts);
+  el('rfqBtn').addEventListener('click', openRfq);
+  var px=el('pClose'); if(px) px.addEventListener('click', function(){ el('panel').classList.remove('open'); });
+  var pn=el('panel'); if(pn) pn.addEventListener('click', function(e){ if(e.target===pn) pn.classList.remove('open'); });
+  function boot(){ render(); tray(); }
+  if(lang==='ko'){ var lb=document.querySelector('.lang button[data-l="ko"]'); if(lb) lb.classList.add('on'); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+</script>
+
+</body></html>

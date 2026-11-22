@@ -1,0 +1,345 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>스터디어브로드 — 투명한 어학연수 가격비교</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap');
+:root{--bg:#F5F8FB;--bg-soft:#EDF2F7;--ink:#102436;--body:#40566B;--muted:#7A8B9C;
+--line:#DDE6EF;--line2:#CBD9E6;--acc:#12324F;--acc-ink:#0C2438;--acc-soft:#E8F0F7;
+--acc-line:#B9CFE2;--chip-bg:#EEF3F8;--chip-ink:#41586D;--chip-line:#DDE6EF;
+--hero:linear-gradient(135deg,#0E2A42 0%,#184A6B 55%,#2C6E8F 100%);--hero-soft:#CFE0EC;--hero-eyebrow:#8FC3DE}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'Nanum Gothic','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+     font-size:14px;line-height:1.62;-webkit-text-size-adjust:100%;overflow-x:hidden}
+a{color:var(--acc);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:1120px;margin:0 auto;padding:18px 18px 26px}
+button{font-family:inherit}
+/* hero */
+.hero{background:var(--hero);color:#fff;border-radius:18px;padding:26px 24px;position:relative;overflow:hidden}
+.hero:after{content:'';position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;
+  background:rgba(255,255,255,.07)}
+.eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--hero-eyebrow);margin:0 0 8px}
+.hero h1{margin:0 0 8px;font-size:26px;line-height:1.28;letter-spacing:-.02em;font-weight:800;color:#fff}
+.hero p{margin:0;font-size:13.5px;line-height:1.62;color:var(--hero-soft);max-width:760px}
+.stats{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0}
+.stat{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:11px;padding:7px 12px;min-width:96px}
+.stat b{display:block;font-size:18px;line-height:1.25;color:#fff;font-weight:800}
+.stat span{font-size:11px;color:var(--hero-soft)}
+/* section head */
+h2.sec{margin:26px 0 10px;font-size:17px;letter-spacing:-.01em;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px}
+h2.sec em{font-style:normal;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.04em}
+.lead{font-size:13px;color:var(--muted);margin:-4px 0 12px}
+/* cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:12px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 15px;display:flex;flex-direction:column;
+  gap:7px;transition:box-shadow .15s,border-color .15s;position:relative}
+.card:hover{border-color:var(--acc-line);box-shadow:0 6px 18px rgba(20,30,25,.07)}
+.card .tags{display:flex;flex-wrap:wrap;gap:5px}
+.tag{display:inline-flex;align-items:center;font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:2px 8px;border-radius:20px;
+  background:var(--chip-bg);color:var(--chip-ink);border:1px solid var(--chip-line)}
+.tag.acc{background:var(--acc-soft);color:var(--acc-ink);border-color:var(--acc-line)}
+.card h3{margin:0;font-size:14.5px;line-height:1.45;font-weight:800;letter-spacing:-.01em;color:var(--ink)}
+.card h3 a{color:inherit}
+.card p{margin:0;font-size:12.5px;line-height:1.62;color:var(--body)}
+.card .meta{margin-top:auto;font-size:11.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.card .meta .dot{opacity:.4}
+.clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.cardacts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.mini{font-size:11.5px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--body);border-radius:8px;
+  padding:4px 9px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.mini:hover{border-color:var(--acc-line);color:var(--acc)}
+.mini.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.mini.ghost{background:transparent}
+a.mini{text-decoration:none}
+/* filter bar */
+.bar{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin:16px 0 14px;position:relative;z-index:1}
+.searchrow{display:flex;gap:8px;flex-wrap:wrap}
+.searchrow input[type=search]{flex:1 1 240px;min-width:0;height:38px;border:1px solid var(--line2);border-radius:10px;
+  padding:0 12px;font-size:13.5px;font-family:inherit;background:var(--bg-soft);color:var(--ink)}
+.searchrow input[type=search]:focus{outline:2px solid var(--acc-line);outline-offset:-1px;border-color:var(--acc);background:#fff}
+.searchrow select{height:38px;border:1px solid var(--line2);border-radius:10px;padding:0 8px;font-size:12.5px;background:#fff;
+  color:var(--ink);font-family:inherit}
+.fgroup{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:8px}
+.flab{font-size:10.5px;font-weight:800;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-right:3px;min-width:34px}
+.chip{border:1px solid var(--line2);background:#fff;color:var(--body);border-radius:20px;padding:4px 10px;font-size:11.5px;
+  cursor:pointer;font-weight:700;white-space:nowrap}
+.chip em{font-style:normal;color:var(--muted);font-weight:400;margin-left:3px}
+.chip:hover{border-color:var(--acc-line);color:var(--acc)}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.chip.on em{color:rgba(255,255,255,.75)}
+.barfoot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;padding-top:9px;border-top:1px dashed var(--line)}
+.count{font-size:12px;color:var(--body)}
+.count b{color:var(--ink)}
+.reset{margin-left:auto;border:1px solid var(--line2);background:#fff;color:var(--body);font-size:11.5px;font-weight:700;
+  height:29px;padding:0 11px;border-radius:8px;cursor:pointer}
+.reset:hover{border-color:var(--acc);color:var(--acc)}
+/* tray */
+.tray{position:sticky;bottom:0;z-index:5;margin-top:16px;background:rgba(255,255,255,.97);backdrop-filter:blur(6px);
+  border:1px solid var(--line);border-radius:13px;box-shadow:0 -4px 20px rgba(20,30,25,.08);padding:10px 12px;
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tray .tinfo{font-size:12px;color:var(--body);display:flex;gap:10px;flex-wrap:wrap}
+.tray .tinfo b{color:var(--acc)}
+.tray .sp{flex:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:34px;padding:0 14px;border-radius:9px;
+  font-size:12.5px;font-weight:800;border:1px solid var(--acc);background:var(--acc);color:#fff;cursor:pointer;text-decoration:none}
+.btn:hover{filter:brightness(1.05);text-decoration:none}
+.btn.sec{background:#fff;color:var(--acc)}
+.btn.ghost{background:transparent;border-color:var(--line2);color:var(--body)}
+.btn.sm{height:30px;padding:0 11px;font-size:11.5px}
+/* panels & modal */
+.panel{position:fixed;inset:0;background:rgba(18,26,22,.5);z-index:50;display:none;align-items:flex-start;justify-content:center;
+  padding:20px 12px;overflow:auto}
+.panel.open{display:flex}
+.sheet{background:#fff;border-radius:16px;max-width:960px;width:100%;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.sheet h3{margin:0 0 4px;font-size:17px;font-weight:800}
+.sheet .sub{font-size:12px;color:var(--muted);margin:0 0 12px}
+.sheet .x{float:right;border:0;background:var(--bg-soft);border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:15px;color:var(--body)}
+table.cmp{width:100%;border-collapse:collapse;font-size:12px}
+table.cmp th,table.cmp td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+table.cmp th{background:var(--bg-soft);font-size:11px;color:var(--muted);font-weight:800;letter-spacing:.03em;width:120px}
+table.cmp tr:first-child th{width:auto}
+.scrollx{overflow-x:auto}
+/* blocks */
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.block{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 16px}
+.block h3{margin:0 0 6px;font-size:14.5px;font-weight:800}
+.block p{margin:0;font-size:12.5px;color:var(--body)}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+.kv:last-child{border-bottom:0}
+.kv b{color:var(--ink)}
+.note{background:var(--bg-soft);border:1px dashed var(--line2);border-radius:12px;padding:11px 13px;font-size:11.5px;color:var(--muted);margin-top:16px}
+.foot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;font-size:12px;color:var(--muted)}
+.empty{display:none;text-align:center;padding:36px 12px;color:var(--muted);font-size:13px}
+@media (max-width:640px){
+  .wrap{padding:12px 11px 20px}
+  .hero{padding:20px 16px;border-radius:14px}
+  .hero h1{font-size:21px}
+  .hero p{font-size:12.5px}
+  .grid{grid-template-columns:1fr;gap:10px}
+  .stat{min-width:86px;padding:6px 10px}
+  .stat b{font-size:16px}
+  h2.sec{font-size:15.5px;margin-top:20px}
+  .searchrow input[type=search]{flex:1 1 100%}
+  .flab{min-width:100%}
+  .sheet{padding:14px;border-radius:13px}
+  .tray{border-radius:11px}
+}
+</style></head><body class="">
+<div class="wrap">
+  <section class="hero">
+    <p class="eyebrow">STUDY ABROAD · PRICE TRANSPARENCY</p>
+    <h1>어학연수, 어디로 갈지보다<br>얼마가 들고, 얼마가 돌아오는지</h1>
+    <p>학비만 비교하면 놓치는 게 있습니다. 12주 총비용 · 무비자 수강 가능 여부 · 자녀 학비를 같은 기준으로 정리하고, 등록하면 정착 장학금으로 최대 학비의 15%를 돌려드립니다.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">
+      <a class="btn" style="background:#fff;color:#0E2A42;border-color:#fff" href="https://sites.google.com/view/studyabroad-kr/비용-계산기">비용 계산기 열기</a>
+      <a class="btn sec" style="background:transparent;color:#DCEBF4;border-color:rgba(255,255,255,.45)" href="https://sites.google.com/view/studyabroad-kr/programs">프로그램 찾기</a>
+      <a class="btn sec" style="background:transparent;color:#DCEBF4;border-color:rgba(255,255,255,.45)" href="https://sites.google.com/view/studyabroad-kr/contact">상담 신청</a>
+    </div>
+    <div class="stats"><div class="stat"><b>31개국</b><span>124개 과정</span></div><div class="stat"><b>385곳</b><span>해외 학교</span></div><div class="stat"><b>54도시</b><span>생활비 실측</span></div><div class="stat"><b>15%</b><span>학비 환급 상한</span></div></div>
+  </section>
+
+  <h2 class="sec">세 가지 약속 <em>HOW WE WORK</em></h2>
+  <div class="cols">
+    <div class="block"><span class="tag acc">01 공시가 직납</span><h3 style="margin-top:8px">학비는 학교 계좌로</h3><p>등록금을 받거나 차감하지 않습니다. 학교 공시가 그대로, 영수증은 학생 명의.</p></div>
+    <div class="block"><span class="tag acc">02 숨은 마진 0%</span><h3 style="margin-top:8px">등록 수수료 0원</h3><p>어학원 소개 수수료에서 운영비만 남기고, 마진은 8% 상한으로 공개합니다.</p></div>
+    <div class="block"><span class="tag acc">03 정착 장학금</span><h3 style="margin-top:8px">최대 학비 15% 환급</h3><p>개강 4주 후 현금·필수비용 대납(보험·비자·픽업·eSIM)·후기 인증 중 선택.</p></div>
+  </div>
+
+  <h2 class="sec">사이트 지도 <em>9 PAGES</em></h2>
+  <p class="lead">2026년 11월 22일 기준. 표의 페이지 이름을 누르면 바로 이동합니다.</p>
+  <div class="tablewrap"><table class="map"><colgroup><col style="width:30%"><col></colgroup>
+    <thead><tr><th>메뉴</th><th>무엇을 볼 수 있나</th></tr></thead><tbody><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/어학원-문의처수집처">어학원 문의처·수집처</a></td><td>어학원·대학부설 어학당 125곳(31개국)의 공식 홈페이지·학비 안내·이메일·전화·온라인 문의 폼을 국가 필터로. 자료 원천 52곳 목록 포함</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/programs">프로그램 찾기</a></td><td>31개국 124개 과정을 검색·필터 게시판으로. 12주 총비용·무비자 수강·자녀 무상·아르바이트 조건</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/kids">자녀 무상교육·장기체류</a></td><td>부모 연수·유학 시 자녀 공립 K-12 무상 가능 지역(미국 F-2·노바스코샤 등)과 불가 지역, 조지아 1년 무비자 등 장기체류, 국내 영어캠프 9곳</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/kids/해외-학교-정보대학고등학교">해외 학교 정보(대학·고등학교)</a></td><td>자녀가 다닐 학교를 직접 고를 때. 사이판·괌·팔라우·미국령 사모아·하와이·몰디브·몰타·자메이카·바하마 9개 지역 385곳의 주소·전화·이메일·홈페이지</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/working-holiday">워킹홀리데이</a></td><td>29개 협정국을 검색·필터 게시판으로. 연령·쿼터·어학연수 가능 기간·비자비·재정증명·초기 정착비</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/cities">도시 생활비·아르바이트</a></td><td>54개 도시 월 생활비, 학생 아르바이트 허용 시간·최저임금·생활비 충당률, 비자 심사기간, 재정증빙 기준</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/scholarship">장학금 환급·비즈니스 모델</a></td><td>투명 마진 8% 상한, 정착 장학금 환급 구조(학비의 15% 상한), 손익분기, 정부·지자체 장학금 목록</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/비용-계산기">비용 계산기·비교 (신규)</a></td><td>국가·기간·숙소별 예상 비용과 장학금 환급액을 계산하고, 관심 과정을 최대 3개까지 나란히 비교</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/contact">상담·문의</a></td><td>구글 폼으로 희망 국가·기간·자녀 나이를 남기면 조건에 맞는 3곳을 비교해 회신</td></tr></tbody></table></div>
+
+  <h2 class="sec">바로 계산해 보기 <em>COST &amp; REFUND</em></h2>
+  <div class="cols">
+    <div class="block"><h3>12주 예상 비용</h3><p>학비·숙소·보험·비자·행정비를 같은 기준으로 합산하고, 도시 생활비까지 더해 실질 부담을 계산합니다.</p>
+      <div class="cardacts"><a class="btn sm" href="https://sites.google.com/view/studyabroad-kr/비용-계산기">계산기 열기</a></div></div>
+    <div class="block"><h3>장학금 환급</h3><p>플랫폼 마진 8% 상한 구조에서 학비의 최대 15%를 정착 장학금으로 돌려받는 금액을 미리 확인합니다.</p>
+      <div class="cardacts"><a class="btn sm sec" href="https://sites.google.com/view/studyabroad-kr/scholarship">환급 구조 보기</a></div></div>
+    <div class="block"><h3>학교·도시 비교</h3><p>385곳 해외 학교와 54개 도시 생활비를 조건별로 걸러 아이에게 맞는 선택지를 좁힙니다.</p>
+      <div class="cardacts"><a class="btn sm sec" href="https://sites.google.com/view/studyabroad-kr/kids/해외-학교-정보대학고등학교">해외 학교</a><a class="btn sm ghost" href="https://sites.google.com/view/studyabroad-kr/cities">도시 생활비</a></div></div>
+  </div>
+  <p class="note">환율 기준일 2026-11-19 · 12주 기준 금액은 학비+등록·교재+숙소+보험+비자·행정비이며 항공권·용돈은 제외합니다. 계산기에서 기간·숙소·생활비를 바꿔 볼 수 있습니다.</p>
+</div>
+<style>
+.tablewrap{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+table.map{width:100%;border-collapse:collapse;font-size:12.5px}
+table.map th{background:#0E2A42;color:#D6E6F1;text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:10px 12px}
+table.map td{padding:10px 12px;border-top:1px solid var(--line);vertical-align:top;color:var(--body);line-height:1.6}
+table.map td.pg{font-weight:800;color:var(--ink);white-space:nowrap}
+table.map tr:nth-child(even) td{background:#FAFCFD}
+@media(max-width:640px){table.map{font-size:12px}table.map td.pg{white-space:normal}table.map th,table.map td{padding:8px 9px}}
+</style>
+
+<script>window.__CFG__ = {"filters": [], "ls": "sa"};window.__DATA__ = [];</script>
+<script>
+(function(){
+  var CFG = window.__CFG__, DATA = window.__DATA__;
+  var LS = CFG.ls || 'sbx';
+  function load(k, d){ try{ var v=JSON.parse(localStorage.getItem(LS+':'+k)); return v||d; }catch(e){ return d; } }
+  function save(k, v){ try{ localStorage.setItem(LS+':'+k, JSON.stringify(v)); }catch(e){} }
+  var saved = load('saved', []), cmp = load('cmp', []);
+  var st = {q:'', sort: CFG.defaultSort || 'new'};
+  (CFG.filters||[]).forEach(function(f){ st[f.key]=[]; });
+  var byId = {}; DATA.forEach(function(d){ byId[d.id]=d; });
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
+  function el(id){ return document.getElementById(id); }
+  function chipsHtml(f){
+    var counts = {};
+    DATA.forEach(function(d){ var v = d[f.key]; if(!v) return; (Array.isArray(v)?v:[v]).forEach(function(x){ counts[x]=(counts[x]||0)+1; }); });
+    var vals = f.values || Object.keys(counts).sort(function(a,b){ return counts[b]-counts[a]; });
+    if(f.limit) vals = vals.slice(0, f.limit);
+    return vals.map(function(v){
+      return '<button class="chip" data-k="'+f.key+'" data-v="'+esc(v)+'">'+esc(f.labelOf?f.labelOf(v):v)+'<em>'+(counts[v]||0)+'</em></button>';
+    }).join('');
+  }
+  function renderFilters(){
+    var host = el('filters'); if(!host) return;
+    host.innerHTML = (CFG.filters||[]).map(function(f){
+      return '<div class="fgroup"><span class="flab">'+esc(f.label)+'</span>'+chipsHtml(f)+'</div>';
+    }).join('');
+    host.querySelectorAll('.chip').forEach(function(b){
+      b.addEventListener('click', function(){
+        var k=b.dataset.k, v=b.dataset.v, arr=st[k];
+        var i=arr.indexOf(v); if(i<0) arr.push(v); else arr.splice(i,1);
+        b.classList.toggle('on', arr.indexOf(v)>=0);
+        apply(); updateChips();
+      });
+    });
+  }
+  function updateChips(){
+    document.querySelectorAll('#filters .chip').forEach(function(b){
+      b.classList.toggle('on', (st[b.dataset.k]||[]).indexOf(b.dataset.v)>=0);
+    });
+  }
+  function matches(d){
+    for(var k in st){
+      if(k==='q'||k==='sort') continue;
+      var want=st[k]; if(!want || !want.length) continue;
+      var have = Array.isArray(d[k])?d[k]:[d[k]];
+      if(!want.some(function(w){ return have.indexOf(w)>=0; })) return false;
+    }
+    if(st.q){
+      var hay=(d.search||[d.title,d.sub,d.desc,d.region,d.tag,d.extra].join(' ')).toLowerCase();
+      if(hay.indexOf(st.q)<0) return false;
+    }
+    return true;
+  }
+  function card(d){
+    var tags='';
+    if(d.corner) tags += '<span class="tag acc">'+esc(d.corner)+'</span>';
+    if(d.region) tags += '<span class="tag">'+esc(d.region)+'</span>';
+    if(d.tag) tags += '<span class="tag">'+esc(d.tag)+'</span>';
+    if(d.badge) tags += '<span class="tag">'+esc(d.badge)+'</span>';
+    var title = d.url ? '<a href="'+esc(d.url)+'" target="_blank" rel="noopener">'+esc(d.title)+'</a>' : esc(d.title);
+    var meta = [];
+    if(d.sub) meta.push('<span>'+esc(d.sub)+'</span>');
+    if(d.meta) meta.push('<span>'+esc(d.meta)+'</span>');
+    if(d.date) meta.push('<span>'+esc(d.date)+'</span>');
+    var onS = saved.indexOf(d.id)>=0, onC = cmp.indexOf(d.id)>=0;
+    var acts = '<div class="cardacts"><button class="mini'+(onS?' on':'')+'" data-act="save" data-id="'+esc(d.id)+'">'+(onS?'★ 저장됨':'☆ 저장')+'</button>';
+    if(CFG.compare && d.cmp) acts += '<button class="mini'+(onC?' on':'')+'" data-act="cmp" data-id="'+esc(d.id)+'">'+(onC?'✓ 비교 담김':'＋ 비교')+'</button>';
+    if(d.url) acts += '<a class="mini ghost" href="'+esc(d.url)+'" target="_blank" rel="noopener">원문 ↗</a>';
+    if(d.link) acts += '<a class="mini ghost" href="'+esc(d.link.href)+'" target="'+esc(d.link.target||'_self')+'">'+esc(d.link.label)+'</a>';
+    acts += '</div>';
+    return '<article class="card"><div class="tags">'+tags+'</div><h3>'+title+'</h3>'+
+      (d.desc?'<p class="clamp">'+esc(d.desc)+'</p>':'')+
+      '<div class="meta">'+meta.join('<span class="dot">·</span>')+'</div>'+acts+'</article>';
+  }
+  function apply(){
+    var rows = DATA.filter(matches);
+    var s = st.sort;
+    rows.sort(function(a,b){
+      if(s==='new') return String(b.date||'').localeCompare(String(a.date||''));
+      if(s==='old') return String(a.date||'').localeCompare(String(b.date||''));
+      if(s==='title') return String(a.title||'').localeCompare(String(b.title||''),'ko');
+      return 0;
+    });
+    var host=el('list');
+    if(!host) return;
+    host.innerHTML = rows.map(card).join('');
+    if(el('count')) el('count').innerHTML = '전체 <b>'+DATA.length+'</b>건 중 <b>'+rows.length+'</b>건';
+    if(el('empty')) el('empty').style.display = rows.length? 'none':'block';
+    bindActs();
+    updateTray();
+  }
+  function bindActs(){
+    document.querySelectorAll('#list [data-act]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var id=b.dataset.id;
+        if(b.dataset.act==='save'){
+          var i=saved.indexOf(id); if(i<0) saved.push(id); else saved.splice(i,1);
+          save('saved', saved);
+        } else {
+          var j=cmp.indexOf(id); if(j<0){ if(cmp.length>=3){ flash('비교는 최대 3개까지 담을 수 있습니다.'); return; } cmp.push(id); } else cmp.splice(j,1);
+          save('cmp', cmp);
+        }
+        apply();
+      });
+    });
+  }
+  var flashT;
+  function flash(msg){
+    var f=el('flash'); if(!f) return;
+    f.textContent=msg; f.style.opacity='1'; clearTimeout(flashT);
+    flashT=setTimeout(function(){ f.style.opacity='0'; }, 2400);
+  }
+  function updateTray(){
+    if(!el('tray')) return;
+    if(el('nSaved')) el('nSaved').textContent = saved.length;
+    if(el('nCmp')) el('nCmp').textContent = cmp.length;
+    if(el('cmpBtn')) el('cmpBtn').style.display = CFG.compare? 'inline-flex':'none';
+  }
+  function openSaved(){
+    var rows = saved.map(function(id){ return byId[id]; }).filter(Boolean);
+    var body = rows.length ? '<table class="cmp"><tr><td>항목</td><td>내용</td><td></td></tr>'+rows.map(function(d){
+      return '<tr><td>'+esc(d.corner||d.region||'')+'</td><td><b>'+esc(d.title)+'</b><div style="color:#7a8580;font-size:11.5px">'+esc(d.meta||d.sub||'')+'</div></td>'+
+        '<td><button class="mini" data-rm="'+esc(d.id)+'">빼기</button></td></tr>';
+    }).join('')+'</table>' : '<p class="lead">저장한 항목이 없습니다. 카드의 ☆ 저장을 눌러 모아두세요.</p>';
+    showPanel('저장함 · '+rows.length+'건','브라우저(localStorage)에 저장됩니다. 같은 사이트의 다른 페이지에서도 유지됩니다.', body);
+    document.querySelectorAll('[data-rm]').forEach(function(b){
+      b.addEventListener('click', function(){ var i=saved.indexOf(b.dataset.rm); if(i>=0) saved.splice(i,1); save('saved',saved); openSaved(); apply(); });
+    });
+  }
+  function openCmp(){
+    var rows = cmp.map(function(id){ return byId[id]; }).filter(Boolean).filter(function(d){ return d.cmp; });
+    if(rows.length<2){ flash('비교할 항목을 2개 이상 담아주세요.'); return; }
+    var fields = CFG.compare;
+    var head = '<tr><th>항목</th>'+rows.map(function(d){ return '<th>'+esc(d.title)+'</th>'; }).join('')+'</tr>';
+    var body = fields.map(function(f){
+      return '<tr><th>'+esc(f.label)+'</th>'+rows.map(function(d){
+        var v = d.cmp[f.key]; return '<td>'+(v==null||v===''?'—':esc(v))+'</td>';
+      }).join('')+'</tr>';
+    }).join('');
+    var links = '<tr><th>링크</th>'+rows.map(function(d){
+      return '<td>'+(d.url?'<a href="'+esc(d.url)+'" target="_blank" rel="noopener">원문/홈페이지 ↗</a>':'—')+(d.link?'<br><a href="'+esc(d.link.href)+'" target="'+esc(d.link.target||'_self')+'">'+esc(d.link.label)+'</a>':'')+'</td>';
+    }).join('')+'</tr>';
+    showPanel('비교 · '+rows.length+'개','', '<div class="scrollx"><table class="cmp">'+head+body+links+'</table></div>');
+  }
+  function showPanel(title, sub, body){
+    el('pTitle').textContent = title; el('pSub').textContent = sub||'';
+    el('pBody').innerHTML = body; el('panel').classList.add('open');
+  }
+  function init(){
+    renderFilters();
+    var q=el('q'); if(q){ q.addEventListener('input', function(){ st.q=q.value.trim().toLowerCase(); apply(); }); }
+    var so=el('sort'); if(so){ so.addEventListener('change', function(){ st.sort=so.value; apply(); }); }
+    var r=el('reset'); if(r){ r.addEventListener('click', function(){
+      st.q=''; if(q) q.value=''; (CFG.filters||[]).forEach(function(f){ st[f.key]=[]; }); st.sort=CFG.defaultSort||'new'; if(so) so.value=st.sort;
+      updateChips(); apply(); }); }
+    var sb=el('savedBtn'); if(sb) sb.addEventListener('click', openSaved);
+    var cb=el('cmpBtn'); if(cb) cb.addEventListener('click', openCmp);
+    var px=el('pClose'); if(px) px.addEventListener('click', function(){ el('panel').classList.remove('open'); });
+    var pn=el('panel'); if(pn) pn.addEventListener('click', function(e){ if(e.target===pn) pn.classList.remove('open'); });
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ el('panel').classList.remove('open'); } });
+    apply();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+
+</body></html>

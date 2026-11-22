@@ -1,0 +1,549 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>K-Social Bridge — Market &amp; Cases</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap');
+:root{--bg:#F6F9F7;--bg-soft:#EDF3EF;--ink:#0C2622;--body:#3E534E;--muted:#76887F;
+--line:#DDE7E1;--line2:#CBDAD2;--acc:#15705F;--acc-ink:#0E4E42;--acc-soft:#E6F2EC;
+--acc-line:#B4D6C8;--chip-bg:#EEF4F0;--chip-ink:#3D5650;--chip-line:#DDE7E1;
+--hero:linear-gradient(135deg,#082521 0%,#0E3B36 50%,#17604F 100%);--hero-soft:#C9DED6;--hero-eyebrow:#7FC0AA}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'Nanum Gothic','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+     font-size:14px;line-height:1.62;-webkit-text-size-adjust:100%;overflow-x:hidden}
+a{color:var(--acc);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:1120px;margin:0 auto;padding:18px 18px 26px}
+button{font-family:inherit}
+/* hero */
+.hero{background:var(--hero);color:#fff;border-radius:18px;padding:26px 24px;position:relative;overflow:hidden}
+.hero:after{content:'';position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;
+  background:rgba(255,255,255,.07)}
+.eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--hero-eyebrow);margin:0 0 8px}
+.hero h1{margin:0 0 8px;font-size:26px;line-height:1.28;letter-spacing:-.02em;font-weight:800;color:#fff}
+.hero p{margin:0;font-size:13.5px;line-height:1.62;color:var(--hero-soft);max-width:760px}
+.stats{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0}
+.stat{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:11px;padding:7px 12px;min-width:96px}
+.stat b{display:block;font-size:18px;line-height:1.25;color:#fff;font-weight:800}
+.stat span{font-size:11px;color:var(--hero-soft)}
+/* section head */
+h2.sec{margin:26px 0 10px;font-size:17px;letter-spacing:-.01em;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px}
+h2.sec em{font-style:normal;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.04em}
+.lead{font-size:13px;color:var(--muted);margin:-4px 0 12px}
+/* cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:12px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 15px;display:flex;flex-direction:column;
+  gap:7px;transition:box-shadow .15s,border-color .15s;position:relative}
+.card:hover{border-color:var(--acc-line);box-shadow:0 6px 18px rgba(20,30,25,.07)}
+.card .tags{display:flex;flex-wrap:wrap;gap:5px}
+.tag{display:inline-flex;align-items:center;font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:2px 8px;border-radius:20px;
+  background:var(--chip-bg);color:var(--chip-ink);border:1px solid var(--chip-line)}
+.tag.acc{background:var(--acc-soft);color:var(--acc-ink);border-color:var(--acc-line)}
+.card h3{margin:0;font-size:14.5px;line-height:1.45;font-weight:800;letter-spacing:-.01em;color:var(--ink)}
+.card h3 a{color:inherit}
+.card p{margin:0;font-size:12.5px;line-height:1.62;color:var(--body)}
+.card .meta{margin-top:auto;font-size:11.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.card .meta .dot{opacity:.4}
+.clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.cardacts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.mini{font-size:11.5px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--body);border-radius:8px;
+  padding:4px 9px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.mini:hover{border-color:var(--acc-line);color:var(--acc)}
+.mini.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.mini.ghost{background:transparent}
+a.mini{text-decoration:none}
+/* filter bar */
+.bar{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin:16px 0 14px;position:relative;z-index:1}
+.searchrow{display:flex;gap:8px;flex-wrap:wrap}
+.searchrow input[type=search]{flex:1 1 240px;min-width:0;height:38px;border:1px solid var(--line2);border-radius:10px;
+  padding:0 12px;font-size:13.5px;font-family:inherit;background:var(--bg-soft);color:var(--ink)}
+.searchrow input[type=search]:focus{outline:2px solid var(--acc-line);outline-offset:-1px;border-color:var(--acc);background:#fff}
+.searchrow select{height:38px;border:1px solid var(--line2);border-radius:10px;padding:0 8px;font-size:12.5px;background:#fff;
+  color:var(--ink);font-family:inherit}
+.fgroup{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:8px}
+.flab{font-size:10.5px;font-weight:800;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-right:3px;min-width:34px}
+.chip{border:1px solid var(--line2);background:#fff;color:var(--body);border-radius:20px;padding:4px 10px;font-size:11.5px;
+  cursor:pointer;font-weight:700;white-space:nowrap}
+.chip em{font-style:normal;color:var(--muted);font-weight:400;margin-left:3px}
+.chip:hover{border-color:var(--acc-line);color:var(--acc)}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.chip.on em{color:rgba(255,255,255,.75)}
+.barfoot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;padding-top:9px;border-top:1px dashed var(--line)}
+.count{font-size:12px;color:var(--body)}
+.count b{color:var(--ink)}
+.reset{margin-left:auto;border:1px solid var(--line2);background:#fff;color:var(--body);font-size:11.5px;font-weight:700;
+  height:29px;padding:0 11px;border-radius:8px;cursor:pointer}
+.reset:hover{border-color:var(--acc);color:var(--acc)}
+/* tray */
+.tray{position:sticky;bottom:0;z-index:5;margin-top:16px;background:rgba(255,255,255,.97);backdrop-filter:blur(6px);
+  border:1px solid var(--line);border-radius:13px;box-shadow:0 -4px 20px rgba(20,30,25,.08);padding:10px 12px;
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tray .tinfo{font-size:12px;color:var(--body);display:flex;gap:10px;flex-wrap:wrap}
+.tray .tinfo b{color:var(--acc)}
+.tray .sp{flex:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:34px;padding:0 14px;border-radius:9px;
+  font-size:12.5px;font-weight:800;border:1px solid var(--acc);background:var(--acc);color:#fff;cursor:pointer;text-decoration:none}
+.btn:hover{filter:brightness(1.05);text-decoration:none}
+.btn.sec{background:#fff;color:var(--acc)}
+.btn.ghost{background:transparent;border-color:var(--line2);color:var(--body)}
+.btn.sm{height:30px;padding:0 11px;font-size:11.5px}
+/* panels & modal */
+.panel{position:fixed;inset:0;background:rgba(18,26,22,.5);z-index:50;display:none;align-items:flex-start;justify-content:center;
+  padding:20px 12px;overflow:auto}
+.panel.open{display:flex}
+.sheet{background:#fff;border-radius:16px;max-width:960px;width:100%;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.sheet h3{margin:0 0 4px;font-size:17px;font-weight:800}
+.sheet .sub{font-size:12px;color:var(--muted);margin:0 0 12px}
+.sheet .x{float:right;border:0;background:var(--bg-soft);border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:15px;color:var(--body)}
+table.cmp{width:100%;border-collapse:collapse;font-size:12px}
+table.cmp th,table.cmp td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+table.cmp th{background:var(--bg-soft);font-size:11px;color:var(--muted);font-weight:800;letter-spacing:.03em;width:120px}
+table.cmp tr:first-child th{width:auto}
+.scrollx{overflow-x:auto}
+/* blocks */
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.block{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 16px}
+.block h3{margin:0 0 6px;font-size:14.5px;font-weight:800}
+.block p{margin:0;font-size:12.5px;color:var(--body)}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+.kv:last-child{border-bottom:0}
+.kv b{color:var(--ink)}
+.note{background:var(--bg-soft);border:1px dashed var(--line2);border-radius:12px;padding:11px 13px;font-size:11.5px;color:var(--muted);margin-top:16px}
+.foot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;font-size:12px;color:var(--muted)}
+.empty{display:none;text-align:center;padding:36px 12px;color:var(--muted);font-size:13px}
+@media (max-width:640px){
+  .wrap{padding:12px 11px 20px}
+  .hero{padding:20px 16px;border-radius:14px}
+  .hero h1{font-size:21px}
+  .hero p{font-size:12.5px}
+  .grid{grid-template-columns:1fr;gap:10px}
+  .stat{min-width:86px;padding:6px 10px}
+  .stat b{font-size:16px}
+  h2.sec{font-size:15.5px;margin-top:20px}
+  .searchrow input[type=search]{flex:1 1 100%}
+  .flab{min-width:100%}
+  .sheet{padding:14px;border-radius:13px}
+  .tray{border-radius:11px}
+}
+</style></head><body class="">
+<div class="wrap" data-l="en" id="root">
+  <div style="display:flex;margin-bottom:8px"><div class="lang"><button data-l="en" class="on">EN</button><button data-l="ko">KO</button></div></div>
+
+  <section class="hero">
+    <p class="eyebrow">MARKET RESEARCH · CASES · 2026.11</p>
+    <h1><span class="lang-en">The demand became a specification. Korea&rsquo;s supply side has to answer in that format.</span>
+        <span class="lang-ko">수요는 이미 '스펙'이 되었습니다. 한국의 공급 쪽이 그 형식으로 답해야 합니다.</span></h1>
+    <p><span class="lang-en">Regulation, buyer behaviour and public budgets have already decided that impact data travels with the product. This page collects the measured market data, the eight models that work abroad, and five Korean exports with the reason each one stayed small.</span>
+       <span class="lang-ko">규제·바이어 행동·정부 예산이 이미 '임팩트 데이터가 상품과 함께 다닌다'는 것을 전제로 움직이고 있습니다. 이 페이지는 실측 시장 데이터, 해외에서 통한 8개 모델, 그리고 규모가 커지지 못한 이유까지 정리한 국내 수출 사례 5건을 담았습니다.</span></p>
+  </section>
+
+  <div class="kpi">
+    <div class="kbox"><b>2026-07-26</b><span class="lang-en">EU CSDDD applies (Directive 2024/1760, as amended by Omnibus I)</span><span class="lang-ko">EU 공급망 실사 지침 적용일 (지침 2024/1760, Omnibus I 개정)</span></div>
+    <div class="kbox"><b>175,000</b><span class="lang-en">companies rated by EcoVadis, linked to USD 2.5tn of purchasing spend</span><span class="lang-ko">EcoVadis 평가 기업 수 — 2.5조 달러 구매 지출과 연결</span></div>
+    <div class="kbox"><b>GBP 864.4m</b><span class="lang-en">spent with social enterprises by 36 corporates (UK Buy Social, 2016&ndash;2025)</span><span class="lang-ko">영국 Buy Social Corporate Challenge 누적 지출 (2016~2025)</span></div>
+    <div class="kbox"><b>KRW 7.28tn</b><span class="lang-en">annual revenue of 3,766 certified Korean social enterprises</span><span class="lang-ko">국내 인증 사회적기업 3,766개소 연매출</span></div>
+  </div>
+
+  <section class="blk">
+    <div class="num">01 · REGULATION</div>
+    <h2><span class="lang-en">EU supply-chain due diligence — the deadline is 2029, the demand arrives now</span>
+        <span class="lang-ko">EU 공급망 실사 — 시한은 2029년, 요구는 이미 도착했습니다</span></h2>
+    <div class="lang-en">
+      <p>The legal basis is Directive (EU) 2024/1760, in force since 25 July 2024, revised by the Omnibus I package (deferral directive 2025/794; content directive 2026/470, in force 18 March 2026).</p>
+      <ul>
+        <li><b>Who is covered</b> — EU companies with more than 5,000 employees and worldwide net turnover above EUR 1.5bn; non-EU companies with EU net turnover above EUR 1.5bn.</li>
+        <li><b>Timetable</b> — Member States transpose by 26 July 2028; obligations apply from 26 July 2029; Art. 16 reporting starts with financial years beginning on or after 1 January 2030.</li>
+        <li><b>Scope shrank, pressure did not</b> — the covered population is about 70% smaller than the original proposal (1,000 employees / EUR 450m). EU-wide civil liability was removed; penalties are capped at 3% of worldwide net turnover.</li>
+        <li><b>Why suppliers still feel it</b> — information may be requested from suppliers below 5,000 employees only when it cannot be obtained another way. That standardises the format large buyers use, so the supplier holding a ready impact card and due-diligence pack is the one that gets chosen.</li>
+      </ul>
+    </div>
+    <div class="lang-ko">
+      <p>법적 근거는 2024년 7월 25일 발효한 지침 (EU) 2024/1760이며, Omnibus I 패키지(연기 지침 2025/794, 내용 지침 2026/470 — 2026년 3월 18일 발효)로 개정되었습니다.</p>
+      <ul>
+        <li><b>적용 대상</b> — 임직원 5,000명 초과·전 세계 순매출 15억 유로 초과 EU 기업, EU 내 순매출 15억 유로 초과 역외 기업.</li>
+        <li><b>일정</b> — 회원국 국내법 전환 2028년 7월 26일, 의무 적용 2029년 7월 26일, 제16조 보고는 2030년 1월 1일 이후 개시 회계연도부터.</li>
+        <li><b>범위는 줄었지만 압력은 그대로</b> — 원안(1,000명·4.5억 유로)보다 대상이 약 70% 줄었고 EU 전역 민사책임은 삭제, 제재 상한은 전 세계 순매출의 3%입니다.</li>
+        <li><b>그런데도 공급사가 느끼는 이유</b> — 5,000명 미만 공급사에는 다른 방법으로 확보할 수 없을 때만 정보를 요청할 수 있습니다. 대기업이 쓰는 정보 형식이 표준화되므로, 임팩트 카드와 실사 패키지를 미리 갖춘 공급사가 선택됩니다.</li>
+      </ul>
+      <div class="quote">'규제 대상이 아니다'는 '요구가 없다'는 뜻이 아닙니다. 대기업이 협력사에 요청하는 정보의 형식이 정형화되면서, 표준화된 임팩트 카드·실사 양식을 갖춘 공급사가 선택됩니다.</div>
+    </div>
+  </section>
+
+  <section class="blk">
+    <div class="num">02 · DATA MARKET</div>
+    <h2><span class="lang-en">Supplier due diligence is already an industry</span><span class="lang-ko">공급사 실사는 이미 하나의 산업입니다</span></h2>
+    <div class="lang-en">
+      <p>EcoVadis has rated 175,000 companies in 180+ countries and screens 3 million suppliers; 25,852 companies joined in 2025 alone. About 1,400 purchasing organisations use the rating as a selection criterion, covering USD 2.5tn of spend. 84% of rated companies have 25&ndash;999 employees — the SME segment is already institutionalised. In Korea, assessments grew 56% year on year in 2025 (860+ cases).</p>
+      <p><b>Implication</b> — align our impact card fields with the EcoVadis questionnaire (environment, labour, ethics, sustainable procurement) so a supplier answers once and owns a due-diligence record.</p>
+    </div>
+    <div class="lang-ko">
+      <p>EcoVadis는 180여 개국 17만 5천 개 기업을 평가하고 300만 개 공급사를 심사합니다. 2025년에만 2만 5,852개 사가 새로 합류했습니다. 약 1,400개 구매 조직이 이 등급을 선택 기준으로 쓰며, 그 구매 지출은 2.5조 달러 규모입니다. 평가 기업의 84%가 25~999명 규모로, 중소기업 영역은 이미 제도화되어 있습니다. 한국은 2025년 평가 건수가 전년 대비 56% 늘었습니다(860여 건).</p>
+      <p><b>시사점</b> — 임팩트 카드 항목을 EcoVadis 질문지(환경·노동·윤리·지속가능 구매)와 맞추면, 공급사는 한 번 작성해 모든 실사 요청에 대응할 수 있습니다.</p>
+    </div>
+  </section>
+
+  <section class="blk">
+    <div class="num">03 · SOCIAL PROCUREMENT</div>
+    <h2><span class="lang-en">Buy Social: proof that purchase budgets move</span><span class="lang-ko">Buy Social — 구매 예산이 실제로 움직인 증거</span></h2>
+    <div class="lang-en">
+      <p><b>Buy Social Corporate Challenge (UK, SEUK × government)</b> — 36 corporates, target of GBP 1bn to social enterprises. Cumulative spend 2016&ndash;2025: GBP 864.4m; GBP 209.3m in 2025 alone. 2,583 social enterprises have traded (1,349 in 2025, +19%). 20 suppliers hold contracts over GBP 1m a year; 21 trade with 10+ corporates. GBP 78m reinvested, 7,863 jobs created; 68% of participants report greater supply-chain diversity. Phase 2 begins in 2027.</p>
+      <p><b>Buy Social Canada</b> — certified Social Enterprise mark, directory and buyer network; certification fee, no transaction commission. 2024 survey: 182 certified enterprises, CAD 5.9bn revenue, 12,215 jobs (over half held by people facing barriers). 2026 survey: 347 organisations / 404 social enterprises. 19% of enterprises bid on tenders that award points for CSE certification.</p>
+    </div>
+    <div class="lang-ko">
+      <p><b>Buy Social Corporate Challenge (영국, SEUK × 정부)</b> — 36개 대기업이 사회적기업에 10억 파운드 지출을 목표로 참여했습니다. 2016~2025년 누적 8억 6,440만 파운드, 2025년 한 해 2억 930만 파운드. 2,583개 사회적기업이 거래했고(2025년 1,349개, +19%), 연 100만 파운드 이상 계약을 가진 공급사가 20곳, 10개 이상 대기업과 거래하는 곳이 21곳입니다. 7,800만 파운드 재투자, 7,863개 일자리 창출, 참여 기업 68%가 공급망 다양성이 높아졌다고 답했습니다. 2단계는 2027년 시작합니다.</p>
+      <p><b>Buy Social Canada</b> — 인증 사회적기업 마크, 디렉터리, 바이어 네트워크를 운영하며 인증 수수료를 받고 거래 수수료는 없습니다. 2024년 조사 182개 인증 기업, 매출 59억 캐나다달러, 12,215개 일자리(절반 이상이 취업 취약계층). 2026년 조사 347개 조직·404개 사회적기업. 19%가 인증 가점이 있는 입찰에 참여했습니다.</p>
+      <div class="quote">사회적 조달은 '착한 구매'가 아니라 구매 담당자의 KPI입니다. 인증 배지와 구매 리포트는 내부 결재를 통과시키는 도구로 작동합니다.</div>
+    </div>
+  </section>
+
+  <section class="blk">
+    <div class="num">04 · CERTIFICATION</div>
+    <h2><span class="lang-en">Fairtrade in numbers (2024)</span><span class="lang-ko">숫자로 보는 페어트레이드 (2024)</span></h2>
+    <div class="lang-en">
+      <p>1,824 certified producer organisations and 1,871,272 farmers and workers (90% farmers). Premiums paid to producers in 2024: EUR 201.6m (over EUR 1bn in five years). 1.5 million tonnes of certified volume sold; top premiums cocoa EUR 73.4m, coffee EUR 57.6m, banana EUR 36.4m. The number of certified organisations fell from 1,930 (2020) to 1,824 (2024) — the certification market is maturing and differentiation has moved to how the trade is done.</p>
+    </div>
+    <div class="lang-ko">
+      <p>인증 생산자 조직 1,824곳, 농민·노동자 187만 1,272명(90%가 농민). 2024년 생산자에게 지급된 프리미엄은 2억 160만 유로(5년 누적 10억 유로 이상). 인증 물량 150만 톤 판매, 프리미엄 상위는 코코아 7,340만 유로·커피 5,760만 유로·바나나 3,640만 유로입니다. 인증 조직 수는 2020년 1,930곳에서 2024년 1,824곳으로 줄었습니다 — 인증 시장이 성숙해 차별점이 '거래를 어떻게 하는가'로 옮겨간 것입니다.</p>
+      <div class="quote">인증 보유만으로는 부족합니다. 인증을 '거래 가능한 스펙'으로 번역하는 레이어가 가치를 만듭니다.</div>
+    </div>
+  </section>
+
+  <section class="blk">
+    <div class="num">05 · KOREA POLICY</div>
+    <h2><span class="lang-en">Domestic policy is pushing in the same direction</span><span class="lang-ko">국내 정책도 같은 방향으로 밀고 있습니다</span></h2>
+    <div class="lang-en">
+      <p><b>Social Economy Development Plan (30 June 2026, 20 ministries)</b> — 3 strategies, 15 tasks. Target: social economy from 0.8% to 10% of GDP by 2035 (employment 1.8% → 10%); leading companies from ~250 (2024) to 1,000 by 2030 and 2,000 by 2035. Average social-economy organisation today: KRW 588m revenue, 10.2 staff.</p>
+      <p><b>Certified social enterprises (Dec 2025)</b> — 3,766 enterprises, 71,950 jobs (46,385 held by vulnerable groups), KRW 7.285tn revenue; 33.9% rated &lsquo;excellent/outstanding&rsquo; on the Social Value Index; KRW 283.9bn reinvested.</p>
+      <p><b>Export vouchers 2026 (MSS/KOSME)</b> — budget KRW 150.2bn (+KRW 22.6bn). Limits KRW 30m (domestic/beginner) to KRW 100m (small champion); government funding 50&ndash;70%; up to KRW 150m with the tariff-response package; international transport up to KRW 60m.</p>
+      <p><b>Other channels</b> — KOTRA Social Economy Global Leap (new 2026: export marketing, investment, ESG, talent; free), Social Enterprise Promotion Agency growth support (up to KRW 40m per company), digital export brand marketing, Gyeongbuk global market programme, e-store 36.5 / Value Marketplace (0% commission), buyKOREA social-enterprise pavilion. Most programmes fund activities and consultations; none provides a standing desk that quotes, samples, inspects, ships and settles after the contract.</p>
+    </div>
+    <div class="lang-ko">
+      <p><b>사회연대경제 발전 종합계획 (2026.6.30, 20개 부처)</b> — 3대 전략·15개 과제. 2035년까지 사회연대경제 비중을 GDP 0.8%→10%(고용 1.8%→10%), 대표기업을 2024년 약 250개에서 2030년 1,000개·2035년 2,000개로 늘리는 목표입니다. 현재 사회연대경제 조직 평균은 매출 5억 8,800만 원, 인력 10.2명입니다.</p>
+      <p><b>인증 사회적기업 (2025.12)</b> — 3,766개소, 고용 7만 1,950명(취약계층 4만 6,385명), 매출 7조 2,850억 원. 사회적 가치지표 '우수·탁월' 33.9%, 재투자 2,839억 원.</p>
+      <p><b>2026년 수출바우처 (중기부·중소벤처기업진흥공단)</b> — 예산 1,502억 원(+226억 원). 한도 내수·초보 3,000만 원~소규모 챔피언 1억 원, 정부 지원 50~70%, 관세대응 패키지 포함 최대 1억 5,000만 원, 국제운송 최대 6,000만 원.</p>
+      <p><b>그 밖의 채널</b> — KOTRA 사회연대경제 글로벌 도약(2026년 신설, 수출마케팅·투자·ESG·인재, 무료), 한국사회적기업진흥원 성장지원(기업당 최대 4,000만 원), 디지털 수출브랜드 마케팅, 경북 글로벌 시장개척, e-store 36.5·가치마켓(수수료 0%), buyKOREA 사회적기업관. 대부분은 '활동비와 상담'을 지원하며, 계약 이후의 견적·샘플·검품·선적·정산을 상시 대행하는 창구는 비어 있습니다.</p>
+      <div class="quote">지원사업은 활동비와 상담을 지원합니다. 계약 이후의 견적·샘플·검품·선적·정산을 상시 대행하는 창구가 비어 있는 지점이 우리의 자리입니다.</div>
+    </div>
+  </section>
+
+  <section class="blk">
+    <div class="num">06 · BENCHMARKS</div>
+    <h2><span class="lang-en">Eight models that already work</span><span class="lang-ko">이미 작동하는 8개 모델</span></h2>
+    <div class="scrollx"><table class="bm">
+      <thead><tr><th>Model</th><th>Structure</th><th>Scale</th><th>Fee / terms</th><th>What we take</th></tr></thead>
+      <tbody>
+        <tr><td><b>Buy Social Corporate Challenge</b><br><span style="color:#76887F">UK, SEUK</span></td><td>Campaign converting corporate purchase budgets to social enterprises</td><td>36 corporates · GBP 864.4m · 2,583 suppliers</td><td>No platform fee</td><td>Sell to the organisation, not the individual: buyer-side report templates</td></tr>
+        <tr><td><b>Buy Social Canada</b><br><span style="color:#76887F">Canada, non-profit</span></td><td>CSE certification + directory + buyer network</td><td>404 social enterprises (2026 survey)</td><td>Certification fee, no commission</td><td>Certification as a badge that passes internal approval</td></tr>
+        <tr><td><b>WFTO</b><br><span style="color:#76887F">84 countries</span></td><td>Member network; directory-level matching</td><td>1m+ livelihoods</td><td>Membership fees</td><td>Certify the enterprise, spec the product — a two-layer trust model</td></tr>
+        <tr><td><b>GoCoop / GoSwadeshi</b><br><span style="color:#76887F">India</span></td><td>Marketplace operating catalogue, inspection, logistics, escrow itself</td><td>350+ cooperatives · 120,000 products · 180,000 buyers</td><td>5&ndash;15% on completed sales</td><td>Small suppliers survive on &lsquo;one bundle of everything&rsquo; — never split the service</td></tr>
+        <tr><td><b>Faire</b><br><span style="color:#76887F">US/EU</span></td><td>Wholesale marketplace, no inventory</td><td>100,000+ brands · 700,000+ retailers</td><td>15% + USD 10 on new-customer orders; payment 1.9&ndash;3.5%</td><td>Buyer pays nothing, supplier carries cost — design fees the same way</td></tr>
+        <tr><td><b>Ankorstore</b><br><span style="color:#76887F">EU</span></td><td>Wholesale marketplace; model switch 2025-12-10</td><td>European brands and retailers</td><td>0% brand commission + 3% payment; EUR 49 one-off introduction</td><td>When commission goes to zero, only service and data remain as revenue</td></tr>
+        <tr><td><b>NOVICA</b><br><span style="color:#76887F">US</span></td><td>Artisan-set prices; platform handles shipping and customs</td><td>21,000+ artisans · 25 countries</td><td>Free to join</td><td>Story as evidence on the product page, not as marketing copy</td></tr>
+        <tr><td><b>Made Trade</b><br><span style="color:#76887F">US</span></td><td>Curation: brands must meet 2 of 8 values</td><td>135&ndash;200+ brands</td><td>Curation model</td><td>Publish the admission criteria — trust becomes the product</td></tr>
+      </tbody></table></div>
+    <div class="quote lang-ko">공통 구조는 '바이어는 무료, 공급사가 비용을 진다'입니다. 수수료를 0에 가깝게 낮춘 곳은 서비스와 데이터로 수익을 만듭니다.</div>
+  </section>
+
+  <section class="blk">
+    <div class="num">07 · KOREAN CASES</div>
+    <h2><span class="lang-en">Five exports, and what actually blocked them</span><span class="lang-ko">국내 수출 사례 5건 — 무엇이 막았는가</span></h2>
+    <div class="lang-en" style="margin-top:10px">
+      <div class="case"><h3>Donggubat 동구밭 — employment story turned into an export spec</h3>
+        <div class="fig">USD 140,000 to US · JP · CN · IN (2018) · KRW 12bn revenue (2021) · 90 staff, half with developmental disabilities</div>
+        <p>Eco-friendly soap made by people with developmental disabilities. Buyers included Amorepacific, LG H&amp;H and CJ Olive Young; listed at E-mart. The purchase reason abroad was the product plus the employment story — but the channel depended on fairs, consultants and corporate partnerships.</p>
+        <div class="lesson">Lesson — a social story opens the conversation; the product and volume have to stand on their own.</div></div>
+      <div class="case"><h3>119REO 119레오 — specifications opened a B2B component market</h3>
+        <div class="fig">KRW 715m revenue (2025) · ~KRW 200m donated cumulatively</div>
+        <p>Upcycled fire-suits into bags and wallets, 50% of operating profit donated to firefighters. KOTRA&rsquo;s consumer-goods export fair in 2019 produced the first Japanese order. Later, recycled aramid fibre became a lithium-battery fire-containment bag supplied to 9 Korean airlines.</p>
+        <div class="lesson">Lesson — &lsquo;eco&rsquo; is the entry ticket; the standard is the contract. Certification and specs move a craft brand into safety-critical B2B.</div></div>
+      <div class="case"><h3>KOIRO × 5 social enterprises — joint booth, joint export</h3>
+        <div class="fig">EUR 4,400 exported · stock sold out · Milan, ARTIGIANO IN FIERA 2025</div>
+        <p>Five social enterprises shared one booth and one export agent. Individually, booth cost, interpretation and logistics would have sunk each of them.</p>
+        <div class="lesson">Lesson — the first export happens when someone carries the shared cost. The size stays small without a repeat mechanism.</div></div>
+      <div class="case"><h3>Gyeongbuk buyer meeting — 74 consultations, 46 MOUs, USD 15,000 signed</h3>
+        <div class="fig">2026-10 · 25 local companies · 15 overseas buyers · consultations worth USD 81,740</div>
+        <p>The gap between consultation value and signed contracts is the whole problem. MOUs are abundant; after-signature execution is not.</p>
+        <div class="lesson">Lesson — the bottleneck is quotation, sampling, documents and logistics. This is exactly the platform&rsquo;s first product.</div></div>
+      <div class="case"><h3>Marco Roho 마르코로호 — demand for export support is real</h3>
+        <div class="fig">8 years without an overseas channel (2023 interview) · 60%+ of revenue from a single leaf ring</div>
+        <p>A social venture in Sangju making accessories with elderly knot artisans, donating 20% of the sale price. Good product and story, no route abroad.</p>
+        <div class="lesson">Lesson — the barrier is procedure, not will. A guided first order beats another brochure.</div></div>
+    </div>
+    <div class="lang-ko" style="margin-top:10px">
+      <div class="case"><h3>동구밭 — 고용 이야기를 수출 스펙으로 바꾼 사례</h3>
+        <div class="fig">2018년 미·일·중·인 수출 14만 달러 · 2021년 매출 120억 원 · 직원 90명(절반이 발달장애인)</div>
+        <p>발달장애인이 만드는 친환경 비누로, 아모레퍼시픽·LG생활건강·CJ올리브영 납품과 이마트 입점까지 갔습니다. 해외 구매 이유는 '제품+고용 이야기'였지만, 판로는 박람회·컨설턴트·기업 협업에 의존했습니다.</p>
+        <div class="lesson">교훈 — 사회적 스토리는 대화를 열지만, 제품과 물량이 스스로 서야 합니다.</div></div>
+      <div class="case"><h3>119레오 — 스펙이 B2B 부품 시장을 열었습니다</h3>
+        <div class="fig">2025년 매출 7억 1,500만 원 · 누적 기부 약 2억 원</div>
+        <p>폐소방복을 가방·지갑으로 업사이클하고 영업이익 50%를 소방관에게 기부합니다. 2019년 KOTRA 소비재 수출상담회에서 첫 일본 주문이 나왔고, 이후 재생 아라미드 섬유가 리튬배터리 화재 방지백이 되어 국내 항공사 9곳에 납품됐습니다.</p>
+        <div class="lesson">교훈 — '친환경'은 입장권이고 계약서는 규격입니다. 인증과 스펙이 공예 브랜드를 안전이 중요한 B2B로 옮깁니다.</div></div>
+      <div class="case"><h3>KOIRO × 사회적기업 5곳 — 공동 부스, 공동 수출</h3>
+        <div class="fig">수출 4,400유로 · 재고 완판 · 2025 밀라노 ARTIGIANO IN FIERA</div>
+        <p>사회적기업 5곳이 부스 하나와 수출 대행 하나를 함께 썼습니다. 각자 했다면 부스비·통역·물류비로 모두 손해였을 구조입니다.</p>
+        <div class="lesson">교훈 — 첫 수출은 누군가 공통 비용을 대신 짊어질 때 일어납니다. 반복 구조가 없으면 규모는 작게 머뭅니다.</div></div>
+      <div class="case"><h3>경북 바이어 상담회 — 상담 74건, MOU 46건, 계약 1만 5,000달러</h3>
+        <div class="fig">2026년 10월 · 국내 25개사 · 해외 바이어 15곳 · 상담 환산액 8만 1,740달러</div>
+        <p>상담 금액과 실제 계약의 간격이 문제의 전부입니다. MOU는 넘치지만 서명 이후의 실행이 없습니다.</p>
+        <div class="lesson">교훈 — 병목은 견적·샘플·서류·물류입니다. 이것이 우리 플랫폼의 첫 상품입니다.</div></div>
+      <div class="case"><h3>마르코로호 — 수출 지원 수요는 실재합니다</h3>
+        <div class="fig">8년간 해외 판로 없음(2023 인터뷰) · 매출 60% 이상이 잎사귀 반지 한 품목</div>
+        <p>상주에서 어르신 매듭 장인과 함께 액세서리를 만들고 판매가의 20%를 기부하는 사회적기업입니다. 제품과 이야기는 좋지만 해외로 나갈 길이 없었습니다.</p>
+        <div class="lesson">교훈 — 장벽은 의지가 아니라 절차입니다. 안내된 첫 주문 한 건이 브로슈어 열 장보다 낫습니다.</div></div>
+    </div>
+  </section>
+
+  <section class="blk">
+    <div class="num">08 · WHAT IT MEANS FOR US</div>
+    <h2><span class="lang-en">Ten design decisions this research settled</span><span class="lang-ko">이 조사로 확정한 10가지 설계 결정</span></h2>
+    <div class="lang-en"><ul>
+      <li>Buyers free, suppliers carry cost — the common structure of Faire, Ankorstore and GoCoop.</li>
+      <li>Commission at 5&ndash;10% (Track A): below Faire&rsquo;s 15% and GoCoop&rsquo;s 5&ndash;15%; against Ankorstore&rsquo;s 0% we compete on service value.</li>
+      <li>Consolidated export as its own track (Track B): solves low-volume, many-SKU demand and protects margin.</li>
+      <li>Published admission criteria (Made Trade, WFTO): enterprise-level certification, product-level spec.</li>
+      <li>Impact card aligned to EcoVadis fields so one input serves every due-diligence request.</li>
+      <li>One standard spec set — MOQ, FOB, lead time, Incoterms, HS code — in the same order on every screen.</li>
+      <li>RFQ answered within 18 hours: the execution bottleneck turned into a service level.</li>
+      <li>Escrow settlement and pre-shipment inspection as the trust layer for Track A.</li>
+      <li>Public channels bring leads; the platform converts them — not a replacement for support programmes.</li>
+      <li>Category sequence: crafts, living, fabric, upcycled goods first; food and cosmetics after licensing and logistics are stable.</li>
+    </ul></div>
+    <div class="lang-ko"><ul>
+      <li>바이어는 무료, 비용은 공급사가 부담 — Faire·Ankorstore·GoCoop의 공통 구조.</li>
+      <li>수수료 5~10%(Track A): Faire 15%·GoCoop 5~15%보다 낮게, Ankorstore 0%에는 서비스 가치로 대응.</li>
+      <li>합적 수출을 별도 트랙(Track B)으로: 소량 다품종 수요를 풀고 마진을 지킨다.</li>
+      <li>입점 기준 공개(Made Trade·WFTO): 기업 단위 인증 + 상품 단위 스펙.</li>
+      <li>임팩트 카드를 EcoVadis 항목에 맞춤 — 한 번 입력으로 모든 실사 요청 대응.</li>
+      <li>MOQ·FOB·리드타임·인코텀즈·HS코드를 모든 화면에서 같은 순서로.</li>
+      <li>RFQ 18시간 내 회신 — 실행 병목을 서비스 수준으로 전환.</li>
+      <li>에스크로 정산과 선적 전 검품을 Track A의 신뢰층으로.</li>
+      <li>공공 채널은 리드를 만들고, 플랫폼은 그것을 거래로 바꾼다 — 지원사업의 대체가 아니다.</li>
+      <li>카테고리 순서: 공예·리빙·패브릭·업사이클 먼저, 식품·화장품은 인허가·물류가 안정된 뒤.</li>
+    </ul></div>
+  </section>
+
+  <p class="note"><span class="lang-en">Data note. Figures are measured values from public sources checked in November 2026 (European Commission; KPMG and Clifford Chance analyses of Omnibus I; EcoVadis Purpose Report 2025; SEUK Year 10 Report 2026; Buy Social Canada 2025; WFTO; GoCoop; Faire; Ankorstore; NOVICA; Made Trade; Korean Ministry of the Interior and Safety plan of 30 June 2026; MSS 2026 export support notice; KOTRA; Social Enterprise Promotion Agency; KITA). Fee rates, conversion and margin figures for our own model are planning assumptions, marked as such on the Trading House page.</span>
+  <span class="lang-ko">출처: 유럽연합 지침 2024/1760 및 Omnibus I(2025/794·2026/470), EcoVadis Purpose Report 2025, Social Enterprise UK Year 10 Report(2026), Buy Social Canada(2025), WFTO, GoCoop, Faire, Ankorstore(2025.12 모델 전환), NOVICA, Made Trade, 행정안전부 「사회연대경제 발전 종합계획」(2026.6.30), 중소벤처기업부 2026년 수출지원사업 공고, KOTRA, 한국사회적기업진흥원, 한국무역협회. 경북일보(2026.10.18)·한국경제(2025.12.23)·헤럴드경제(2026.4.30)·시사저널e(2022.4.20)·중앙일보 비크닉(2023.3.1) 사례 보도. 수치는 2026년 11월 확인 기준이며, 자체 모델의 수수료·마진은 트레이딩 하우스 페이지에 계획 가정으로 표시했습니다.</span></p>
+
+  <div class="foot">
+    <a class="btn sm" href="https://sites.google.com/view/k-socialbridge/global-buyers">Global Buyers</a>
+    <a class="btn sm sec" href="https://sites.google.com/view/k-socialbridge/buyer-rfq-contact">RFQ · 상담</a>
+    <a class="btn sm ghost" href="https://sites.google.com/view/k-socialbridge/trading-house">Trading House</a>
+  </div>
+</div>
+<div class="panel" id="panel"><div class="sheet"><button class="x" id="pClose">×</button><h3 id="pTitle"></h3><p class="sub" id="pSub"></p><div id="pBody"></div></div></div>
+<style>
+.lang{display:flex;gap:4px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:3px;width:max-content;margin-left:auto}
+.lang button{border:0;background:transparent;font-size:11.5px;font-weight:800;color:var(--muted);padding:5px 11px;border-radius:16px;cursor:pointer}
+.lang button.on{background:var(--acc);color:#fff}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:14px}
+.kbox{background:#fff;border:1px solid var(--line);border-radius:13px;padding:12px 13px}
+.kbox b{display:block;font-size:19px;color:var(--acc);font-weight:800;letter-spacing:-.01em}
+.kbox span{font-size:11.5px;color:var(--muted);display:block;margin-top:2px}
+section.blk{background:#fff;border:1px solid var(--line);border-radius:15px;padding:17px 18px;margin-top:12px}
+section.blk h2{margin:0 0 3px;font-size:16px;letter-spacing:-.01em;font-weight:800}
+section.blk .num{font-size:10.5px;font-weight:800;letter-spacing:.1em;color:var(--acc);text-transform:uppercase}
+section.blk p{font-size:13px;color:var(--body);margin:8px 0 0;line-height:1.68}
+section.blk ul{margin:8px 0 0;padding-left:17px;font-size:12.5px;color:var(--body)}
+section.blk li{margin:3px 0}
+.quote{border-left:3px solid var(--acc-line);background:var(--bg-soft);padding:8px 11px;border-radius:0 8px 8px 0;font-size:12px;color:#40564F;margin-top:10px}
+table.bm{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
+table.bm th{background:#0E3B36;color:#D3E7DE;text-align:left;padding:8px 9px;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+table.bm td{padding:8px 9px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--body)}
+table.bm tr:nth-child(even) td{background:#FAFCFA}
+.case{border:1px solid var(--line);border-radius:12px;padding:12px 13px;background:#fff;margin-top:9px}
+.case h3{margin:0;font-size:13.5px;font-weight:800;color:var(--ink)}
+.case .fig{font-size:11.5px;color:var(--acc);font-weight:700;margin-top:2px}
+.case p{margin:6px 0 0;font-size:12.5px;color:var(--body)}
+.lesson{margin-top:7px;font-size:12px;color:#0E4E42;background:var(--acc-soft);border-radius:8px;padding:7px 9px}
+.lang-ko,[data-l="ko"] .lang-en{display:none}
+[data-l="ko"] .lang-ko{display:block}
+[data-l="ko"] span.lang-ko,[data-l="ko"] b.lang-ko{display:inline}
+span.lang-ko.inline{display:none}
+[data-l="ko"] span.lang-ko.inline{display:inline}
+[data-l="en"] .lang-ko{display:none}
+</style>
+<script>
+(function(){
+  var root=document.getElementById('root');
+  document.querySelectorAll('.lang button').forEach(function(b){
+    b.addEventListener('click', function(){
+      root.setAttribute('data-l', b.dataset.l);
+      document.documentElement.lang = b.dataset.l;
+      document.querySelectorAll('.lang button').forEach(function(x){ x.classList.toggle('on', x===b); });
+    });
+  });
+})();
+</script>
+
+<script>window.__CFG__ = {};window.__DATA__ = [];</script>
+<script>
+(function(){
+  var CFG = window.__CFG__, DATA = window.__DATA__;
+  var LS = CFG.ls || 'sbx';
+  function load(k, d){ try{ var v=JSON.parse(localStorage.getItem(LS+':'+k)); return v||d; }catch(e){ return d; } }
+  function save(k, v){ try{ localStorage.setItem(LS+':'+k, JSON.stringify(v)); }catch(e){} }
+  var saved = load('saved', []), cmp = load('cmp', []);
+  var st = {q:'', sort: CFG.defaultSort || 'new'};
+  (CFG.filters||[]).forEach(function(f){ st[f.key]=[]; });
+  var byId = {}; DATA.forEach(function(d){ byId[d.id]=d; });
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
+  function el(id){ return document.getElementById(id); }
+  function chipsHtml(f){
+    var counts = {};
+    DATA.forEach(function(d){ var v = d[f.key]; if(!v) return; (Array.isArray(v)?v:[v]).forEach(function(x){ counts[x]=(counts[x]||0)+1; }); });
+    var vals = f.values || Object.keys(counts).sort(function(a,b){ return counts[b]-counts[a]; });
+    if(f.limit) vals = vals.slice(0, f.limit);
+    return vals.map(function(v){
+      return '<button class="chip" data-k="'+f.key+'" data-v="'+esc(v)+'">'+esc(f.labelOf?f.labelOf(v):v)+'<em>'+(counts[v]||0)+'</em></button>';
+    }).join('');
+  }
+  function renderFilters(){
+    var host = el('filters'); if(!host) return;
+    host.innerHTML = (CFG.filters||[]).map(function(f){
+      return '<div class="fgroup"><span class="flab">'+esc(f.label)+'</span>'+chipsHtml(f)+'</div>';
+    }).join('');
+    host.querySelectorAll('.chip').forEach(function(b){
+      b.addEventListener('click', function(){
+        var k=b.dataset.k, v=b.dataset.v, arr=st[k];
+        var i=arr.indexOf(v); if(i<0) arr.push(v); else arr.splice(i,1);
+        b.classList.toggle('on', arr.indexOf(v)>=0);
+        apply(); updateChips();
+      });
+    });
+  }
+  function updateChips(){
+    document.querySelectorAll('#filters .chip').forEach(function(b){
+      b.classList.toggle('on', (st[b.dataset.k]||[]).indexOf(b.dataset.v)>=0);
+    });
+  }
+  function matches(d){
+    for(var k in st){
+      if(k==='q'||k==='sort') continue;
+      var want=st[k]; if(!want || !want.length) continue;
+      var have = Array.isArray(d[k])?d[k]:[d[k]];
+      if(!want.some(function(w){ return have.indexOf(w)>=0; })) return false;
+    }
+    if(st.q){
+      var hay=(d.search||[d.title,d.sub,d.desc,d.region,d.tag,d.extra].join(' ')).toLowerCase();
+      if(hay.indexOf(st.q)<0) return false;
+    }
+    return true;
+  }
+  function card(d){
+    var tags='';
+    if(d.corner) tags += '<span class="tag acc">'+esc(d.corner)+'</span>';
+    if(d.region) tags += '<span class="tag">'+esc(d.region)+'</span>';
+    if(d.tag) tags += '<span class="tag">'+esc(d.tag)+'</span>';
+    if(d.badge) tags += '<span class="tag">'+esc(d.badge)+'</span>';
+    var title = d.url ? '<a href="'+esc(d.url)+'" target="_blank" rel="noopener">'+esc(d.title)+'</a>' : esc(d.title);
+    var meta = [];
+    if(d.sub) meta.push('<span>'+esc(d.sub)+'</span>');
+    if(d.meta) meta.push('<span>'+esc(d.meta)+'</span>');
+    if(d.date) meta.push('<span>'+esc(d.date)+'</span>');
+    var onS = saved.indexOf(d.id)>=0, onC = cmp.indexOf(d.id)>=0;
+    var acts = '<div class="cardacts"><button class="mini'+(onS?' on':'')+'" data-act="save" data-id="'+esc(d.id)+'">'+(onS?'★ 저장됨':'☆ 저장')+'</button>';
+    if(CFG.compare && d.cmp) acts += '<button class="mini'+(onC?' on':'')+'" data-act="cmp" data-id="'+esc(d.id)+'">'+(onC?'✓ 비교 담김':'＋ 비교')+'</button>';
+    if(d.url) acts += '<a class="mini ghost" href="'+esc(d.url)+'" target="_blank" rel="noopener">원문 ↗</a>';
+    if(d.link) acts += '<a class="mini ghost" href="'+esc(d.link.href)+'" target="'+esc(d.link.target||'_self')+'">'+esc(d.link.label)+'</a>';
+    acts += '</div>';
+    return '<article class="card"><div class="tags">'+tags+'</div><h3>'+title+'</h3>'+
+      (d.desc?'<p class="clamp">'+esc(d.desc)+'</p>':'')+
+      '<div class="meta">'+meta.join('<span class="dot">·</span>')+'</div>'+acts+'</article>';
+  }
+  function apply(){
+    var rows = DATA.filter(matches);
+    var s = st.sort;
+    rows.sort(function(a,b){
+      if(s==='new') return String(b.date||'').localeCompare(String(a.date||''));
+      if(s==='old') return String(a.date||'').localeCompare(String(b.date||''));
+      if(s==='title') return String(a.title||'').localeCompare(String(b.title||''),'ko');
+      return 0;
+    });
+    var host=el('list');
+    if(!host) return;
+    host.innerHTML = rows.map(card).join('');
+    if(el('count')) el('count').innerHTML = '전체 <b>'+DATA.length+'</b>건 중 <b>'+rows.length+'</b>건';
+    if(el('empty')) el('empty').style.display = rows.length? 'none':'block';
+    bindActs();
+    updateTray();
+  }
+  function bindActs(){
+    document.querySelectorAll('#list [data-act]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var id=b.dataset.id;
+        if(b.dataset.act==='save'){
+          var i=saved.indexOf(id); if(i<0) saved.push(id); else saved.splice(i,1);
+          save('saved', saved);
+        } else {
+          var j=cmp.indexOf(id); if(j<0){ if(cmp.length>=3){ flash('비교는 최대 3개까지 담을 수 있습니다.'); return; } cmp.push(id); } else cmp.splice(j,1);
+          save('cmp', cmp);
+        }
+        apply();
+      });
+    });
+  }
+  var flashT;
+  function flash(msg){
+    var f=el('flash'); if(!f) return;
+    f.textContent=msg; f.style.opacity='1'; clearTimeout(flashT);
+    flashT=setTimeout(function(){ f.style.opacity='0'; }, 2400);
+  }
+  function updateTray(){
+    if(!el('tray')) return;
+    if(el('nSaved')) el('nSaved').textContent = saved.length;
+    if(el('nCmp')) el('nCmp').textContent = cmp.length;
+    if(el('cmpBtn')) el('cmpBtn').style.display = CFG.compare? 'inline-flex':'none';
+  }
+  function openSaved(){
+    var rows = saved.map(function(id){ return byId[id]; }).filter(Boolean);
+    var body = rows.length ? '<table class="cmp"><tr><td>항목</td><td>내용</td><td></td></tr>'+rows.map(function(d){
+      return '<tr><td>'+esc(d.corner||d.region||'')+'</td><td><b>'+esc(d.title)+'</b><div style="color:#7a8580;font-size:11.5px">'+esc(d.meta||d.sub||'')+'</div></td>'+
+        '<td><button class="mini" data-rm="'+esc(d.id)+'">빼기</button></td></tr>';
+    }).join('')+'</table>' : '<p class="lead">저장한 항목이 없습니다. 카드의 ☆ 저장을 눌러 모아두세요.</p>';
+    showPanel('저장함 · '+rows.length+'건','브라우저(localStorage)에 저장됩니다. 같은 사이트의 다른 페이지에서도 유지됩니다.', body);
+    document.querySelectorAll('[data-rm]').forEach(function(b){
+      b.addEventListener('click', function(){ var i=saved.indexOf(b.dataset.rm); if(i>=0) saved.splice(i,1); save('saved',saved); openSaved(); apply(); });
+    });
+  }
+  function openCmp(){
+    var rows = cmp.map(function(id){ return byId[id]; }).filter(Boolean).filter(function(d){ return d.cmp; });
+    if(rows.length<2){ flash('비교할 항목을 2개 이상 담아주세요.'); return; }
+    var fields = CFG.compare;
+    var head = '<tr><th>항목</th>'+rows.map(function(d){ return '<th>'+esc(d.title)+'</th>'; }).join('')+'</tr>';
+    var body = fields.map(function(f){
+      return '<tr><th>'+esc(f.label)+'</th>'+rows.map(function(d){
+        var v = d.cmp[f.key]; return '<td>'+(v==null||v===''?'—':esc(v))+'</td>';
+      }).join('')+'</tr>';
+    }).join('');
+    var links = '<tr><th>링크</th>'+rows.map(function(d){
+      return '<td>'+(d.url?'<a href="'+esc(d.url)+'" target="_blank" rel="noopener">원문/홈페이지 ↗</a>':'—')+(d.link?'<br><a href="'+esc(d.link.href)+'" target="'+esc(d.link.target||'_self')+'">'+esc(d.link.label)+'</a>':'')+'</td>';
+    }).join('')+'</tr>';
+    showPanel('비교 · '+rows.length+'개','', '<div class="scrollx"><table class="cmp">'+head+body+links+'</table></div>');
+  }
+  function showPanel(title, sub, body){
+    el('pTitle').textContent = title; el('pSub').textContent = sub||'';
+    el('pBody').innerHTML = body; el('panel').classList.add('open');
+  }
+  function init(){
+    renderFilters();
+    var q=el('q'); if(q){ q.addEventListener('input', function(){ st.q=q.value.trim().toLowerCase(); apply(); }); }
+    var so=el('sort'); if(so){ so.addEventListener('change', function(){ st.sort=so.value; apply(); }); }
+    var r=el('reset'); if(r){ r.addEventListener('click', function(){
+      st.q=''; if(q) q.value=''; (CFG.filters||[]).forEach(function(f){ st[f.key]=[]; }); st.sort=CFG.defaultSort||'new'; if(so) so.value=st.sort;
+      updateChips(); apply(); }); }
+    var sb=el('savedBtn'); if(sb) sb.addEventListener('click', openSaved);
+    var cb=el('cmpBtn'); if(cb) cb.addEventListener('click', openCmp);
+    var px=el('pClose'); if(px) px.addEventListener('click', function(){ el('panel').classList.remove('open'); });
+    var pn=el('panel'); if(pn) pn.addEventListener('click', function(e){ if(e.target===pn) pn.classList.remove('open'); });
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ el('panel').classList.remove('open'); } });
+    apply();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+
+</body></html>
