@@ -122,7 +122,7 @@ scripts/build_static_seo.py | build_feeds.py | check_repo_budget.py | measure_tr
   로그인 세션이 이미 있거나 로그인·OAuth 복귀일 때만 supabase-js 를 바로 받습니다.
 - 폰트 — 구글 폰트 링크를 빼고 나눔고딕 woff2 서브셋(62KB)을 self-host, `font-display:swap`
 - 이미지 — `loading="lazy"`·`decoding="async"`, 히어로 WebP 1600/900 2종(재압축 47KB·23KB)
-- **첫 화면 전송량 247KB (gzip)** — v5.1 360KB 대비 −31%, 예산 300KB의 82.6%. 실측은 `scripts/measure_traffic.py`
+- **첫 화면 전송량 248KB (gzip)** — v5.1 360KB 대비 −31.2%, 예산 300KB의 82.7%. 실측은 `scripts/measure_traffic.py`
 - `/admin` 대시보드 ‘첫 화면 전송량 · 월 트래픽’ 카드 — 첫 화면 KB·예산 대비 %·before/after·월 3만 PV 기준 GB·100GB 대비 %·브라우저 실측
 
 ## v5.1 기능 (드래그 블록 빌더 · 테마 토큰 · 플러그인 manifest)
