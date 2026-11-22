@@ -1,6 +1,6 @@
 {
   "version": "6.0",
-  "generatedAt": "2026-11-23T07:37:54+09:00",
+  "generatedAt": "2026-11-23T07:40:42+09:00",
   "limits": {
     "budgetBytes": 307200,
     "budgetLabel": "300 KB",
@@ -10,7 +10,7 @@
   },
   "after": {
     "index": "index.html",
-    "totalBytes": 254055,
+    "totalBytes": 254150,
     "resources": [
       {
         "kind": "html",
@@ -22,8 +22,8 @@
       {
         "kind": "css",
         "path": "assets/styles.css",
-        "rawBytes": 139565,
-        "bytes": 28442,
+        "rawBytes": 139686,
+        "bytes": 28537,
         "counted": true
       },
       {
@@ -344,9 +344,9 @@
     "assumedFirstLoads": 1.0,
     "extraPageViews": 2.5,
     "extraPageBytes": 30720,
-    "bytesPerMonth": 9925650000.0,
-    "gbPerMonth": 9.24,
-    "percentOfCap": 9.24,
+    "bytesPerMonth": 9928500000.0,
+    "gbPerMonth": 9.25,
+    "percentOfCap": 9.25,
     "roomGbPerMonth": 100.0
   },
   "gate": {
@@ -356,7 +356,7 @@
   },
   "note": "텍스트는 gzip -9(= GitHub Pages 전송량), 이미지·폰트는 원본 크기. 첫 방문 1회 기준.",
   "live": {
-    "totalBytes": 251815,
+    "totalBytes": 251910,
     "resources": [
       {
         "name": "http://127.0.0.1:8788/assets/hero-1600.webp",
@@ -364,7 +364,7 @@
         "bytes": 47646,
         "encoded": 47346,
         "decoded": 47346,
-        "start": 26
+        "start": 23
       },
       {
         "name": "http://127.0.0.1:8788/assets/fonts/nanum-gothic-400.woff2",
@@ -372,15 +372,15 @@
         "bytes": 61904,
         "encoded": 61604,
         "decoded": 61604,
-        "start": 27
+        "start": 24
       },
       {
         "name": "http://127.0.0.1:8788/assets/styles.css",
         "type": "link",
-        "bytes": 28742,
-        "encoded": 28442,
-        "decoded": 139565,
-        "start": 28
+        "bytes": 28837,
+        "encoded": 28537,
+        "decoded": 139686,
+        "start": 25
       },
       {
         "name": "http://127.0.0.1:8788/assets/icon-192.png",
@@ -388,7 +388,7 @@
         "bytes": 2924,
         "encoded": 2624,
         "decoded": 2624,
-        "start": 31
+        "start": 30
       },
       {
         "name": "http://127.0.0.1:8788/assets/config.js",
@@ -396,15 +396,15 @@
         "bytes": 3892,
         "encoded": 3592,
         "decoded": 9593,
-        "start": 31
+        "start": 30
       },
       {
-        "name": "http://127.0.0.1:8788/sbpress.config.json?_=1795387075242",
+        "name": "http://127.0.0.1:8788/sbpress.config.json?_=1795387244175",
         "type": "xmlhttprequest",
         "bytes": 1449,
         "encoded": 1149,
         "decoded": 2354,
-        "start": 58
+        "start": 59
       },
       {
         "name": "http://127.0.0.1:8788/assets/auth-config.js",
@@ -412,7 +412,7 @@
         "bytes": 945,
         "encoded": 645,
         "decoded": 1025,
-        "start": 63
+        "start": 103
       },
       {
         "name": "http://127.0.0.1:8788/assets/i18n.js",
@@ -420,7 +420,7 @@
         "bytes": 15204,
         "encoded": 14904,
         "decoded": 54769,
-        "start": 103
+        "start": 109
       },
       {
         "name": "http://127.0.0.1:8788/assets/auth.js",
@@ -428,7 +428,7 @@
         "bytes": 11266,
         "encoded": 10966,
         "decoded": 37729,
-        "start": 122
+        "start": 129
       },
       {
         "name": "http://127.0.0.1:8788/assets/data.js",
@@ -436,7 +436,7 @@
         "bytes": 10030,
         "encoded": 9730,
         "decoded": 27270,
-        "start": 136
+        "start": 142
       },
       {
         "name": "http://127.0.0.1:8788/assets/cms.js",
@@ -444,7 +444,7 @@
         "bytes": 18522,
         "encoded": 18222,
         "decoded": 63880,
-        "start": 145
+        "start": 152
       },
       {
         "name": "http://127.0.0.1:8788/assets/body-format.js",
@@ -452,7 +452,7 @@
         "bytes": 3812,
         "encoded": 3512,
         "decoded": 9059,
-        "start": 159
+        "start": 167
       },
       {
         "name": "http://127.0.0.1:8788/assets/share.js",
@@ -460,7 +460,7 @@
         "bytes": 2129,
         "encoded": 1829,
         "decoded": 4413,
-        "start": 164
+        "start": 172
       },
       {
         "name": "http://127.0.0.1:8788/assets/app.js",
@@ -468,7 +468,7 @@
         "bytes": 25482,
         "encoded": 25182,
         "decoded": 91287,
-        "start": 170
+        "start": 176
       },
       {
         "name": "https://docs.google.com/spreadsheets/d/1OhA6nOWiBpbrQ01QcAJIoq_RT4iNk3JsgL6rKk8IAyY/gviz/tq?tqx=out:json",
@@ -476,7 +476,7 @@
         "bytes": 0,
         "encoded": 0,
         "decoded": 0,
-        "start": 205
+        "start": 224
       },
       {
         "name": "http://127.0.0.1:8788/assets/notify.js",
@@ -484,7 +484,7 @@
         "bytes": 6294,
         "encoded": 5994,
         "decoded": 18625,
-        "start": 224
+        "start": 245
       },
       {
         "name": "http://127.0.0.1:8788/assets/plugins.js",
@@ -492,7 +492,7 @@
         "bytes": 9262,
         "encoded": 8962,
         "decoded": 29221,
-        "start": 230
+        "start": 259
       },
       {
         "name": "http://127.0.0.1:8788/assets/pwa.js",
@@ -500,7 +500,7 @@
         "bytes": 2312,
         "encoded": 2012,
         "decoded": 5818,
-        "start": 238
+        "start": 272
       },
       {
         "name": "https://www.googletagmanager.com/gtag/js?id=G-L7820HKGET",
@@ -508,7 +508,7 @@
         "bytes": 0,
         "encoded": 0,
         "decoded": 0,
-        "start": 247
+        "start": 282
       },
       {
         "name": "https://haaikrynfrrwcpyuvrrr.supabase.co/rest/v1/site_contents?select=key,value,image_url",
@@ -516,15 +516,7 @@
         "bytes": 0,
         "encoded": 0,
         "decoded": 0,
-        "start": 250
-      },
-      {
-        "name": "https://haaikrynfrrwcpyuvrrr.supabase.co/rest/v1/posts?select=*&is_published=eq.true&order=category.asc,is_pinned.desc,sort_order.asc,published_at.desc&limit=500",
-        "type": "fetch",
-        "bytes": 0,
-        "encoded": 0,
-        "decoded": 0,
-        "start": 251
+        "start": 284
       },
       {
         "name": "https://haaikrynfrrwcpyuvrrr.supabase.co/rest/v1/pages?select=slug,title,subtitle,body,images,blocks,sort_order,updated_at&is_published=eq.true&order=sort_order",
@@ -532,7 +524,15 @@
         "bytes": 0,
         "encoded": 0,
         "decoded": 0,
-        "start": 254
+        "start": 284
+      },
+      {
+        "name": "https://haaikrynfrrwcpyuvrrr.supabase.co/rest/v1/posts?select=*&is_published=eq.true&order=category.asc,is_pinned.desc,sort_order.asc,published_at.desc&limit=500",
+        "type": "fetch",
+        "bytes": 0,
+        "encoded": 0,
+        "decoded": 0,
+        "start": 284
       },
       {
         "name": "https://haaikrynfrrwcpyuvrrr.supabase.co/rest/v1/boards?select=slug,name,description,per_page,comment_policy,sort_order&order=sort_order",
@@ -540,7 +540,7 @@
         "bytes": 0,
         "encoded": 0,
         "decoded": 0,
-        "start": 254
+        "start": 284
       },
       {
         "name": "https://haaikrynfrrwcpyuvrrr.supabase.co/rest/v1/plugins?select=id,name,version,script_url,source,settings&enabled=eq.true&order=installed_at.asc",
@@ -548,17 +548,17 @@
         "bytes": 0,
         "encoded": 0,
         "decoded": 0,
-        "start": 257
+        "start": 286
       },
       {
-        "name": "https://www.google-analytics.com/g/collect?v=2&tid=G-L7820HKGET&gtm=45je6bh1h1v9287964953za208zd9287964953xf1&_p=1795387075431&gcd=13l3l3l3l1l1&npa=0&dma=0&cid=720926839.1795387076&frm=0&ngs=1&pscdl=noapi&rcb=9&sr=1440x950&uaa=x86&uab=64&uafvl=HeadlessChrome%3B159.0.8154.6%7CNot%252FA)Brand%3B8.0.0.0%7CChromium%3B159.0.8154.6&uam=&uamb=0&uap=Linux&uapv=&uaw=0&ul=ko-kr&_s=1&tag_exp=115616986~115938466~115938469~119404696~120385423~120469145~120469153~121049589~121246026~121246034~121284208~123785232&sid=1795387075&sct=1&seg=0&dl=http%3A%2F%2F127.0.0.1%2F&dt=%EC%A0%84%EA%B5%AD%EA%B3%B5%EB%B0%A9%20%E2%80%94%20%EC%9A%B0%EB%A6%AC%20%EB%8F%99%EB%84%A4%20%EA%B3%B5%EB%B0%A9%EC%9D%98%20%EC%9D%B4%EB%B2%88%20%EC%A3%BC%20%EC%86%8C%EC%8B%9D&en=page_view&_fv=1&_nsi=1&_ss=1&tfd=437",
+        "name": "https://www.google-analytics.com/g/collect?v=2&tid=G-L7820HKGET&gtm=45je6bi0h2v9287964953za208zd9287964953xf1&_p=1795387244400&gcd=13l3l3l3l1l1&npa=0&dma=0&cid=1719248629.1795387245&frm=0&ngs=1&pscdl=noapi&rcb=16&sr=1440x950&uaa=x86&uab=64&uafvl=HeadlessChrome%3B159.0.8154.6%7CNot%252FA)Brand%3B8.0.0.0%7CChromium%3B159.0.8154.6&uam=&uamb=0&uap=Linux&uapv=&uaw=0&ul=ko-kr&_s=1&tag_exp=115616986~115938465~115938469~120385422~120469145~120469153~121049589~121246026~121246034&sid=1795387244&sct=1&seg=0&dl=http%3A%2F%2F127.0.0.1%2F&dt=%EC%A0%84%EA%B5%AD%EA%B3%B5%EB%B0%A9%20%E2%80%94%20%EC%9A%B0%EB%A6%AC%20%EB%8F%99%EB%84%A4%20%EA%B3%B5%EB%B0%A9%EC%9D%98%20%EC%9D%B4%EB%B2%88%20%EC%A3%BC%20%EC%86%8C%EC%8B%9D&en=page_view&_fv=1&_nsi=1&_ss=1&tfd=495",
         "type": "fetch",
         "bytes": 0,
         "encoded": 0,
         "decoded": 0,
-        "start": 437
+        "start": 496
       }
     ],
-    "measuredAt": "2026-11-23T07:37:57+09:00"
+    "measuredAt": "2026-11-23T07:40:46+09:00"
   }
 }
