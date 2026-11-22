@@ -3643,7 +3643,8 @@
       title_en: val("#rsv-form-title-en"),
       description: val("#rsv-form-desc"),
       is_active: !!(document.getElementById("rsv-form-active") || {}).checked,
-      kind: "reservation"
+      kind: "reservation",
+      sort_order: 100
     };
     if (!payload.slug || !payload.title) { rsvMsg("주소 이름과 이름을 입력해 주세요.", "err"); return; }
     var btn = document.getElementById("rsv-form-save");
