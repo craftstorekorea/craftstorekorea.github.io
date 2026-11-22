@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- CSP: SBPress v1.3 보안 — build_static_seo.py --csp 로 갱신 -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' https://haaikrynfrrwcpyuvrrr.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://cdn.jsdelivr.net http://127.0.0.1:* http://localhost:*; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https: http:; connect-src 'self' https://haaikrynfrrwcpyuvrrr.supabase.co wss://haaikrynfrrwcpyuvrrr.supabase.co https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://cdn.jsdelivr.net https://raw.githubusercontent.com https://docs.google.com http://127.0.0.1:* http://localhost:*; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; media-src 'self' https: blob:; form-action 'self'">
 <title>관리자 · 전국공방</title>
 <meta name="robots" content="noindex,nofollow">
 <link rel="canonical" href="/admin">
@@ -185,6 +187,30 @@
           <input type="email" id="new-admin-email" class="admin-input" placeholder="new-admin@example.com" aria-label="새 관리자 이메일">
           <input type="text" id="new-admin-note" class="admin-input" maxlength="60" placeholder="메모 (선택, 예: 편집 담당)" aria-label="새 관리자 메모">
           <button type="button" class="btn btn-primary btn-sm" id="admin-add">관리자 추가</button>
+        </div>
+      </section>
+
+      <section class="panel panel-wide" id="p-security">
+        <div class="panel-head">
+          <h2>보안 · 감사 로그</h2>
+          <div class="panel-tools">
+            <span class="panel-tag" id="audit-count"></span>
+            <button type="button" class="btn btn-ghost btn-sm" id="audit-reload">새로고침</button>
+          </div>
+        </div>
+        <p class="panel-note">관리자가 글·페이지·게시판·플러그인·관리자·사이트 문구를 바꾸면 서버 트리거가 <code>audit_logs</code> 에 자동으로 남깁니다. 이 기록은 관리자만 읽을 수 있고 수정·삭제는 누구도 할 수 없습니다.</p>
+        <ul class="sec-grid" id="sec-grid">
+          <li class="sec-item" data-sec="csp"><b>CSP</b><span id="sec-csp">확인 중…</span></li>
+          <li class="sec-item" data-sec="rls"><b>RLS</b><span id="sec-rls">확인 중…</span></li>
+          <li class="sec-item" data-sec="rate"><b>요청 속도 제한</b><span id="sec-rate">확인 중…</span></li>
+          <li class="sec-item" data-sec="plugin"><b>플러그인 주소</b><span id="sec-plugin">확인 중…</span></li>
+        </ul>
+        <p class="cms-toast" id="audit-msg" role="status" aria-live="polite"></p>
+        <div class="table-wrap">
+          <table class="admin-table" id="audit-table">
+            <thead><tr><th>시각</th><th>관리자</th><th>동작</th><th>대상</th><th>항목</th></tr></thead>
+            <tbody></tbody>
+          </table>
         </div>
       </section>
 
@@ -551,12 +577,12 @@
       </section>
 
       <section class="cms-group">
-        <h2>외부 GitHub URL로 직접 설치</h2>
-        <p class="cms-hint">GitHub raw·jsDelivr·unpkg 등에 올라온 SBPress 플러그인 JS 주소를 그대로 넣어 설치합니다. 그 파일이 <code>SBPress.registerPlugin({...})</code> 을 호출해야 동작하고, 오류가 나도 사이트의 다른 기능은 멈추지 않습니다.</p>
+        <h2>외부 URL로 직접 설치</h2>
+        <p class="cms-sec-note" id="plug-sec-note"><b>보안 안내</b> · 주소는 <b>https://</b> 또는 사이트 안 경로(<code>/assets/…</code>)만 됩니다(<code>http://</code>·<code>javascript:</code>·<code>data:</code>는 서버 DB가 거부합니다). CSP 때문에 실제 실행은 사이트 자신·jsDelivr·Supabase Storage 주소만 됩니다. GitHub raw 파일은 <code>https://cdn.jsdelivr.net/gh/사용자/저장소@버전/plugin.js</code> 형태로 넣어 주세요. 직접 올린 외부 플러그인은 <b>관리자 화면에서는 실행하지 않습니다</b>(관리자 세션 보호). 사이트 방문자 화면에서만 동작합니다.</p>
         <div class="plug-form">
           <label class="cms-field"><span>ID *</span><input id="plug-id" maxlength="60" placeholder="my-plugin" spellcheck="false"></label>
           <label class="cms-field"><span>이름 *</span><input id="plug-name" maxlength="80" placeholder="내 플러그인"></label>
-          <label class="cms-field plug-wide"><span>JS URL *</span><input id="plug-url" type="url" maxlength="500" placeholder="https://raw.githubusercontent.com/.../plugin.js" spellcheck="false"></label>
+          <label class="cms-field plug-wide"><span>JS URL * <em>https:// 또는 /</em></span><input id="plug-url" type="url" maxlength="500" placeholder="https://cdn.jsdelivr.net/gh/.../plugin.js" spellcheck="false"></label>
           <label class="cms-field plug-wide"><span>설명 <em>선택</em></span><input id="plug-desc" maxlength="200" placeholder="무엇을 하는 플러그인인지"></label>
         </div>
         <div class="mgr-actions">

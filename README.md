@@ -136,6 +136,19 @@ p/<slug>/index.html       페이지 정적 SEO 페이지 (../build_static_seo.py
   하나가 실패해도 사이트는 멈추지 않고, 실패 내역은 `SBPress.status()` 에 남습니다.
 - 설정·검증 기록: `../supabase/09_plugins_market.md`, DB `../supabase/09_plugins_market.sql`,
   서버 검증 `cd ../supabase && python3 09_check.py`.
+- **v1.3 보안**: 플러그인 주소는 `https://` 또는 사이트 안 경로(`/`)만 허용되고(`http://`·`javascript:`·`data:` 는 DB 와 화면 모두 거부),
+  직접 올린 외부 플러그인(`source='custom'`)은 **관리자 화면에서 실행하지 않습니다**(관리자 세션 보호). 기본·마켓 플러그인은 그대로 동작합니다.
+  같은 출처 마켓 주소는 `/assets/plugins/…` 처럼 경로로 저장됩니다.
+
+## 보안 (v1.3)
+
+- **CSP**: `index.html`·`admin.html`·`privacy.html`·`terms.html`·정적 글·페이지 모두에 `<meta http-equiv="Content-Security-Policy">` 가 있습니다.
+  `'unsafe-eval'` 없음 · `object-src 'none'` · `base-uri 'self'`. 정책 문자열은 `../build_static_seo.py` 의 `CSP_SITE`/`CSP_STATIC` 한 곳에서 관리하고,
+  `python3 build_static_seo.py --csp` 로 4개 고정 페이지를 맞춥니다.
+- **관리자 감사 로그**: 글·페이지·게시판·플러그인·관리자·사이트 문구를 바꾸면 DB 트리거가 `public.audit_logs` 에 남깁니다(관리자만 조회).
+  `/admin` 대시보드의 **보안 · 감사 로그** 패널에서 최근 20건과 보안 상태 요약을 봅니다.
+- **요청 속도 제한**: 캐프 15회/분 · 비회원 댓글 5건/분 · 폼 5건/분(같은 접속 기준, DB `rate_limits`).
+- 자세한 기록·운영 방법: `../supabase/11_v13_security.md`, DB `../supabase/11_v13_security.sql`, 서버 검증 `cd ../supabase && python3 11_check.py`.
 
 ## 관리자 페이지
 

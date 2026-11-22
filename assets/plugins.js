@@ -15,6 +15,10 @@
      });
 
    - 켜진 플러그인은 Supabase public.plugins(enabled=true) 에서 읽어 옵니다.
+   - **관리자 화면 격리(v1.3)**: /admin(admin.html)에서는 source='custom'(직접 올린 외부 JS)을
+     불러오지 않습니다. 관리자 세션을 외부 스크립트가 만질 수 없게 하기 위해서입니다.
+     건너뛴 내역은 SBPress.status().notices / .skipped 에 남고, builtin·market 은 그대로 실행됩니다.
+   - 플러그인 스크립트 주소는 https:// 또는 사이트 안 경로(/)만 됩니다(DB CHECK + CSP).
    - 플러그인 하나가 실패해도(스크립트 404·setup 예외·훅 예외) 사이트와 다른
      플러그인은 그대로 동작합니다. 실패 내역은 SBPress.status() 로 볼 수 있습니다.
    의존: assets/auth-config.js (window.CRAFT_SUPABASE) — 없으면 조용히 아무 것도 하지 않습니다.
@@ -37,6 +41,9 @@
     css: {},                  // plugin → [cssText]
     rows: {},                 // id → DB 행(설정)
     errors: [],               // {plugin, message, when}
+    notices: [],              // {plugin, message, when} — 실행하지 않고 건너뛴 이유(관리자 화면의 custom 등)
+    skipped: {},              // id → 이유 (이번 화면에서 실행하지 않은 플러그인)
+    adminPage: false,         // /admin 화면인가
     loading: false,
     loadedOnce: false,
     admin: null,              // null=모름, true/false
@@ -47,6 +54,19 @@
     var msg = String(message && message.message ? message.message : message || "알 수 없는 오류");
     state.errors.push({ plugin: plugin || "engine", message: msg, when: new Date().toISOString() });
     try { console.warn("[SBPress] " + (plugin || "engine") + ": " + msg); } catch (e) { /* noop */ }
+  }
+
+  function recordNotice(plugin, message) {
+    var msg = String(message || "");
+    state.notices.push({ plugin: plugin || "engine", message: msg, when: new Date().toISOString() });
+    try { console.info("[SBPress] " + (plugin || "engine") + " — " + msg); } catch (e) { /* noop */ }
+  }
+
+  /* 관리자 화면(/admin · admin.html)인지 확인합니다. body.admin-body 도 함께 봅니다. */
+  function isAdminPage() {
+    var p = String((location && location.pathname) || "").replace(/\/+$/, "");
+    if (/\/admin(\.html)?$/i.test(p) || /\/admin\/index\.html$/i.test(p)) return true;
+    return !!(document.body && document.body.classList && document.body.classList.contains("admin-body"));
   }
 
   function absUrl(url, base) {
@@ -412,6 +432,15 @@
   function loadOne(row) {
     return new Promise(function (resolve) {
       if (state.defs[row.id]) { resolve(); return; }       // 이미 불러온 플러그인은 다시 실행하지 않습니다
+      /* 보안(v1.3): 직접 올린 외부 JS(source='custom')는 관리자 화면에서 실행하지 않습니다.
+         관리자 세션(토큰·관리 권한)을 외부 스크립트가 만질 수 없게 하는 격리입니다.
+         기본(builtin)·마켓(market) 플러그인은 그대로 동작합니다. */
+      if (state.adminPage && row.source === "custom") {
+        state.skipped[row.id] = "admin-custom";
+        recordNotice(row.id, "관리자 화면에서는 직접 올린 외부 플러그인을 실행하지 않습니다(보안). 사이트에서는 그대로 동작합니다.");
+        resolve();
+        return;
+      }
       var src = absUrl(row.script_url, location.origin + "/");
       var s = document.createElement("script");
       s.src = src;
@@ -437,6 +466,7 @@
     if (state.loadedOnce && !force) return Promise.resolve();
     state.loading = true;
     state.loadedOnce = false;
+    state.skipped = {};
     return enabledRows().then(function (rows) {
       rows.forEach(function (r) { state.rows[r.id] = r; });
       state.rows._order = rows;
@@ -457,15 +487,25 @@
     var out = [];
     ((state.rows._order) || []).forEach(function (r) {
       var ok = !!state.defs[r.id];
-      out.push({ id: r.id, name: r.name, loaded: ok, errors: state.errors.filter(function (e) { return e.plugin === r.id; }) });
+      out.push({
+        id: r.id, name: r.name, source: r.source, loaded: ok,
+        skipped: state.skipped[r.id] || null,
+        errors: state.errors.filter(function (e) { return e.plugin === r.id; })
+      });
     });
-    return { plugins: out, errors: state.errors.slice(), admin: state.admin };
+    return {
+      plugins: out,
+      errors: state.errors.slice(),
+      notices: state.notices.slice(),
+      adminPage: state.adminPage,
+      admin: state.admin
+    };
   }
 
   /* ---------------- 공개 API ---------------- */
   var SBPress = {
     __engine: true,
-    version: "1.0.0",
+    version: "1.3.0",
     registerPlugin: registerPlugin,
     register: registerPlugin,
     renderMenu: renderMenu,
@@ -477,12 +517,15 @@
     load: load,
     status: status,
     isAdmin: function () { return state.admin; },
+    isAdminPage: function () { return state.adminPage; },
+    notices: function () { return state.notices.slice(); },
     plugins: function () { return state.order.slice(); },
     zones: function () { return ZONES.slice(); }
   };
   window.SBPress = SBPress;
 
   function boot() {
+    state.adminPage = isAdminPage();
     try { observeCards(); } catch (e) { /* noop */ }
     mountAdminTabs();
     renderMenu();

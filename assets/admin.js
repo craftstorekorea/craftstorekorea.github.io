@@ -184,7 +184,7 @@
   function loadAll(force) {
     var stamp = $("#dash-stamp");
     if (stamp) stamp.textContent = "불러오는 중…";
-    Promise.all([loadMembers(), loadBookmarks(), loadSheet(), loadPostIndex(), loadGrade(), loadTasksAdmin(), loadAdmins()]).then(function () {
+    Promise.all([loadMembers(), loadBookmarks(), loadSheet(), loadPostIndex(), loadGrade(), loadTasksAdmin(), loadAdmins(), loadAudit()]).then(function () {
       recount();
       renderMembers();
       renderPopular();
@@ -288,6 +288,102 @@
       cmsMsg("admin-msg", "관리자에서 뺐습니다: " + email, "ok");
       loadAdmins();
     });
+  }
+
+  /* ---------------- 보안 · 감사 로그 (public.audit_logs) ---------------- */
+  var AUDIT_ACT = { insert: "추가", update: "수정", delete: "삭제" };
+  var AUDIT_TBL = { posts: "게시글", pages: "페이지", boards: "게시판", plugins: "플러그인",
+                    admin_users: "관리자", site_contents: "사이트 문구" };
+  var cspViolations = 0;
+
+  /* 이 화면에서 실제로 일어난 CSP 위반을 셉니다(브라우저가 막을 때마다 +1). */
+  document.addEventListener("securitypolicyviolation", function () { cspViolations += 1; renderSecurity(); });
+
+  function fmtStamp(iso) {
+    if (!iso) return "–";
+    try {
+      return new Date(iso).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit",
+                                                    hour: "2-digit", minute: "2-digit", hour12: false }).replace(/\s+/g, " ");
+    } catch (e) { return "–"; }
+  }
+
+  function cspMeta() {
+    return document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+  }
+
+  function renderSecurity() {
+    var meta = cspMeta();
+    var csp = $("#sec-csp"), rls = $("#sec-rls"), rate = $("#sec-rate"), plug = $("#sec-plugin");
+    function set(el, text, ok) {
+      if (!el) return;
+      el.textContent = text;
+      var box = el.parentNode;
+      if (box) { box.classList.toggle("is-ok", !!ok); box.classList.toggle("is-warn", !ok); }
+    }
+    if (csp) {
+      if (!meta) set(csp, "없음 — meta 미적용", false);
+      else set(csp, "켜짐 · 이 화면 위반 " + cspViolations + "건", cspViolations === 0);
+    }
+    if (rls) {
+      set(rls, CMS.auditLoaded ? "적용 · 관리자만 조회(감사 로그 확인됨)" : "확인 중…", !!CMS.auditLoaded);
+    }
+    if (rate) {
+      set(rate, "서버 적용 · 캡차 15회/분 · 비회원 댓글 5회/분 · 폼 5건/분", true);
+    }
+    if (plug) {
+      var bad = plugRows.filter(function (p) { return !/^(https:\/\/|\/)/.test(String(p.script_url || "").trim()); });
+      var skipped = 0;
+      try { skipped = (window.SBPress && window.SBPress.notices ? window.SBPress.notices() : []).length; } catch (e) { skipped = 0; }
+      set(plug, bad.length ? ("주의 · 잘못된 주소 " + bad.length + "개") :
+        ("https/상대 경로만 · 관리자 화면 격리 " + (skipped ? "(건너뜀 " + skipped + ")" : "중")), bad.length === 0);
+    }
+  }
+
+  function loadAudit() {
+    var body = $("#audit-table tbody");
+    renderSecurity();
+    if (!sb || !body) return Promise.resolve();
+    body.innerHTML = '<tr class="empty-row"><td colspan="5">불러오는 중…</td></tr>';
+    return sb.from("audit_logs")
+      .select("created_at,actor_email,action,target_table,target_id,detail")
+      .order("created_at", { ascending: false }).limit(20)
+      .then(function (r) {
+        if (r.error) {
+          body.innerHTML = '<tr class="empty-row"><td colspan="5">불러오지 못했습니다: ' + esc(r.error.message) + "</td></tr>";
+          cmsMsg("audit-msg", "감사 로그를 읽지 못했습니다: " + r.error.message, "err");
+          CMS.auditLoaded = false;
+          renderSecurity();
+          return;
+        }
+        CMS.auditLoaded = true;
+        renderAudit(r.data || []);
+        renderSecurity();
+      });
+  }
+
+  function renderAudit(rows) {
+    var body = $("#audit-table tbody");
+    var tag = $("#audit-count");
+    if (tag) tag.textContent = rows.length ? "최근 " + rows.length + "건" : "기록 없음";
+    if (!body) return;
+    if (!rows.length) {
+      body.innerHTML = '<tr class="empty-row"><td colspan="5">아직 기록이 없습니다. 글·페이지·게시판·플러그인·관리자·사이트 문구를 바꾸면 여기에 남습니다.</td></tr>';
+      return;
+    }
+    body.innerHTML = rows.map(function (a) {
+      var d = a.detail || {};
+      var what = d.label ? String(d.label) : (a.target_id || "–");
+      if (d.changed && d.changed.length) what += " · " + d.changed.slice(0, 3).join(", ") + (d.changed.length > 3 ? " 외" : "");
+      return "<tr>" +
+        '<td class="audit-when" data-th="시각">' + esc(fmtStamp(a.created_at)) + "</td>" +
+        '<td class="audit-who muted" data-th="관리자" title="' + esc(a.actor_email || "") + '">' + esc(a.actor_email || "시스템") + "</td>" +
+        '<td class="audit-act" data-th="동작"><span class="plug-badge b-' +
+          (a.action === "delete" ? "custom" : a.action === "update" ? "market" : "builtin") + '">' +
+          esc(AUDIT_ACT[a.action] || a.action) + "</span></td>" +
+        '<td data-th="대상">' + esc(AUDIT_TBL[a.target_table] || a.target_table) + "</td>" +
+        '<td data-th="항목" class="muted">' + esc(what) + "</td>" +
+        "</tr>";
+    }).join("");
   }
 
   function loadMembers() {
@@ -728,7 +824,7 @@
     customPages: [], boardRows: [], editingPage: null, editingBoard: null, pageImages: [], pageBlocks: [],
     loaded: { pages: false, posts: false, comments: false, brand: false, media: false, boards: false, grade: false, tasks: false },
     editing: null, commentCounts: {}, brand: null,
-    admins: [], adminsLoaded: false
+    admins: [], adminsLoaded: false, auditLoaded: false
   };
 
   /* 본문 편집기(assets/editor.js) — 툴바·이미지 삽입·미리보기 */
@@ -767,6 +863,7 @@
       p.hidden = p.id !== "tab-" + name;
     });
     if (name === "dash" && !CMS.adminsLoaded) loadAdmins();
+    if (name === "dash") loadAudit();
     if (name === "pages") { if (!CMS.loaded.pages) loadPages(); loadPageManager(); loadFormSubs(); }
     if (name === "brand" && !CMS.loaded.brand) loadBrand();
     if (name === "brand") { loadGrade(); loadTheme(); }
@@ -2366,6 +2463,8 @@
     });
 
     /* --- 플러그인 · 마켓 --- */
+    var auReload = $("#audit-reload");
+    if (auReload) auReload.addEventListener("click", function () { CMS.auditLoaded = false; loadAudit(); });
     var plReload = $("#plugins-reload");
     if (plReload) plReload.addEventListener("click", function () { loadPlugins(); });
     var plInstall = $("#plug-install");
@@ -3102,11 +3201,13 @@
     body.innerHTML = plugRows.map(function (p) {
       var src = PLUG_SRC[p.source] || p.source || "마켓";
       var cls = PLUG_SRC[p.source] ? p.source : "market";
+      var isolated = p.source === "custom";
       return "<tr data-id=\"" + esc(p.id) + "\">" +
         '<td data-th="상태"><label class="plug-switch"><input type="checkbox" data-plug-toggle="' + esc(p.id) + '"' +
           (p.enabled ? " checked" : "") + ' aria-label="' + esc(p.name) + ' 켜기"><span class="plug-slider"></span><em>' +
           (p.enabled ? "켜짐" : "꺼짐") + "</em></label></td>" +
         '<td data-th="플러그인" class="plug-main"><b>' + esc(p.name) + '</b> <span class="muted plug-id">' + esc(p.id) + "</span>" +
+          (isolated ? ' <span class="plug-tag" title="직접 올린 외부 JS 는 관리자 세션을 지키기 위해 이 화면에서 실행하지 않습니다.">관리자 화면 격리</span>' : "") +
           (p.description ? '<div class="muted plug-sub">' + esc(p.description) + "</div>" : "") + "</td>" +
         '<td data-th="버전" class="muted">' + esc(p.version || "1.0.0") + "</td>" +
         '<td data-th="출처"><span class="plug-badge b-' + cls + '">' + esc(src) + "</span></td>" +
@@ -3185,8 +3286,11 @@
     var desc = ($("#plug-desc").value || "").trim();
     var note = $("#plug-form-msg");
     if (!id || !name || !url) { if (note) note.textContent = "ID·이름·JS URL 은 꼭 필요합니다."; return; }
-    if (!/^https?:\/\//i.test(url) && url.charAt(0) !== "/") {
-      if (note) note.textContent = "JS URL 은 https:// 주소나 사이트 안 경로(/assets/…)로 넣어 주세요.";
+    /* 보안(v1.3): https:// 또는 사이트 안 경로(/)만. http://·javascript:·data: 는 DB CHECK 가 최종 거부합니다. */
+    if (!/^https:\/\//i.test(url) && url.charAt(0) !== "/") {
+      if (note) note.textContent = /^http:\/\//i.test(url)
+        ? "http:// 주소는 받지 않습니다. https:// 로 바꾸거나 사이트 안 경로(/assets/…)를 넣어 주세요."
+        : "JS URL 은 https:// 주소나 사이트 안 경로(/assets/…)로 넣어 주세요(javascript:·data: 는 막힙니다).";
       return;
     }
     if (note) note.textContent = "설치하는 중…";
@@ -3225,7 +3329,13 @@
   }
 
   function marketAbs(url) {
-    try { return new URL(url, new URL(plugMarketUrl, location.href).href).href; } catch (e) { return url; }
+    try {
+      var u = new URL(url, new URL(plugMarketUrl, location.href).href);
+      /* 사이트 안 주소는 경로만 남깁니다. http://… 로 굳으면 v1.3 규칙(https:// 또는 /)에 걸리고,
+         주소를 바꿔도 플러그인이 따라 움직이지 않습니다. */
+      if (u.origin === location.origin) return u.pathname + u.search + u.hash;
+      return u.href;
+    } catch (e) { return url; }
   }
 
   function loadMarket() {

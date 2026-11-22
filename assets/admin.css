@@ -677,3 +677,21 @@ tr.owner-row td{background:#FFFAF6}
   .ed-foot{gap:8px}
   .admin-add .admin-input{max-width:none;width:100%}
 }
+
+/* ===== v1.3 보안 · 감사 로그 (대시보드) ===== */
+.sec-grid{list-style:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:2px 0 14px;padding:0}
+.sec-item{padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--bg-2)}
+.sec-item b{display:block;font-size:.72rem;letter-spacing:.03em;color:var(--ink-3);margin-bottom:4px}
+.sec-item span{font-size:.84rem;font-weight:700;color:var(--ink);line-height:1.45;display:block}
+.sec-item.is-warn{background:#FFF6F1;border-color:#E7C4AE}
+.sec-item.is-warn span{color:#A8542F}
+.sec-item.is-ok span{color:#4C6B4A}
+#audit-table td.audit-act{white-space:nowrap;font-weight:700}
+#audit-table td.audit-when{white-space:nowrap;color:var(--ink-3);font-size:.78rem}
+#audit-table td.audit-who{max-width:200px;overflow:hidden;text-overflow:ellipsis}
+.cms-sec-note{margin:6px 0 12px;padding:12px 14px;border:1px solid #E7C4AE;background:#FFF6F1;border-radius:var(--r-s);font-size:.8rem;line-height:1.7;color:#5B4433}
+.cms-sec-note b{color:#A8542F}
+.cms-sec-note code{font-family:ui-monospace,Menlo,monospace;background:#fff;border:1px solid #EEDCCF;border-radius:5px;padding:1px 5px;font-size:.94em}
+@media (max-width:720px){
+  .sec-grid{grid-template-columns:1fr 1fr}
+}
