@@ -821,6 +821,15 @@ def main():
     if True:
         for line in check(posts_out, pages_out):
             print(line)
+    # v3.0 — 저장소 용량 예산(assets/repo-budget.json)도 같은 빌드에서 갱신합니다(실패해도 빌드는 계속).
+    budget = os.path.join(SITE, "scripts", "check_repo_budget.py")
+    if os.path.exists(budget):
+        try:
+            import subprocess
+            subprocess.run([sys.executable, budget, "--quiet"], cwd=SITE, timeout=120)
+            print("용량 예산 갱신: assets/repo-budget.json")
+        except Exception as e:
+            print("용량 예산 갱신 건너뜀: %s" % e)
     return 0
 
 
