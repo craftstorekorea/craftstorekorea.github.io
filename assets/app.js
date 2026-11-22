@@ -88,6 +88,13 @@
     return !!(window.CRAFT_AUTH && window.CRAFT_AUTH.isSignedIn && window.CRAFT_AUTH.isSignedIn());
   }
 
+  /* 아카이브 건수 — archive.js 를 받기 전에는 설정값(archiveTotal)으로 보여 줍니다. */
+  function arcTotal() {
+    if (window.ARCHIVE && window.ARCHIVE.total) return Number(window.ARCHIVE.total);
+    if (window.SBP && window.SBP.archiveTotal) return window.SBP.archiveTotal();
+    return Number(CFG.archiveTotal || 0) || 0;
+  }
+
   /* ---------------- 게시판 · 페이지 번호 ---------------- */
   var pagerState = { intro: 1, news: 1, interview: 1, info: 1, archive: 1, board: 1 };
   var lastBoardArg = "";
@@ -200,13 +207,18 @@
     var sheetNote = $(".ws-note");
     if (sheetNote) sheetNote.hidden = true;
   }
-  var ARC = window.ARCHIVE;
-  ["arc-doc", "arc-home-doc"].forEach(function (id) {
-    var n = document.getElementById(id);
-    if (!n) return;
-    if (ARC && ARC.docUrl) n.href = ARC.docUrl;
-    else n.hidden = true;
-  });
+  /* 아카이브 원본 문서 링크 — archive.js 가 오기 전에는 설정값(archiveDocUrl)으로 채웁니다. */
+  function paintArchiveLinks() {
+    var ARC = window.ARCHIVE;
+    var docUrl = (ARC && ARC.docUrl) || CFG.archiveDocUrl || "";
+    ["arc-doc", "arc-home-doc"].forEach(function (id) {
+      var n = document.getElementById(id);
+      if (!n) return;
+      if (docUrl) { n.href = docUrl; n.hidden = false; }
+      else n.hidden = true;
+    });
+  }
+  paintArchiveLinks();
 
   /* ---------------- counts ---------------- */
   var counts = { workshops: 0, news: 0, interview: 0, info: 0 };
@@ -236,7 +248,7 @@
      site_contents 의 header_logo_url / header_brand_text / header_menu_items 를 읽어 그립니다.
      값이 없으면 index.html 의 기본 마크·메뉴를 그대로 씁니다. */
   var VIEW_KEYS = (function () {
-    var base = ["home", "workshops", "news", "interview", "archive", "info", "map", "tasks", "approvals", "page", "board", "post", "mypage", "search"];
+    var base = ["home", "workshops", "news", "interview", "archive", "info", "map", "tasks", "approvals", "page", "board", "post", "mypage", "search", "offline"];
     return base.filter(function (k) {
       if (k === "map" || k === "tasks" || k === "approvals" || k === "mypage") return feature(k);
       return true;
@@ -370,7 +382,7 @@
       "<span><i>●</i>업데이트 " + md(S.updated) + "</span>",
       "<span>소식 <b>" + total + "</b>건</span>",
       "<span>등록 공방 <b>" + counts.workshops + "</b>곳</span>",
-      "<span>아카이브 <b>" + (window.ARCHIVE ? window.ARCHIVE.total : 0) + "</b>건</span>",
+      "<span>아카이브 <b>" + arcTotal() + "</b>건</span>",
       "<span>매주 금요일 오전</span>"
     ].join("");
   }
@@ -564,40 +576,41 @@
   renderInterviews();
 
   /* ---------------- archive (2024–2026) ---------------- */
-  var A = window.ARCHIVE;
+  /* archive.js(58KB)는 #/archive 에 들어갈 때 지연 로딩합니다 — 그래서 쓸 때 window.ARCHIVE 를 읽습니다. */
+  function A() { return window.ARCHIVE || { issues: [], items: [], corners: [], total: 0 }; }
 
   function arcIssueById(id) {
-    if (!A) return null;
-    for (var i = 0; i < A.issues.length; i++) if (A.issues[i].id === id) return A.issues[i];
+    if (!window.ARCHIVE) return null;
+    for (var i = 0; i < A().issues.length; i++) if (A().issues[i].id === id) return A().issues[i];
     return null;
   }
 
   var arcState = { issue: "all", corner: "전체", q: "" };
 
   function arcCornerCount(c) {
-    return A.items.filter(function (it) { return it.corner === c; }).length;
+    return A().items.filter(function (it) { return it.corner === c; }).length;
   }
 
   function renderArcStats() {
     var box = $("#arc-stats");
     if (!box) return;
-    var first = A.issues[0].first.replace(/-/g, ".");
-    var last = A.issues[A.issues.length - 1].last.replace(/-/g, ".");
+    var first = A().issues[0].first.replace(/-/g, ".");
+    var last = A().issues[A().issues.length - 1].last.replace(/-/g, ".");
     box.innerHTML =
-      "<div><b>" + A.total + "<i>건</i></b><span>아카이브 기사</span></div>" +
-      "<div><b>" + A.issues.length + "<i>개 호</i></b><span>① 24년 ~ ⑧ " + A.issues[A.issues.length - 1].label + "</span></div>" +
-      "<div><b>" + A.corners.length + "<i>개 코너</i></b><span>소개 " + arcCornerCount("소개") + " · 뉴스 " + arcCornerCount("뉴스") +
+      "<div><b>" + A().total + "<i>건</i></b><span>아카이브 기사</span></div>" +
+      "<div><b>" + A().issues.length + "<i>개 호</i></b><span>① 24년 ~ ⑧ " + A().issues[A().issues.length - 1].label + "</span></div>" +
+      "<div><b>" + A().corners.length + "<i>개 코너</i></b><span>소개 " + arcCornerCount("소개") + " · 뉴스 " + arcCornerCount("뉴스") +
       " · 인터뷰 " + arcCornerCount("인터뷰") + " · 정보 " + arcCornerCount("정보") + "</span></div>" +
       "<div><b>3<i>년</i></b><span>" + first + " – " + last + " 수집</span></div>";
   }
 
   function renderArcHomeStats() {
     var box = $("#arc-home-stats");
-    if (!box || !A) return;
+    if (!box || !window.ARCHIVE) return;
     box.innerHTML = [
-      [A.total, "건", "아카이브 기사"],
-      [A.issues.length, "개", "호 (24년~26년 11월)"],
-      [A.corners.length, "개", "소개·뉴스·인터뷰·정보"],
+      [A().total, "건", "아카이브 기사"],
+      [A().issues.length, "개", "호 (24년~26년 11월)"],
+      [A().corners.length, "개", "소개·뉴스·인터뷰·정보"],
       [3, "년", "2023.12 – 2026.11"]
     ].map(function (s) {
       return "<li><b>" + s[0] + "<i>" + s[1] + "</i></b><span>" + s[2] + "</span></li>";
@@ -612,11 +625,11 @@
     all.type = "button";
     all.dataset.issue = "all";
     all.setAttribute("aria-pressed", "true");
-    all.innerHTML = esc(T("filter.allIssues")) + " <i>" + A.total + "</i>";
+    all.innerHTML = esc(T("filter.allIssues")) + " <i>" + A().total + "</i>";
     all.addEventListener("click", function () { setArc("issue", "all"); });
     iBox.appendChild(all);
 
-    A.issues.forEach(function (is) {
+    A().issues.forEach(function (is) {
       var b = el("button", "arc-chip");
       b.type = "button";
       b.dataset.issue = is.id;
@@ -631,11 +644,11 @@
     cAll.type = "button";
     cAll.dataset.corner = "전체";
     cAll.setAttribute("aria-pressed", "true");
-    cAll.innerHTML = esc(T("filter.allCorners")) + " <i>" + A.total + "</i>";
+    cAll.innerHTML = esc(T("filter.allCorners")) + " <i>" + A().total + "</i>";
     cAll.addEventListener("click", function () { setArc("corner", "전체"); });
     cBox.appendChild(cAll);
 
-    A.corners.forEach(function (c) {
+    A().corners.forEach(function (c) {
       var b = el("button", "arc-chip");
       b.type = "button";
       b.dataset.corner = c;
@@ -690,13 +703,13 @@
       b.setAttribute("aria-pressed", b.dataset.corner === arcState.corner ? "true" : "false");
     });
 
-    var rows = A.items.filter(arcMatch);
+    var rows = A().items.filter(arcMatch);
     var arcPer = 30;
     var arcPage = slicePage(rows, arcPer, pagerState.archive);
     pagerState.archive = arcPage.page;
-    $("#arc-count").innerHTML = (rows.length === A.total
-      ? "전체 <b>" + A.total + "</b>건 · " + A.issues.length + "개 호"
-      : "전체 " + A.total + "건 중 <b>" + rows.length + "</b>건");
+    $("#arc-count").innerHTML = (rows.length === A().total
+      ? "전체 <b>" + A().total + "</b>건 · " + A().issues.length + "개 호"
+      : "전체 " + A().total + "건 중 <b>" + rows.length + "</b>건");
 
     var lead = $("#arc-lead");
     var cur = arcState.issue === "all" ? null : arcIssueById(arcState.issue);
@@ -717,7 +730,7 @@
 
     var shownRows = arcPage.rows;
     var groups = arcState.issue === "all"
-      ? A.issues.map(function (is) {
+      ? A().issues.map(function (is) {
           return { issue: is, items: shownRows.filter(function (it) { return it.issue === is.id; }) };
         }).filter(function (g) { return g.items.length; })
       : [{ issue: cur, items: shownRows }];
@@ -742,8 +755,11 @@
     }, "아카이브");
   }
 
+  var arcInited = false;
   function initArc() {
-    if (!A || !$("#arc-list")) return;
+    /* archive.js 는 #/archive 에 들어갈 때 받습니다 — 두 번 초기화하지 않습니다. */
+    if (arcInited || !window.ARCHIVE || !$("#arc-list")) return;
+    arcInited = true;
     renderArcStats();
     renderArcHomeStats();
     renderArcFilters();
@@ -763,7 +779,7 @@
     });
 
     var lead = $("#archive-lead");
-    if (lead) lead.textContent = "8개 호 " + A.total + "건의 소개·뉴스·인터뷰·정보를 한 번에 볼 수 있습니다.";
+    if (lead) lead.textContent = "8개 호 " + A().total + "건의 소개·뉴스·인터뷰·정보를 한 번에 볼 수 있습니다.";
   }
 
   /* ---------------- info ---------------- */
@@ -886,26 +902,28 @@
   }
 
   /* ---------------- map ---------------- */
-  var K = window.KOREA;
+  /* korea-paths.js(36KB)도 지도 화면에서 지연 로딩합니다. */
+  function K() { return window.KOREA || { w: 0, h: 0, provinces: [], proj: {} }; }
   var mapBuilt = false;
   var regionCounts = {};
 
   function xy(lat, lng) {
-    var p = K.proj;
+    var p = K().proj;
+    if (!p || !p.k) return null;          // korea-paths.js 를 아직 받지 않았습니다(지연 로딩)
     return [p.pad + (lng - p.lonMin) * p.cosMid * p.k, p.pad + (p.latMax - lat) * p.k];
   }
   function provinceCenter(name) {
-    for (var i = 0; i < K.provinces.length; i++) {
-      if (K.provinces[i].name === name) return K.provinces[i].c;
+    for (var i = 0; i < K().provinces.length; i++) {
+      if (K().provinces[i].name === name) return K().provinces[i].c;
     }
     return null;
   }
 
   function buildMap() {
-    if (mapBuilt) return;
+    if (mapBuilt || !window.KOREA) return;      // korea-paths.js 가 아직이면 받은 뒤 다시 부릅니다
     mapBuilt = true;
     var svg = $("#korea-map");
-    svg.setAttribute("viewBox", "0 0 " + K.w + " " + K.h);
+    svg.setAttribute("viewBox", "0 0 " + K().w + " " + K().h);
     var gP = $("#map-provinces"), gL = $("#map-labels");
     var labelSkip = { "세종": 1, "인천": 1, "대전": 1, "광주": 1, "대구": 1, "울산": 1 };
     // labels are dropped where a workshop pin sits, so names do not collide
@@ -915,7 +933,7 @@
     function crowded(c) {
       return pinPts.some(function (p) { return Math.hypot(p[0] - c[0], p[1] - c[1]) < 30; });
     }
-    K.provinces.forEach(function (p) {
+    K().provinces.forEach(function (p) {
       var path = document.createElementNS(NS, "path");
       path.setAttribute("d", p.d);
       path.setAttribute("class", "prov");
@@ -967,7 +985,7 @@
       grp.appendChild(ttl); grp.appendChild(halo); grp.appendChild(core);
       if (b.lat && b.lng) {
         var t = document.createElementNS(NS, "text");
-        var anchor = pos[0] > K.w - 120 ? "end" : "start";
+        var anchor = pos[0] > K().w - 120 ? "end" : "start";
         t.style.textAnchor = anchor;
         t.setAttribute("x", anchor === "end" ? "-13" : "13");
         t.setAttribute("y", "3.5");
@@ -1302,7 +1320,7 @@
       if (!im || !im.url) return;
       var fig = document.createElement("figure");
       fig.innerHTML = '<img src="' + esc(im.url) + '" alt="' + esc(im.caption || pTitle || "") +
-        '" loading="lazy"><figcaption>' + esc(im.caption || "") + "</figcaption>";
+        '" loading="lazy" decoding="async"><figcaption>' + esc(im.caption || "") + "</figcaption>";
       gal.appendChild(fig);
     });
     var body = $("#page-body");
@@ -1411,7 +1429,15 @@
       bodyBox.className = "post-body fmt-" + ((window.CRAFT_BODY ? window.CRAFT_BODY.normalize(pFmt2) : "text"));
     }
 
-    /* v5.0 — 글 첨부(구글 드라이브): 본문 아래에 칩으로 보여 주고 클릭하면 미리보기 */
+    /* v5.0 — 글 첨부(구글 드라이브): 본문 아래에 칩으로 보여 주고 클릭하면 미리보기
+       v6.0 — drive.js 는 지연 로딩이라, 첨부가 있는 글을 열면 먼저 받고 다시 그립니다. */
+    if (p.attachments && !window.SBP_DRIVE && !lazyState["assets/drive.js"]
+        && window.SBP && window.SBP.loadScript) {
+      lazyState["assets/drive.js"] = 1;
+      window.SBP.loadScript("assets/drive.js")
+        .then(function () { renderPostView(key); })
+        .catch(function (e) { console.warn("[lazy]", (e && e.message) || e); });
+    }
     var attachBox = $("#post-attach");
     if (!attachBox && bodyBox && bodyBox.parentNode) {
       attachBox = document.createElement("div");
@@ -1432,6 +1458,8 @@
         : "";
       attachBox.hidden = !atts.length;
     }
+
+    rememberPost(p, title);
 
     if (tags) {
       var t = [];
@@ -1725,14 +1753,145 @@
     }, b.name || "게시판");
   }
 
+  /* ---------------- 오프라인 최근 본 글 (v6.0 PWA) ----------------
+     글을 열 때마다 제목·본문을 localStorage 에 남겨, 인터넷이 끊겨도 최근 본 글을 읽게 합니다.
+     (서비스 워커는 sw.js — 정적 자산 캐시 · 콘텐츠 네트워크 우선 · /admin 제외) */
+  var RECENT_KEY = "sbpress-recent-posts";
+  var RECENT_MAX = 8;
+  function recentPosts() {
+    try {
+      var raw = localStorage.getItem(RECENT_KEY);
+      var list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) ? list : [];
+    } catch (e) { return []; }
+  }
+  function saveRecent(list) {
+    try { localStorage.setItem(RECENT_KEY, JSON.stringify((list || []).slice(0, RECENT_MAX))); } catch (e) { /* 저장 실패는 무시 */ }
+  }
+  function rememberPost(p, title) {
+    if (!p || !p.slug) return;
+    var body = String(p.body || "");
+    if (body.length > 60000) body = body.slice(0, 60000);
+    var pEn = (window.CRAFT_CMS && window.CRAFT_CMS.enPost) ? window.CRAFT_CMS.enPost(p) : {};
+    var row = {
+      slug: p.slug,
+      title: title || p.title || "",
+      category: p.category || "",
+      date: p.published_at ? String(p.published_at).slice(0, 10) : "",
+      summary: String(p.summary || "").slice(0, 200),
+      body: body,
+      format: p.body_format || "text",
+      en: (pEn && pEn.title) ? { title: pEn.title, body: String(pEn.body || ""), format: pEn.format || "" } : null,
+      url: "/post/" + encodeURIComponent(p.slug) + "/",
+      ts: Date.now()
+    };
+    var list = recentPosts().filter(function (x) { return x && x.slug !== p.slug; });
+    list.unshift(row);
+    saveRecent(list);
+    if (window.SBP_PWA && window.SBP_PWA.repaint) window.SBP_PWA.repaint();
+    /* 서비스 워커에게도 알려, 정적 글 주소(/post/<slug>/)를 캐시에 담아 둡니다. */
+    try {
+      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: "remember-post", url: row.url });
+      }
+    } catch (e) { /* 서비스 워커가 없어도 저장은 됩니다 */ }
+  }
+  function offlineText(it) {
+    var en = isEn() && it.en && it.en.title;
+    return {
+      title: en ? it.en.title : it.title,
+      body: en ? (it.en.body || it.body) : it.body,
+      format: en ? (it.en.format || it.format) : it.format
+    };
+  }
+  function showOfflinePost(slug, quiet) {
+    var it = null;
+    recentPosts().forEach(function (x) { if (x && x.slug === slug) it = x; });
+    var reader = $("#offline-reader"), listBox = $("#offline-list");
+    if (!it || !reader) return;
+    var t = offlineText(it);
+    $("#offline-reader-title").textContent = t.title || "";
+    $("#offline-reader-meta").textContent = [it.date, it.category].filter(Boolean).join(" · ");
+    var bodyBox = $("#offline-reader-body");
+    if (bodyBox) {
+      var text = String(t.body || it.summary || "");
+      bodyBox.innerHTML = (window.CRAFT_BODY)
+        ? window.CRAFT_BODY.render(text, t.format)
+        : esc(text).replace(/\n/g, "<br>");
+      bodyBox.className = "post-body fmt-" + ((window.CRAFT_BODY ? window.CRAFT_BODY.normalize(t.format) : "text"));
+    }
+    reader.hidden = false;
+    if (listBox) listBox.hidden = true;
+    if (!quiet && reader.scrollIntoView) reader.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  function renderOfflineView(slug) {
+    var listBox = $("#offline-list");
+    if (!listBox) return;
+    var list = recentPosts();
+    var empty = $("#offline-empty"), reader = $("#offline-reader"), lead = $("#offline-lead");
+    if (lead) {
+      lead.textContent = isEn()
+        ? "Posts you opened in this browser are kept here. They stay readable without a connection."
+        : "이 브라우저에서 열어 본 글을 저장해 두었습니다. 인터넷이 끊겨도 아래 글은 본문까지 열립니다.";
+    }
+    listBox.innerHTML = "";
+    listBox.hidden = false;
+    if (reader) reader.hidden = true;
+    if (!list.length) {
+      if (empty) empty.hidden = false;
+      return;
+    }
+    if (empty) empty.hidden = true;
+    list.forEach(function (it) {
+      var t = offlineText(it);
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "offline-card";
+      b.setAttribute("data-offline-post", it.slug);
+      b.innerHTML = "<b>" + esc(t.title) + "</b>" +
+        "<span>" + esc([it.date, it.category].filter(Boolean).join(" · ")) + "</span>" +
+        (it.summary ? "<em>" + esc(it.summary) + "</em>" : "");
+      b.addEventListener("click", function () { showOfflinePost(it.slug); });
+      listBox.appendChild(b);
+    });
+    if (slug) showOfflinePost(slug, true);
+  }
+
   /* ---------------- routing ---------------- */
+  /* v6.0 코드 분할 — 첫 화면에서 빼 둔 스크립트는 그 화면에 처음 들어갈 때 한 번 받습니다. */
+  var LAZY_ROUTES = {
+    tasks: ["assets/tasks.js", "assets/drive.js"],
+    approvals: ["assets/approvals.js", "assets/drive.js"],
+    mypage: ["assets/mypage.js"],
+    archive: ["assets/archive.js"],
+    map: ["assets/korea-paths.js"],
+    page: ["assets/hunmin.js", "assets/korea-paths.js"],
+    offline: []
+  };
+  var lazyState = {};
+  function ensureRouteScripts(name) {
+    var list = LAZY_ROUTES[name];
+    if (!list || !list.length) return false;
+    var S = window.SBP;
+    if (!S || !S.loadScripts) return false;
+    var need = list.filter(function (p) { return !lazyState[p]; });
+    if (!need.length) return false;
+    need.forEach(function (p) { lazyState[p] = 1; });
+    S.loadScripts(need).then(function () {
+      paintArchiveLinks();
+      if (name === "archive") initArc();
+      route(false);                        // 스크립트가 준비됐으니 그 화면을 다시 그립니다.
+    }).catch(function (e) { console.warn("[lazy]", e && e.message ? e.message : e); });
+    return true;
+  }
+
   var VIEWS = VIEW_KEYS.slice();
   var TITLES = {
     home: CFG.siteTitle || (BRAND + " — 새 소식"),
     workshops: "공방 소개 — " + BRAND,
     news: "공방 뉴스 — " + BRAND,
     interview: "작가 인터뷰 — " + BRAND,
-    archive: "아카이브 (2024–2026) " + (window.ARCHIVE ? window.ARCHIVE.total : 0) + "건 — " + BRAND,
+    archive: "아카이브 (2024–2026) " + arcTotal() + "건 — " + BRAND,
     info: "지원·공모 정보 — " + BRAND,
     map: "전국 공방 지도 & 등록 게시판 — " + BRAND,
     tasks: "업무 관리 — " + BRAND,
@@ -1745,6 +1904,7 @@
   };
   function route(scroll) {
     var r = parseRoute();
+    ensureRouteScripts(r.name);
     VIEWS.forEach(function (name) {
       var view = document.getElementById("view-" + name);
       if (!view) return;
@@ -1763,6 +1923,7 @@
     if (r.name === "mypage" && window.CRAFT_MYPAGE) window.CRAFT_MYPAGE.show();
     if (r.name === "tasks" && window.CRAFT_TASKS) window.CRAFT_TASKS.show();
     if (r.name === "approvals" && window.CRAFT_APPROVALS) window.CRAFT_APPROVALS.show();
+    if (r.name === "offline") renderOfflineView(r.arg);
     if (r.name === "board") {
       if (r.arg !== lastBoardArg) { pagerState.board = 1; lastBoardArg = r.arg; }
       renderCustomBoard(r.arg);
@@ -1896,9 +2057,19 @@
     var r = parseRoute();
     if (r.name === "page") renderPageView(r.arg);
   }
+  var offlineBack = $("#offline-reader-back");
+  if (offlineBack) {
+    offlineBack.addEventListener("click", function () {
+      var rd = $("#offline-reader"), lb = $("#offline-list");
+      if (rd) rd.hidden = true;
+      if (lb) lb.hidden = false;
+    });
+  }
   window.CRAFT_APP = {
     refresh: refreshAll,
     mapPlaces: function () { return board.slice(); },
-    refreshPageBlocks: refreshPageBlocks
+    refreshPageBlocks: refreshPageBlocks,
+    recentPosts: recentPosts,
+    showOfflinePost: showOfflinePost
   };
 })();

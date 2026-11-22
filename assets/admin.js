@@ -884,7 +884,7 @@
       p.hidden = p.id !== "tab-" + name;
     });
     if (name === "dash" && !CMS.adminsLoaded) loadAdmins();
-    if (name === "dash") { loadAudit(); loadStats(); loadBudget(); loadDbUsage(); }
+    if (name === "dash") { loadAudit(); loadStats(); loadBudget(); loadTraffic(); loadDbUsage(); }
     if (name === "pages") { if (!CMS.loaded.pages) loadPages(); loadPageManager(); }
     if (name === "brand" && !CMS.loaded.brand) loadBrand();
     if (name === "brand") { loadGrade(); loadTheme(); }
@@ -5814,6 +5814,59 @@
     if ((el = $("#budget-stamp"))) el.textContent = (d.commit || "–") + " · " + String(d.generatedAt || "").slice(5, 16).replace("T", " ");
   }
 
+  /* ---------------- v6.0: 첫 화면 전송량 · 월 트래픽 ----------------
+     assets/traffic-budget.json 은 scripts/measure_traffic.py 가 만듭니다(300KB 예산 · 월 100GB 대비 %). */
+  var TRAFFIC = { loaded: false };
+
+  function loadTraffic(force) {
+    var msg = $("#traffic-msg");
+    if (TRAFFIC.loaded && !force) return Promise.resolve();
+    if (TRAFFIC.inflight) return TRAFFIC.inflight;
+    if (msg) { msg.textContent = ""; msg.className = "cms-toast"; }
+    TRAFFIC.inflight = fetch("/assets/traffic-budget.json?t=" + Date.now(), { cache: "no-store" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
+      .then(function (d) { renderTraffic(d); TRAFFIC.loaded = true; })
+      .catch(function () {
+        if (msg) cmsMsg("traffic-msg", "전송량 자료(assets/traffic-budget.json)를 읽지 못했습니다. scripts/measure_traffic.py 를 실행해 주세요.", "err");
+      })
+      .then(function () { TRAFFIC.inflight = null; });
+    return TRAFFIC.inflight;
+  }
+
+  function renderTraffic(d) {
+    var after = d.after || {}, before = d.before || {}, gate = d.gate || {}, m = d.monthly || {}, live = d.live || {};
+    var el;
+    var bytes = Number(after.totalBytes || 0);
+    var pct = Number(gate.usedPercent || 0);
+    if ((el = $("#traffic-first"))) el.textContent = fmtBytes(bytes);
+    if ((el = $("#traffic-percent"))) el.textContent = pct.toFixed(1) + "%";
+    if ((el = $("#traffic-fill"))) {
+      el.style.width = Math.max(1.5, Math.min(100, pct)) + "%";
+      var bar = el.parentNode;
+      if (bar && bar.classList) bar.className = "budget-bar" + (pct >= 90 ? " warn" : "");
+    }
+    if ((el = $("#traffic-before"))) el.textContent = fmtBytes(before.totalBytes);
+    if ((el = $("#traffic-reduction"))) {
+      el.textContent = (d.reductionPercent == null) ? "–" : (d.reductionPercent.toFixed(1) + "% ↓");
+    }
+    if ((el = $("#traffic-monthly"))) {
+      el.textContent = (m.gbPerMonth == null) ? "–" : (Number(m.gbPerMonth).toFixed(2) + " GB");
+    }
+    if ((el = $("#traffic-cap"))) {
+      el.textContent = (m.percentOfCap == null) ? "–" : (Number(m.percentOfCap).toFixed(2) + "%");
+    }
+    if ((el = $("#traffic-live"))) {
+      el.textContent = live && live.totalBytes ? fmtBytes(live.totalBytes) : "–";
+    }
+    if ((el = $("#traffic-stamp"))) el.textContent = "v" + String(d.version || "") + " · " + String(d.generatedAt || "").slice(5, 16).replace("T", " ");
+    if (!gate.ok && $("#traffic-msg")) {
+      cmsMsg("traffic-msg", "첫 화면 전송량이 300KB 예산을 넘었습니다 — 스크립트·이미지·폰트를 줄여 주세요.", "err");
+    }
+  }
+
   function kstYmd(d) {
     try {
       return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
@@ -6223,6 +6276,8 @@
     if (sr) sr.addEventListener("click", function () { STATS.loaded = false; loadStats(); });
     var br = $("#budget-reload");
     if (br) br.addEventListener("click", function () { loadBudget(true); });
+    var tr = $("#traffic-reload");
+    if (tr) tr.addEventListener("click", function () { loadTraffic(true); });
 
     /* 구독자 */
     var subReload = $("#sub-reload");

@@ -9,7 +9,10 @@
     "anonKey": "sb_publishable_h_LulYLMWm80M6ZfqMdc9w_jncYNhDe"
   },
   "ga4Id": "G-L7820HKGET",
-  "providers": ["google", "email"],
+  "providers": [
+    "google",
+    "email"
+  ],
   "defaultTheme": "craft",
   "defaultLang": "ko",
   "features": {
@@ -33,9 +36,27 @@
   "ownerEmail": "craftstore.kr@gmail.com",
   "naverAuthUrl": "",
   "links": [
-    { "t": "Google Cloud Console", "s": "OAuth 클라이언트·키 관리", "h": "https://console.cloud.google.com/apis/credentials?project=craftstore-kr" },
-    { "t": "Google Sites (전국공방)", "s": "sites.google.com/view/craftstore-kr", "h": "https://sites.google.com/view/craftstore-kr" },
-    { "t": "공방 등록 신청서", "s": "응답자 링크", "h": "https://docs.google.com/forms/d/e/1FAIpQLSfsAqB6xnd8iNofTPrmpF6XKYlWrb_vMhYaYuEvMup3IS2oiw/viewform" },
-    { "t": "GitHub 저장소", "s": "craftstorekorea.github.io", "h": "https://github.com/craftstorekorea/craftstorekorea.github.io" }
-  ]
+    {
+      "t": "Google Cloud Console",
+      "s": "OAuth 클라이언트·키 관리",
+      "h": "https://console.cloud.google.com/apis/credentials?project=craftstore-kr"
+    },
+    {
+      "t": "Google Sites (전국공방)",
+      "s": "sites.google.com/view/craftstore-kr",
+      "h": "https://sites.google.com/view/craftstore-kr"
+    },
+    {
+      "t": "공방 등록 신청서",
+      "s": "응답자 링크",
+      "h": "https://docs.google.com/forms/d/e/1FAIpQLSfsAqB6xnd8iNofTPrmpF6XKYlWrb_vMhYaYuEvMup3IS2oiw/viewform"
+    },
+    {
+      "t": "GitHub 저장소",
+      "s": "craftstorekorea.github.io",
+      "h": "https://github.com/craftstorekorea/craftstorekorea.github.io"
+    }
+  ],
+  "archiveTotal": 151,
+  "archiveDocUrl": "https://docs.google.com/document/d/1GKTEYBFJAvM0vybZJ3w9p5ZAguBMkyzoy9etiaIyFtE/edit"
 }

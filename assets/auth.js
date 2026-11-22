@@ -27,6 +27,62 @@
   var registry = [];            // 찜 버튼 요소들
   var ready = false;
 
+  /* ---------- v6.0 지연 로딩: supabase-js(221KB)는 필요할 때만 ----------
+     첫 화면에서는 받지 않고, ① 이미 로그인한 세션이 브라우저에 있거나
+     ② 로그인·가입·비밀번호 재설정·OAuth 복귀일 때만 내려받습니다.
+     (익명 방문자·검색 로봇은 첫 화면에서 221KB 를 아예 받지 않습니다.) */
+  var sbLoading = null;
+  function storageRef() {
+    return String(CFG.url || "").replace(/^https?:\/\//, "").split(".")[0];
+  }
+  function hasStoredSession() {
+    try {
+      var raw = localStorage.getItem("sb-" + storageRef() + "-auth-token");
+      if (!raw) return false;
+      var o = JSON.parse(raw);
+      return !!(o && (o.access_token || o.refresh_token || o.currentSession));
+    } catch (e) { return false; }
+  }
+  function authReturnParams() {
+    var q = (location.search || "") + (location.hash || "");
+    return /(social_token|naver_token|social_error|naver_error|type=recovery|access_token=|error_description=)/.test(q);
+  }
+  function bootSupabase(cb) {
+    if (sb) { if (cb) cb(); return Promise.resolve(true); }
+    if (sbLoading) { if (cb) sbLoading.then(function () { cb(); }, function () {}); return sbLoading; }
+    var loader = (window.SBP && window.SBP.loadScript)
+      ? window.SBP.loadScript("assets/supabase.js")
+      : Promise.reject(new Error("SBP.loadScript 없음"));
+    sbLoading = loader.then(function () {
+      if (typeof supabase === "undefined" || !supabase.createClient) throw new Error("supabase-js 없음");
+      sb = supabase.createClient(CFG.url, CFG.anonKey, {
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+      });
+      sb.auth.onAuthStateChange(function (_evt, s) {
+        if (!ready) return;
+        var changed = (s && s.user ? s.user.id : null) !== (session && session.user ? session.user.id : null);
+        onSession(s, changed && !!s);
+      });
+      startSession();                 // ready=true → 이후 로그인·로그아웃 이벤트를 받습니다
+      return sb;
+    }).catch(function (e) {
+      sbLoading = null;
+      console.error("[auth] supabase-js 를 불러오지 못했습니다.", (e && e.message) || e);
+      if (msgBox) msg("로그인 기능을 준비하지 못했습니다. 잠시 후 다시 시도해 주세요.", "err");
+      throw e;
+    });
+    if (cb) sbLoading.then(function () { cb(); }, function () {});
+    return sbLoading;
+  }
+  function startSession() {
+    if (!sb) return;
+    sb.auth.getSession().then(function (r) {
+      ready = true;
+      onSession(r.data ? r.data.session : null);
+      handleReturn();
+    });
+  }
+
   var $ = function (sel, root) { return (root || document).querySelector(sel); };
   var I18N = window.CRAFT_I18N || null;
   function T(key, vars) { return I18N ? I18N.t(key, vars) : key; }
@@ -303,6 +359,7 @@
 
   function openAuth(which, note) {
     if (!modal) buildModal();
+    bootSupabase();
     if (!CONFIGURED) {
       setMode("signin");
       msg("로그인 기능을 준비 중입니다. 잠시 후 다시 이용해 주세요.", "warn");
@@ -337,7 +394,7 @@
   }
 
   function signIn() {
-    if (!sb) return;
+    if (!sb) { bootSupabase(signIn); return; }
     var email = ($("#auth-email", modal).value || "").trim();
     var pass = $("#auth-pass", modal).value || "";
     if (!email || !pass) return msg("이메일과 비밀번호를 입력해 주세요.", "warn");
@@ -351,7 +408,7 @@
   }
 
   function signUp() {
-    if (!sb) return;
+    if (!sb) { bootSupabase(signUp); return; }
     var email = ($("#auth-email", modal).value || "").trim();
     var pass = $("#auth-pass", modal).value || "";
     var nick = ($("#auth-nick", modal).value || "").trim();
@@ -375,7 +432,7 @@
   }
 
   function forgotPassword() {
-    if (!sb) return;
+    if (!sb) { bootSupabase(forgotPassword); return; }
     var email = ($("#auth-email", modal).value || "").trim();
     if (!email) return msg("비밀번호를 재설정할 이메일을 먼저 입력해 주세요.", "warn");
     busy(true);
@@ -387,7 +444,7 @@
   }
 
   function updatePassword() {
-    if (!sb) return;
+    if (!sb) { bootSupabase(updatePassword); return; }
     var pass = $("#auth-pass", modal).value || "";
     if (pass.length < 6) return msg("비밀번호는 6자 이상으로 정해 주세요.", "warn");
     busy(true);
@@ -417,7 +474,7 @@
   }
 
   function oauth(p) {
-    if (!sb) return;
+    if (!sb) { bootSupabase(function () { oauth(p); }); return; }
     if (p === "naver" || p === "kakao") {
       var ready = p === "naver"
         ? (siteKey("social.naver_client_id") || CFG.naverAuthUrl)
@@ -445,7 +502,7 @@
   }
 
   function signOut() {
-    if (!sb) return;
+    if (!sb) { bootSupabase(signOut); return; }
     sb.auth.signOut().then(function () {
       bookmarks = []; bookmarkSet = Object.create(null);
       paintBookmarks();
@@ -758,24 +815,8 @@
       return;
     }
     renderHeader();
-    if (typeof supabase === "undefined" || !supabase.createClient) {
-      console.error("[auth] supabase-js 를 불러오지 못했습니다.");
-      return;
-    }
-    sb = supabase.createClient(CFG.url, CFG.anonKey, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-    });
-
-    sb.auth.getSession().then(function (r) {
-      ready = true;
-      onSession(r.data ? r.data.session : null);
-      handleReturn();
-    });
-    sb.auth.onAuthStateChange(function (_evt, s) {
-      if (!ready) return;
-      var changed = (s && s.user ? s.user.id : null) !== (session && session.user ? session.user.id : null);
-      onSession(s, changed && !!s);
-    });
+    /* 로그인 상태로 들어온 사람·OAuth 복귀만 supabase-js 를 바로 받습니다. */
+    if (hasStoredSession() || authReturnParams()) bootSupabase(startSession);
   }
 
   window.CRAFT_AUTH = {

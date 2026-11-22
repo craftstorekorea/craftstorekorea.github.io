@@ -15,11 +15,13 @@
 <meta property="og:site_name" content="전국공방">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233E2F26'/%3E%3Cpath d='M9 21c0-4 3-5 7-5s7-1 7-5' stroke='%23C86D44' stroke-width='2.6' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='9' cy='21' r='2.2' fill='%23F7F5F2'/%3E%3C/svg%3E">
+<!-- v6.0 PWA — 홈 화면에 설치(standalone) · 오프라인에서도 최근 본 글 -->
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preload" as="image" href="assets/hero-1600.webp" imagesrcset="assets/hero-900.webp 900w, assets/hero-1600.webp 1600w" imagesizes="100vw">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap">
+<!-- v6.0 — 나눔고딕 woff2 서브셋을 self-host (assets/styles.css 의 @font-face, font-display:swap) -->
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/nanum-gothic-400.woff2" crossorigin>
 <link rel="stylesheet" href="assets/styles.css">
 <link rel="alternate" type="application/rss+xml" title="전국공방 새 소식 (RSS)" href="/rss.xml">
 <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml">
@@ -27,6 +29,25 @@
 </head>
 <body data-theme="magazine">
 <a class="skip" href="#main">본문으로 바로가기</a>
+
+<!-- 오프라인 안내 배너 (assets/pwa.js 가 채웁니다) -->
+<div class="offline-bar" id="offline-bar" hidden role="status" aria-live="polite">
+  <span class="offline-dot" aria-hidden="true"></span>
+  <span class="offline-text" id="offline-text" data-i18n="pwa.offline.banner">오프라인입니다. 최근 본 글은 그대로 읽을 수 있습니다.</span>
+  <a class="offline-link" id="offline-open" href="#/offline" data-i18n="pwa.offline.open">최근 본 글</a>
+  <button class="offline-x" id="offline-x" type="button" aria-label="안내 닫기" data-i18n-aria="pwa.offline.close">×</button>
+</div>
+
+<!-- 앱 설치 안내 (beforeinstallprompt) -->
+<div class="install-bar" id="install-bar" hidden role="dialog" aria-labelledby="install-text">
+  <img class="install-icon" src="assets/icon-192.png" alt="" width="40" height="40">
+  <div class="install-copy">
+    <strong data-i18n="pwa.install.title">앱처럼 설치해서 쓰기</strong>
+    <span id="install-text" data-i18n="pwa.install.text">홈 화면에 추가하면 주소창 없이 열리고, 최근 본 글을 오프라인에서도 읽을 수 있습니다.</span>
+  </div>
+  <button class="btn btn-primary btn-sm" id="install-go" type="button" data-i18n="pwa.install.go">설치</button>
+  <button class="install-x" id="install-x" type="button" aria-label="설치 안내 닫기" data-i18n-aria="pwa.install.close">×</button>
+</div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <defs>
@@ -469,7 +490,7 @@
         <p class="eyebrow" id="post-eyebrow">게시판</p>
         <h1 class="page-title" id="post-title"></h1>
         <p class="post-meta" id="post-meta"></p>
-        <img id="post-img" class="post-hero" alt="" loading="lazy" hidden>
+        <img id="post-img" class="post-hero" alt="" loading="lazy" decoding="async" hidden>
         <div class="post-body" id="post-body"></div>
         <div class="post-tags" id="post-tags"></div>
         <div class="post-foot" id="post-foot"></div>
@@ -502,6 +523,27 @@
         <p class="search-hint" id="search-hint" data-i18n="search.hint">제목·요약·본문·태그·게시판 이름에서 한 번에 찾습니다. 낱말을 띄어 쓰면 모두 들어간 글만 보여 줍니다.</p>
         <div class="search-results" id="search-results"></div>
         <p class="page-empty" id="search-empty" hidden></p>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ 오프라인 최근 본 글 (#/offline) — PWA v6.0 ============ -->
+  <div class="view" id="view-offline" role="tabpanel" hidden>
+    <section class="section">
+      <div class="wrap offline-view">
+        <p class="eyebrow" data-i18n="pwa.offline.eyebrow">오프라인 · 최근 본 글</p>
+        <h1 class="page-title" data-i18n="pwa.offline.title">최근 본 글을 그대로 읽습니다</h1>
+        <p class="offline-lead" id="offline-lead" data-i18n="pwa.offline.lead">이 브라우저에서 열어 본 글을 저장해 두었습니다. 인터넷이 끊겨도 아래 글은 본문까지 열립니다.</p>
+        <div class="offline-list" id="offline-list"></div>
+        <p class="page-empty" id="offline-empty" hidden data-i18n="pwa.offline.empty">아직 저장된 글이 없습니다. 온라인일 때 글을 하나 읽으면 여기에 쌓입니다.</p>
+        <article class="offline-reader" id="offline-reader" hidden>
+          <h2 id="offline-reader-title"></h2>
+          <p class="offline-reader-meta" id="offline-reader-meta"></p>
+          <div class="post-body fmt-text" id="offline-reader-body"></div>
+          <div class="offline-reader-foot">
+            <button class="btn btn-ghost btn-sm" type="button" id="offline-reader-back" data-i18n="pwa.offline.back">목록으로</button>
+          </div>
+        </article>
       </div>
     </section>
   </div>
@@ -588,26 +630,21 @@
   </div>
 </noscript>
 
+<!-- v6.0 첫 화면(300KB 예산) — 여기 있는 것만 첫 로드에서 받습니다.
+     supabase.js · tasks · approvals · mypage · drive · editor · archive · korea-paths · hunmin · notify 는
+     그 화면에 들어갈 때 assets/config.js 의 SBP.loadScript() 가 동적으로 불러옵니다. -->
 <script src="assets/config.js"></script>
-<script src="assets/supabase.js"></script>
 <script src="assets/auth-config.js"></script>
 <script src="assets/i18n.js"></script>
 <script src="assets/auth.js"></script>
 <script src="assets/data.js"></script>
-<script src="assets/archive.js"></script>
-<script src="assets/korea-paths.js"></script>
 <script src="assets/cms.js"></script>
-<script src="assets/hunmin.js"></script>
 <script src="assets/body-format.js"></script>
-<script src="assets/editor.js"></script>
 <script src="assets/share.js"></script>
 <script src="assets/app.js"></script>
-<script src="assets/tasks.js"></script>
-<script src="assets/approvals.js"></script>
-<script src="assets/mypage.js"></script>
-<script src="assets/drive.js"></script>
 <script src="assets/notify.js"></script>
 <script src="assets/plugins.js"></script>
+<script src="assets/pwa.js"></script>
 
 <!-- 댓글 드로어 (assets/cms.js 가 채웁니다) -->
 <div id="cmt-root"></div>

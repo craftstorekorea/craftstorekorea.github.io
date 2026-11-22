@@ -90,8 +90,14 @@ post/<slug>/index.html    글 정적 SEO 페이지 (../build_static_seo.py)
 p/<slug>/index.html       페이지 정적 SEO 페이지 (../build_static_seo.py)
 assets/static-post.css    정적 글·페이지 공통 스타일 (v3.0 — 글마다 인라인 <style> 대신 이 파일)
 assets/repo-budget.json   저장소 용량 예산 실측값 (v3.0 — scripts/check_repo_budget.py)
+assets/traffic-budget.json 첫 화면 전송량·월 트래픽 실측값 (v6.0 — scripts/measure_traffic.py)
+manifest.webmanifest      PWA 매니페스트 (이름·아이콘 192/512/maskable·standalone·start_url /)
+sw.js                     서비스 워커 (정적 자산 캐시 우선 · 콘텐츠 네트워크 우선 · /admin·인증 캐시 제외)
+assets/pwa.js             서비스 워커 등록 · 오프라인 배너 · 설치 안내(beforeinstallprompt)
+assets/icon-192|512*.png  PWA 아이콘 (maskable 포함)
+assets/fonts/nanum-gothic-400.woff2  나눔고딕 woff2 서브셋 (한글 901자 + 라틴·기호, self-host)
 core-manifest.json        코어·사이트 경계와 엔진 해시 (v3.0 — ../sync_template.py --manifest)
-scripts/build_static_seo.py | build_feeds.py | check_repo_budget.py  빌드·피드·용량 스크립트 (GitHub Actions 가 실행)
+scripts/build_static_seo.py | build_feeds.py | check_repo_budget.py | measure_traffic.py  빌드·피드·용량·전송량 스크립트 (GitHub Actions 가 실행)
 ```
 
 > **왜 폴더가 아니라 루트 `.html` 파일인가** — GitHub Pages는 `/admin` 요청에 같은 이름의 파일
@@ -99,6 +105,25 @@ scripts/build_static_seo.py | build_feeds.py | check_repo_budget.py  빌드·피
 > `/admin` 은 루트 스텁이 열려 자기 자신으로 되돌아가는 고리가 됩니다. 그래서 실제 페이지는
 > `admin.html`·`privacy.html`·`terms.html` 에 두고(주소는 `/admin`·`/privacy`·`/terms`),
 > 폴더의 `index.html` 은 `/admin/` 처럼 끝에 `/` 를 붙여 들어온 주소만 받아 넘깁니다.
+
+## v6.0 기능 (PWA · 오프라인 · 첫 화면 300KB)
+
+**8-A. PWA 앱화**
+- `manifest.webmanifest` + 아이콘 192·512·512 maskable — Android Chrome 에서 ‘홈 화면에 추가’(standalone)
+- `sw.js` 서비스 워커 — 정적 자산은 **캐시 우선**(버전 키 `v6.0.0`, 새 버전이면 캐시 교체), 문서·콘텐츠는
+  **네트워크 우선 + 캐시 폴백**. **`/admin`·인증(`auth`)·Authorization 헤더 요청은 절대 캐시하지 않습니다.**
+- 오프라인 최근 본 글 — 글을 열 때 제목·본문을 `localStorage('sbpress-recent-posts')` 에 남기고(최근 8건),
+  오프라인 배너 → `#/offline` 에서 본문까지 읽습니다. 정적 글 주소(`/post/<slug>/`)도 서비스 워커가 함께 담아 둡니다.
+- 설치 안내 — `beforeinstallprompt` 를 잡아 두었다가 하단 배너 [설치] 로 띄웁니다(2주간 다시 묻지 않기).
+
+**8-B. 트래픽·속도 (월 100GB 방어)**
+- 코드 분할 — `supabase.js`(221KB)·`tasks`·`approvals`·`mypage`·`drive`·`editor`·`archive`·`korea-paths`·`hunmin` 은
+  그 화면에 들어갈 때 `SBP.loadScript()` 로 받습니다. 홈 첫 로드 스크립트 20개 → 12개(그중 supabase 제외).
+  로그인 세션이 이미 있거나 로그인·OAuth 복귀일 때만 supabase-js 를 바로 받습니다.
+- 폰트 — 구글 폰트 링크를 빼고 나눔고딕 woff2 서브셋(62KB)을 self-host, `font-display:swap`
+- 이미지 — `loading="lazy"`·`decoding="async"`, 히어로 WebP 1600/900 2종(재압축 47KB·23KB)
+- **첫 화면 전송량 247KB (gzip)** — v5.1 360KB 대비 −31%, 예산 300KB의 82.6%. 실측은 `scripts/measure_traffic.py`
+- `/admin` 대시보드 ‘첫 화면 전송량 · 월 트래픽’ 카드 — 첫 화면 KB·예산 대비 %·before/after·월 3만 PV 기준 GB·100GB 대비 %·브라우저 실측
 
 ## v5.1 기능 (드래그 블록 빌더 · 테마 토큰 · 플러그인 manifest)
 

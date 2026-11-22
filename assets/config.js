@@ -184,5 +184,47 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", apply);
   else apply();
 
+  /* ---------- v6.0 지연 로딩 (코드 분할) ----------
+     첫 화면에 필요 없는 스크립트는 그 화면에 들어갈 때 한 번만 받습니다.
+       SBP.loadScript("assets/tasks.js").then(...)
+     같은 파일을 두 번 요청하지 않고, 실패하면 다음에 다시 시도합니다. */
+  var scriptCache = {};
+  function scriptUrl(src) {
+    var s = String(src || "");
+    if (/^(https?:)?\/\//.test(s) || s.charAt(0) === "/") return s;
+    return basePath() + s;
+  }
+  function loadScript(src) {
+    var s = String(src || "");
+    if (!s) return Promise.reject(new Error("loadScript: 빈 경로"));
+    if (scriptCache[s]) return scriptCache[s];
+    scriptCache[s] = new Promise(function (resolve, reject) {
+      var tag = document.createElement("script");
+      tag.src = scriptUrl(s);
+      tag.async = true;
+      tag.setAttribute("data-sbp-lazy", s);
+      tag.onload = function () { resolve(s); };
+      tag.onerror = function () {
+        delete scriptCache[s];
+        reject(new Error("loadScript 실패: " + s));
+      };
+      document.head.appendChild(tag);
+    });
+    return scriptCache[s];
+  }
+  function loadScripts(list) {
+    return Promise.all((list || []).map(loadScript));
+  }
+  /* v6.0 — 아카이브 자료(assets/archive.js, 58KB)는 #/archive 에 들어갈 때 받습니다.
+     첫 화면의 ‘아카이브 N건’ 숫자는 설정값으로 먼저 보여 줍니다. */
+  function archiveTotal() {
+    if (window.ARCHIVE && window.ARCHIVE.total) return Number(window.ARCHIVE.total);
+    return Number(cfg.archiveTotal || 0) || 0;
+  }
+  API.loadScript = loadScript;
+  API.loadScripts = loadScripts;
+  API.archiveTotal = archiveTotal;
+  API.loadedScripts = function () { return Object.keys(scriptCache); };
+
   API.applyBrand = fillBrand;
 })();

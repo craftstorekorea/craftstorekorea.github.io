@@ -10,9 +10,7 @@
 <link rel="canonical" href="/admin">
 <meta name="theme-color" content="#F7F5F2">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233E2F26'/%3E%3Cpath d='M9 21c0-4 3-5 7-5s7-1 7-5' stroke='%23C86D44' stroke-width='2.6' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='9' cy='21' r='2.2' fill='%23F7F5F2'/%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap">
+<!-- v6.0 — 나눔고딕은 assets/styles.css 의 @font-face(self-host)로 받습니다 -->
 <link rel="stylesheet" href="/assets/styles.css">
 <link rel="stylesheet" href="/assets/admin.css">
 </head>
@@ -282,6 +280,29 @@
         </ul>
         <p class="cms-hint" id="budget-git-hint">정적 글 HTML 은 배포마다 다시 구워져 .git 이력이 빨리 늘어납니다. 한 달에 한 번 git gc --aggressive 로 압축하거나, 봇 커밋을 한 달 단위로 squash 하세요.</p>
         <p class="cms-toast" id="budget-msg" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="panel panel-wide" id="p-traffic">
+        <div class="panel-head">
+          <h2>첫 화면 전송량 · 월 트래픽</h2>
+          <div class="panel-tools">
+            <span class="panel-tag" id="traffic-stamp"></span>
+            <button type="button" class="btn btn-ghost btn-sm" id="traffic-reload">새로고침</button>
+          </div>
+        </div>
+        <p class="panel-note" id="traffic-note">공개 첫 화면(/)이 내려받는 양을 300KB 예산과 GitHub Pages 월 100GB 한도에 견줍니다. scripts/measure_traffic.py 가 만든 assets/traffic-budget.json 을 읽습니다.</p>
+        <div class="budget-bar" role="img" aria-labelledby="traffic-percent"><i id="traffic-fill"></i></div>
+        <ul class="budget-grid">
+          <li><span class="budget-k">첫 화면 전송량</span><b id="traffic-first">–</b></li>
+          <li><span class="budget-k">300KB 예산 대비</span><b id="traffic-percent">–</b></li>
+          <li><span class="budget-k">8단계 이전(v5.1)</span><b id="traffic-before">–</b></li>
+          <li><span class="budget-k">감소율</span><b id="traffic-reduction">–</b></li>
+          <li><span class="budget-k">월 트래픽(3만 PV)</span><b id="traffic-monthly">–</b></li>
+          <li><span class="budget-k">월 100GB 대비</span><b id="traffic-cap">–</b></li>
+          <li><span class="budget-k">브라우저 실측</span><b id="traffic-live">–</b></li>
+        </ul>
+        <p class="cms-hint" id="traffic-hint">정적 자산은 gzip 전송량으로, 이미지·폰트는 원본 크기로 셉니다(첫 방문 1회 기준). 늘어나면 이미지·폰트·스크립트를 줄이세요.</p>
+        <p class="cms-toast" id="traffic-msg" role="status" aria-live="polite"></p>
       </section>
 
       <section class="panel panel-wide" id="p-dbusage">

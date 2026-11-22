@@ -460,7 +460,8 @@
   /* ---------------- site_contents → 화면 ---------------- */
   function vars(v) {
     var total = (S.workshops || []).length + (S.news || []).length + (S.interviews || []).length + (S.info || []).length;
-    var arc = (window.ARCHIVE && window.ARCHIVE.total) || 0;
+    var arc = (window.ARCHIVE && window.ARCHIVE.total)
+      || (window.SBP && window.SBP.archiveTotal ? window.SBP.archiveTotal() : 0);
     return String(v)
       .replace(/\{total\}/g, total)
       .replace(/\{archive\}/g, arc)

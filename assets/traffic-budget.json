@@ -1,0 +1,358 @@
+{
+  "version": "6.0",
+  "generatedAt": "2026-11-23T07:34:59+09:00",
+  "limits": {
+    "budgetBytes": 307200,
+    "budgetLabel": "300 KB",
+    "monthlyCapBytes": 107374182400,
+    "monthlyCapLabel": "100 GB",
+    "pvPerMonth": 30000
+  },
+  "after": {
+    "index": "index.html",
+    "totalBytes": 254055,
+    "resources": [
+      {
+        "kind": "html",
+        "path": "index.html",
+        "rawBytes": 42203,
+        "bytes": 10585,
+        "counted": true
+      },
+      {
+        "kind": "css",
+        "path": "assets/styles.css",
+        "rawBytes": 139565,
+        "bytes": 28442,
+        "counted": true
+      },
+      {
+        "kind": "preload",
+        "path": "assets/hero-1600.webp",
+        "rawBytes": 47346,
+        "bytes": 47346,
+        "counted": true
+      },
+      {
+        "kind": "preload",
+        "path": "assets/fonts/nanum-gothic-400.woff2",
+        "rawBytes": 61604,
+        "bytes": 61604,
+        "counted": true
+      },
+      {
+        "kind": "manifest",
+        "path": "/manifest.webmanifest",
+        "rawBytes": 1165,
+        "bytes": 528,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/config.js",
+        "rawBytes": 9593,
+        "bytes": 3592,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/auth-config.js",
+        "rawBytes": 1025,
+        "bytes": 645,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/i18n.js",
+        "rawBytes": 54769,
+        "bytes": 14904,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/auth.js",
+        "rawBytes": 37729,
+        "bytes": 10966,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/data.js",
+        "rawBytes": 27270,
+        "bytes": 9730,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/cms.js",
+        "rawBytes": 63880,
+        "bytes": 18222,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/body-format.js",
+        "rawBytes": 9059,
+        "bytes": 3512,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/share.js",
+        "rawBytes": 4413,
+        "bytes": 1829,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/app.js",
+        "rawBytes": 91287,
+        "bytes": 25182,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/notify.js",
+        "rawBytes": 18625,
+        "bytes": 5994,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/plugins.js",
+        "rawBytes": 29221,
+        "bytes": 8962,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/pwa.js",
+        "rawBytes": 5818,
+        "bytes": 2012,
+        "counted": true
+      }
+    ],
+    "install": [
+      {
+        "kind": "icon",
+        "path": "/assets/icon-192.png",
+        "rawBytes": 2624,
+        "bytes": 2624,
+        "note": "설치·홈 화면 추가 시 1회"
+      },
+      {
+        "kind": "icon",
+        "path": "/assets/icon-512.png",
+        "rawBytes": 7360,
+        "bytes": 7360,
+        "note": "설치·홈 화면 추가 시 1회"
+      },
+      {
+        "kind": "icon",
+        "path": "/assets/icon-512-maskable.png",
+        "rawBytes": 6106,
+        "bytes": 6106,
+        "note": "설치·홈 화면 추가 시 1회"
+      }
+    ]
+  },
+  "before": {
+    "version": "5.1",
+    "totalBytes": 369190,
+    "resources": [
+      {
+        "kind": "html",
+        "path": "index.html",
+        "rawBytes": 39219,
+        "bytes": 9677,
+        "counted": true
+      },
+      {
+        "kind": "html",
+        "path": "index.html",
+        "rawBytes": 39219,
+        "bytes": 9677,
+        "counted": true
+      },
+      {
+        "kind": "css",
+        "path": "https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap",
+        "rawBytes": 0,
+        "bytes": 0,
+        "counted": false,
+        "note": "외부(구글 폰트)"
+      },
+      {
+        "kind": "css",
+        "path": "assets/styles.css",
+        "rawBytes": 135847,
+        "bytes": 27344,
+        "counted": true
+      },
+      {
+        "kind": "preload",
+        "path": "assets/hero-1600.webp",
+        "rawBytes": 70980,
+        "bytes": 70980,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/config.js",
+        "rawBytes": 7827,
+        "bytes": 2984,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/supabase.js",
+        "rawBytes": 221417,
+        "bytes": 56561,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/auth-config.js",
+        "rawBytes": 1025,
+        "bytes": 645,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/i18n.js",
+        "rawBytes": 52739,
+        "bytes": 14298,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/auth.js",
+        "rawBytes": 35379,
+        "bytes": 10206,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/data.js",
+        "rawBytes": 27270,
+        "bytes": 9730,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/archive.js",
+        "rawBytes": 58392,
+        "bytes": 18577,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/korea-paths.js",
+        "rawBytes": 36598,
+        "bytes": 14048,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/cms.js",
+        "rawBytes": 63804,
+        "bytes": 18201,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/hunmin.js",
+        "rawBytes": 63176,
+        "bytes": 16732,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/body-format.js",
+        "rawBytes": 9059,
+        "bytes": 3512,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/editor.js",
+        "rawBytes": 9699,
+        "bytes": 3318,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/share.js",
+        "rawBytes": 4413,
+        "bytes": 1829,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/app.js",
+        "rawBytes": 83164,
+        "bytes": 22778,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/tasks.js",
+        "rawBytes": 82340,
+        "bytes": 18822,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/approvals.js",
+        "rawBytes": 57434,
+        "bytes": 14243,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/mypage.js",
+        "rawBytes": 11805,
+        "bytes": 4128,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/drive.js",
+        "rawBytes": 18501,
+        "bytes": 5944,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/notify.js",
+        "rawBytes": 18625,
+        "bytes": 5994,
+        "counted": true
+      },
+      {
+        "kind": "js",
+        "path": "assets/plugins.js",
+        "rawBytes": 29221,
+        "bytes": 8962,
+        "counted": true
+      }
+    ]
+  },
+  "reductionPercent": 31.2,
+  "monthly": {
+    "pvPerMonth": 30000,
+    "assumedFirstLoads": 1.0,
+    "extraPageViews": 2.5,
+    "extraPageBytes": 30720,
+    "bytesPerMonth": 9925650000.0,
+    "gbPerMonth": 9.24,
+    "percentOfCap": 9.24,
+    "roomGbPerMonth": 100.0
+  },
+  "gate": {
+    "ok": true,
+    "budgetBytes": 307200,
+    "usedPercent": 82.7
+  },
+  "note": "텍스트는 gzip -9(= GitHub Pages 전송량), 이미지·폰트는 원본 크기. 첫 방문 1회 기준."
+}

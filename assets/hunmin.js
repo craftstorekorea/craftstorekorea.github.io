@@ -359,7 +359,7 @@
       var href = post.url || ("#/board/" + encodeURIComponent(post.boardSlug || "news"));
       var ext = post.url ? ' target="_blank" rel="noopener"' : "";
       return '<li class="hm-post"><a href="' + esc(href) + '"' + ext + ">" +
-        (post.image ? '<span class="hm-post-img"><img src="' + esc(post.image) + '" alt="" loading="lazy"></span>' : "") +
+        (post.image ? '<span class="hm-post-img"><img src="' + esc(post.image) + '" alt="" loading="lazy" decoding="async"></span>' : "") +
         '<span class="hm-post-body">' +
           '<span class="hm-post-tags"><span class="tag">' + esc(post.tag || post.boardName || hT("hm.tag.news")) + "</span>" +
             (post.pinned ? '<span class="pin-badge">' + esc(T("📌 고정")) + "</span>" : "") + "</span>" +
@@ -392,7 +392,7 @@
       var ext = post.url ? ' target="_blank" rel="noopener"' : "";
       return '<li class="hm-post"><a href="' + esc(href) + '"' + ext + ">" +
         '<span class="hm-rank">' + (i + 1) + "</span>" +
-        (post.image ? '<span class="hm-post-img"><img src="' + esc(post.image) + '" alt="" loading="lazy"></span>' : "") +
+        (post.image ? '<span class="hm-post-img"><img src="' + esc(post.image) + '" alt="" loading="lazy" decoding="async"></span>' : "") +
         '<span class="hm-post-body">' +
           '<span class="hm-post-tags"><span class="tag">' + esc(post.tag || post.boardName || "") + "</span>" +
             (post.pinned ? '<span class="pin-badge">' + esc(T("📌")) + "</span>" : "") +
@@ -554,7 +554,7 @@
       return sec;
     }
     sec.innerHTML = head + '<div class="hm-gallery-grid">' + list.map(function (im) {
-      return '<figure><img src="' + esc(absUrl(im.url)) + '" alt="' + esc(im.caption || "") + '" loading="lazy">' +
+      return '<figure><img src="' + esc(absUrl(im.url)) + '" alt="' + esc(im.caption || "") + '" loading="lazy" decoding="async">' +
         (im.caption ? "<figcaption>" + esc(im.caption) + "</figcaption>" : "") + "</figure>";
     }).join("") + "</div>";
     return sec;

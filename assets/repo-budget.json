@@ -1,7 +1,7 @@
 {
   "version": "3.0",
-  "generatedAt": "2026-11-23T06:39:38+09:00",
-  "commit": "b760447",
+  "generatedAt": "2026-11-23T07:34:28+09:00",
+  "commit": "4ee48d4",
   "limits": {
     "repoBytes": 1073741824,
     "repoLabel": "1 GB",
@@ -9,12 +9,12 @@
     "budgetLabel": "40 MB"
   },
   "usage": {
-    "totalBytes": 6355351,
-    "treeBytes": 3617175,
-    "gitBytes": 2738176,
-    "files": 119,
-    "percent": 0.592,
-    "budgetPercent": 8.62
+    "totalBytes": 6846423,
+    "treeBytes": 3731415,
+    "gitBytes": 3115008,
+    "files": 128,
+    "percent": 0.638,
+    "budgetPercent": 8.9
   },
   "parts": {
     "post": {
@@ -26,16 +26,16 @@
       "bytes": 0
     },
     "assets": {
-      "files": 33,
-      "bytes": 1740239
+      "files": 39,
+      "bytes": 1820848
     },
     "embeds": {
       "files": 9,
       "bytes": 586573
     },
     "scripts": {
-      "files": 3,
-      "bytes": 54472
+      "files": 4,
+      "bytes": 70499
     },
     "admin": {
       "files": 1,
@@ -56,16 +56,16 @@
     "avgBytes": 2959
   },
   "capacity": {
-    "postsToBudget": 12952,
-    "postsToLimit": 360725,
+    "postsToBudget": 12913,
+    "postsToLimit": 360559,
     "at1000PostsBytes": 2959000
   },
   "git": {
-    "commits": 46,
-    "looseBytes": 1851392,
+    "commits": 47,
+    "looseBytes": 2228224,
     "packBytes": 886784,
-    "head": "b760447",
-    "date": "2026-11-23T06:10:55+09:00"
+    "head": "4ee48d4",
+    "date": "2026-11-23T06:51:38+09:00"
   },
   "gate": {
     "ok": true,

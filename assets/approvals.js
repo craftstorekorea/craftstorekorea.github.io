@@ -1184,6 +1184,7 @@
 
   function show() {
     build();
+    refresh();          /* v6.0 — 지연 로딩 뒤 처음 열 때도 머리글을 지금 언어로 그립니다 */
     paintGate();
     if (!signedIn()) return;
     refreshAll().then(function () {
