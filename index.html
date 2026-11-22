@@ -83,6 +83,7 @@
       <button class="tab" role="tab" data-view="archive" aria-selected="false" aria-label="아카이브 2024–2026">아카이브<em>2024–2026</em></button>
       <button class="tab" role="tab" data-view="info" aria-selected="false">지원·공모</button>
       <button class="tab" role="tab" data-view="map" aria-selected="false">지도·게시판</button>
+      <button class="tab" role="tab" data-view="reserve" aria-selected="false" data-i18n="rsv.nav">예약·신청</button>
       <button class="tab" role="tab" data-view="tasks" data-auth-only="1" aria-selected="false" hidden>업무 관리</button>
       <button class="tab" role="tab" data-view="approvals" data-auth-only="1" aria-selected="false" hidden>전자결재</button>
     </nav>
@@ -544,6 +545,76 @@
             <button class="btn btn-ghost btn-sm" type="button" id="offline-reader-back" data-i18n="pwa.offline.back">목록으로</button>
           </div>
         </article>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ 예약 · 설문 신청 (#/reserve) — v7.0 ============ -->
+  <div class="view" id="view-reserve" role="tabpanel" hidden>
+    <section class="section">
+      <div class="wrap rsv-wrap">
+        <p class="eyebrow" data-i18n="rsv.eyebrow">예약 · 신청</p>
+        <h1 class="page-title" data-i18n="rsv.title">날짜와 시간을 골라 신청합니다</h1>
+        <p class="offline-lead" data-i18n="rsv.lead">아래에서 날짜와 시간을 고르고 이름·이메일을 남겨 주세요. 접수번호(SB-YYYY-NNNN)가 바로 발급되며, 그 번호와 이메일로 진행 상태를 확인할 수 있습니다.</p>
+        <div class="rsv-card">
+          <div class="rsv-forms" id="rsv-forms" hidden></div>
+          <p class="rsv-desc" id="rsv-desc" hidden></p>
+          <div id="rsv-body" hidden>
+            <div class="rsv-step-label" data-i18n="rsv.step1">1. 날짜와 시간</div>
+            <div class="rsv-dates" id="rsv-dates"></div>
+            <div class="rsv-times" id="rsv-times"></div>
+            <p class="rsv-slots-note" data-i18n="rsv.slotsNote">정원이 찬 시간은 고를 수 없습니다.</p>
+            <div class="rsv-step-label" data-i18n="rsv.step2">2. 신청자 정보</div>
+            <div class="rsv-grid2">
+              <label class="cms-field rsv-field"><span data-i18n="rsv.name">이름</span><input id="rsv-name" type="text" maxlength="60" autocomplete="name"></label>
+              <label class="cms-field rsv-field"><span data-i18n="rsv.email">이메일</span><input id="rsv-email" type="email" maxlength="120" autocomplete="email" placeholder="name@example.com"></label>
+              <label class="cms-field rsv-field"><span><span data-i18n="rsv.phone">연락처</span> <em data-i18n="rsv.optional">선택</em></span><input id="rsv-phone" type="tel" maxlength="40" autocomplete="tel"></label>
+              <label class="cms-field rsv-field"><span><span data-i18n="rsv.memo">남길 말</span> <em data-i18n="rsv.optional">선택</em></span><input id="rsv-memo" type="text" maxlength="300"></label>
+            </div>
+            <div id="rsv-extra"></div>
+            <div class="rsv-actions">
+              <button type="button" class="btn btn-primary" id="rsv-submit" data-i18n="rsv.submit">신청하기</button>
+              <a class="rsv-link" href="#/lookup" data-i18n="rsv.toLookup">접수번호로 조회</a>
+            </div>
+            <p class="rsv-msg" id="rsv-msg" role="status" aria-live="polite" hidden></p>
+          </div>
+          <div id="rsv-done" class="rsv-done" hidden>
+            <p class="rsv-done-title" data-i18n="rsv.doneTitle">접수되었습니다</p>
+            <p class="rsv-code-label" data-i18n="rsv.codeLabel">접수번호</p>
+            <p class="rsv-code" id="rsv-code"></p>
+            <p class="rsv-done-meta" id="rsv-done-meta"></p>
+            <p class="rsv-hint" data-i18n="rsv.doneHint">이 번호와 신청한 이메일로 진행 상태를 확인할 수 있습니다. 번호를 저장해 두세요.</p>
+            <div class="rsv-actions">
+              <a class="btn btn-primary" id="rsv-lookup-link" href="#/lookup" data-i18n="rsv.checkStatus">진행 상태 확인</a>
+              <button type="button" class="btn btn-ghost" id="rsv-again" data-i18n="rsv.again">다시 신청</button>
+            </div>
+          </div>
+          <p class="page-empty" id="rsv-empty" hidden></p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ 접수번호 조회 (#/lookup) — v7.0 ============ -->
+  <div class="view" id="view-lookup" role="tabpanel" hidden>
+    <section class="section">
+      <div class="wrap rsv-wrap">
+        <p class="eyebrow" data-i18n="lk.eyebrow">접수 조회</p>
+        <h1 class="page-title" data-i18n="lk.title">접수번호로 진행 상태를 확인합니다</h1>
+        <p class="offline-lead" data-i18n="lk.lead">로그인 없이 접수번호와 신청한 이메일만으로 확인할 수 있습니다. 접수 → 확정 → 완료 순서로 상태가 바뀝니다.</p>
+        <form class="rsv-card lk-form" id="lk-form" novalidate>
+          <div class="rsv-grid2">
+            <label class="cms-field rsv-field"><span data-i18n="lk.code">접수번호</span><input id="lk-code" type="text" maxlength="20" placeholder="SB-2026-0001" autocomplete="off" inputmode="text"></label>
+            <label class="cms-field rsv-field"><span data-i18n="lk.email">신청한 이메일</span><input id="lk-email" type="email" maxlength="120" placeholder="name@example.com" autocomplete="email"></label>
+          </div>
+          <div class="rsv-actions">
+            <button type="submit" class="btn btn-primary" id="lk-submit" data-i18n="lk.submit">조회하기</button>
+            <a class="rsv-link" href="#/reserve" data-i18n="lk.toReserve">새로 신청</a>
+          </div>
+          <p class="rsv-msg" id="lk-msg" role="status" aria-live="polite" hidden></p>
+          <p class="page-empty" id="lk-empty" hidden data-i18n="lk.notFound">조회 결과가 없습니다. 접수번호와 이메일을 다시 확인해 주세요.</p>
+          <div class="lk-result" id="lk-result" hidden></div>
+        </form>
       </div>
     </section>
   </div>

@@ -19,6 +19,8 @@ GitHub Pages로 배포합니다.
 | 아카이브 (2024–2026) | 뉴스레터 아카이브 8개 호·4개 코너 151건, 호/코너 필터 + 키워드 검색 |
 | 지원·공모 | 마감일 기준 정렬, 분야 필터, D-day 자동 계산 |
 | 지도·게시판 | 시·도 SVG 지도 + 공개 시트 연동 검색·필터 게시판 |
+| 예약·신청 (v7.0) | `#/reserve` — 관리자가 만든 예약 양식의 날짜·시간 슬롯(정원)을 골라 이름·이메일·설문 항목을 남깁니다. 접수번호 `SB-YYYY-NNNN` 이 바로 발급됩니다 |
+| 접수 조회 (v7.0) | `#/lookup` — 로그인 없이 **접수번호 + 신청 이메일**로 접수 → 확정 → 완료 3단계를 확인합니다. 없는 번호는 “조회 결과가 없습니다” |
 | 직접 만든 페이지 | `#/page/<slug>` — 제목·부제·본문·여러 이미지 + **hunmin 블록 9종**(최신글·인기글·지도·구독/제보 폼·갤러리·텍스트·표·버튼/CTA·임베드)을 **끌어서** 순서대로 조립 (관리자에서 생성) |
 | 글 상세 | `#/post/<slug>` — 글 제목·요약·본문(마크다운·HTML 안전 렌더)·태그·댓글. 게시판 카드의 **글 보기** 로 들어갑니다 |
 | 마이페이지 | `#/mypage` — 로그인한 회원의 닉네임(수정)·회원 등급·**내 찜 목록**(해제)·**내가 쓴 댓글**(글 링크). 헤더 사용자 메뉴에서 열립니다 |
@@ -90,7 +92,7 @@ post/<slug>/index.html    글 정적 SEO 페이지 (../build_static_seo.py)
 p/<slug>/index.html       페이지 정적 SEO 페이지 (../build_static_seo.py)
 assets/static-post.css    정적 글·페이지 공통 스타일 (v3.0 — 글마다 인라인 <style> 대신 이 파일)
 assets/repo-budget.json   저장소 용량 예산 실측값 (v3.0 — scripts/check_repo_budget.py)
-assets/traffic-budget.json 첫 화면 전송량·월 트래픽 실측값 (v6.0 — scripts/measure_traffic.py)
+assets/traffic-budget.json 첫 화면 전송량·월 트래픽 실측값 (v7.0 — scripts/measure_traffic.py)
 manifest.webmanifest      PWA 매니페스트 (이름·아이콘 192/512/maskable·standalone·start_url /)
 sw.js                     서비스 워커 (정적 자산 캐시 우선 · 콘텐츠 네트워크 우선 · /admin·인증 캐시 제외)
 assets/pwa.js             서비스 워커 등록 · 오프라인 배너 · 설치 안내(beforeinstallprompt)
@@ -106,11 +108,25 @@ scripts/build_static_seo.py | build_feeds.py | check_repo_budget.py | measure_tr
 > `admin.html`·`privacy.html`·`terms.html` 에 두고(주소는 `/admin`·`/privacy`·`/terms`),
 > 폴더의 `index.html` 은 `/admin/` 처럼 끝에 `/` 를 붙여 들어온 주소만 받아 넘깁니다.
 
+## v7.0 기능 (예약·설문 · 웹훅 · AI 보조)
+
+- **예약·설문 (`#/reserve` · `#/lookup`)** — `survey_forms`·`reservation_slots`·`reservations`.
+  같은 슬롯·같은 이메일 중복은 **부분 고유 인덱스**, 정원 초과·지난/닫힌 슬롯은 **DB 트리거**가 거부합니다.
+  접수번호는 `SB-YYYY-NNNN` 자동 채번이며, 조회는 번호와 이메일이 모두 맞아야 합니다(열거 방지).
+  관리자 `예약 · 설문` 탭에서 양식·슬롯·정원을 만들고 신청을 확정/완료/취소로 바꿉니다.
+- **웹훅 (`/admin → 설정 · 연동`)** — 이벤트 4종(`form.submitted`·`approval.completed`·`issue.created`·`reservation.confirmed`)을
+  구글 시트 Apps Script·슬랙 Incoming Webhook·메일 중계·직접 URL 로 보냅니다. 서명은 **HMAC-SHA256**(`X-SBPress-Signature`),
+  실패하면 **3회 지수 백오프 재시도** 후 `webhook_deliveries` 에 `failed` 로 남깁니다. 표는 **관리자 전용**(anon 차단).
+  실제 전송은 Edge Function `webhook-dispatch` 가 하고, 함수가 없으면 관리자 화면이 같은 규칙으로 직접 시도합니다(시험용).
+- **AI 보조 (글 에디터)** — `AI 초안`·`KO→EN`·`EN→KO` 버튼. 키는 Edge Function `ai` 의 시크릿에만 두고,
+  결과는 **입력칸에만** 채웁니다(자동 저장·자동 발행 없음). 기본값은 **사용 안 함**이며, 설정이 없으면 안전 안내만 냅니다.
+- **폴백** — `19_v70` SQL 을 실행하지 않아도 두 화면과 관리자 탭은 “준비 중 + 실행할 SQL” 안내만 하고 콘솔 오류가 없습니다.
+
 ## v6.0 기능 (PWA · 오프라인 · 첫 화면 300KB)
 
 **8-A. PWA 앱화**
 - `manifest.webmanifest` + 아이콘 192·512·512 maskable — Android Chrome 에서 ‘홈 화면에 추가’(standalone)
-- `sw.js` 서비스 워커 — 정적 자산은 **캐시 우선**(버전 키 `v6.0.0`, 새 버전이면 캐시 교체), 문서·콘텐츠는
+- `sw.js` 서비스 워커 — 정적 자산은 **캐시 우선**(버전 키 `v7.0.0`, 새 버전이면 캐시 교체), 문서·콘텐츠는
   **네트워크 우선 + 캐시 폴백**. **`/admin`·인증(`auth`)·Authorization 헤더 요청은 절대 캐시하지 않습니다.**
 - 오프라인 최근 본 글 — 글을 열 때 제목·본문을 `localStorage('sbpress-recent-posts')` 에 남기고(최근 8건),
   오프라인 배너 → `#/offline` 에서 본문까지 읽습니다. 정적 글 주소(`/post/<slug>/`)도 서비스 워커가 함께 담아 둡니다.

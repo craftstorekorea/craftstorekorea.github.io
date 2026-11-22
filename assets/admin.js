@@ -32,13 +32,18 @@
   var sb = null;
   var session = null;
   var isAdmin = false;
+  /* v7.0 — 관리자 화면의 다른 모듈(웹훅·AI)이 같은 세션 토큰을 쓰도록 내어 줍니다(키는 노출되지 않습니다). */
+  window.CRAFT_ADMIN = {
+    token: function () { return session && session.access_token ? session.access_token : null; },
+    user: function () { return session ? session.user : null; },
+    isAdmin: function () { return !!isAdmin; }
+  };
   var members = [];
   var bookmarks = [];
   var sheetRows = [];
   var booted = false;
 
-  var $ = function (s, r) { return (r || document).querySelector(s); };
-  function esc(s) {
+  var $ = function (s, r) { return (r || document).querySelector(s); };  function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
@@ -895,8 +900,9 @@
     if (name === "comments" && !CMS.loaded.comments) loadComments();
     if (name === "subscribers") loadSubscribers();
     if (name === "inbox") loadInbox();
+    if (name === "reserve") loadReservations();
     if (name === "backup") loadBackupCounts();
-    if (name === "settings") loadSettings();
+    if (name === "settings") { loadSettings(); if (window.CRAFT_WEBHOOKS) window.CRAFT_WEBHOOKS.load(); }
     if (name === "plugins") loadPlugins();
     try { window.scrollTo({ top: 0, behavior: "auto" }); } catch (e) { /* noop */ }
   }
@@ -3456,6 +3462,279 @@
     });
   }
 
+  /* ---------------- v7.0 · 예약 · 설문 ---------------- */
+  var RSV = { forms: [], form: null, slots: [], list: [], missing: false, loading: false };
+
+  function rsvMsg(text, kind) {
+    var box = document.getElementById("rsv-msg");
+    if (!box) return;
+    box.textContent = text || "";
+    box.className = "cms-toast" + (kind === "ok" ? " ok" : kind === "err" ? " err" : "");
+    box.hidden = !text;
+  }
+  function rsvStamp() {
+    var n = document.getElementById("rsv-admin-stamp");
+    if (n) n.textContent = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+  }
+  function rsvStatusLabel(s) {
+    return { submitted: "접수", confirmed: "확정", completed: "완료", canceled: "취소" }[s] || s;
+  }
+  function rsvMissing(err) {
+    return err && (err.code === "42P01" || err.code === "404" ||
+      /does not exist|schema cache|find the table/i.test(String(err.message || "")));
+  }
+
+  function loadReservations() {
+    if (!sb) return;
+    if (RSV.loading) return;
+    RSV.loading = true;
+    sb.from("survey_forms").select("id,slug,kind,title,title_en,description,is_active,sort_order").order("sort_order", { ascending: true })
+      .then(function (r) {
+        RSV.loading = false;
+        if (r.error) {
+          if (rsvMissing(r.error)) { RSV.missing = true; showRsvMissing(); return; }
+          rsvMsg("예약 양식을 읽지 못했습니다: " + r.error.message, "err");
+          return;
+        }
+        RSV.missing = false;
+        var miss = document.getElementById("rsv-missing");
+        if (miss) miss.hidden = true;
+        RSV.forms = r.data || [];
+        if (!RSV.form || !RSV.forms.some(function (f) { return f.id === RSV.form.id; })) {
+          RSV.form = RSV.forms[0] || null;
+        }
+        renderRsvForms();
+        if (RSV.form) { fillRsvForm(); loadRsvSlots(); loadRsvList(); }
+        else { renderRsvSlots(); renderRsvList(); }
+        rsvStamp();
+      });
+  }
+
+  function showRsvMissing() {
+    var miss = document.getElementById("rsv-missing");
+    if (miss) miss.hidden = false;
+    var list = document.querySelector("#rsv-list tbody");
+    if (list) list.innerHTML = '<tr><td colspan="6" class="wh-empty">예약 표가 아직 없습니다.</td></tr>';
+    var slots = document.querySelector("#rsv-slots tbody");
+    if (slots) slots.innerHTML = '<tr><td colspan="5" class="wh-empty">예약 표가 아직 없습니다.</td></tr>';
+  }
+
+  function renderRsvForms() {
+    var sel = document.getElementById("rsv-admin-forms");
+    if (!sel) return;
+    sel.innerHTML = RSV.forms.length
+      ? RSV.forms.map(function (f) {
+          return '<option value="' + esc(f.id) + '"' + (RSV.form && f.id === RSV.form.id ? " selected" : "") + ">" +
+            esc(f.title || f.slug) + (f.is_active ? "" : " (숨김)") + "</option>";
+        }).join("")
+      : '<option value="">양식 없음</option>';
+  }
+
+  function fillRsvForm() {
+    var f = RSV.form || {};
+    [ ["#rsv-form-slug", f.slug], ["#rsv-form-title", f.title], ["#rsv-form-title-en", f.title_en],
+      ["#rsv-form-desc", f.description] ].forEach(function (p) {
+      var el = document.querySelector(p[0]);
+      if (el) el.value = p[1] == null ? "" : p[1];
+    });
+    var on = document.getElementById("rsv-form-active");
+    if (on) on.checked = f.is_active !== false;
+  }
+
+  function loadRsvSlots() {
+    if (!RSV.form) return;
+    sb.from("reservation_slots")
+      .select("id,slot_date,slot_time,capacity,is_open")
+      .eq("form_id", RSV.form.id).order("slot_date", { ascending: true }).order("slot_time", { ascending: true })
+      .then(function (r) {
+        if (r.error) { if (!rsvMissing(r.error)) rsvMsg("슬롯을 읽지 못했습니다: " + r.error.message, "err"); RSV.slots = []; }
+        else RSV.slots = r.data || [];
+        renderRsvSlots();
+      });
+  }
+
+  function renderRsvSlots() {
+    var body = document.querySelector("#rsv-slots tbody");
+    var count = document.getElementById("rsv-slot-count");
+    if (count) count.textContent = RSV.slots.length + "개";
+    if (!body) return;
+    if (!RSV.slots.length) {
+      body.innerHTML = '<tr><td colspan="5" class="wh-empty">아직 만든 슬롯이 없습니다.</td></tr>';
+      return;
+    }
+    var taken = {};
+    RSV.list.forEach(function (r) {
+      if (r.status === "submitted" || r.status === "confirmed") taken[r.slot_id] = (taken[r.slot_id] || 0) + 1;
+    });
+    body.innerHTML = RSV.slots.map(function (s) {
+      var used = taken[s.id] || 0;
+      return "<tr data-slot-row=\"" + esc(s.id) + "\">" +
+        "<td>" + esc(s.slot_date) + "</td>" +
+        "<td>" + esc(s.slot_time || "종일") + "</td>" +
+        "<td>" + used + " / " + esc(s.capacity) + "</td>" +
+        "<td>" + (s.is_open ? '<span class="panel-tag is-on">열림</span>' : '<span class="panel-tag is-off">닫힘</span>') + "</td>" +
+        "<td class=\"wh-act\">" +
+        '<button type="button" class="btn btn-ghost btn-sm" data-rsv-slot-toggle="' + esc(s.id) + '">' + (s.is_open ? "닫기" : "열기") + "</button>" +
+        '<button type="button" class="btn btn-ghost btn-sm danger" data-rsv-slot-del="' + esc(s.id) + '">삭제</button>' +
+        "</td></tr>";
+    }).join("");
+  }
+
+  function loadRsvList() {
+    if (!RSV.form) return;
+    sb.from("reservations")
+      .select("id,code,slot_id,slot_date,slot_time,name,email,phone,memo,status,created_at")
+      .eq("form_id", RSV.form.id).order("created_at", { ascending: false }).limit(200)
+      .then(function (r) {
+        if (r.error) {
+          if (rsvMissing(r.error)) { showRsvMissing(); return; }
+          rsvMsg("신청을 읽지 못했습니다: " + r.error.message, "err");
+          RSV.list = [];
+        } else RSV.list = r.data || [];
+        renderRsvList();
+        renderRsvSlots();
+      });
+  }
+
+  function rsvFiltered() {
+    var sel = document.getElementById("rsv-status-filter");
+    var want = sel ? sel.value : "all";
+    return RSV.list.filter(function (r) { return want === "all" || r.status === want; });
+  }
+
+  function renderRsvList() {
+    var body = document.querySelector("#rsv-list tbody");
+    var count = document.getElementById("rsv-count");
+    var rows = rsvFiltered();
+    if (count) count.textContent = rows.length + "건";
+    var badge = document.getElementById("tab-rsv-count");
+    if (badge) {
+      var n = RSV.list.filter(function (r) { return r.status === "submitted"; }).length;
+      badge.textContent = n ? String(n) : "";
+    }
+    if (!body) return;
+    if (!rows.length) {
+      body.innerHTML = '<tr><td colspan="6" class="wh-empty">아직 들어온 신청이 없습니다.</td></tr>';
+      return;
+    }
+    body.innerHTML = rows.map(function (r) {
+      var next = r.status === "submitted"
+        ? '<button type="button" class="btn btn-primary btn-sm" data-rsv-act="confirmed" data-rsv-id="' + esc(r.id) + '">확정</button>' +
+          '<button type="button" class="btn btn-ghost btn-sm danger" data-rsv-act="canceled" data-rsv-id="' + esc(r.id) + '">취소</button>'
+        : r.status === "confirmed"
+        ? '<button type="button" class="btn btn-primary btn-sm" data-rsv-act="completed" data-rsv-id="' + esc(r.id) + '">완료</button>' +
+          '<button type="button" class="btn btn-ghost btn-sm danger" data-rsv-act="canceled" data-rsv-id="' + esc(r.id) + '">취소</button>'
+        : '<button type="button" class="btn btn-ghost btn-sm" data-rsv-act="confirmed" data-rsv-id="' + esc(r.id) + '">되돌리기</button>';
+      return "<tr><td><b>" + esc(r.code) + "</b></td>" +
+        "<td>" + esc(r.name) + '<br><span class="wh-sub">' + esc(r.email) + (r.phone ? " · " + esc(r.phone) : "") + "</span></td>" +
+        "<td>" + esc(r.slot_date || "-") + " " + esc(r.slot_time || "") + "</td>" +
+        "<td><span class=\"wh-st " + (r.status === "canceled" ? "is-fail" : r.status === "completed" ? "is-ok" : "is-wait") + "\">" +
+        esc(rsvStatusLabel(r.status)) + "</span></td>" +
+        "<td>" + esc(fmtDate(r.created_at)) + "</td>" +
+        '<td class="wh-act">' + next + "</td></tr>";
+    }).join("");
+  }
+
+  function saveRsvForm() {
+    var val = function (sel) { var n = document.querySelector(sel); return n ? String(n.value || "").trim() : ""; };
+    var payload = {
+      slug: val("#rsv-form-slug").toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/^-+|-+$/g, ""),
+      title: val("#rsv-form-title"),
+      title_en: val("#rsv-form-title-en"),
+      description: val("#rsv-form-desc"),
+      is_active: !!(document.getElementById("rsv-form-active") || {}).checked,
+      kind: "reservation"
+    };
+    if (!payload.slug || !payload.title) { rsvMsg("주소 이름과 이름을 입력해 주세요.", "err"); return; }
+    var btn = document.getElementById("rsv-form-save");
+    if (btn) btn.disabled = true;
+    var q = RSV.form
+      ? sb.from("survey_forms").update(payload).eq("id", RSV.form.id)
+      : sb.from("survey_forms").insert(payload);
+    q.then(function (r) {
+      if (btn) btn.disabled = false;
+      if (r.error) {
+        rsvMsg(rsvMissing(r.error) ? "예약 표가 아직 없습니다(19_v70 SQL 실행)." : "저장하지 못했습니다: " + r.error.message, "err");
+        return;
+      }
+      rsvMsg("양식을 저장했습니다.", "ok");
+      RSV.form = null;
+      loadReservations();
+    });
+  }
+
+  function newRsvForm() {
+    RSV.form = null;
+    fillRsvForm();
+    var slug = document.getElementById("rsv-form-slug");
+    if (slug) slug.focus();
+    rsvMsg("새 양식의 주소 이름과 이름을 적고 ‘양식 저장’을 누르세요.");
+  }
+
+  function addRsvSlot() {
+    if (!RSV.form) { rsvMsg("먼저 양식을 저장해 주세요.", "err"); return; }
+    var date = (document.getElementById("rsv-slot-date") || {}).value || "";
+    var time = (document.getElementById("rsv-slot-time") || {}).value || "";
+    var cap = parseInt((document.getElementById("rsv-slot-cap") || {}).value || "1", 10);
+    if (!date) { rsvMsg("날짜를 골라 주세요.", "err"); return; }
+    if (!cap || cap < 1) cap = 1;
+    sb.from("reservation_slots")
+      .upsert({ form_id: RSV.form.id, slot_date: date, slot_time: time, capacity: cap, is_open: true },
+        { onConflict: "form_id,slot_date,slot_time" })
+      .then(function (r) {
+        if (r.error) { rsvMsg("슬롯을 저장하지 못했습니다: " + r.error.message, "err"); return; }
+        rsvMsg("슬롯을 추가했습니다.", "ok");
+        loadRsvSlots();
+      });
+  }
+
+  function setReservation(id, status) {
+    sb.from("reservations").update({ status: status }).eq("id", id).then(function (r) {
+      if (r.error) { rsvMsg("상태를 바꾸지 못했습니다: " + r.error.message, "err"); return; }
+      rsvMsg("상태를 ‘" + rsvStatusLabel(status) + "’(으)로 바꿨습니다.", "ok");
+      loadRsvList();
+    });
+  }
+
+  function initRsvAdmin() {
+    var sel = document.getElementById("rsv-admin-forms");
+    if (sel) sel.addEventListener("change", function () {
+      var id = sel.value;
+      RSV.form = RSV.forms.filter(function (f) { return f.id === id; })[0] || null;
+      fillRsvForm(); loadRsvSlots(); loadRsvList();
+    });
+    var save = document.getElementById("rsv-form-save");
+    if (save) save.addEventListener("click", saveRsvForm);
+    var nf = document.getElementById("rsv-form-new");
+    if (nf) nf.addEventListener("click", newRsvForm);
+    var add = document.getElementById("rsv-slot-add");
+    if (add) add.addEventListener("click", addRsvSlot);
+    var reload = document.getElementById("rsv-reload");
+    if (reload) reload.addEventListener("click", loadReservations);
+    var filter = document.getElementById("rsv-status-filter");
+    if (filter) filter.addEventListener("change", renderRsvList);
+    document.addEventListener("click", function (e) {
+      var t = e.target.closest ? e.target : null;
+      if (!t) return;
+      var act = t.closest("[data-rsv-act]");
+      if (act) { setReservation(act.getAttribute("data-rsv-id"), act.getAttribute("data-rsv-act")); return; }
+      var tog = t.closest("[data-rsv-slot-toggle]");
+      if (tog) {
+        var id = tog.getAttribute("data-rsv-slot-toggle");
+        var s = RSV.slots.filter(function (x) { return x.id === id; })[0];
+        if (!s) return;
+        sb.from("reservation_slots").update({ is_open: !s.is_open }).eq("id", id).then(function () { loadRsvSlots(); });
+        return;
+      }
+      var del = t.closest("[data-rsv-slot-del]");
+      if (del) {
+        if (!window.confirm("이 슬롯을 지울까요? 들어온 신청은 남습니다.")) return;
+        sb.from("reservation_slots").delete().eq("id", del.getAttribute("data-rsv-slot-del"))
+          .then(function () { loadRsvSlots(); });
+      }
+    });
+  }
+
   /* ---------------- v5.0 · 설정 · 연동 ---------------- */
   var SETTING_GROUPS = {
     drive: [["drive.picker_api_key", "#set-drive-key", "Google Drive Picker API 키"],
@@ -3464,7 +3743,9 @@
     social: [["social.kakao_rest_key", "#set-kakao-key", "카카오 REST API 키"],
              ["social.naver_client_id", "#set-naver-id", "네이버 로그인 Client ID"]],
     notify: [["notify.daily_cap", "#set-notify-cap", "알림 메일 1일 상한"],
-             ["notify.from_email", "#set-notify-from", "알림 보내는 사람 주소"]]
+             ["notify.from_email", "#set-notify-from", "알림 보내는 사람 주소"]],
+    ai: [["ai.provider", "#set-ai-provider", "AI 보조 사용 방식"],
+         ["ai.model", "#set-ai-model", "AI 모델 이름"]]
   };
   var settingsLoaded = false;
 
@@ -3503,6 +3784,9 @@
         kakao && naver ? "카카오 · 네이버 켜짐" : kakao ? "카카오만 켜짐" : naver ? "네이버만 켜짐" : "키 없음",
         kakao || naver);
       setBadge("set-notify-state", map["notify.daily_cap"] ? "설정됨" : "기본값", !!map["notify.daily_cap"]);
+      var ai = String(map["ai.provider"] || "none").toLowerCase();
+      setBadge("ai-state", ai === "openai" ? "OpenAI" : ai === "compatible" ? "호환 API" : "사용 안 함",
+        ai === "openai" || ai === "compatible");
       settingsLoaded = true;
       if (stamp) stamp.textContent = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
     });
@@ -3532,7 +3816,7 @@
     /* --- 플러그인 · 마켓 --- */
     var auReload = $("#audit-reload");
     if (auReload) auReload.addEventListener("click", function () { CMS.auditLoaded = false; loadAudit(); });
-    ["drive", "social", "notify"].forEach(function (g) {
+    ["drive", "social", "notify", "ai"].forEach(function (g) {
       var b = document.getElementById("set-" + g + "-save");
       if (b) b.addEventListener("click", function () { saveSettings(g); });
     });
@@ -6350,6 +6634,7 @@
 
     renderQuickLinks();
     initCms();
+    initRsvAdmin();
     initApprovalsAdmin();
 
     if (sb) {

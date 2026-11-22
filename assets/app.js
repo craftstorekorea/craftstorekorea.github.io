@@ -248,9 +248,9 @@
      site_contents 의 header_logo_url / header_brand_text / header_menu_items 를 읽어 그립니다.
      값이 없으면 index.html 의 기본 마크·메뉴를 그대로 씁니다. */
   var VIEW_KEYS = (function () {
-    var base = ["home", "workshops", "news", "interview", "archive", "info", "map", "tasks", "approvals", "page", "board", "post", "mypage", "search", "offline"];
+    var base = ["home", "workshops", "news", "interview", "archive", "info", "map", "tasks", "approvals", "reserve", "lookup", "page", "board", "post", "mypage", "search", "offline"];
     return base.filter(function (k) {
-      if (k === "map" || k === "tasks" || k === "approvals" || k === "mypage") return feature(k);
+      if (k === "map" || k === "tasks" || k === "approvals" || k === "mypage" || k === "reserve" || k === "lookup") return feature(k);
       return true;
     });
   })();
@@ -1866,6 +1866,8 @@
     archive: ["assets/archive.js"],
     map: ["assets/korea-paths.js"],
     page: ["assets/hunmin.js", "assets/korea-paths.js"],
+    reserve: ["assets/reserve.js"],
+    lookup: ["assets/reserve.js"],
     offline: []
   };
   var lazyState = {};
@@ -1900,7 +1902,9 @@
     board: "게시판 — " + BRAND,
     post: "글 — " + BRAND,
     search: "통합 검색 — " + BRAND,
-    mypage: "마이페이지 — " + BRAND
+    mypage: "마이페이지 — " + BRAND,
+    reserve: "예약 · 신청 — " + BRAND,
+    lookup: "접수 조회 — " + BRAND
   };
   function route(scroll) {
     var r = parseRoute();
@@ -1924,6 +1928,8 @@
     if (r.name === "tasks" && window.CRAFT_TASKS) window.CRAFT_TASKS.show();
     if (r.name === "approvals" && window.CRAFT_APPROVALS) window.CRAFT_APPROVALS.show();
     if (r.name === "offline") renderOfflineView(r.arg);
+    if (r.name === "reserve" && window.CRAFT_RESERVE) window.CRAFT_RESERVE.showReserve();
+    if (r.name === "lookup" && window.CRAFT_RESERVE) window.CRAFT_RESERVE.showLookup();
     if (r.name === "board") {
       if (r.arg !== lastBoardArg) { pagerState.board = 1; lastBoardArg = r.arg; }
       renderCustomBoard(r.arg);
@@ -1974,6 +1980,7 @@
     if (!feature("tasks")) offView("tasks");
     if (!feature("approvals")) offView("approvals");
     if (!feature("mypage")) offView("mypage");
+    if (!feature("reserve")) { offView("reserve"); offView("lookup"); }
     if (!feature("sheets")) {
       ["sheet-link", "foot-sheet"].forEach(function (id) {
         var n = document.getElementById(id);

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SBPress v6.0 · 첫 화면 전송량 실측 — GitHub Pages 월 100GB 한도 방어.
+"""SBPress v7.0 · 첫 화면 전송량 실측 — GitHub Pages 월 100GB 한도 방어.
 
 공개 첫 화면(`/`)이 실제로 내려받는 바이트를 재고, 300KB 예산과 월 100GB 대비 %로 남깁니다.
 
@@ -26,7 +26,7 @@ from datetime import datetime, timedelta, timezone
 HERE = os.path.dirname(os.path.abspath(__file__))
 SITE = os.path.dirname(HERE) if os.path.basename(HERE) == "scripts" else HERE
 
-VERSION = "6.0"
+VERSION = "7.0"
 KST = timezone(timedelta(hours=9))
 BUDGET_BYTES = 300 * 1024                # 로드맵 8단계 — 첫 화면 300KB 이하
 MONTHLY_CAP_BYTES = 100 * 1024 ** 3      # GitHub Pages 월 100GB soft 한도

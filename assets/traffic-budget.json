@@ -1,6 +1,6 @@
 {
-  "version": "6.0",
-  "generatedAt": "2026-11-23T07:40:42+09:00",
+  "version": "7.0",
+  "generatedAt": "2026-11-23T07:59:14+09:00",
   "limits": {
     "budgetBytes": 307200,
     "budgetLabel": "300 KB",
@@ -10,20 +10,20 @@
   },
   "after": {
     "index": "index.html",
-    "totalBytes": 254150,
+    "totalBytes": 258331,
     "resources": [
       {
         "kind": "html",
         "path": "index.html",
-        "rawBytes": 42203,
-        "bytes": 10585,
+        "rawBytes": 47542,
+        "bytes": 11773,
         "counted": true
       },
       {
         "kind": "css",
         "path": "assets/styles.css",
-        "rawBytes": 139686,
-        "bytes": 28537,
+        "rawBytes": 145778,
+        "bytes": 29717,
         "counted": true
       },
       {
@@ -64,8 +64,8 @@
       {
         "kind": "js",
         "path": "assets/i18n.js",
-        "rawBytes": 54769,
-        "bytes": 14904,
+        "rawBytes": 61969,
+        "bytes": 16593,
         "counted": true
       },
       {
@@ -106,8 +106,8 @@
       {
         "kind": "js",
         "path": "assets/app.js",
-        "rawBytes": 91287,
-        "bytes": 25182,
+        "rawBytes": 91754,
+        "bytes": 25306,
         "counted": true
       },
       {
@@ -338,227 +338,21 @@
       }
     ]
   },
-  "reductionPercent": 31.2,
+  "reductionPercent": 30.0,
   "monthly": {
     "pvPerMonth": 30000,
     "assumedFirstLoads": 1.0,
     "extraPageViews": 2.5,
     "extraPageBytes": 30720,
-    "bytesPerMonth": 9928500000.0,
-    "gbPerMonth": 9.25,
-    "percentOfCap": 9.25,
+    "bytesPerMonth": 10053930000.0,
+    "gbPerMonth": 9.36,
+    "percentOfCap": 9.36,
     "roomGbPerMonth": 100.0
   },
   "gate": {
     "ok": true,
     "budgetBytes": 307200,
-    "usedPercent": 82.7
+    "usedPercent": 84.1
   },
-  "note": "텍스트는 gzip -9(= GitHub Pages 전송량), 이미지·폰트는 원본 크기. 첫 방문 1회 기준.",
-  "live": {
-    "totalBytes": 251910,
-    "resources": [
-      {
-        "name": "http://127.0.0.1:8788/assets/hero-1600.webp",
-        "type": "link",
-        "bytes": 47646,
-        "encoded": 47346,
-        "decoded": 47346,
-        "start": 23
-      },
-      {
-        "name": "http://127.0.0.1:8788/assets/fonts/nanum-gothic-400.woff2",
-        "type": "link",
-        "bytes": 61904,
-        "encoded": 61604,
-        "decoded": 61604,
-        "start": 24
-      },
-      {
-        "name": "http://127.0.0.1:8788/assets/styles.css",
-        "type": "link",
-        "bytes": 28837,
-        "encoded": 28537,
-        "decoded": 139686,
-        "start": 25
-      },
-      {
-        "name": "http://127.0.0.1:8788/assets/icon-192.png",
-        "type": "img",
-        "bytes": 2924,
-        "encoded": 2624,
-        "decoded": 2624,
-        "start": 30
-      },
-      {
-        "name": "http://127.0.0.1:8788/assets/config.js",
-        "type": "script",
-        "bytes": 3892,
-        "encoded": 3592,
-        "decoded": 9593,
-        "start": 30
-      },
-      {
-        "name": "http://127.0.0.1:8788/sbpress.config.json?_=1795387244175",
-        "type": "xmlhttprequest",
-        "bytes": 1449,
-        "encoded": 1149,
-        "decoded": 2354,
-        "start": 59
-      },
-      {
-        "name": "http://127.0.0.1:8788/assets/auth-config.js",
-        "type": "script",
-        "bytes": 945,
-        "encoded": 645,
-        "decoded": 1025,
-        "start": 103
-      },
-      {
-        "name": "http://127.0.0.1:8788/assets/i18n.js",
-        "type": "script",
-        "bytes": 15204,
-        "encoded": 14904,
-        "decoded": 54769,
-        "start": 109
-      },
-      {
-        "name": "http://127.0.0.1:8788/assets/auth.js",
-        "type": "script",
-        "bytes": 11266,
-        "encoded": 10966,
-        "decoded": 37729,
-        "start": 129
-      },
-      {
-        "name": "http://127.0.0.1:8788/assets/data.js",
-        "type": "script",
-        "bytes": 10030,
-        "encoded": 9730,
-        "decoded": 27270,
-        "start": 142
-      },
-      {
-        "name": "http://127.0.0.1:8788/assets/cms.js",
-        "type": "script",
-        "bytes": 18522,
-        "encoded": 18222,
-        "decoded": 63880,
-        "start": 152
-      },
-      {
-        "name": "http://127.0.0.1:8788/assets/body-format.js",
-        "type": "script",
-        "bytes": 3812,
-        "encoded": 3512,
-        "decoded": 9059,
-        "start": 167
-      },
-      {
-        "name": "http://127.0.0.1:8788/assets/share.js",
-        "type": "script",
-        "bytes": 2129,
-        "encoded": 1829,
-        "decoded": 4413,
-        "start": 172
-      },
-      {
-        "name": "http://127.0.0.1:8788/assets/app.js",
-        "type": "script",
-        "bytes": 25482,
-        "encoded": 25182,
-        "decoded": 91287,
-        "start": 176
-      },
-      {
-        "name": "https://docs.google.com/spreadsheets/d/1OhA6nOWiBpbrQ01QcAJIoq_RT4iNk3JsgL6rKk8IAyY/gviz/tq?tqx=out:json",
-        "type": "fetch",
-        "bytes": 0,
-        "encoded": 0,
-        "decoded": 0,
-        "start": 224
-      },
-      {
-        "name": "http://127.0.0.1:8788/assets/notify.js",
-        "type": "script",
-        "bytes": 6294,
-        "encoded": 5994,
-        "decoded": 18625,
-        "start": 245
-      },
-      {
-        "name": "http://127.0.0.1:8788/assets/plugins.js",
-        "type": "script",
-        "bytes": 9262,
-        "encoded": 8962,
-        "decoded": 29221,
-        "start": 259
-      },
-      {
-        "name": "http://127.0.0.1:8788/assets/pwa.js",
-        "type": "script",
-        "bytes": 2312,
-        "encoded": 2012,
-        "decoded": 5818,
-        "start": 272
-      },
-      {
-        "name": "https://www.googletagmanager.com/gtag/js?id=G-L7820HKGET",
-        "type": "script",
-        "bytes": 0,
-        "encoded": 0,
-        "decoded": 0,
-        "start": 282
-      },
-      {
-        "name": "https://haaikrynfrrwcpyuvrrr.supabase.co/rest/v1/site_contents?select=key,value,image_url",
-        "type": "fetch",
-        "bytes": 0,
-        "encoded": 0,
-        "decoded": 0,
-        "start": 284
-      },
-      {
-        "name": "https://haaikrynfrrwcpyuvrrr.supabase.co/rest/v1/pages?select=slug,title,subtitle,body,images,blocks,sort_order,updated_at&is_published=eq.true&order=sort_order",
-        "type": "fetch",
-        "bytes": 0,
-        "encoded": 0,
-        "decoded": 0,
-        "start": 284
-      },
-      {
-        "name": "https://haaikrynfrrwcpyuvrrr.supabase.co/rest/v1/posts?select=*&is_published=eq.true&order=category.asc,is_pinned.desc,sort_order.asc,published_at.desc&limit=500",
-        "type": "fetch",
-        "bytes": 0,
-        "encoded": 0,
-        "decoded": 0,
-        "start": 284
-      },
-      {
-        "name": "https://haaikrynfrrwcpyuvrrr.supabase.co/rest/v1/boards?select=slug,name,description,per_page,comment_policy,sort_order&order=sort_order",
-        "type": "fetch",
-        "bytes": 0,
-        "encoded": 0,
-        "decoded": 0,
-        "start": 284
-      },
-      {
-        "name": "https://haaikrynfrrwcpyuvrrr.supabase.co/rest/v1/plugins?select=id,name,version,script_url,source,settings&enabled=eq.true&order=installed_at.asc",
-        "type": "fetch",
-        "bytes": 0,
-        "encoded": 0,
-        "decoded": 0,
-        "start": 286
-      },
-      {
-        "name": "https://www.google-analytics.com/g/collect?v=2&tid=G-L7820HKGET&gtm=45je6bi0h2v9287964953za208zd9287964953xf1&_p=1795387244400&gcd=13l3l3l3l1l1&npa=0&dma=0&cid=1719248629.1795387245&frm=0&ngs=1&pscdl=noapi&rcb=16&sr=1440x950&uaa=x86&uab=64&uafvl=HeadlessChrome%3B159.0.8154.6%7CNot%252FA)Brand%3B8.0.0.0%7CChromium%3B159.0.8154.6&uam=&uamb=0&uap=Linux&uapv=&uaw=0&ul=ko-kr&_s=1&tag_exp=115616986~115938465~115938469~120385422~120469145~120469153~121049589~121246026~121246034&sid=1795387244&sct=1&seg=0&dl=http%3A%2F%2F127.0.0.1%2F&dt=%EC%A0%84%EA%B5%AD%EA%B3%B5%EB%B0%A9%20%E2%80%94%20%EC%9A%B0%EB%A6%AC%20%EB%8F%99%EB%84%A4%20%EA%B3%B5%EB%B0%A9%EC%9D%98%20%EC%9D%B4%EB%B2%88%20%EC%A3%BC%20%EC%86%8C%EC%8B%9D&en=page_view&_fv=1&_nsi=1&_ss=1&tfd=495",
-        "type": "fetch",
-        "bytes": 0,
-        "encoded": 0,
-        "decoded": 0,
-        "start": 496
-      }
-    ],
-    "measuredAt": "2026-11-23T07:40:46+09:00"
-  }
+  "note": "텍스트는 gzip -9(= GitHub Pages 전송량), 이미지·폰트는 원본 크기. 첫 방문 1회 기준."
 }

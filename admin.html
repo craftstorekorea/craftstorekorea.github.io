@@ -93,6 +93,7 @@
       <button class="admin-tab" role="tab" type="button" data-tab="comments" aria-selected="false">댓글 관리 <span class="tab-n" id="tab-cmt-count"></span></button>
       <button class="admin-tab" role="tab" type="button" data-tab="subscribers" aria-selected="false">구독자 · 뉴스레터</button>
       <button class="admin-tab" role="tab" type="button" data-tab="inbox" aria-selected="false">폼 접수함 <span class="tab-n" id="tab-inbox-count"></span></button>
+      <button class="admin-tab" role="tab" type="button" data-tab="reserve" aria-selected="false">예약 · 설문 <span class="tab-n" id="tab-rsv-count"></span></button>
       <button class="admin-tab" role="tab" type="button" data-tab="backup" aria-selected="false">백업 · 복원</button>
       <button class="admin-tab" role="tab" type="button" data-tab="settings" aria-selected="false">설정 · 연동</button>
       <button class="admin-tab" role="tab" type="button" data-tab="plugins" aria-selected="false">플러그인 · 마켓</button>
@@ -941,6 +942,84 @@
       </section>
     </div>
 
+    <!-- ============ 예약 · 설문 (v7.0) ============ -->
+    <div class="tabpanel" id="tab-reserve" role="tabpanel" hidden>
+      <div class="dash-head">
+        <div>
+          <h1>예약 · 설문</h1>
+          <p class="dash-sub">신청 양식·날짜 슬롯·정원을 만들고, 들어온 신청을 확정 · 완료 · 취소로 관리합니다.</p>
+        </div>
+        <div class="dash-actions">
+          <span class="dash-stamp" id="rsv-admin-stamp"></span>
+          <button type="button" class="btn btn-ghost btn-sm" id="rsv-reload">새로고침</button>
+        </div>
+      </div>
+      <p class="panel-note" id="rsv-admin-note">Supabase survey_forms · reservation_slots · reservations — 관리자만 읽고 씁니다.</p>
+      <p class="cms-toast" id="rsv-msg" role="status" aria-live="polite" hidden></p>
+      <p class="cms-hint" id="rsv-missing" hidden>예약 표가 아직 없습니다. <code>supabase/19_v70_reservations_webhooks_ai.sql</code> 을 Supabase SQL Editor 에서 실행하면 이 화면이 켜집니다.</p>
+
+      <div class="dash-grid">
+        <section class="panel" id="p-rsv-form">
+          <div class="panel-head">
+            <h2>신청 양식</h2>
+            <div class="panel-tools">
+              <select id="rsv-admin-forms" class="admin-select" aria-label="예약 양식 고르기"></select>
+              <button type="button" class="btn btn-ghost btn-sm" id="rsv-form-new">새 양식</button>
+            </div>
+          </div>
+          <div class="set-grid">
+            <label class="cms-field"><span>주소 이름(slug) <em>영문·숫자·하이픈</em></span><input id="rsv-form-slug" maxlength="60" placeholder="counseling"></label>
+            <label class="cms-field"><span>이름(한국어)</span><input id="rsv-form-title" maxlength="120" placeholder="상담 예약"></label>
+            <label class="cms-field"><span>Name (English)</span><input id="rsv-form-title-en" maxlength="120" placeholder="Consultation"></label>
+            <label class="cms-field"><span>설명 <em>선택</em></span><input id="rsv-form-desc" maxlength="300"></label>
+          </div>
+          <label class="cms-check cms-field"><span>공개</span>
+            <span class="cms-check-row"><input type="checkbox" id="rsv-form-active" checked><em>끄면 #/reserve 에서 이 양식이 보이지 않습니다.</em></span>
+          </label>
+          <div class="backup-actions">
+            <button type="button" class="btn btn-primary btn-sm" id="rsv-form-save">양식 저장</button>
+          </div>
+        </section>
+
+        <section class="panel" id="p-rsv-slot">
+          <div class="panel-head"><h2>날짜 · 시간 슬롯</h2><span class="panel-tag" id="rsv-slot-count">–</span></div>
+          <div class="set-grid set-grid-3">
+            <label class="cms-field"><span>날짜</span><input id="rsv-slot-date" type="date"></label>
+            <label class="cms-field"><span>시간 <em>비우면 종일</em></span><input id="rsv-slot-time" type="time"></label>
+            <label class="cms-field"><span>정원</span><input id="rsv-slot-cap" type="number" min="1" max="500" value="1"></label>
+          </div>
+          <div class="backup-actions"><button type="button" class="btn btn-primary btn-sm" id="rsv-slot-add">슬롯 추가</button></div>
+          <div class="table-wrap">
+            <table class="admin-table" id="rsv-slots">
+              <thead><tr><th>날짜</th><th>시간</th><th>정원</th><th>신청</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel panel-wide" id="p-rsv-list">
+        <div class="panel-head">
+          <h2>들어온 신청 <span class="panel-tag" id="rsv-count">–</span></h2>
+          <div class="panel-tools">
+            <select id="rsv-status-filter" class="admin-select" aria-label="상태로 거르기">
+              <option value="all">상태 전체</option>
+              <option value="submitted">접수</option>
+              <option value="confirmed">확정</option>
+              <option value="completed">완료</option>
+              <option value="canceled">취소</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="admin-table" id="rsv-list">
+            <thead><tr><th>접수번호</th><th>신청자</th><th>날짜 · 시간</th><th>상태</th><th>접수</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
     <!-- ============ 백업 · 복원 (v2.1) ============ -->
     <div class="tabpanel" id="tab-backup" role="tabpanel" hidden>
       <div class="dash-head">
@@ -1055,6 +1134,78 @@
         </div>
         <p class="cms-hint" id="set-notify-hint">시크릿: CRON_SECRET · RESEND_API_KEY 또는 NOTIFY_WEBHOOK · NOTIFY_FROM · 크론은 매시 함수 notify 호출</p>
       </section>
+      <section class="panel panel-wide" id="p-set-ai">
+        <div class="panel-head">
+          <h2>AI 보조 (초안 · KO↔EN 번역)</h2>
+          <div class="panel-tools"><span class="panel-tag" id="ai-state">확인 중</span></div>
+        </div>
+        <p class="panel-note">글 편집기의 AI 초안 · KO→EN · EN→KO 버튼이 이 설정을 봅니다. 결과는 입력칸에만 채우고 자동 저장·자동 발행은 하지 않습니다.</p>
+        <p class="cms-hint">기본값은 사용 안 함입니다. 쓰려면 Supabase Edge Function ai 를 배포하고 시크릿 AI_API_KEY 를 넣은 뒤, site_contents 의 ai.provider 를 openai(호환 API면 compatible) 로 바꿉니다. 키가 없으면 편집기는 안전 안내만 냅니다.</p>
+        <p class="cms-hint">외부 AI API 는 무료가 아닙니다 — 무료 크레딧 범위 · 보유 키 · 사용 안 함 중에서 고르세요. 모델은 ai.model 에 적습니다(예: gpt-4o-mini).</p>
+        <div class="set-grid">
+          <label class="cms-field"><span>사용 방식</span>
+            <select id="set-ai-provider" class="admin-select">
+              <option value="none">사용 안 함 (기본값)</option>
+              <option value="openai">OpenAI (AI_API_KEY)</option>
+              <option value="compatible">호환 API (AI_BASE_URL + AI_API_KEY)</option>
+            </select>
+          </label>
+          <label class="cms-field"><span>모델 <em>선택</em></span><input id="set-ai-model" maxlength="80" placeholder="gpt-4o-mini"></label>
+        </div>
+        <div class="backup-actions"><button type="button" class="btn btn-primary btn-sm" id="set-ai-save">저장</button></div>
+      </section>
+
+      <section class="panel panel-wide" id="p-set-webhook">
+        <div class="panel-head">
+          <h2>웹훅 (구글 시트 · 슬랙 · 메일)</h2>
+          <div class="panel-tools">
+            <span class="panel-tag" id="wh-stamp">–</span>
+            <button type="button" class="btn btn-ghost btn-sm" id="wh-drain">대기 전송</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="wh-reload">새로고침</button>
+          </div>
+        </div>
+        <p class="panel-note">이벤트가 생기면 등록한 주소로 JSON 을 보냅니다. 서명은 X-SBPress-Signature: sha256=…(HMAC-SHA256) 이고, 실패하면 3회까지 다시 시도한 뒤 실패로 남깁니다.</p>
+        <p class="cms-hint" id="wh-missing" hidden>웹훅 표가 아직 없습니다. supabase/19_v70_reservations_webhooks_ai.sql 을 실행하면 이 카드가 켜집니다.</p>
+        <div class="set-grid set-grid-3">
+          <label class="cms-field"><span>이름 <em>선택</em></span><input id="wh-name" maxlength="80" placeholder="슬랙 알림"></label>
+          <label class="cms-field"><span>종류</span>
+            <select id="wh-kind" class="admin-select">
+              <option value="google_sheet">구글 시트 (Apps Script)</option>
+              <option value="slack">슬랙 Incoming Webhook</option>
+              <option value="mail">메일 중계</option>
+              <option value="custom">직접 URL</option>
+            </select>
+          </label>
+          <label class="cms-field"><span>이벤트</span>
+            <select id="wh-event" class="admin-select">
+              <option value="form.submitted">폼 접수 (form.submitted)</option>
+              <option value="approval.completed">결재 완료 (approval.completed)</option>
+              <option value="issue.created">일감 생성 (issue.created)</option>
+              <option value="reservation.confirmed">예약 확정 (reservation.confirmed)</option>
+            </select>
+          </label>
+        </div>
+        <div class="set-grid">
+          <label class="cms-field"><span>대상 URL <em>https://</em></span><input id="wh-url" maxlength="500" placeholder="https://hooks.slack.com/services/…"></label>
+          <label class="cms-field"><span>서명 키(secret) <em>선택 — X-SBPress-Signature</em></span><input id="wh-secret" maxlength="200" autocomplete="off" placeholder="임의의 긴 문자열"></label>
+        </div>
+        <div class="backup-actions"><button type="button" class="btn btn-primary btn-sm" id="wh-add">웹훅 등록</button></div>
+        <p class="cms-toast" id="wh-msg" role="status" aria-live="polite" hidden></p>
+        <div class="table-wrap">
+          <table class="admin-table" id="wh-list">
+            <thead><tr><th>이름</th><th>이벤트</th><th>대상 URL</th><th>상태</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <h3 class="sub-h">전송 이력</h3>
+        <p class="cms-hint">최근 20건입니다. 재시도 횟수는 0~3회이고, 3회를 다 써도 실패하면 빨간 실패로 남습니다.</p>
+        <div class="table-wrap">
+          <table class="admin-table" id="wh-deliveries">
+            <thead><tr><th>시각</th><th>웹훅</th><th>이벤트</th><th>결과</th><th>비고</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
     </div>
 
     <!-- ============ 플러그인 · 마켓 ============ -->
@@ -1156,6 +1307,14 @@
         <label class="cms-field"><span>요약 <em>뉴스·소개: 카드 설명 / 인터뷰: 인용문 / 정보: 한 줄 설명</em></span><textarea id="pf-summary" rows="2"></textarea></label>
         <div class="cms-field ed-field">
           <span>본문 <em>인터뷰: 설명 — 아래 서식·이미지로 꾸밀 수 있습니다</em></span>
+          <div class="ai-bar" id="pf-ai-bar">
+            <span class="ai-bar-label">AI 보조</span>
+            <button type="button" class="btn btn-ghost btn-sm" id="pf-ai-draft">AI 초안</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="pf-ai-en">KO→EN 번역</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="pf-ai-ko">EN→KO 번역</button>
+            <span class="ai-bar-note">결과는 입력칸에만 채웁니다 — 검토 후 저장(자동 발행 없음)</span>
+          </div>
+          <p class="cms-toast" id="ai-msg" role="status" aria-live="polite" hidden></p>
           <div class="ed-bar" id="pf-ed-toolbar"></div>
           <textarea id="pf-body" rows="8"></textarea>
           <div class="ed-prev" id="pf-preview" hidden></div>
@@ -1495,6 +1654,8 @@
 <script src="/assets/editor.js"></script>
 <script src="/assets/drive.js"></script>
 <script src="/assets/admin.js"></script>
+<script src="/assets/webhooks.js"></script>
+<script src="/assets/ai-assist.js"></script>
 <script src="/assets/admin-i18n.js"></script>
 <script src="/assets/plugins.js"></script>
 </body>

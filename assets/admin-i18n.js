@@ -898,7 +898,114 @@
   "위험한 코드가 있거나 플러그인 형식이 아니라서 설치하지 않았습니다: ": "Not installed — unsafe code or not a plugin: ",
   "이 플러그인의 주소가 https:// 또는 / 가 아니어서 업데이트하지 않았습니다.": "Not updated — the plugin URL is not https:// or a same-site path.",
   "고정된 버전 — 마켓 새 버전이 와도 바꾸지 않습니다.": "Pinned version — market updates do not change it.",
-  "관리자 화면 격리": "Isolated in admin"
+  "관리자 화면 격리": "Isolated in admin",
+  "예약 · 설문": "Reservations",
+  "예약 · 설문 신청": "Reservation",
+  "신청 양식·날짜 슬롯·정원을 만들고, 들어온 신청을 확정 · 완료 · 취소로 관리합니다.": "Create forms, date slots and capacity, then confirm, complete or cancel incoming applications.",
+  "예약 양식": "Reservation form",
+  "신청 양식": "Application form",
+  "새 양식": "New form",
+  "주소 이름(slug)": "Slug",
+  "영문·숫자·하이픈": "lowercase letters, digits, hyphen",
+  "이름(한국어)": "Name (Korean)",
+  "끄면 #/reserve 에서 이 양식이 보이지 않습니다.": "When off, this form is hidden from #/reserve.",
+  "양식 저장": "Save form",
+  "날짜 · 시간 슬롯": "Date · time slots",
+  "날짜 · 시간": "Date · time",
+  "글 편집기의 AI 초안 · KO→EN · EN→KO 버튼이 이 설정을 봅니다. 결과는 입력칸에만 채우고 자동 저장·자동 발행은 하지 않습니다.": "The AI draft · KO→EN · EN→KO buttons in the post editor use this setting. Results only fill the fields — never saved or published automatically.",
+  "기본값은 사용 안 함입니다. 쓰려면 Supabase Edge Function ai 를 배포하고 시크릿 AI_API_KEY 를 넣은 뒤, site_contents 의 ai.provider 를 openai(호환 API면 compatible) 로 바꿉니다. 키가 없으면 편집기는 안전 안내만 냅니다.": "The default is Off. To use it, deploy the Supabase Edge Function ai, add the AI_API_KEY secret, then set site_contents ai.provider to openai (or compatible). Without a key the editor only shows a safe notice.",
+  "이벤트가 생기면 등록한 주소로 JSON 을 보냅니다. 서명은 X-SBPress-Signature: sha256=…(HMAC-SHA256) 이고, 실패하면 3회까지 다시 시도한 뒤 실패로 남깁니다.": "Sends JSON to the registered URL when an event happens. The signature is X-SBPress-Signature: sha256=… (HMAC-SHA256); failures retry up to 3 times, then stay failed.",
+  "시간": "Time",
+  "비우면 종일": "blank = all day",
+  "정원": "Capacity",
+  "슬롯 추가": "Add slot",
+  "신청": "Applied",
+  "들어온 신청": "Applications",
+  "확정": "Confirmed",
+  "신청자": "Applicant",
+  "접수번호": "Reference",
+  "열림": "Open",
+  "닫힘": "Closed",
+  "종일": "All day",
+  "양식을 저장했습니다.": "Form saved.",
+  "슬롯을 추가했습니다.": "Slot added.",
+  "먼저 양식을 저장해 주세요.": "Save the form first.",
+  "날짜를 골라 주세요.": "Pick a date.",
+  "주소 이름과 이름을 입력해 주세요.": "Enter the slug and the name.",
+  "새 양식의 주소 이름과 이름을 적고 ‘양식 저장’을 누르세요.": "Type the slug and name of the new form, then press Save form.",
+  "이 슬롯을 지울까요? 들어온 신청은 남습니다.": "Delete this slot? Applications stay.",
+  "아직 만든 슬롯이 없습니다.": "No slots yet.",
+  "아직 들어온 신청이 없습니다.": "No applications yet.",
+  "예약 표가 아직 없습니다.": "Reservation tables are not installed yet.",
+  "예약 표가 아직 없습니다(19_v70 SQL 실행).": "Reservation tables are not installed (run 19_v70 SQL).",
+  "예약 표가 아직 없습니다. supabase/19_v70_reservations_webhooks_ai.sql 을 Supabase SQL Editor 에서 실행하면 이 화면이 켜집니다.": "Reservation tables are missing. Run supabase/19_v70_reservations_webhooks_ai.sql in the Supabase SQL Editor to enable this screen.",
+  "Supabase survey_forms · reservation_slots · reservations — 관리자만 읽고 씁니다.": "Supabase survey_forms · reservation_slots · reservations — admins only.",
+  "AI 보조 (초안 · KO↔EN 번역)": "AI assist (draft · KO↔EN)",
+  "사용 안 함": "Off",
+  "사용 방식": "Mode",
+  "사용 안 함 (기본값)": "Off (default)",
+  "호환 API": "Compatible API",
+  "모델": "Model",
+  "AI 보조": "AI assist",
+  "AI 초안": "AI draft",
+  "KO→EN 번역": "KO→EN",
+  "EN→KO 번역": "EN→KO",
+  "결과는 입력칸에만 채웁니다 — 검토 후 저장(자동 발행 없음)": "Fills the fields only — review, then save (never auto-publishes)",
+  "웹훅 (구글 시트 · 슬랙 · 메일)": "Webhooks (Google Sheet · Slack · mail)",
+  "웹훅": "Webhook",
+  "대기 전송": "Send queued",
+  "구글 시트 (Apps Script)": "Google Sheet (Apps Script)",
+  "슬랙 Incoming Webhook": "Slack incoming webhook",
+  "메일 중계": "Mail relay",
+  "직접 URL": "Direct URL",
+  "이벤트": "Event",
+  "폼 접수 (form.submitted)": "Form submission (form.submitted)",
+  "결재 완료 (approval.completed)": "Approval completed (approval.completed)",
+  "일감 생성 (issue.created)": "Issue created (issue.created)",
+  "예약 확정 (reservation.confirmed)": "Reservation confirmed (reservation.confirmed)",
+  "대상 URL": "Target URL",
+  "서명 키(secret)": "Signing secret",
+  "선택 — X-SBPress-Signature": "optional — X-SBPress-Signature",
+  "웹훅 등록": "Register webhook",
+  "전송 이력": "Delivery log",
+  "결과": "Result",
+  "비고": "Detail",
+  "성공": "Success",
+  "실패": "Failed",
+  "꺼짐": "Off",
+  "시험 발송": "Send test",
+  "보내기": "Send",
+  "웹훅을 등록했습니다.": "Webhook registered.",
+  "웹훅을 삭제했습니다.": "Webhook deleted.",
+  "발송 중…": "Sending…",
+  "이미 같은 조건의 웹훅이 있습니다.": "A webhook with the same settings already exists.",
+  "대상 URL 은 https:// 로 시작해야 합니다(로컬 시험은 localhost 허용).": "The target URL must start with https:// (localhost is allowed for tests).",
+  "웹훅 표가 아직 없습니다. supabase/19_v70_reservations_webhooks_ai.sql 을 실행하면 이 카드가 켜집니다.": "Webhook tables are missing. Run supabase/19_v70_reservations_webhooks_ai.sql to enable this card.",
+  "이벤트가 생기면 등록한 주소로 JSON 을 보냅니다.": "Sends JSON to the registered URL when an event happens.",
+  "재시도 횟수는 0~3회이고, 3회를 다 써도 실패하면 빨간 실패로 남습니다.": "Up to 3 retries; if all fail, it stays as a red Failed.",
+  "최근 20건입니다.": "The latest 20.",
+  "등록된 웹훅이 없습니다.": "No webhooks registered.",
+  "아직 전송 이력이 없습니다.": "No deliveries yet.",
+  "최근 20건입니다. 재시도 횟수는 0~3회이고, 3회를 다 써도 실패하면 빨간 실패로 남습니다.": "The latest 20. Up to 3 retries; after that it stays a red Failed.",
+  "외부 AI API 는 무료가 아닙니다 — 무료 크레딧 범위 · 보유 키 · 사용 안 함 중에서 고르세요. 모델은 ai.model 에 적습니다(예: gpt-4o-mini).": "External AI APIs are not free — choose free credits, your own key, or off. Set the model in ai.model (for example gpt-4o-mini).",
+  "관리자 [설정 · 연동]에서 사용 방식을 고르거나, 함수 시크릿 AI_API_KEY 를 넣어 주세요.": "Choose a mode in Admin → Settings, or add the AI_API_KEY function secret.",
+  "AI 보조가 설정되지 않았습니다. 관리자 [설정 · 연동]에서 사용 방식을 고르거나, 함수 시크릿 AI_API_KEY 를 넣어 주세요.": "AI assist is not configured. Choose a mode in Admin → Settings, or add the AI_API_KEY function secret.",
+  "AI 보조가 설정되지 않았습니다": "AI assist is not configured",
+  "AI가 작성 중…": "AI is writing…",
+  "AI가 번역 중…": "AI is translating…",
+  "초안을 입력칸에 채웠습니다 — 검토 후 저장하세요.": "Draft placed in the field — review it, then save.",
+  "영문 번역을 English 칸에 채웠습니다 — 검토 후 저장하세요.": "English translation placed in the English field — review, then save.",
+  "한국어 번역을 본문 칸에 채웠습니다 — 검토 후 저장하세요.": "Korean translation placed in the body field — review, then save.",
+  "제목이나 요약을 먼저 적어 주세요.": "Write a title or summary first.",
+  "번역할 본문이 비어 있습니다.": "The body to translate is empty.",
+  "English 칸이 비어 있습니다.": "The English field is empty.",
+  "AI 응답이 비어 있습니다.": "The AI returned nothing.",
+  "AI 호출에 실패했습니다: ": "AI request failed: ",
+  "기존 내용을 AI 결과로 바꿀까요?": "Replace the existing text with the AI result?",
+  "기존 글 아래에 덧붙입니다.": "Added below the existing text.",
+  "AI 보조 설정": "AI assist settings",
+  "외부 AI API 는 무료가 아닙니다": "External AI APIs are not free",
+  "기본값은 사용 안 함입니다.": "The default is Off."
 };
   var RULES = ([
   [
@@ -1400,6 +1507,94 @@
   [
     "^결재 표를 읽지 못했습니다: (.+?) — supabase/15_v40_approvals\\.sql 을 SQL Editor 에서 한 번 실행해 주세요\\.$",
     "Could not read the approval tables: \\1 — run supabase/15_v40_approvals.sql once in the SQL Editor."
+  ],
+  [
+    "^(\\d+)건$",
+    "\\1"
+  ],
+  [
+    "^(\\d+)개 · (\\d+)회$",
+    "\\1 · \\2 retries"
+  ],
+  [
+    "^(\\d+) / (\\d+)$",
+    "\\1 / \\2"
+  ],
+  [
+    "^재시도 (\\d+)회$",
+    "\\1 retries"
+  ],
+  [
+    "^재시도 (\\d+)회 · HTTP (\\d+)$",
+    "\\1 retries · HTTP \\2"
+  ],
+  [
+    "^처리 (\\d+)건$",
+    "\\1 processed"
+  ],
+  [
+    "^시험 발송을 마쳤습니다\\(처리 (\\d+)건\\)\\.$",
+    "Test delivery finished (\\1 processed)."
+  ],
+  [
+    "^브라우저에서 직접 보냈습니다\\(재시도 (\\d+)회\\)\\.$",
+    "Sent from the browser (\\1 retries)."
+  ],
+  [
+    "^보내지 못했습니다\\(재시도 (\\d+)회 · 응답 (.+?)\\)\\. 이력에 실패로 남겼습니다\\.$",
+    "Could not deliver (\\1 retries · response \\2). Recorded as failed."
+  ],
+  [
+    "^대기 (\\d+)건을 처리했습니다\\.$",
+    "Processed \\1 queued deliveries."
+  ],
+  [
+    "^‘(.+?)’ 웹훅을 삭제할까요\\?$",
+    "Delete the “\\1” webhook?"
+  ],
+  [
+    "^상태를 ‘(.+?)’\\(으\\)로 바꿨습니다\\.$",
+    "Status changed to “\\1”."
+  ],
+  [
+    "^예약 양식을 읽지 못했습니다: (.+)$",
+    "Could not read reservation forms: \\1"
+  ],
+  [
+    "^슬롯을 읽지 못했습니다: (.+)$",
+    "Could not read slots: \\1"
+  ],
+  [
+    "^신청을 읽지 못했습니다: (.+)$",
+    "Could not read applications: \\1"
+  ],
+  [
+    "^저장하지 못했습니다: (.+)$",
+    "Could not save: \\1"
+  ],
+  [
+    "^슬롯을 저장하지 못했습니다: (.+)$",
+    "Could not save the slot: \\1"
+  ],
+  [
+    "^상태를 바꾸지 못했습니다: (.+)$",
+    "Could not change the status: \\1"
+  ],
+  [
+    "^웹훅을 읽지 못했습니다: (.+)$",
+    "Could not read webhooks: \\1"
+  ],
+  [
+    "^저장하지 못했습니다: (.+)$",
+    "Could not save: \\1"
+  ],
+  [
+    "^AI 호출에 실패했습니다: (.+)$",
+    "AI request failed: \\1"
+  ],
+  [
+    "^삭제할까요\\?$",
+    "Delete?"
   ]
 ]).map(function (r) {
     /* 파이썬 쪽 규칙은 \1 로 그룹을 가리킵니다 — JS replace 는 $1 을 씁니다. */
