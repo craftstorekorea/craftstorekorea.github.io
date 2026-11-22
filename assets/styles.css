@@ -1744,7 +1744,7 @@ body[data-theme="craft"] .hm-prov{fill:#F1E0CB}
 .appr-hint{margin:0;font-size:.8rem;color:var(--ink-3)}
 .appr-compose{
   background:var(--card);border:1px solid var(--line);border-radius:16px;
-  padding:18px;margin:0 0 16px;box-shadow:var(--shadow-s);
+  padding:18px;margin:0 0 16px;box-shadow:var(--shadow-s);scroll-margin-top:92px;
 }
 .appr-compose-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
 .appr-compose-head h3{font-size:1rem;letter-spacing:-.02em}
