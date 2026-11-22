@@ -31,7 +31,7 @@
     providers: ["email"],
     defaultTheme: "magazine",
     defaultLang: "ko",
-    features: { map: true, tasks: true, mypage: true, plugins: true, comments: true, sheets: true },
+    features: { map: true, tasks: true, approvals: true, mypage: true, plugins: true, comments: true, sheets: true },
     sheets: null,
     ownerEmail: "",
     naverAuthUrl: ""

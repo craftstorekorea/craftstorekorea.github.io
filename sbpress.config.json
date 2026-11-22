@@ -15,6 +15,7 @@
   "features": {
     "map": true,
     "tasks": true,
+    "approvals": true,
     "mypage": true,
     "plugins": true,
     "comments": true,

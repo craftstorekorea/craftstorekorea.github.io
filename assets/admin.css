@@ -875,3 +875,48 @@ tr.owner-row td{background:#FFFAF6}
   .usage-cards{grid-template-columns:1fr}
   .orphan-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
 }
+
+/* ============================================================================
+   SBPress v4.0 — /admin → 결재 관리
+   ============================================================================ */
+.cms-body{padding:16px 20px 20px}
+.cms-field-wide{grid-column:1 / -1}
+.cms-group-head{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap;margin-bottom:6px}
+.cms-group-head h2{font-size:.98rem;letter-spacing:-.02em}
+.appr-forms{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:10px}
+.appr-form-card{
+  background:var(--bg-2);border:1px solid var(--line);border-radius:12px;padding:14px;
+  display:flex;flex-direction:column;gap:8px;
+}
+.appr-form-card h3{font-size:.94rem;letter-spacing:-.02em;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.appr-form-code{font-size:.72rem;font-weight:800;color:var(--ink-3);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.appr-form-desc{margin:0;font-size:.8rem;color:var(--ink-2);line-height:1.6}
+.appr-form-tags{display:flex;gap:5px;flex-wrap:wrap;font-size:.72rem;color:var(--ink-3)}
+.appr-form-tags span{background:#fff;border:1px solid var(--line);border-radius:999px;padding:2px 8px}
+.appr-form-foot{display:flex;gap:6px;margin-top:auto}
+.appr-empty{padding:18px;text-align:center;font-size:.84rem;color:var(--ink-3)}
+.appr-fields-editor textarea{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82rem;line-height:1.6}
+#appr-doc-table td .appr-doc-sub{display:block;font-size:.74rem;color:var(--ink-3);margin-top:2px}
+.appr-doc-detail{display:flex;flex-direction:column;gap:12px}
+.appr-doc-detail h3{margin:4px 0 0;font-size:.8rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.appr-doc-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 16px;margin:0;padding:12px;background:var(--bg-2);border-radius:10px;font-size:.82rem}
+.appr-doc-meta div{display:flex;justify-content:space-between;gap:8px}
+.appr-doc-meta dt{color:var(--ink-3);font-weight:700}
+.appr-doc-meta dd{margin:0;color:var(--ink);text-align:right}
+.appr-doc-fields{width:100%;border-collapse:collapse;font-size:.82rem}
+.appr-doc-fields th,.appr-doc-fields td{padding:6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.appr-doc-fields th{width:34%;color:var(--ink-3);font-weight:700}
+.appr-doc-text{font-size:.86rem;line-height:1.7;color:var(--ink-2);white-space:pre-wrap;word-break:break-word}
+.appr-step-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.appr-step-list li{background:var(--bg-2);border-radius:10px;padding:9px 12px;font-size:.82rem}
+.appr-step-list .row1{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.appr-step-list .when{font-size:.74rem;color:var(--ink-3)}
+.appr-step-list .note{margin:5px 0 0;color:var(--ink-2);white-space:pre-wrap}
+.appr-log-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:.78rem}
+.appr-log-list li{display:flex;gap:8px;flex-wrap:wrap;padding:4px 0;border-bottom:1px dashed var(--line)}
+.appr-log-list .t{color:var(--ink-3);font-variant-numeric:tabular-nums}
+.appr-log-list .a{font-weight:700;color:var(--ink-2)}
+@media (max-width:860px){
+  .appr-doc-meta{grid-template-columns:1fr}
+  .appr-forms{grid-template-columns:1fr}
+}

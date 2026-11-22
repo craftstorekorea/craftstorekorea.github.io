@@ -77,6 +77,7 @@ assets/admin.css          관리자 화면 전용 레이아웃(모바일 카드�
 assets/cms.js             Supabase 문구·글 불러오기, 댓글 버튼·드로어
 assets/i18n.js            한국어/영어 사전과 KO|EN 스위치 (localStorage 'craft-lang')
 assets/tasks.js           업무 관리 화면 (#/tasks) — 로그인·등급 게이트, 보드 CRUD
+assets/approvals.js       내부 전자결재 (#/approvals) — 기안 작성·1차/최종 결재선·승인/반려·회수·결재함 (v4.0)
 assets/hunmin.js          hunmin 블록 — 사이트 렌더(최신글·인기글·지도·폼·갤러리·텍스트) + 관리자 편집기
 assets/body-format.js     본문 형식(text·markdown·html) 변환 + 화이트리스트 정화 — 공개 사이트·관리자 미리보기 공용
 assets/editor.js          관리자 글·페이지 본문 툴바(굵게·기울임·제목·링크·목록·인용·이미지)·미리보기
@@ -98,6 +99,19 @@ scripts/build_static_seo.py | build_feeds.py | check_repo_budget.py  빌드·피
 > `/admin` 은 루트 스텁이 열려 자기 자신으로 되돌아가는 고리가 됩니다. 그래서 실제 페이지는
 > `admin.html`·`privacy.html`·`terms.html` 에 두고(주소는 `/admin`·`/privacy`·`/terms`),
 > 폴더의 `index.html` 은 `/admin/` 처럼 끝에 `/` 를 붙여 들어온 주소만 받아 넘깁니다.
+
+## v4.0 기능 (내부 전자결재 기본)
+
+- **결재함 `#/approvals`** (로그인한 회원만 · 로그아웃 시 메뉴 숨김): `결재 대기(내 차례)` · `내가 올린 기안` · `완료 · 반려함` · `전체(관리자)` 탭.
+- **기안 작성**: 양식 선택(일반 기안 · 지출결의 · 휴가/일정 신청 · 게시글 발행 승인) → 제목·내용·양식별 추가 항목·첨부 링크 → **1차/최종 결재자** 지정 → `임시저장` 또는 `결재 상신`.
+  홈페이지 문서번호는 **`AP-YYYYMM-NNN`**(서울 기준 월별 연번, 서버 함수 채번)입니다.
+- **결재 처리**: 지금 차례인 결재자에게만 `승인`·`반려(사유 필수)` 버튼이 보이고, 승인하면 다음 단계로, 마지막 단계면 `승인 완료`로 끝납니다. 아무도 처리하지 않은 기안은 기안자가 `회수`할 수 있습니다.
+- **문서 보기**: 결재선 진행 상태(단계·결재자·시각·의견), 본문·세부항목·첨부, 이력(작성·상신·승인·반려·회수·열람)이 함께 남습니다.
+- **`/admin → 결재 관리`**: 결재 양식(이름·영문 이름·설명·정렬·켜기/끄기·추가 항목 JSON) 편집과 전체 결재 문서 목록·상세(결재선·이력) 확인.
+- **DB (`supabase/15_v40_approvals.sql`)**: `approval_forms`·`approval_docs`·`approval_steps`·`approval_logs`(append-only) + RLS(익명 차단, 기안자·결재자·관리자만 읽기) + 쓰기는 `approval_create`·`approval_submit`·`approval_act`·`approval_withdraw` RPC 만.
+  결재자 아닌 사람의 승인 호출은 서버가 `42501` 로 거부하고, 동시 처리에는 `status='pending'` 조건부 갱신(낙관적 잠금)으로 한 명만 성공합니다. 기안 문서 변경은 `audit_logs` 에도 자동 기록됩니다.
+  **SQL 을 아직 실행하지 않아도** 화면은 “결재 표가 아직 없습니다 + 실행할 파일” 안내만 보이고 깨지지 않습니다.
+- 검증: `cd .. && CMS_TEST_MODE=v40 python3 cms_test.py` (기안·상신·1차/최종 승인·반려 사유·회수·필터·권한 거부·이력 수정 차단·`/admin`·KO/EN·모바일·폴백).
 
 ## v3.0 기능 (코어 분리 · 정적 SEO 경량화 · 저장소 용량 모니터)
 

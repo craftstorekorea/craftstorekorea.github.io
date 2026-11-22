@@ -63,6 +63,7 @@
       <button class="tab" role="tab" data-view="info" aria-selected="false">지원·공모</button>
       <button class="tab" role="tab" data-view="map" aria-selected="false">지도·게시판</button>
       <button class="tab" role="tab" data-view="tasks" data-auth-only="1" aria-selected="false" hidden>업무 관리</button>
+      <button class="tab" role="tab" data-view="approvals" data-auth-only="1" aria-selected="false" hidden>전자결재</button>
     </nav>
     <button class="header-search" id="search-open" type="button" aria-label="통합 검색" data-i18n-aria="search.open.aria">
       <svg width="16" height="16" aria-hidden="true"><use href="#i-search"/></svg>
@@ -406,6 +407,23 @@
     </section>
   </div>
 
+  <!-- ============ 내부 전자결재 (#/approvals) — 로그인 후에만 열립니다 ============ -->
+  <div class="view" id="view-approvals" role="tabpanel" aria-labelledby="tab-approvals" hidden>
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head row" id="appr-head">
+          <div>
+            <p class="eyebrow" id="appr-eyebrow">전자결재 · Approvals</p>
+            <h2 id="appr-title">기안하고 결재합니다</h2>
+            <p id="appr-desc">양식을 골라 기안을 올리고, 1차·최종 결재자가 승인하거나 반려합니다. 결재선과 이력이 문서에 그대로 남습니다.</p>
+          </div>
+        </div>
+        <div id="appr-gate"></div>
+        <div id="appr-app" hidden></div>
+      </div>
+    </section>
+  </div>
+
   <!-- ============ 직접 만든 게시판 (#/board/<slug>) ============ -->
   <div class="view" id="view-board" role="tabpanel" hidden>
     <section class="section">
@@ -579,6 +597,7 @@
 <script src="assets/share.js"></script>
 <script src="assets/app.js"></script>
 <script src="assets/tasks.js"></script>
+<script src="assets/approvals.js"></script>
 <script src="assets/mypage.js"></script>
 <script src="assets/plugins.js"></script>
 

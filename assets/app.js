@@ -234,9 +234,9 @@
      site_contents 의 header_logo_url / header_brand_text / header_menu_items 를 읽어 그립니다.
      값이 없으면 index.html 의 기본 마크·메뉴를 그대로 씁니다. */
   var VIEW_KEYS = (function () {
-    var base = ["home", "workshops", "news", "interview", "archive", "info", "map", "tasks", "page", "board", "post", "mypage", "search"];
+    var base = ["home", "workshops", "news", "interview", "archive", "info", "map", "tasks", "approvals", "page", "board", "post", "mypage", "search"];
     return base.filter(function (k) {
-      if (k === "map" || k === "tasks" || k === "mypage") return feature(k);
+      if (k === "map" || k === "tasks" || k === "approvals" || k === "mypage") return feature(k);
       return true;
     });
   })();
@@ -280,6 +280,7 @@
       var target = String(it.target || "").trim();
       var view = target.replace(/^#\/?/, "").replace(/\/$/, "") || "home";
       if (view === "tasks" && (!on || !feature("tasks"))) return "";   // 로그아웃 상태·기능 끔이면 숨김
+      if (view === "approvals" && (!on || !feature("approvals"))) return "";
       if (view === "map" && !feature("map")) return "";
       if (view === "mypage" && !feature("mypage")) return "";
       return tabHtml(it);
@@ -325,6 +326,7 @@
     [].forEach.call(document.querySelectorAll("#tabs .tab[data-auth-only]"), function (t) {
       t.hidden = !on;
       if (on && t.getAttribute("data-view") === "tasks") t.textContent = T("nav.tasks");
+      if (on && t.getAttribute("data-view") === "approvals") t.textContent = T("nav.approvals");
     });
   }
 
@@ -1708,6 +1710,7 @@
     info: "지원·공모 정보 — " + BRAND,
     map: "전국 공방 지도 & 등록 게시판 — " + BRAND,
     tasks: "업무 관리 — " + BRAND,
+    approvals: "전자결재 — " + BRAND,
     page: "페이지 — " + BRAND,
     board: "게시판 — " + BRAND,
     post: "글 — " + BRAND,
@@ -1733,6 +1736,7 @@
     if (r.name === "search") renderSearch(r.arg, r.raw === "search" && !r.arg);
     if (r.name === "mypage" && window.CRAFT_MYPAGE) window.CRAFT_MYPAGE.show();
     if (r.name === "tasks" && window.CRAFT_TASKS) window.CRAFT_TASKS.show();
+    if (r.name === "approvals" && window.CRAFT_APPROVALS) window.CRAFT_APPROVALS.show();
     if (r.name === "board") {
       if (r.arg !== lastBoardArg) { pagerState.board = 1; lastBoardArg = r.arg; }
       renderCustomBoard(r.arg);
@@ -1781,6 +1785,7 @@
     }
     if (!feature("map")) offView("map");
     if (!feature("tasks")) offView("tasks");
+    if (!feature("approvals")) offView("approvals");
     if (!feature("mypage")) offView("mypage");
     if (!feature("sheets")) {
       ["sheet-link", "foot-sheet"].forEach(function (id) {
@@ -1824,6 +1829,7 @@
       if (r.name === "board") renderCustomBoard(r.arg);
       if (r.name === "search") renderSearch(searchState.q, false);
       if (window.CRAFT_TASKS) window.CRAFT_TASKS.refresh();
+      if (window.CRAFT_APPROVALS) window.CRAFT_APPROVALS.refresh();
     });
   }
 
@@ -1854,6 +1860,7 @@
     if (r.name === "board") renderCustomBoard(r.arg);
     if (r.name === "search") renderSearch(searchState.q, false);
     if (r.name === "tasks" && window.CRAFT_TASKS) window.CRAFT_TASKS.refresh();
+    if (r.name === "approvals" && window.CRAFT_APPROVALS) window.CRAFT_APPROVALS.refresh();
     if (r.name === "mypage" && window.CRAFT_MYPAGE) window.CRAFT_MYPAGE.refresh();
     renderBoardSwitch();
     if (window.CRAFT_CMS) window.CRAFT_CMS.recount();

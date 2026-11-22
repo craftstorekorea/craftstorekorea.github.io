@@ -843,7 +843,7 @@
     tab: "dash",
     pages: [], posts: [], comments: [], media: [], postIndex: [],
     customPages: [], boardRows: [], editingPage: null, editingBoard: null, pageImages: [], pageBlocks: [],
-    loaded: { pages: false, posts: false, comments: false, brand: false, media: false, boards: false, grade: false, tasks: false },
+    loaded: { pages: false, posts: false, comments: false, brand: false, media: false, boards: false, grade: false, tasks: false, approvals: false },
     editing: null, commentCounts: {}, brand: null,
     admins: [], adminsLoaded: false, auditLoaded: false
   };
@@ -890,6 +890,7 @@
     if (name === "brand") { loadGrade(); loadTheme(); }
     if (name === "posts") { if (!CMS.loaded.posts) loadPosts(); loadBoards(); }
     if (name === "tasks") loadTasksAdmin();
+    if (name === "approvals") loadApprovalsAdmin();
     if (name === "media") loadMedia();
     if (name === "comments" && !CMS.loaded.comments) loadComments();
     if (name === "subscribers") loadSubscribers();
@@ -4875,6 +4876,350 @@
     paintClean("inbox");
   }
 
+  /* ============================================================
+     v4.0 — 결재 관리 (public.approval_forms · approval_docs · approval_steps · approval_logs)
+     ============================================================ */
+  var APPR = { forms: [], docs: [], steps: {}, logs: {}, loaded: false, editing: null, doc: null };
+  var APPR_STATUS = { draft: "임시저장", pending: "결재 중", approved: "승인 완료", rejected: "반려", canceled: "회수" };
+  var APPR_STEP = { waiting: "대기", pending: "결재 대기", approved: "승인", rejected: "반려" };
+  var APPR_TYPES = { text: "텍스트", number: "숫자", date: "날짜", select: "선택", file: "파일 링크" };
+
+  function apprMsg(text, kind) { cmsMsg("appr-admin-msg", text, kind); }
+
+  function apprStamp(t) {
+    var el = $("#appr-stamp");
+    if (el) el.textContent = t || "";
+  }
+
+  function loadApprovalsAdmin(force) {
+    if (APPR.loaded && !force) { renderApprForms(); renderApprDocs(); return Promise.resolve(); }
+    apprMsg("");
+    apprStamp("불러오는 중…");
+    return Promise.all([
+      sb.from("approval_forms").select("*").order("sort_order", { ascending: true }),
+      sb.from("approval_docs").select("*").order("created_at", { ascending: false }).limit(500)
+    ]).then(function (res) {
+      var f = res[0], d = res[1];
+      var err = f.error || d.error;
+      if (err) {
+        APPR.forms = []; APPR.docs = []; APPR.steps = {}; APPR.loaded = false;
+        apprStamp("표 없음");
+        apprMsg("결재 표를 읽지 못했습니다: " + (err.message || err) +
+                " — supabase/15_v40_approvals.sql 을 SQL Editor 에서 한 번 실행해 주세요.", "err");
+        renderApprForms(); renderApprDocs();
+        return;
+      }
+      APPR.forms = f.data || [];
+      APPR.docs = d.data || [];
+      APPR.loaded = true;
+      return sb.from("approval_steps").select("*").order("doc_id", { ascending: true }).order("step_order", { ascending: true }).limit(2000)
+        .then(function (s) {
+          var map = {};
+          ((s && !s.error && s.data) || []).forEach(function (st) { (map[st.doc_id] = map[st.doc_id] || []).push(st); });
+          APPR.steps = map;
+          apprStamp("결재 " + APPR.docs.length + "건 · 양식 " + APPR.forms.length + "개");
+          paintApprBadge();
+          renderApprForms();
+          renderApprDocs();
+        });
+    }).catch(function (e) {
+      apprStamp("오류");
+      apprMsg("결재 자료를 불러오지 못했습니다: " + (e && e.message ? e.message : e), "err");
+    });
+  }
+
+  function paintApprBadge() {
+    var n = APPR.docs.filter(function (d) { return d.status === "pending"; }).length;
+    var el = $("#tab-appr-count");
+    if (el) el.textContent = n ? String(n) : "";
+  }
+
+  function apprFormName(code) {
+    for (var i = 0; i < APPR.forms.length; i++) if (APPR.forms[i].code === code) return APPR.forms[i].name;
+    return code || "";
+  }
+
+  function renderApprForms() {
+    var box = $("#appr-forms");
+    if (!box) return;
+    if (!APPR.forms.length) {
+      box.innerHTML = '<p class="appr-empty">결재 양식이 없습니다. ‘양식 추가’로 첫 양식을 만들어 주세요.</p>';
+      return;
+    }
+    box.innerHTML = APPR.forms.map(function (f) {
+      var fields = Array.isArray(f.fields) ? f.fields : [];
+      return '<article class="appr-form-card" data-id="' + esc(f.id) + '">' +
+        '<h3>' + esc(f.name || f.code) + ' <span class="appr-form-code">' + esc(f.code) + '</span></h3>' +
+        (f.description ? '<p class="appr-form-desc">' + esc(f.description) + '</p>' : "") +
+        '<div class="appr-form-tags">' +
+          '<span>' + (f.active === false ? "끔" : "켜짐") + '</span>' +
+          '<span>추가 항목 ' + fields.length + '개</span>' +
+          (f.name_en ? '<span>' + esc(f.name_en) + '</span>' : "") +
+        '</div>' +
+        (fields.length ? '<div class="appr-form-tags">' + fields.map(function (x) {
+          return '<span>' + esc(x.label || x.key) + ' · ' + esc(APPR_TYPES[x.type] || x.type || "text") + '</span>';
+        }).join("") + '</div>' : "") +
+        '<div class="appr-form-foot"><button type="button" class="mini appr-form-edit">양식 수정</button></div>' +
+      '</article>';
+    }).join("");
+    [].forEach.call(box.querySelectorAll(".appr-form-card"), function (card) {
+      var f = null;
+      for (var i = 0; i < APPR.forms.length; i++) if (APPR.forms[i].id === card.getAttribute("data-id")) f = APPR.forms[i];
+      var b = card.querySelector(".appr-form-edit");
+      if (b) b.addEventListener("click", function () { openApprForm(f); });
+    });
+  }
+
+  function renderApprDocs() {
+    var body = $("#appr-doc-table tbody");
+    if (!body) return;
+    var q = ($("#appr-admin-q") ? $("#appr-admin-q").value : "").trim().toLowerCase();
+    var st = $("#appr-admin-status") ? $("#appr-admin-status").value : "";
+    var rows = APPR.docs.filter(function (d) {
+      if (st && d.status !== st) return false;
+      if (!q) return true;
+      return [d.doc_no, d.title, d.drafter_name, apprFormName(d.form_code)].join(" ").toLowerCase().indexOf(q) >= 0;
+    });
+    var tag = $("#appr-admin-count");
+    if (tag) tag.textContent = rows.length + " / " + APPR.docs.length + "건";
+    if (!rows.length) {
+      body.innerHTML = '<tr class="empty-row"><td colspan="8">' +
+        (APPR.docs.length ? "조건에 맞는 결재 문서가 없습니다." : "아직 결재 문서가 없습니다. 사이트 #/approvals 에서 회원이 기안합니다.") +
+        "</td></tr>";
+      return;
+    }
+    body.innerHTML = rows.map(function (d) {
+      var list = APPR.steps[d.id] || [];
+      var done = list.filter(function (s) { return s.status === "approved"; }).length;
+      return '<tr data-id="' + esc(d.id) + '">' +
+        '<td class="mono">' + esc(d.doc_no || "") + '</td>' +
+        '<td>' + esc(apprFormName(d.form_code)) + '</td>' +
+        '<td><b>' + esc(d.title || "") + '</b></td>' +
+        '<td>' + esc(d.drafter_name || "") + '</td>' +
+        '<td><span class="badge st-' + esc(d.status) + '">' + esc(APPR_STATUS[d.status] || d.status) + '</span></td>' +
+        '<td>' + (d.status === "pending" ? (d.current_step || 1) + "차 · " + done + "/" + list.length + " 승인" : "–") + '</td>' +
+        '<td class="muted">' + esc(d.submitted_at ? String(d.submitted_at).slice(0, 10) : "–") + '</td>' +
+        '<td class="cms-actions"><button type="button" class="rowlink appr-doc-open">보기</button></td>' +
+      '</tr>';
+    }).join("");
+    [].forEach.call(body.querySelectorAll(".appr-doc-open"), function (b) {
+      b.addEventListener("click", function () {
+        var tr = b.closest("tr");
+        if (tr) openApprDoc(tr.getAttribute("data-id"));
+      });
+    });
+  }
+
+  function openApprForm(form) {
+    var modal = $("#appr-form-modal");
+    if (!modal) return;
+    APPR.editing = form || null;
+    $("#appr-form-modal-title").textContent = form ? "결재 양식 수정" : "새 결재 양식";
+    $("#appr-f-code").value = form ? (form.code || "") : "";
+    $("#appr-f-code").disabled = !!form;
+    $("#appr-f-name").value = form ? (form.name || "") : "";
+    $("#appr-f-name-en").value = form ? (form.name_en || "") : "";
+    $("#appr-f-desc").value = form ? (form.description || "") : "";
+    $("#appr-f-sort").value = form && form.sort_order != null ? form.sort_order : 100;
+    $("#appr-f-active").checked = form ? form.active !== false : true;
+    $("#appr-f-fields").value = form && Array.isArray(form.fields) && form.fields.length
+      ? JSON.stringify(form.fields, null, 2) : "";
+    $("#appr-f-del").hidden = !form;
+    cmsMsg("appr-form-msg", "");
+    if ($("#appr-f-check")) $("#appr-f-check").textContent = "";
+    modal.hidden = false;
+    document.body.classList.add("cms-lock");
+  }
+
+  function closeApprForm() {
+    var modal = $("#appr-form-modal");
+    if (modal) modal.hidden = true;
+    document.body.classList.remove("cms-lock");
+    APPR.editing = null;
+  }
+
+  function parseApprFields() {
+    var raw = ($("#appr-f-fields").value || "").trim();
+    if (!raw) return [];
+    var data;
+    try { data = JSON.parse(raw); } catch (e) {
+      throw new Error("추가 항목 JSON 의 형식이 맞지 않습니다: " + e.message);
+    }
+    if (!Array.isArray(data)) throw new Error("추가 항목은 JSON 배열([ ... ])이어야 합니다.");
+    data.forEach(function (x, i) {
+      if (!x || typeof x !== "object") throw new Error((i + 1) + "번째 항목이 객체가 아닙니다.");
+      if (!x.key) throw new Error((i + 1) + "번째 항목에 key 가 없습니다.");
+      if (!x.label) throw new Error((i + 1) + "번째 항목에 label 이 없습니다.");
+      if (x.type && !APPR_TYPES[x.type]) throw new Error((i + 1) + "번째 type 은 text·number·date·select·file 중 하나여야 합니다.");
+    });
+    return data;
+  }
+
+  function saveApprForm() {
+    var name = ($("#appr-f-name").value || "").trim();
+    var code = ($("#appr-f-code").value || "").trim().toLowerCase();
+    if (!name) { cmsMsg("appr-form-msg", "이름(한국어)을 입력해 주세요.", "err"); return; }
+    if (!APPR.editing && !/^[a-z0-9][a-z0-9_-]{1,29}$/.test(code)) {
+      cmsMsg("appr-form-msg", "양식 코드는 영문 소문자·숫자·- _ 로 2~30자입니다.", "err"); return;
+    }
+    var fields;
+    try { fields = parseApprFields(); }
+    catch (e) { cmsMsg("appr-form-msg", e.message, "err"); return; }
+    var row = {
+      code: APPR.editing ? APPR.editing.code : code,
+      name: name,
+      name_en: ($("#appr-f-name-en").value || "").trim(),
+      description: ($("#appr-f-desc").value || "").trim(),
+      fields: fields,
+      active: $("#appr-f-active").checked,
+      sort_order: parseInt($("#appr-f-sort").value, 10) || 100
+    };
+    var btn = $("#appr-form-save");
+    if (btn) btn.disabled = true;
+    var job = APPR.editing
+      ? sb.from("approval_forms").update(row).eq("id", APPR.editing.id)
+      : sb.from("approval_forms").insert(row);
+    job.then(function (r) {
+      if (btn) btn.disabled = false;
+      if (r.error) {
+        cmsMsg("appr-form-msg", (/row-level security|permission|401|403/i.test(r.error.message || "")
+          ? "저장 권한이 없습니다(관리자만 양식을 고칠 수 있습니다). " : "저장하지 못했습니다: ") +
+          (r.error.message || ""), "err");
+        return;
+      }
+      closeApprForm();
+      apprMsg(APPR.editing ? "결재 양식을 수정했습니다." : "결재 양식을 만들었습니다.", "ok");
+      APPR.loaded = false;
+      loadApprovalsAdmin(true);
+    }).catch(function (e) {
+      if (btn) btn.disabled = false;
+      cmsMsg("appr-form-msg", "저장하지 못했습니다: " + (e && e.message || e), "err");
+    });
+  }
+
+  function deleteApprForm() {
+    if (!APPR.editing) return;
+    if (!window.confirm("‘" + (APPR.editing.name || APPR.editing.code) + "’ 양식을 삭제할까요?\n이미 만든 기안은 남고, 이 양식 이름만 비워집니다.")) return;
+    sb.from("approval_forms").delete().eq("id", APPR.editing.id).then(function (r) {
+      if (r.error) { cmsMsg("appr-form-msg", "삭제하지 못했습니다: " + (r.error.message || ""), "err"); return; }
+      closeApprForm();
+      apprMsg("결재 양식을 삭제했습니다.", "ok");
+      APPR.loaded = false;
+      loadApprovalsAdmin(true);
+    });
+  }
+
+  function openApprDoc(id) {
+    var doc = null;
+    for (var i = 0; i < APPR.docs.length; i++) if (APPR.docs[i].id === id) doc = APPR.docs[i];
+    if (!doc) return;
+    APPR.doc = doc;
+    var modal = $("#appr-doc-modal");
+    if (!modal) return;
+    modal.hidden = false;
+    document.body.classList.add("cms-lock");
+    $("#appr-doc-modal-title").textContent = doc.doc_no || "결재 문서";
+    $("#appr-doc-body").innerHTML = '<p class="cms-hint">이력을 불러오는 중…</p>';
+    sb.from("approval_logs").select("*").eq("doc_id", id).order("created_at", { ascending: false }).limit(100)
+      .then(function (r) {
+        var logs = (r && !r.error && r.data) || [];
+        paintApprDoc(doc, logs);
+      });
+  }
+
+  function paintApprDoc(doc, logs) {
+    var box = $("#appr-doc-body");
+    if (!box) return;
+    var steps = APPR.steps[doc.id] || [];
+    var form = null;
+    for (var i = 0; i < APPR.forms.length; i++) if (APPR.forms[i].code === doc.form_code) form = APPR.forms[i];
+    var defs = (form && Array.isArray(form.fields)) ? form.fields : [];
+    var vals = doc.fields || {};
+    var rows = defs.filter(function (d) { return vals[d.key] != null && vals[d.key] !== ""; });
+    var extra = Object.keys(vals).filter(function (k) {
+      return k !== "attachment" && !defs.some(function (d) { return d.key === k; });
+    });
+    box.innerHTML = '<div class="appr-doc-detail">' +
+      '<dl class="appr-doc-meta">' +
+        '<div><dt>양식</dt><dd>' + esc(apprFormName(doc.form_code)) + '</dd></div>' +
+        '<div><dt>기안자</dt><dd>' + esc(doc.drafter_name || "") + '</dd></div>' +
+        '<div><dt>상태</dt><dd>' + esc(APPR_STATUS[doc.status] || doc.status) + '</dd></div>' +
+        '<div><dt>현재 단계</dt><dd>' + (doc.status === "pending" ? (doc.current_step || 1) + "차" : "–") + '</dd></div>' +
+        '<div><dt>작성일</dt><dd>' + esc(String(doc.created_at || "").slice(0, 10)) + '</dd></div>' +
+        '<div><dt>상신일</dt><dd>' + esc(doc.submitted_at ? String(doc.submitted_at).slice(0, 16).replace("T", " ") : "–") + '</dd></div>' +
+      '</dl>' +
+      '<h2 style="font-size:1.05rem;letter-spacing:-.02em">' + esc(doc.title || "") + '</h2>' +
+      (rows.length ? '<table class="appr-doc-fields"><tbody>' + rows.map(function (d) {
+        return '<tr><th>' + esc(d.label || d.key) + '</th><td>' + esc(vals[d.key]) + '</td></tr>';
+      }).join("") + '</tbody></table>' : "") +
+      (extra.length ? '<table class="appr-doc-fields"><tbody>' + extra.map(function (k) {
+        return '<tr><th>' + esc(k) + '</th><td>' + esc(vals[k]) + '</td></tr>';
+      }).join("") + '</tbody></table>' : "") +
+      (vals.attachment ? '<p class="cms-hint">첨부 링크: <a href="' + esc(vals.attachment) + '" class="rowlink" style="text-decoration:underline">' + esc(vals.attachment) + '</a></p>' : "") +
+      '<h3>본문</h3><div class="appr-doc-text">' + (doc.body ? esc(doc.body) : '<span class="muted">본문이 없습니다.</span>') + '</div>' +
+      '<h3>결재선</h3>' +
+      (steps.length ? '<ul class="appr-step-list">' + steps.map(function (s) {
+        return '<li><div class="row1"><b>' + s.step_order + '차</b><span>' + esc(s.approver_name || "") +
+          '</span><span class="badge st-' + esc(s.status) + '">' + esc(APPR_STEP[s.status] || s.status) + '</span>' +
+          (s.acted_at ? '<span class="when">' + esc(String(s.acted_at).slice(0, 16).replace("T", " ")) + '</span>' : "") +
+          '</div>' + (s.comment ? '<p class="note">' + esc(s.comment) + '</p>' : "") + '</li>';
+      }).join("") + '</ul>' : '<p class="cms-hint">결재선이 없습니다.</p>') +
+      '<h3>이력</h3>' +
+      (logs.length ? '<ul class="appr-log-list">' + logs.map(function (l) {
+        return '<li><span class="t">' + esc(String(l.created_at || "").slice(0, 16).replace("T", " ")) +
+          '</span><span class="a">' + esc(l.actor_name || "") + '</span><span>' + esc(APPR_LOG[l.action] || l.action) +
+          '</span>' + (l.comment ? '<span>' + esc(l.comment) + '</span>' : "") + '</li>';
+      }).join("") + '</ul>' : '<p class="cms-hint">아직 이력이 없습니다.</p>') +
+      '<div class="cms-modal-foot"><a class="btn btn-ghost btn-sm" href="/#/approvals" target="_blank" rel="noopener">결재함에서 보기</a>' +
+        '<span class="spacer"></span><button type="button" class="btn btn-primary btn-sm" id="appr-doc-close">닫기</button></div>' +
+    '</div>';
+    var close = $("#appr-doc-close");
+    if (close) close.addEventListener("click", closeApprDoc);
+  }
+
+  var APPR_LOG = { create: "기안 작성", submit: "상신", approve: "승인", reject: "반려", withdraw: "회수", view: "열람", comment: "의견" };
+
+  function closeApprDoc() {
+    var modal = $("#appr-doc-modal");
+    if (modal) modal.hidden = true;
+    document.body.classList.remove("cms-lock");
+    APPR.doc = null;
+  }
+
+  function initApprovalsAdmin() {
+    var reload = $("#appr-reload");
+    if (reload) reload.addEventListener("click", function () { APPR.loaded = false; loadApprovalsAdmin(true); });
+    var add = $("#appr-form-new");
+    if (add) add.addEventListener("click", function () { openApprForm(null); });
+    var save = $("#appr-form-save");
+    if (save) save.addEventListener("click", saveApprForm);
+    var del = $("#appr-f-del");
+    if (del) del.addEventListener("click", deleteApprForm);
+    ["#appr-form-close-x", "#appr-form-cancel"].forEach(function (sel) {
+      var b = $(sel);
+      if (b) b.addEventListener("click", closeApprForm);
+    });
+    var dx = $("#appr-doc-close-x");
+    if (dx) dx.addEventListener("click", closeApprDoc);
+    var q = $("#appr-admin-q");
+    if (q) q.addEventListener("input", renderApprDocs);
+    var st = $("#appr-admin-status");
+    if (st) st.addEventListener("change", renderApprDocs);
+    var fm = $("#appr-form-modal");
+    if (fm) fm.addEventListener("click", function (e) { if (e.target === fm) closeApprForm(); });
+    var dm = $("#appr-doc-modal");
+    if (dm) dm.addEventListener("click", function (e) { if (e.target === dm) closeApprDoc(); });
+    var tf = $("#appr-f-fields");
+    if (tf) tf.addEventListener("blur", function () {
+      var el = $("#appr-f-check");
+      if (!el) return;
+      try {
+        var f = parseApprFields();
+        el.textContent = "항목 " + f.length + "개 · " + f.map(function (x) { return x.key; }).join(", ");
+      } catch (err) { el.textContent = err.message; }
+    });
+  }
+
   /* ---------------- 시작 ---------------- */
   /* ============================================================
      6. v2.2 — 조회수 · 최근 7일 통계 / 구독자 · 뉴스레터 (13_v22_newsletter_stats_i18n.sql)
@@ -5418,6 +5763,7 @@
 
     renderQuickLinks();
     initCms();
+    initApprovalsAdmin();
 
     if (sb) {
       sb.auth.onAuthStateChange(function (evt, s) {

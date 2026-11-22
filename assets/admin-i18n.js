@@ -672,7 +672,76 @@
   "추가": "Added",
   "게시글": "Post",
   "URL 복사": "Copy URL",
-  "복사됨": "Copied"
+  "복사됨": "Copied",
+  "결재 관리": "Approvals",
+  "전자결재 양식과 기안을 관리합니다. 회원은 사이트": "Drafts and forms for the in-house approval flow. Members draft and approve at",
+  "에서 기안하고 결재합니다.": "on the site.",
+  "결재 양식": "Approval forms",
+  "양식 추가": "Add form",
+  "양식마다 추가 항목(텍스트·숫자·날짜·선택·파일 링크)을 정의하면 사이트의 기안 작성 화면이 그 정의로 입력칸을 그립니다.": "Extra fields (text, number, date, select, file link) defined on a form become the input boxes on the site's draft screen.",
+  "끄기": "Off",
+  "로 두면 새 기안에서 숨길 수 있습니다.": "hides the form from new drafts.",
+  "결재 문서": "Approval documents",
+  "문서번호·제목·기안자 검색": "Search document number, title or drafter",
+  "결재 문서 검색": "Search approval documents",
+  "결재 중": "In approval",
+  "승인 완료": "Approved",
+  "회수": "Withdrawn",
+  "문서번호": "Document no.",
+  "양식": "Form",
+  "기안자": "Drafter",
+  "현재 단계": "Current step",
+  "상신일": "Submitted",
+  "양식 코드": "Form code",
+  "영문·숫자 (예: purchase)": "letters and digits (e.g. purchase)",
+  "이름 (한국어) *": "Name (Korean) *",
+  "이름 (English)": "Name (English)",
+  "추가 항목 (JSON 배열)": "Extra fields (JSON array)",
+  "비우면 제목·내용만 받습니다": "leave empty to take a title and details only",
+  "새 기안에서 쓰기 (끄면 숨김)": "Use for new drafts (turn off to hide)",
+  "양식 삭제": "Delete form",
+  "결재 대기": "Waiting",
+  "파일 링크": "File link",
+  "텍스트": "Text",
+  "숫자": "Number",
+  "날짜": "Date",
+  "작성일": "Created",
+  "결재선": "Approval line",
+  "이력": "History",
+  "본문이 없습니다.": "No body text.",
+  "결재선이 없습니다.": "No approval line.",
+  "아직 이력이 없습니다.": "No history yet.",
+  "첨부 링크: ": "Attachment link: ",
+  "첨부 링크": "Attachment link",
+  "결재함에서 보기": "Open in approval box",
+  "기안 작성": "Drafted",
+  "상신": "Submitted",
+  "열람": "Viewed",
+  "의견": "Commented",
+  "양식 수정": "Edit form",
+  "표 없음": "No tables",
+  "결재 양식이 없습니다. ‘양식 추가’로 첫 양식을 만들어 주세요.": "No approval forms yet. Use ‘Add form’ to create the first one.",
+  "양식이 없습니다. ‘양식 추가’로 첫 양식을 만들어 주세요.": "No approval forms yet. Use ‘Add form’ to create the first one.",
+  "끔": "Off",
+  "켜짐": "On",
+  "조건에 맞는 결재 문서가 없습니다.": "No approval documents match the filter.",
+  "아직 결재 문서가 없습니다. 사이트": "No approval documents yet. Members draft at",
+  "에서 회원이 기안합니다.": "on the site.",
+  "결재 양식 수정": "Edit approval form",
+  "새 결재 양식": "New approval form",
+  "추가 항목은 JSON 배열([ ... ])이어야 합니다.": "Extra fields must be a JSON array ([ ... ]).",
+  "이름(한국어)을 입력해 주세요.": "Enter the Korean name.",
+  "양식 코드는 영문 소문자·숫자·- _ 로 2~30자입니다.": "The form code is 2–30 lowercase letters, digits, - or _.",
+  "저장 권한이 없습니다(관리자만 양식을 고칠 수 있습니다). ": "No permission to save (only admins can change forms). ",
+  "저장하지 못했습니다: ": "Could not save: ",
+  "삭제하지 못했습니다: ": "Could not delete: ",
+  "결재 양식을 수정했습니다.": "Approval form updated.",
+  "결재 양식을 만들었습니다.": "Approval form created.",
+  "결재 양식을 삭제했습니다.": "Approval form deleted.",
+  "이력을 불러오는 중…": "Loading history…",
+  "결재 표를 읽지 못했습니다: ": "Could not read the approval tables: ",
+  "결재 자료를 불러오지 못했습니다: ": "Could not load approval data: ",
+  "을 SQL Editor 에서 한 번 실행해 주세요.": "once in the SQL Editor."
 };
   var RULES = ([
   [
@@ -1070,6 +1139,54 @@
   [
     "^정리하지 못했습니다: (.+)$",
     "Could not clean up: \\1"
+  ],
+  [
+    "^결재 (\\d+)건 · 양식 (\\d+)개$",
+    "\\1 documents · \\2 forms"
+  ],
+  [
+    "^추가 항목 (\\d+)개$",
+    "\\1 fields"
+  ],
+  [
+    "^(\\d+) / (\\d+)건$",
+    "\\1 / \\2"
+  ],
+  [
+    "^(\\d+)차 · (\\d+)/(\\d+) 승인$",
+    "Step \\1 · \\2/\\3 approved"
+  ],
+  [
+    "^(\\d+)차$",
+    "Step \\1"
+  ],
+  [
+    "^(\\d+)번째 항목이 객체가 아닙니다\\.$",
+    "Entry \\1 is not an object."
+  ],
+  [
+    "^(\\d+)번째 항목에 key 가 없습니다\\.$",
+    "Entry \\1 has no key."
+  ],
+  [
+    "^(\\d+)번째 항목에 label 이 없습니다\\.$",
+    "Entry \\1 has no label."
+  ],
+  [
+    "^(\\d+)번째 type 은 text·number·date·select·file 중 하나여야 합니다\\.$",
+    "Entry \\1: type must be one of text, number, date, select, file."
+  ],
+  [
+    "^추가 항목 JSON 의 형식이 맞지 않습니다: (.+)$",
+    "The extra-fields JSON is not valid: \\1"
+  ],
+  [
+    "^‘(.+?)’ 양식을 삭제할까요\\?[\\s\\S]*$",
+    "Delete the “\\1” form? Existing drafts stay; only the form name is cleared."
+  ],
+  [
+    "^결재 표를 읽지 못했습니다: (.+?) — supabase/15_v40_approvals\\.sql 을 SQL Editor 에서 한 번 실행해 주세요\\.$",
+    "Could not read the approval tables: \\1 — run supabase/15_v40_approvals.sql once in the SQL Editor."
   ]
 ]).map(function (r) {
     /* 파이썬 쪽 규칙은 \1 로 그룹을 가리킵니다 — JS replace 는 $1 을 씁니다. */
