@@ -87,6 +87,10 @@ plugins-market.json       플러그인 마켓 목록 (관리자에서 GitHub raw
 sitemap.xml | rss.xml     검색엔진·구독용 피드 (../build_static_seo.py 또는 ../build_feeds.py 가 생성)
 post/<slug>/index.html    글 정적 SEO 페이지 (../build_static_seo.py)
 p/<slug>/index.html       페이지 정적 SEO 페이지 (../build_static_seo.py)
+assets/static-post.css    정적 글·페이지 공통 스타일 (v3.0 — 글마다 인라인 <style> 대신 이 파일)
+assets/repo-budget.json   저장소 용량 예산 실측값 (v3.0 — scripts/check_repo_budget.py)
+core-manifest.json        코어·사이트 경계와 엔진 해시 (v3.0 — ../sync_template.py --manifest)
+scripts/build_static_seo.py | build_feeds.py | check_repo_budget.py  빌드·피드·용량 스크립트 (GitHub Actions 가 실행)
 ```
 
 > **왜 폴더가 아니라 루트 `.html` 파일인가** — GitHub Pages는 `/admin` 요청에 같은 이름의 파일
@@ -94,6 +98,16 @@ p/<slug>/index.html       페이지 정적 SEO 페이지 (../build_static_seo.py
 > `/admin` 은 루트 스텁이 열려 자기 자신으로 되돌아가는 고리가 됩니다. 그래서 실제 페이지는
 > `admin.html`·`privacy.html`·`terms.html` 에 두고(주소는 `/admin`·`/privacy`·`/terms`),
 > 폴더의 `index.html` 은 `/admin/` 처럼 끝에 `/` 를 붙여 들어온 주소만 받아 넘깁니다.
+
+## v3.0 기능 (코어 분리 · 정적 SEO 경량화 · 저장소 용량 모니터)
+
+- **코어·사이트 경계 (`core-manifest.json`)**: 엔진(HTML·JS·CSS·scripts)과 사이트 고유 자료(`sbpress.config.json`·`assets/data.js`·`embeds/`·`plugins-market.json`·브랜드 이미지), 빌드 산출물(`post/`·`p/`·피드·`assets/repo-budget.json`)을 한 파일에서 나누고 엔진 파일마다 **SHA-256** 을 적습니다.
+  `sync_template.py` 는 이 매니페스트의 엔진 파일만 템플릿으로 옮기고, 해시가 다르면 멈춥니다(`--check` 는 쓰지 않고 검증만, `--manifest` 는 다시 만들기).
+- **정적 SEO HTML 경량화**: 글마다 넣던 인라인 `<style>`(약 3.6KB)을 `assets/static-post.css` 한 파일로 옮기고 `<link rel="stylesheet" href="/assets/static-post.css?v=3.0">` 로 바꿨습니다.
+  글 1건 6.4KB → **2.9KB**, `post/` 46건 294KB → **133KB**(약 55%↓). CSP·canonical·OG·공유 버튼·`share.js` 는 그대로입니다.
+- **저장소 용량 모니터**: `scripts/check_repo_budget.py` 가 배포 트리·정적 글·`assets/`·`.git` 이력을 세어 `assets/repo-budget.json` 을 만들고,
+  `/admin → 대시보드` 의 **‘GitHub 1GB 용량 예산’** 카드가 1GB 대비 사용률·정적 글 수/용량·글당 평균·수용 가능 글 수·`.git` 정리 안내를 보여 줍니다(KO/EN).
+- 검증: `cd .. && CMS_TEST_MODE=v11 python3 cms_test.py` (코어 정합성 · 경량화 정적 HTML · 예산 JSON · `/admin` 카드 KO/EN·모바일).
 
 ## v2.2 기능 (구독자·뉴스레터 · 조회수/통계 · KO·EN 본문 · 이미지 WebP 압축)
 

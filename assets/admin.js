@@ -884,7 +884,7 @@
       p.hidden = p.id !== "tab-" + name;
     });
     if (name === "dash" && !CMS.adminsLoaded) loadAdmins();
-    if (name === "dash") { loadAudit(); loadStats(); }
+    if (name === "dash") { loadAudit(); loadStats(); loadBudget(); }
     if (name === "pages") { if (!CMS.loaded.pages) loadPages(); loadPageManager(); }
     if (name === "brand" && !CMS.loaded.brand) loadBrand();
     if (name === "brand") { loadGrade(); loadTheme(); }
@@ -4367,6 +4367,60 @@
   var NL = { picked: {} };
   var STATS = { loaded: false };
 
+  /* ---------------- v3.0: GitHub 1GB 용량 예산 ----------------
+     assets/repo-budget.json 은 scripts/check_repo_budget.py 가 만듭니다.
+     화면 숫자는 언어와 상관없게(%, MB, 개수) 그리고 이름표만 KO/EN 번역합니다. */
+  var BUDGET = { loaded: false };
+
+  function fmtBytes(n) {
+    if (n == null || isNaN(n)) return "–";
+    if (n >= 1073741824) return (n / 1073741824).toFixed(2) + " GB";
+    if (n >= 1048576) return (n / 1048576).toFixed(2) + " MB";
+    if (n >= 1024) return Math.round(n / 1024).toLocaleString("en-US") + " KB";
+    return n + " B";
+  }
+
+  function num(n) {
+    return (n == null || isNaN(n)) ? "–" : Number(n).toLocaleString("en-US");
+  }
+
+  function loadBudget(force) {
+    var msg = $("#budget-msg");
+    if (BUDGET.loaded && !force) return Promise.resolve();
+    if (BUDGET.inflight) return BUDGET.inflight;
+    if (msg) { msg.textContent = ""; msg.className = "cms-toast"; }
+    BUDGET.inflight = fetch("/assets/repo-budget.json?t=" + Date.now(), { cache: "no-store" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
+      .then(function (d) { renderBudget(d); BUDGET.loaded = true; })
+      .catch(function () {
+        if (msg) cmsMsg("budget-msg", "용량 자료(assets/repo-budget.json)를 읽지 못했습니다. scripts/check_repo_budget.py 를 실행해 주세요.", "err");
+      })
+      .then(function () { BUDGET.inflight = null; });
+    return BUDGET.inflight;
+  }
+
+  function renderBudget(d) {
+    var u = d.usage || {}, p = d.post || {}, cap = d.capacity || {}, g = d.git || {};
+    var pct = Number(u.percent || 0);
+    var el;
+    if ((el = $("#budget-percent"))) el.textContent = pct.toFixed(2) + "%";
+    if ((el = $("#budget-fill"))) {
+      el.style.width = Math.max(1.5, Math.min(100, pct)) + "%";
+      var bar = el.parentNode;
+      if (bar && bar.classList) bar.className = "budget-bar" + (pct >= 4 ? " warn" : "");
+    }
+    if ((el = $("#budget-tree"))) el.textContent = fmtBytes(u.treeBytes);
+    if ((el = $("#budget-posts"))) el.textContent = num(p.count);
+    if ((el = $("#budget-post-bytes"))) el.textContent = fmtBytes(p.bytes);
+    if ((el = $("#budget-avg"))) el.textContent = fmtBytes(p.avgBytes);
+    if ((el = $("#budget-capacity"))) el.textContent = "≈ " + num(cap.postsToBudget);
+    if ((el = $("#budget-git-size"))) el.textContent = fmtBytes(u.gitBytes);
+    if ((el = $("#budget-stamp"))) el.textContent = (d.commit || "–") + " · " + String(d.generatedAt || "").slice(5, 16).replace("T", " ");
+  }
+
   function kstYmd(d) {
     try {
       return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
@@ -4774,6 +4828,8 @@
     /* 대시보드 통계 */
     var sr = $("#stats-reload");
     if (sr) sr.addEventListener("click", function () { STATS.loaded = false; loadStats(); });
+    var br = $("#budget-reload");
+    if (br) br.addEventListener("click", function () { loadBudget(true); });
 
     /* 구독자 */
     var subReload = $("#sub-reload");

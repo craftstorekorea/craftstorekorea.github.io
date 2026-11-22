@@ -1,0 +1,189 @@
+{
+  "name": "SBPress",
+  "kind": "core-manifest",
+  "version": "3.0",
+  "generatedAt": "2026-11-22T22:57:00+09:00",
+  "generator": "craftstore_site/sync_template.py --manifest",
+  "engine": {
+    "html": {
+      "index.html": {
+        "sha256": "51c095d08b9099cd923a143c160d43815104b504246beb4d04ec64ff1053a7d8",
+        "strategy": "structural"
+      },
+      "admin.html": {
+        "sha256": "f735ad39d02e3b6d622f90cf74184a2105ff61cbc295d3cc38aff915e0cbaccd",
+        "strategy": "structural"
+      },
+      "admin/index.html": {
+        "sha256": "502183837384997730a6aa7b6dbda9639876a32671a70c28ea358742d3bd2a11",
+        "strategy": "copy"
+      },
+      "privacy/index.html": {
+        "sha256": "8a40dd2ca8ca770be75119e880b30cba5a923bd908af57b0daae3ed33f635b3e",
+        "strategy": "copy"
+      },
+      "terms/index.html": {
+        "sha256": "f92995a07cb115352bbf72561ed859111325d32118d162524575fb7ff26828d0",
+        "strategy": "copy"
+      }
+    },
+    "js": {
+      "assets/app.js": {
+        "sha256": "68fe356f7dc5be1d639cce6e73a2131bd2eeb7430d504a2223f5d549a21d79de",
+        "strategy": "copy"
+      },
+      "assets/admin.js": {
+        "sha256": "91ded7c03cd47fe61af29bc9d22361c10fa2d5dff317dfe59179684bceb7012a",
+        "strategy": "copy"
+      },
+      "assets/admin-i18n.js": {
+        "sha256": "424e3ac52bd8e56898142dd9c841190fc1aecf15a94447d0b1279306fa39a1fa",
+        "strategy": "copy"
+      },
+      "assets/archive.js": {
+        "sha256": "f2e32497f6134760894ee90f464e4d342c1173357faf72494843d18dc9150722",
+        "strategy": "copy"
+      },
+      "assets/auth-config.js": {
+        "sha256": "30fd529eea534f7deb6dac57bdc7815676fdab096288edf6ee054cd5f633877f",
+        "strategy": "copy"
+      },
+      "assets/auth.js": {
+        "sha256": "2982e347566be34976aa296b2ec724cc89180c8453d70979fbb6046e72b3d086",
+        "strategy": "copy"
+      },
+      "assets/body-format.js": {
+        "sha256": "d9aef9e32acf3892326adb15800b54e177dd3aa00760c83bf442f8b98cf62dcc",
+        "strategy": "copy"
+      },
+      "assets/cms.js": {
+        "sha256": "941b6c4e8b880e6789cf482964e6b30f23620b036502095ec1d81936cb7ad6f2",
+        "strategy": "copy"
+      },
+      "assets/config.js": {
+        "sha256": "b0b3fe789c163b28633fa95b8b69934ff0a306745149cc13c65eaa2418501f33",
+        "strategy": "copy"
+      },
+      "assets/editor.js": {
+        "sha256": "3106a29b87e54838aa6d10e1e7fe56e5e526cd2e185ed7caadd624cb659993eb",
+        "strategy": "copy"
+      },
+      "assets/hunmin.js": {
+        "sha256": "7a674379f1e4c4c91f9435e48253a6f5dfaf6e2a983af0560c867cdad356e3b2",
+        "strategy": "copy"
+      },
+      "assets/i18n.js": {
+        "sha256": "8cccc015fc00905aafa0ea2d7e4fc1a378d271b12b1579a3ed6793aff16aa750",
+        "strategy": "copy"
+      },
+      "assets/korea-paths.js": {
+        "sha256": "666eb2b3a9473b757047b295327ba80949c83ebbe00d666949d1e78f2e21d95d",
+        "strategy": "copy"
+      },
+      "assets/mypage.js": {
+        "sha256": "2f4b0cb1223ca0b51ef03ad0ef3b490287644923a2208bf2dbb1709ef34ca275",
+        "strategy": "copy"
+      },
+      "assets/plugins.js": {
+        "sha256": "e3b5a5ad41b4ae4fee117415cf70f96a36370d45b27713c48e53968d5e553560",
+        "strategy": "copy"
+      },
+      "assets/share.js": {
+        "sha256": "9ba4c6c1b419e1b87eb6d25fe718b20c273195f8ebf3d0c6c4a034bdd87cbe4c",
+        "strategy": "copy"
+      },
+      "assets/supabase.js": {
+        "sha256": "8816af04d9915dbba1882d6f84f0b402dc40268063a63d9c66d24f52f371c263",
+        "strategy": "copy"
+      },
+      "assets/tasks.js": {
+        "sha256": "98ad55249ff702e8197677e93bf9f61d2e4431e116ff143b4704a11e530e13ba",
+        "strategy": "copy"
+      },
+      "assets/plugins/admin-json-export.js": {
+        "sha256": "d29bca586c9d76177279b9c3eb1cbef2de92224ec98ba50d1bf5e65f6f89fb21",
+        "strategy": "copy"
+      },
+      "assets/plugins/reading-time.js": {
+        "sha256": "93e1cea368771212ee92eed7f2954d55f8f01bf2e4a4d773de614a3603c6a900",
+        "strategy": "copy"
+      },
+      "assets/plugins/scroll-top.js": {
+        "sha256": "9454caa69ba2fae51cd4a8ef82f1706dcaa15a8adb4cc6a4390329e03ee63507",
+        "strategy": "copy"
+      },
+      "assets/plugins/workshop-spotlight.js": {
+        "sha256": "953899d64ca87baf04fa5b2f69baf5133e466f7069b5c3b5695adacb972feb3e",
+        "strategy": "copy"
+      }
+    },
+    "css": {
+      "assets/styles.css": {
+        "sha256": "dd57b582c89cefe8b012917b7469ae1ab4106eea0cc5254f1f45c2fa8194db86",
+        "strategy": "copy"
+      },
+      "assets/admin.css": {
+        "sha256": "cf73299fec91eff6e96dbe43b22b4d3a80ddf3bda398dc6bd64103441535657d",
+        "strategy": "copy"
+      },
+      "assets/static-post.css": {
+        "sha256": "74caf2ea6c60d62f70b44313ff53b7c0e91932ced362aaa8250eca7f63182066",
+        "strategy": "copy"
+      }
+    },
+    "scripts": {
+      "scripts/build_static_seo.py": {
+        "sha256": "4bcce5442e30ad729baa76c787b08b947d5a5976e4d6888bef221e1d4cb7b34e",
+        "strategy": "copy"
+      },
+      "scripts/build_feeds.py": {
+        "sha256": "0575d28e1c84d2d7ccca436a6e5530db3d6731b52d8e554ca9e4379fb6f6865e",
+        "strategy": "copy"
+      },
+      "scripts/check_repo_budget.py": {
+        "sha256": "2d3b09abdd2d036906b6707ee1e2bdb093a68b3d481c82b75bd3f1645f97ded6",
+        "strategy": "copy"
+      }
+    },
+    "workflow": {
+      ".github/workflows/sbpress-seo.yml": {
+        "sha256": "63dd40182c97a85da898bdc41d86d02e801220efd0db07fbacb4ad3671b86200",
+        "strategy": "copy"
+      }
+    }
+  },
+  "site": {
+    "config": [
+      "sbpress.config.json",
+      "plugins-market.json",
+      "robots.txt"
+    ],
+    "data": [
+      "assets/data.js"
+    ],
+    "docs": [
+      "privacy.html",
+      "terms.html"
+    ],
+    "media": [
+      "assets/hero-1600.jpg",
+      "assets/hero-1600.webp",
+      "assets/hero-900.webp"
+    ],
+    "dirs": [
+      "embeds"
+    ]
+  },
+  "generated": [
+    "post",
+    "p",
+    "sitemap.xml",
+    "rss.xml",
+    "assets/repo-budget.json"
+  ],
+  "rules": {
+    "engine": "템플릿으로 옮기는 코어 — 해시가 다르면 동기화 전에 멈춥니다.",
+    "site": "사이트 고유 자료 — 절대 덮어쓰지 않습니다.",
+    "generated": "빌드 산출물 — 저장소에는 두되 템플릿으로 옮기지 않습니다."
+  }
+}

@@ -437,6 +437,12 @@ def phone_safe(s, n=160):
     return t if len(t) <= n else t[: n - 1] + "…"
 
 
+# v3.0 — 정적 글·페이지는 공통 CSS 한 파일을 링크합니다(글마다 <style> 을 넣지 않음).
+#   글 1건당 약 2.4KB 가 빠지고, 고치면 46건이 아니라 파일 하나만 고치면 됩니다.
+CSS_VER = "3.0"
+CSS_HREF = "/assets/static-post.css"
+CSS_FILE = os.path.join(SITE, "assets", "static-post.css")
+
 CSS = """
 :root{--bg:#F7F5F2;--card:#FFFDFB;--ink:#3E2F26;--ink-2:#6E5C4F;--ink-3:#7C6759;
 --line:#E6DCD1;--accent:#C86D44;--accent-d:#A8542F;--accent-s:#F8E9E0;--wrap:820px}
@@ -483,7 +489,23 @@ text-align:center;box-shadow:0 18px 44px -20px rgba(0,0,0,.6);opacity:0;pointer-
 transition:opacity .2s ease,transform .2s ease}
 .sbp-toast.show{opacity:1;transform:translate(-50%,0)}
 .sbp-toast.err{background:#8C2B22}
-"""
+""".lstrip("\n")
+
+
+def write_css():
+    """공통 CSS 를 assets/static-post.css 로 내보냅니다(내용이 같으면 건드리지 않음)."""
+    head = "/* SBPress v%s · 정적 글·페이지 공통 스타일 (build_static_seo.py 가 생성) */\n" % CSS_VER
+    body = head + CSS
+    try:
+        with open(CSS_FILE, encoding="utf-8") as f:
+            if f.read() == body:
+                return False
+    except OSError:
+        pass
+    os.makedirs(os.path.dirname(CSS_FILE), exist_ok=True)
+    with open(CSS_FILE, "w", encoding="utf-8") as f:
+        f.write(body)
+    return True
 
 
 def shell(title, desc, canonical, og_image, inner, spa_href, extra_meta=""):
@@ -505,7 +527,7 @@ def shell(title, desc, canonical, og_image, inner, spa_href, extra_meta=""):
 <meta property="og:site_name" content="%s">
 %s  <link rel="canonical" href="%s">
 <meta name="robots" content="index,follow">
-<style>%s</style>
+<link rel="stylesheet" href="%s?v=%s">
 </head>
 <body>
 <header class="top">
@@ -521,7 +543,7 @@ def shell(title, desc, canonical, og_image, inner, spa_href, extra_meta=""):
 </body>
 </html>
 """ % (CSP_MARK, CSP_STATIC, x(title), x(desc), x(title), x(desc), x(SITE_NAME), og,
-           x(canonical), CSS, x(SITE_NAME), x(SITE_TAGLINE or SITE_NAME), x(spa_href), inner,
+           x(canonical), CSS_HREF, CSS_VER, x(SITE_NAME), x(SITE_TAGLINE or SITE_NAME), x(spa_href), inner,
            x(SITE_NAME))
 
 
@@ -677,17 +699,35 @@ def check(posts_out=None, pages_out=None):
     post_dirs = sorted(d for d in os.listdir(POST_DIR)) if os.path.isdir(POST_DIR) else []
     page_dirs = sorted(d for d in os.listdir(PAGE_DIR)) if os.path.isdir(PAGE_DIR) else []
     bad = []
+    total = 0
+    count = 0
     for d, base in [(d, POST_DIR) for d in post_dirs] + [(d, PAGE_DIR) for d in page_dirs]:
         f = os.path.join(base, d, "index.html")
         if not os.path.exists(f):
             bad.append(d + " (index.html 없음)")
             continue
         t = open(f, encoding="utf-8").read()
+        total += len(t.encode("utf-8"))
+        count += 1
         for need in ('<meta name="description"', 'rel="canonical"', 'property="og:title"', "<h1>",
-                     '<meta http-equiv="Content-Security-Policy"', 'data-sbp-share', "/assets/share.js"):
+                     '<meta http-equiv="Content-Security-Policy"', 'data-sbp-share', "/assets/share.js",
+                     'href="%s?v=%s"' % (CSS_HREF, CSS_VER)):
             if need not in t:
                 bad.append("%s (%s 없음)" % (d, need))
+        if "<style>" in t:
+            bad.append("%s (인라인 <style> 남음)" % d)
     out.append("정적 글 %d개 · 페이지 %d개" % (len(post_dirs), len(page_dirs)))
+    if count:
+        out.append("정적 HTML 합계 %d KB · 글당 평균 %.1f KB" % (total // 1024, total / count / 1024.0))
+    # 공통 CSS 한 파일 — 본문 스타일이 여기 있어야 정적 글이 제대로 보입니다.
+    try:
+        css = open(CSS_FILE, encoding="utf-8").read()
+        if len(css.encode("utf-8")) < 1500 or "body{" not in css or ".body{" not in css:
+            bad.append("assets/static-post.css (내용 부족)")
+        else:
+            out.append("공통 CSS assets/static-post.css · %d KB" % (len(css.encode("utf-8")) // 1024 or 1))
+    except OSError:
+        bad.append("assets/static-post.css (파일 없음)")
     out.append("형식 문제: " + (", ".join(bad[:6]) if bad else "없음"))
     for path, root_tag in ((os.path.join(SITE, "sitemap.xml"), "urlset"), (os.path.join(SITE, "rss.xml"), "rss")):
         try:
@@ -764,6 +804,8 @@ def main():
     if not (KEY and URL and BASE):
         raise SystemExit("site/sbpress.config.json 에 supabase.url · supabase.anonKey · siteUrl 을 채워 주세요.")
     contents, boards, pages, posts = load()
+    if write_css():
+        print("공통 CSS 갱신: assets/static-post.css")
     posts_out, pages_out = [], []
     for p in posts:
         r = gen_post(p)

@@ -1,0 +1,75 @@
+{
+  "version": "3.0",
+  "generatedAt": "2026-11-22T23:02:42+09:00",
+  "commit": "884eef5",
+  "limits": {
+    "repoBytes": 1073741824,
+    "repoLabel": "1 GB",
+    "budgetBytes": 41943040,
+    "budgetLabel": "40 MB"
+  },
+  "usage": {
+    "totalBytes": 3187670,
+    "treeBytes": 2339798,
+    "gitBytes": 847872,
+    "files": 103,
+    "percent": 0.297,
+    "budgetPercent": 5.58
+  },
+  "parts": {
+    "post": {
+      "files": 46,
+      "bytes": 136155
+    },
+    "p": {
+      "files": 0,
+      "bytes": 0
+    },
+    "assets": {
+      "files": 30,
+      "bytes": 1369111
+    },
+    "embeds": {
+      "files": 9,
+      "bytes": 586573
+    },
+    "scripts": {
+      "files": 3,
+      "bytes": 53642
+    },
+    "admin": {
+      "files": 1,
+      "bytes": 604
+    },
+    "privacy": {
+      "files": 1,
+      "bytes": 614
+    },
+    "terms": {
+      "files": 1,
+      "bytes": 604
+    }
+  },
+  "post": {
+    "count": 46,
+    "bytes": 136155,
+    "avgBytes": 2959
+  },
+  "capacity": {
+    "postsToBudget": 13383,
+    "postsToLimit": 361795,
+    "at1000PostsBytes": 2959000
+  },
+  "git": {
+    "commits": 34,
+    "looseBytes": 0,
+    "packBytes": 847872,
+    "head": "884eef5",
+    "date": "2026-11-22T22:35:57+09:00"
+  },
+  "gate": {
+    "ok": true,
+    "budgetBytes": 41943040
+  },
+  "note": "배포 트리(.git 제외) + .git 이력. 정적 글은 배포마다 다시 구워져 이력이 늘어납니다."
+}

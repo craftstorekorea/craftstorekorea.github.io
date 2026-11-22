@@ -832,3 +832,12 @@ tr.owner-row td{background:#FFFAF6}
   .wk-row{height:96px}
 }
 .img-stat{margin-left:.45em;color:var(--ink-3);font-size:.9em}
+
+/* ---- v3.0: GitHub 1GB 용량 예산 카드 ---- */
+.budget-bar{height:10px;border-radius:999px;background:#EFE7DE;overflow:hidden;margin:12px 0 14px}
+.budget-bar>i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--accent),#E0A06F);transition:width .4s ease}
+.budget-bar.warn>i{background:linear-gradient(90deg,#C9562C,#E08A5F)}
+.budget-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:10px;list-style:none;margin:0;padding:0}
+.budget-grid li{background:var(--card,#FFFDFB);border:1px solid var(--line,#E6DCD1);border-radius:12px;padding:10px 12px;min-width:0}
+.budget-k{display:block;font-size:.76rem;font-weight:700;color:var(--ink-3,#7C6759);margin-bottom:2px}
+.budget-grid b{display:block;font-size:1.06rem;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
