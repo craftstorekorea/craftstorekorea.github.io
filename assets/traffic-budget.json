@@ -1,6 +1,6 @@
 {
   "version": "6.0",
-  "generatedAt": "2026-11-23T07:34:59+09:00",
+  "generatedAt": "2026-11-23T07:37:54+09:00",
   "limits": {
     "budgetBytes": 307200,
     "budgetLabel": "300 KB",
@@ -354,5 +354,211 @@
     "budgetBytes": 307200,
     "usedPercent": 82.7
   },
-  "note": "텍스트는 gzip -9(= GitHub Pages 전송량), 이미지·폰트는 원본 크기. 첫 방문 1회 기준."
+  "note": "텍스트는 gzip -9(= GitHub Pages 전송량), 이미지·폰트는 원본 크기. 첫 방문 1회 기준.",
+  "live": {
+    "totalBytes": 251815,
+    "resources": [
+      {
+        "name": "http://127.0.0.1:8788/assets/hero-1600.webp",
+        "type": "link",
+        "bytes": 47646,
+        "encoded": 47346,
+        "decoded": 47346,
+        "start": 26
+      },
+      {
+        "name": "http://127.0.0.1:8788/assets/fonts/nanum-gothic-400.woff2",
+        "type": "link",
+        "bytes": 61904,
+        "encoded": 61604,
+        "decoded": 61604,
+        "start": 27
+      },
+      {
+        "name": "http://127.0.0.1:8788/assets/styles.css",
+        "type": "link",
+        "bytes": 28742,
+        "encoded": 28442,
+        "decoded": 139565,
+        "start": 28
+      },
+      {
+        "name": "http://127.0.0.1:8788/assets/icon-192.png",
+        "type": "img",
+        "bytes": 2924,
+        "encoded": 2624,
+        "decoded": 2624,
+        "start": 31
+      },
+      {
+        "name": "http://127.0.0.1:8788/assets/config.js",
+        "type": "script",
+        "bytes": 3892,
+        "encoded": 3592,
+        "decoded": 9593,
+        "start": 31
+      },
+      {
+        "name": "http://127.0.0.1:8788/sbpress.config.json?_=1795387075242",
+        "type": "xmlhttprequest",
+        "bytes": 1449,
+        "encoded": 1149,
+        "decoded": 2354,
+        "start": 58
+      },
+      {
+        "name": "http://127.0.0.1:8788/assets/auth-config.js",
+        "type": "script",
+        "bytes": 945,
+        "encoded": 645,
+        "decoded": 1025,
+        "start": 63
+      },
+      {
+        "name": "http://127.0.0.1:8788/assets/i18n.js",
+        "type": "script",
+        "bytes": 15204,
+        "encoded": 14904,
+        "decoded": 54769,
+        "start": 103
+      },
+      {
+        "name": "http://127.0.0.1:8788/assets/auth.js",
+        "type": "script",
+        "bytes": 11266,
+        "encoded": 10966,
+        "decoded": 37729,
+        "start": 122
+      },
+      {
+        "name": "http://127.0.0.1:8788/assets/data.js",
+        "type": "script",
+        "bytes": 10030,
+        "encoded": 9730,
+        "decoded": 27270,
+        "start": 136
+      },
+      {
+        "name": "http://127.0.0.1:8788/assets/cms.js",
+        "type": "script",
+        "bytes": 18522,
+        "encoded": 18222,
+        "decoded": 63880,
+        "start": 145
+      },
+      {
+        "name": "http://127.0.0.1:8788/assets/body-format.js",
+        "type": "script",
+        "bytes": 3812,
+        "encoded": 3512,
+        "decoded": 9059,
+        "start": 159
+      },
+      {
+        "name": "http://127.0.0.1:8788/assets/share.js",
+        "type": "script",
+        "bytes": 2129,
+        "encoded": 1829,
+        "decoded": 4413,
+        "start": 164
+      },
+      {
+        "name": "http://127.0.0.1:8788/assets/app.js",
+        "type": "script",
+        "bytes": 25482,
+        "encoded": 25182,
+        "decoded": 91287,
+        "start": 170
+      },
+      {
+        "name": "https://docs.google.com/spreadsheets/d/1OhA6nOWiBpbrQ01QcAJIoq_RT4iNk3JsgL6rKk8IAyY/gviz/tq?tqx=out:json",
+        "type": "fetch",
+        "bytes": 0,
+        "encoded": 0,
+        "decoded": 0,
+        "start": 205
+      },
+      {
+        "name": "http://127.0.0.1:8788/assets/notify.js",
+        "type": "script",
+        "bytes": 6294,
+        "encoded": 5994,
+        "decoded": 18625,
+        "start": 224
+      },
+      {
+        "name": "http://127.0.0.1:8788/assets/plugins.js",
+        "type": "script",
+        "bytes": 9262,
+        "encoded": 8962,
+        "decoded": 29221,
+        "start": 230
+      },
+      {
+        "name": "http://127.0.0.1:8788/assets/pwa.js",
+        "type": "script",
+        "bytes": 2312,
+        "encoded": 2012,
+        "decoded": 5818,
+        "start": 238
+      },
+      {
+        "name": "https://www.googletagmanager.com/gtag/js?id=G-L7820HKGET",
+        "type": "script",
+        "bytes": 0,
+        "encoded": 0,
+        "decoded": 0,
+        "start": 247
+      },
+      {
+        "name": "https://haaikrynfrrwcpyuvrrr.supabase.co/rest/v1/site_contents?select=key,value,image_url",
+        "type": "fetch",
+        "bytes": 0,
+        "encoded": 0,
+        "decoded": 0,
+        "start": 250
+      },
+      {
+        "name": "https://haaikrynfrrwcpyuvrrr.supabase.co/rest/v1/posts?select=*&is_published=eq.true&order=category.asc,is_pinned.desc,sort_order.asc,published_at.desc&limit=500",
+        "type": "fetch",
+        "bytes": 0,
+        "encoded": 0,
+        "decoded": 0,
+        "start": 251
+      },
+      {
+        "name": "https://haaikrynfrrwcpyuvrrr.supabase.co/rest/v1/pages?select=slug,title,subtitle,body,images,blocks,sort_order,updated_at&is_published=eq.true&order=sort_order",
+        "type": "fetch",
+        "bytes": 0,
+        "encoded": 0,
+        "decoded": 0,
+        "start": 254
+      },
+      {
+        "name": "https://haaikrynfrrwcpyuvrrr.supabase.co/rest/v1/boards?select=slug,name,description,per_page,comment_policy,sort_order&order=sort_order",
+        "type": "fetch",
+        "bytes": 0,
+        "encoded": 0,
+        "decoded": 0,
+        "start": 254
+      },
+      {
+        "name": "https://haaikrynfrrwcpyuvrrr.supabase.co/rest/v1/plugins?select=id,name,version,script_url,source,settings&enabled=eq.true&order=installed_at.asc",
+        "type": "fetch",
+        "bytes": 0,
+        "encoded": 0,
+        "decoded": 0,
+        "start": 257
+      },
+      {
+        "name": "https://www.google-analytics.com/g/collect?v=2&tid=G-L7820HKGET&gtm=45je6bh1h1v9287964953za208zd9287964953xf1&_p=1795387075431&gcd=13l3l3l3l1l1&npa=0&dma=0&cid=720926839.1795387076&frm=0&ngs=1&pscdl=noapi&rcb=9&sr=1440x950&uaa=x86&uab=64&uafvl=HeadlessChrome%3B159.0.8154.6%7CNot%252FA)Brand%3B8.0.0.0%7CChromium%3B159.0.8154.6&uam=&uamb=0&uap=Linux&uapv=&uaw=0&ul=ko-kr&_s=1&tag_exp=115616986~115938466~115938469~119404696~120385423~120469145~120469153~121049589~121246026~121246034~121284208~123785232&sid=1795387075&sct=1&seg=0&dl=http%3A%2F%2F127.0.0.1%2F&dt=%EC%A0%84%EA%B5%AD%EA%B3%B5%EB%B0%A9%20%E2%80%94%20%EC%9A%B0%EB%A6%AC%20%EB%8F%99%EB%84%A4%20%EA%B3%B5%EB%B0%A9%EC%9D%98%20%EC%9D%B4%EB%B2%88%20%EC%A3%BC%20%EC%86%8C%EC%8B%9D&en=page_view&_fv=1&_nsi=1&_ss=1&tfd=437",
+        "type": "fetch",
+        "bytes": 0,
+        "encoded": 0,
+        "decoded": 0,
+        "start": 437
+      }
+    ],
+    "measuredAt": "2026-11-23T07:37:57+09:00"
+  }
 }
