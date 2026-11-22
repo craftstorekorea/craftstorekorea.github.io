@@ -637,6 +637,45 @@
           </table>
         </div>
       </section>
+
+      <section class="cms-group" id="appr-rules-group">
+        <div class="cms-group-head"><h2>전결 규정</h2><span class="panel-tag" id="appr-rule-count"></span></div>
+        <p class="cms-hint">양식의 금액 항목이 상한 이하이면 지정한 결재자 단독(<b>전결</b>)로 끝납니다. 예: 지출결의 300,000원 이하 → 팀장 전결.</p>
+        <div class="cms-toolbar">
+          <select id="appr-rule-form" class="admin-select" aria-label="양식"></select>
+          <input id="appr-rule-max" class="admin-input" type="number" min="0" step="1000" placeholder="금액 상한(원)" aria-label="금액 상한">
+          <select id="appr-rule-approver" class="admin-select" aria-label="전결 결재자"></select>
+          <input id="appr-rule-note" class="admin-input" placeholder="메모 (예: 팀장 전결)" aria-label="메모">
+          <button type="button" class="btn btn-primary btn-sm" id="appr-rule-add">규정 추가</button>
+        </div>
+        <div class="table-wrap">
+          <table class="admin-table" id="appr-rule-table">
+            <thead><tr><th>양식</th><th>금액 상한</th><th>전결 결재자</th><th>메모</th><th>사용</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="cms-group" id="appr-delegates-group">
+        <div class="cms-group-head"><h2>대결</h2><span class="panel-tag" id="appr-delegate-count"></span></div>
+        <p class="cms-hint">기간 중 <b>대결자</b>가 원 결재자를 대신해 승인·반려합니다. 이력에는 대결로 남고, 원 결재자 이름은 그대로 보입니다.</p>
+        <div class="cms-toolbar">
+          <select id="appr-dg-original" class="admin-select" aria-label="원 결재자"></select>
+          <span class="appr-tilde">→</span>
+          <select id="appr-dg-delegate" class="admin-select" aria-label="대결자"></select>
+          <input type="date" id="appr-dg-start" class="admin-input" aria-label="시작일">
+          <span class="appr-tilde">~</span>
+          <input type="date" id="appr-dg-end" class="admin-input" aria-label="종료일">
+          <input id="appr-dg-note" class="admin-input" placeholder="사유 (예: 휴가)" aria-label="사유">
+          <button type="button" class="btn btn-primary btn-sm" id="appr-dg-add">대결 추가</button>
+        </div>
+        <div class="table-wrap">
+          <table class="admin-table" id="appr-delegate-table">
+            <thead><tr><th>원 결재자</th><th>대결자</th><th>기간</th><th>사유</th><th>사용</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
     </div>
 
     <!-- ============ 미디어 라이브러리 ============ -->

@@ -742,7 +742,46 @@
   "이력을 불러오는 중…": "Loading history…",
   "결재 표를 읽지 못했습니다: ": "Could not read the approval tables: ",
   "결재 자료를 불러오지 못했습니다: ": "Could not load approval data: ",
-  "을 SQL Editor 에서 한 번 실행해 주세요.": "once in the SQL Editor."
+  "을 SQL Editor 에서 한 번 실행해 주세요.": "once in the SQL Editor.",
+  "전결 규정": "Fast-track rules",
+  "대결": "Delegation",
+  "규정 추가": "Add rule",
+  "대결 추가": "Add delegation",
+  "금액 상한(원)": "Amount limit (KRW)",
+  "메모 (예: 팀장 전결)": "Note (e.g. team lead fast-track)",
+  "사유 (예: 휴가)": "Reason (e.g. leave)",
+  "전결 결재자": "Fast-track approver",
+  "원 결재자": "Original approver",
+  "대결자": "Delegate",
+  "금액 상한": "Amount limit",
+  "양식의 금액 항목이 상한 이하이면 지정한 결재자 단독(": "If the form's amount is within the limit, the chosen approver closes it alone (",
+  ")로 끝납니다. 예: 지출결의 300,000원 이하 → 팀장 전결.": "). E.g. expense up to 300,000 KRW → team lead fast-track.",
+  "기간 중": "During the period, the ",
+  "가 원 결재자를 대신해 승인·반려합니다. 이력에는 대결로 남고, 원 결재자 이름은 그대로 보입니다.": " approves or rejects for the original approver. History records the delegation and keeps the original name.",
+  "등록된 전결 규정이 없습니다. 위에서 양식·금액 상한·결재자를 골라 추가해 보세요.": "No fast-track rules yet. Pick a form, amount limit and approver above to add one.",
+  "등록된 대결이 없습니다.": "No delegations yet.",
+  "전결·대결 표가 아직 없습니다 — ": "Fast-track and delegation tables are not installed — ",
+  "전결 규정을 추가했습니다.": "Fast-track rule added.",
+  "전결 규정을 켰습니다.": "Fast-track rule enabled.",
+  "전결 규정을 껐습니다.": "Fast-track rule disabled.",
+  "전결 규정을 지웠습니다.": "Fast-track rule deleted.",
+  "대결을 추가했습니다.": "Delegation added.",
+  "대결을 지웠습니다.": "Delegation deleted.",
+  "양식을 골라 주세요.": "Choose a form.",
+  "금액 상한을 적어 주세요.": "Enter an amount limit.",
+  "전결 결재자를 골라 주세요.": "Choose the fast-track approver.",
+  "원 결재자와 대결자를 골라 주세요.": "Choose the original approver and the delegate.",
+  "원 결재자와 대결자는 달라야 합니다.": "The original approver and delegate must differ.",
+  "시작일을 골라 주세요.": "Choose a start date.",
+  "바꾸지 못했습니다: ": "Could not change it: ",
+  "지우지 못했습니다: ": "Could not delete it: ",
+  "추가하지 못했습니다: ": "Could not add it: ",
+  "추가했습니다.": "Added.",
+  "지웠습니다.": "Deleted.",
+  "바꿨습니다.": "Changed.",
+  "제한 없음": "no end date",
+  "사유": "Reason",
+  "전결": "fast-track"
 };
   var RULES = ([
   [
@@ -840,6 +879,30 @@
   [
     "접수 내용을 지웠습니다\\.",
     "Submission deleted."
+  ],
+  [
+    "결재 (\\d+) items · 양식 (\\d+)개 · 전결 (\\d+) · 대결 (\\d+)",
+    "\\1 approvals · \\2 forms · \\3 fast-track · \\4 delegations"
+  ],
+  [
+    "결재 (\\d+)건",
+    "\\1 approvals"
+  ],
+  [
+    "양식 (\\d+)개",
+    "\\1 forms"
+  ],
+  [
+    "전결 (\\d+)",
+    "\\1 fast-track"
+  ],
+  [
+    "대결 (\\d+)",
+    "\\1 delegations"
+  ],
+  [
+    "양식·금액 상한·결재자를",
+    "form, amount limit and approver"
   ],
   [
     "^(\\d+)번째 메뉴 삭제$",
