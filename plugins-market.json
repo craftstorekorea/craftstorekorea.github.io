@@ -1,18 +1,27 @@
 {
   "name": "전국공방 플러그인 마켓",
+  "manifest": 1,
   "description": "SBPress 사이트·관리자에 기능을 더하는 브라우저 JS 플러그인 목록입니다. 관리자 > 플러그인 · 마켓에서 한 번에 설치하고 켜고 끌 수 있습니다.",
   "homepage": "https://craftstorekorea.github.io/",
-  "updated": "2026-11-21",
+  "updated": "2026-11-23",
   "plugins": [
     {
       "id": "reading-time",
       "name": "읽기 시간 배지",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "description": "글·공방 카드에「약 N분 · N자」배지를 붙여, 긴 글을 고르기 쉽게 합니다.",
       "author": "전국공방",
       "script_url": "/assets/plugins/reading-time.js",
       "source": "builtin",
-      "tags": ["카드 꾸미기", "읽기"]
+      "tags": ["카드 꾸미기", "읽기"],
+      "manifest": {
+        "v": 1,
+        "name": "읽기 시간 배지",
+        "version": "1.1.0",
+        "author": "전국공방",
+        "hooks": ["card"],
+        "permissions": ["read:card-text"]
+      }
     },
     {
       "id": "scroll-top",
@@ -22,7 +31,15 @@
       "author": "전국공방",
       "script_url": "/assets/plugins/scroll-top.js",
       "source": "builtin",
-      "tags": ["위젯", "내비게이션"]
+      "tags": ["위젯", "내비게이션"],
+      "manifest": {
+        "v": 1,
+        "name": "맨 위로 버튼",
+        "version": "1.0.0",
+        "author": "전국공방",
+        "hooks": ["widget"],
+        "permissions": ["ui:floating"]
+      }
     },
     {
       "id": "workshop-spotlight",
@@ -32,7 +49,15 @@
       "author": "전국공방",
       "script_url": "/assets/plugins/workshop-spotlight.js",
       "source": "builtin",
-      "tags": ["위젯", "홈"]
+      "tags": ["위젯", "홈"],
+      "manifest": {
+        "v": 1,
+        "name": "추천 공방 스포트라이트",
+        "version": "1.0.0",
+        "author": "전국공방",
+        "hooks": ["widget"],
+        "permissions": ["read:posts", "ui:home-top"]
+      }
     },
     {
       "id": "admin-json-export",
@@ -42,7 +67,15 @@
       "author": "전국공방",
       "script_url": "/assets/plugins/admin-json-export.js",
       "source": "builtin",
-      "tags": ["관리자", "백업"]
+      "tags": ["관리자", "백업"],
+      "manifest": {
+        "v": 1,
+        "name": "데이터 내보내기",
+        "version": "1.0.0",
+        "author": "전국공방",
+        "hooks": ["admin-tab"],
+        "permissions": ["read:admin-lists"]
+      }
     }
   ]
 }

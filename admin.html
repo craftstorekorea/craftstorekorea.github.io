@@ -409,6 +409,33 @@
           <p class="cms-hint">한 번 누르면 사이트 전체의 모양(여백·괘선·카드·제목 글꼴)이 바뀌고 바로 저장됩니다. 글·사진·메뉴는 그대로입니다.</p>
           <div class="theme-picks" id="theme-picks"></div>
           <p class="cms-hint" id="theme-now"></p>
+          <div class="theme-tokens" id="theme-tokens">
+            <h3>테마 토큰 <em>v5.1 — 색·모서리·글꼴만 담습니다</em></h3>
+            <p class="cms-hint">CSS 를 직접 넣지 않고 <code>site_contents.theme.tokens</code> 의 값만 CSS 변수로 적용합니다. 저장하면 공개 사이트(한국어·English)에 바로 반영됩니다.</p>
+            <div class="cms-grid2">
+              <label class="cms-field"><span>포인트 색</span>
+                <span class="tt-color-row"><input type="color" id="tt-accent" aria-label="포인트 색 고르기">
+                  <input id="tt-accent-hex" maxlength="7" placeholder="#C86D44" aria-label="포인트 색 코드"></span>
+              </label>
+              <label class="cms-field"><span>바탕 색</span><input type="color" id="tt-bg" aria-label="바탕 색"></label>
+              <label class="cms-field"><span>글자 색</span><input type="color" id="tt-ink" aria-label="글자 색"></label>
+              <label class="cms-field"><span>모서리(px) <em>0~32</em></span><input type="number" id="tt-radius" min="0" max="32" step="1" aria-label="모서리 둥글기"></label>
+              <label class="cms-field"><span>글꼴</span>
+                <select id="tt-font" class="admin-select" aria-label="글꼴">
+                  <option value="nanum">나눔고딕 (기본)</option>
+                  <option value="system">시스템 글꼴</option>
+                  <option value="serif">명조 계열</option>
+                  <option value="sans">고딕 계열</option>
+                </select>
+              </label>
+            </div>
+            <div class="cms-img-tools">
+              <button type="button" class="btn btn-primary btn-sm" id="tt-save">토큰 저장</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="tt-reset">기본값으로</button>
+              <span class="cms-hint" id="tt-msg" role="status" aria-live="polite"></span>
+            </div>
+            <pre class="tt-json" id="tt-json" aria-label="저장될 테마 토큰 JSON"></pre>
+          </div>
           <p class="cms-toast" id="theme-msg" role="status" aria-live="polite"></p>
         </section>
 
@@ -1260,8 +1287,13 @@
           </div>
         </div>
         <div class="cms-field hm-editor-field">
-          <span>hunmin 블록 <em>본문 위에 순서대로 조립 — 최신글·인기글·지도·구독/제보 폼·갤러리·텍스트</em></span>
+          <span>hunmin 블록 <em>본문 위에 순서대로 조립 — 최신글·인기글·지도·구독/제보 폼·갤러리·텍스트·표·버튼/CTA·임베드(유튜브·드라이브)</em></span>
           <div class="hm-editor" id="pg-blocks"></div>
+        </div>
+        <div class="cms-field hm-preview-field">
+          <span>실시간 미리보기 <em>공개 페이지와 같은 모양 · 숨김 블록은 나오지 않습니다</em></span>
+          <div class="hm-preview" id="pg-blocks-preview"></div>
+          <p class="cms-hint" id="pg-preview-note"></p>
         </div>
         <div class="cms-field">
           <span>이미지 <em>여러 장 · 위에서부터 순서대로</em></span>

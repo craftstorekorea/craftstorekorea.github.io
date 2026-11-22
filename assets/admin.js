@@ -2045,8 +2045,8 @@
     $("#pg-msg").textContent = "";
     $("#page-delete").hidden = !p;
     $("#page-history").hidden = !p;
-    CMS.pageBlocks = (window.CRAFT_HUNMIN && window.CRAFT_HUNMIN.normalizeList)
-      ? window.CRAFT_HUNMIN.normalizeList(p ? p.blocks : [])
+    CMS.pageBlocks = (window.CRAFT_HUNMIN && window.CRAFT_HUNMIN.parseBlocks)
+      ? window.CRAFT_HUNMIN.parseBlocks(p ? p.blocks : [])
       : [];
     renderPageImages();
     $("#page-modal").hidden = false;
@@ -2068,8 +2068,11 @@
       window.CRAFT_HUNMIN.editor.mount(box, CMS.pageBlocks, {
         boards: CMS.boardRows,
         upload: function (file) { return uploadSiteImage(file, "pages/blocks"); },
-        onChange: function (list) { CMS.pageBlocks = list; }
+        onChange: function (list) { CMS.pageBlocks = list; renderBlockPreview(); },
+        preview: $("#pg-blocks-preview"),
+        page: { images: CMS.pageImages }
       });
+      renderBlockPreview();
     };
     if (!CMS.boardRows.length) {
       sb.from("boards").select("slug,name,sort_order").order("sort_order").then(function (r) {
@@ -2077,6 +2080,20 @@
         draw();
       }, draw);
     } else draw();
+  }
+
+  /* 실시간 미리보기 — 편집 중인 블록을 공개 페이지와 같은 모양으로 그립니다. */
+  function renderBlockPreview() {
+    var box = $("#pg-blocks-preview");
+    if (!box) return;
+    if (window.CRAFT_HUNMIN && window.CRAFT_HUNMIN.render) {
+      var drawn = window.CRAFT_HUNMIN.render(box, {
+        images: CMS.pageImages || [],
+        blocks: { v: 1, items: CMS.pageBlocks || [] }
+      });
+      var note = $("#pg-preview-note");
+      if (note) note.textContent = drawn ? "" : "표시할 블록이 없습니다(숨김 블록은 미리보기에도 나오지 않습니다).";
+    }
   }
 
   function closePageEditor() {
@@ -2140,8 +2157,8 @@
       images: CMS.pageImages.filter(function (im) { return im.url; }).map(function (im) {
         return { url: im.url, caption: (im.caption || "").trim() };
       }),
-      blocks: (window.CRAFT_HUNMIN && window.CRAFT_HUNMIN.normalizeList)
-        ? window.CRAFT_HUNMIN.normalizeList(CMS.pageBlocks) : [],
+      blocks: (window.CRAFT_HUNMIN && window.CRAFT_HUNMIN.serialize)
+        ? window.CRAFT_HUNMIN.serialize(CMS.pageBlocks) : { v: 1, items: [] },
       is_published: $("#pg-published").checked,
       sort_order: parseInt($("#pg-sort").value || "0", 10) || 0
     };
@@ -2452,6 +2469,7 @@
       var v = row ? String(row.value || "").trim() : "";
       CMS_THEME = /^(magazine|craft|org)$/.test(v) ? v : "magazine";
       renderThemePicks();
+      loadThemeTokens();
     });
   }
 
@@ -2473,6 +2491,106 @@
     }).catch(function (e) {
       cmsMsg("theme-msg", "저장 실패: " + (e.message || "알 수 없는 오류"), "err");
     });
+  }
+
+  /* ---------------- v5.1 — 테마 토큰 (site_contents.theme.tokens) ----------------
+     색·모서리·글꼴만 JSON 으로 담고 CSS 변수로 적용합니다. CSS 를 직접 넣지 않아 안전합니다. */
+  var THEME_TOKENS = { accent: "#C86D44", bg: "#F7F5F2", ink: "#3E2F26", radius: 18, fontStack: "nanum" };
+  var THEME_FONTS = {
+    nanum: "Nanum Gothic", system: "시스템 글꼴", serif: "명조 계열", sans: "고딕 계열"
+  };
+  var THEME_FONT_CSS = {
+    nanum: "'Nanum Gothic','나눔고딕',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif",
+    system: "-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic','Segoe UI',sans-serif",
+    serif: "Georgia,'Nanum Myeongjo','바탕',serif",
+    sans: "'Helvetica Neue',Arial,'Malgun Gothic',sans-serif"
+  };
+  function hexOk(v) { return /^#[0-9a-f]{6}$/i.test(String(v || "").trim()); }
+  function parseTokens(raw) {
+    var out = { accent: THEME_TOKENS.accent, bg: THEME_TOKENS.bg, ink: THEME_TOKENS.ink,
+      radius: THEME_TOKENS.radius, fontStack: THEME_TOKENS.fontStack };
+    var v = raw;
+    if (typeof raw === "string") {
+      try { v = JSON.parse(raw); } catch (e) { v = null; }
+    }
+    if (!v || typeof v !== "object") return out;
+    if (hexOk(v.accent)) out.accent = String(v.accent).toUpperCase();
+    if (hexOk(v.bg)) out.bg = String(v.bg).toUpperCase();
+    if (hexOk(v.ink)) out.ink = String(v.ink).toUpperCase();
+    var r = parseInt(v.radius, 10);
+    if (isFinite(r)) out.radius = Math.max(0, Math.min(32, r));
+    if (v.fontStack && THEME_FONT_CSS[v.fontStack]) out.fontStack = v.fontStack;
+    return out;
+  }
+  function tokensJson(t) {
+    return JSON.stringify({ v: 1, accent: t.accent, bg: t.bg, ink: t.ink, radius: t.radius, fontStack: t.fontStack });
+  }
+  function paintTokensPreview(t) {
+    var root = document.documentElement;
+    root.style.setProperty("--accent", t.accent);
+    root.style.setProperty("--bg", t.bg);
+    root.style.setProperty("--ink", t.ink);
+    root.style.setProperty("--r", t.radius + "px");
+    root.style.setProperty("--r-s", Math.max(0, t.radius - 6) + "px");
+    root.style.setProperty("--font-head", THEME_FONT_CSS[t.fontStack]);
+    var json = $("#tt-json");
+    if (json) json.textContent = tokensJson(t);
+  }
+  function fillTokenForm(t) {
+    if ($("#tt-accent")) $("#tt-accent").value = t.accent;
+    if ($("#tt-accent-hex")) $("#tt-accent-hex").value = t.accent;
+    if ($("#tt-bg")) $("#tt-bg").value = t.bg;
+    if ($("#tt-ink")) $("#tt-ink").value = t.ink;
+    if ($("#tt-radius")) $("#tt-radius").value = t.radius;
+    if ($("#tt-font")) $("#tt-font").value = t.fontStack;
+    paintTokensPreview(t);
+  }
+  function readTokenForm() {
+    return parseTokens({
+      accent: $("#tt-accent-hex") ? $("#tt-accent-hex").value : "",
+      bg: $("#tt-bg") ? $("#tt-bg").value : "",
+      ink: $("#tt-ink") ? $("#tt-ink").value : "",
+      radius: $("#tt-radius") ? $("#tt-radius").value : "",
+      fontStack: $("#tt-font") ? $("#tt-font").value : ""
+    });
+  }
+  function loadThemeTokens() {
+    if (!sb) return Promise.resolve();
+    return sb.from("site_contents").select("key,value").eq("key", "theme.tokens").then(function (r) {
+      var row = (!r.error && r.data) ? r.data[0] : null;
+      fillTokenForm(parseTokens(row ? row.value : ""));
+      if (r.error) cmsMsg("tt-msg", "테마 토큰을 불러오지 못했습니다: " + r.error.message, "err");
+    }, function () { fillTokenForm(parseTokens("")); });
+  }
+  function saveThemeTokens() {
+    if (!sb) return;
+    var t = readTokenForm();
+    var badHex = [$("#tt-accent-hex"), $("#tt-bg"), $("#tt-ink")].filter(function (n) {
+      return n && n.value && !hexOk(n.value);
+    });
+    if (badHex.length) {
+      cmsMsg("tt-msg", "색은 #RRGGBB 6자리로 넣어 주세요(예: #C86D44).", "err");
+      return;
+    }
+    var btn = $("#tt-save");
+    if (btn) btn.disabled = true;
+    sb.from("site_contents").upsert({
+      key: "theme.tokens", section: "테마 · 디자인",
+      label: "테마 토큰 (accent · bg · ink · radius · fontStack — CSS 직접 주입 없이 변수로 적용)",
+      value: tokensJson(t), image_url: null
+    }, { onConflict: "key" }).then(function (r) {
+      if (btn) btn.disabled = false;
+      if (r.error) { cmsMsg("tt-msg", "저장하지 못했습니다: " + r.error.message, "err"); return; }
+      fillTokenForm(t);
+      cmsMsg("tt-msg", "테마 토큰을 저장했습니다. 사이트를 새로 고치면 포인트 색·바탕·글자·모서리·글꼴이 바로 반영됩니다.", "ok");
+    }, function (e) {
+      if (btn) btn.disabled = false;
+      cmsMsg("tt-msg", "저장하지 못했습니다: " + (e && e.message ? e.message : e), "err");
+    });
+  }
+  function resetThemeTokens() {
+    fillTokenForm(parseTokens(""));
+    cmsMsg("tt-msg", "기본 토큰으로 되돌렸습니다. 저장을 눌러 사이트에 반영하세요.", "ok");
   }
 
   /* ---------------- 수정 이력 드로어 ---------------- */
@@ -3682,8 +3800,19 @@
       if (e.target === revBack) closeHistory();
     });
 
-    /* --- 테마 프리셋 --- */
+    /* --- 테마 프리셋 · 테마 토큰 --- */
     renderThemePicks();
+    if ($("#tt-save")) $("#tt-save").addEventListener("click", saveThemeTokens);
+    if ($("#tt-reset")) $("#tt-reset").addEventListener("click", resetThemeTokens);
+    if ($("#tt-accent")) $("#tt-accent").addEventListener("input", function () {
+      if ($("#tt-accent-hex")) $("#tt-accent-hex").value = $("#tt-accent").value.toUpperCase();
+      paintTokensPreview(readTokenForm());
+    });
+    ["tt-accent-hex", "tt-bg", "tt-ink", "tt-radius", "tt-font"].forEach(function (id) {
+      var n = $("#" + id);
+      if (n) n.addEventListener("input", function () { paintTokensPreview(readTokenForm()); });
+      if (n) n.addEventListener("change", function () { paintTokensPreview(readTokenForm()); });
+    });
 
     /* --- 본문 편집기 (툴바·이미지 삽입·미리보기) --- */
     if (window.CRAFT_EDITOR) {
@@ -4236,18 +4365,34 @@
       var src = PLUG_SRC[p.source] || p.source || "마켓";
       var cls = PLUG_SRC[p.source] ? p.source : "market";
       var isolated = p.source === "custom";
+      var man = (p.manifest && typeof p.manifest === "object") ? p.manifest : {};
+      var hooks = Array.isArray(man.hooks) ? man.hooks : [];
+      var perms = Array.isArray(man.permissions) ? man.permissions : [];
+      var item = marketItem(p.id);
+      var newer = !!(item && item.version && String(item.version) !== String(p.version || ""));
+      var pinned = !!p.pinned_version;
       return "<tr data-id=\"" + esc(p.id) + "\">" +
         '<td data-th="상태"><label class="plug-switch"><input type="checkbox" data-plug-toggle="' + esc(p.id) + '"' +
           (p.enabled ? " checked" : "") + ' aria-label="' + esc(p.name) + ' 켜기"><span class="plug-slider"></span><em>' +
           (p.enabled ? "켜짐" : "꺼짐") + "</em></label></td>" +
         '<td data-th="플러그인" class="plug-main"><b>' + esc(p.name) + '</b> <span class="muted plug-id">' + esc(p.id) + "</span>" +
           (isolated ? ' <span class="plug-tag" title="직접 올린 외부 JS 는 관리자 세션을 지키기 위해 이 화면에서 실행하지 않습니다.">관리자 화면 격리</span>' : "") +
-          (p.description ? '<div class="muted plug-sub">' + esc(p.description) + "</div>" : "") + "</td>" +
-        '<td data-th="버전" class="muted">' + esc(p.version || "1.0.0") + "</td>" +
+          (p.description ? '<div class="muted plug-sub">' + esc(p.description) + "</div>" : "") +
+          ((hooks.length || perms.length)
+            ? '<div class="plug-manifest">' + hooks.map(function (h) { return '<i class="plug-tag">hook · ' + esc(h) + "</i>"; }).join("") +
+              perms.map(function (x) { return '<i class="plug-tag perm">' + esc(x) + "</i>"; }).join("") + "</div>"
+            : "") + "</td>" +
+        '<td data-th="버전" class="muted"><span class="plug-ver">' + esc(p.version || "1.0.0") + "</span>" +
+          (pinned ? ' <span class="plug-tag" title="고정된 버전 — 마켓 새 버전이 와도 바꾸지 않습니다.">고정 ' + esc(p.pinned_version) + "</span>" : "") +
+          (newer ? ' <button type="button" class="mini plug-upd" data-plug-update="' + esc(p.id) + '">→ v' + esc(item.version) + "</button>" : "") +
+          '</td>' +
         '<td data-th="출처"><span class="plug-badge b-' + cls + '">' + esc(src) + "</span></td>" +
         '<td data-th="JS 주소"><span class="plug-src" title="' + esc(p.script_url) + '">' + esc(p.script_url) + "</span></td>" +
         '<td data-th="설치일" class="muted">' + esc(fmtDate(p.installed_at)) + "</td>" +
-        '<td class="plug-act"><button type="button" class="rowlink plug-del" data-id="' + esc(p.id) + '">삭제</button></td>' +
+        '<td class="plug-act">' +
+          '<button type="button" class="rowlink plug-pin" data-plug-pin="' + esc(p.id) + '" aria-pressed="' + (pinned ? "true" : "false") + '">' +
+            (pinned ? "고정 해제" : "버전 고정") + "</button> " +
+          '<button type="button" class="rowlink plug-del" data-id="' + esc(p.id) + '">삭제</button></td>' +
         "</tr>";
     }).join("");
 
@@ -4259,7 +4404,94 @@
     [].forEach.call(body.querySelectorAll(".plug-del"), function (b) {
       b.addEventListener("click", function () { deletePlugin(b.getAttribute("data-id")); });
     });
+    [].forEach.call(body.querySelectorAll("[data-plug-pin]"), function (b) {
+      b.addEventListener("click", function () { pinPlugin(b.getAttribute("data-plug-pin")); });
+    });
+    [].forEach.call(body.querySelectorAll("[data-plug-update]"), function (b) {
+      b.addEventListener("click", function () { updatePlugin(b.getAttribute("data-plug-update"), b); });
+    });
     renderMarket();
+  }
+
+  function marketItem(id) {
+    var list = plugMarket.list || [];
+    for (var i = 0; i < list.length; i++) if (list[i] && list[i].id === id) return list[i];
+    return null;
+  }
+
+  /* 버전 고정 — 고정한 버전은 마켓의 새 버전으로 바꿀 수 없습니다. */
+  function pinPlugin(id) {
+    var p = plugById(id);
+    if (!p || !sb) return;
+    var on = !p.pinned_version;
+    sb.from("plugins").update({ pinned_version: on ? (p.version || "1.0.0") : null }).eq("id", id).then(function (r) {
+      if (r.error) { plugMsg("버전을 고정하지 못했습니다: " + r.error.message, "err"); return; }
+      p.pinned_version = on ? (p.version || "1.0.0") : null;
+      renderPlugins();
+      plugMsg(on ? "‘" + p.name + "’ v" + p.pinned_version + " 을 고정했습니다. 마켓에 새 버전이 와도 바꾸지 않습니다."
+                : "‘" + p.name + "’ 버전 고정을 풀었습니다.", "ok");
+    });
+  }
+
+  /* 마켓 새 버전으로 업데이트 — 설치 때와 같은 검사(주소·코드)를 거칩니다. */
+  function updatePlugin(id, btn) {
+    var p = plugById(id), item = marketItem(id);
+    if (!p || !item || !sb) return;
+    if (p.pinned_version) {
+      plugMsg("‘" + p.name + "’ 은 v" + p.pinned_version + " 으로 고정되어 있습니다. 고정을 풀고 다시 시도해 주세요.", "err");
+      return;
+    }
+    var url = marketAbs(item.script_url);
+    var safe = (window.SBPress && window.SBPress.safeScriptUrl) ? window.SBPress.safeScriptUrl(url) : url;
+    if (!safe) { plugMsg("이 플러그인의 주소가 https:// 또는 / 가 아니어서 업데이트하지 않았습니다.", "err"); return; }
+    if (btn) btn.disabled = true;
+    verifyPluginFile(url, function (scan) {
+      if (!scan.ok) {
+        if (btn) btn.disabled = false;
+        plugMsg("위험한 코드가 있어 업데이트하지 않았습니다: " + scan.reasons.join(", "), "err");
+        return;
+      }
+      sb.from("plugins").update({
+        version: item.version || p.version, script_url: url,
+        manifest: manifestPayload(item), description: item.description || p.description || null,
+        author: item.author || p.author || null
+      }).eq("id", id).then(function (r) {
+        if (btn) btn.disabled = false;
+        if (r.error) { plugMsg("업데이트하지 못했습니다: " + r.error.message, "err"); return; }
+        reloadEngine();
+        loadPlugins(false);
+        plugMsg("‘" + p.name + "’ 을 v" + (item.version || p.version) + " 으로 업데이트했습니다.", "ok");
+      });
+    });
+  }
+
+  /* 설치·업데이트 전에 파일을 받아 코드를 검사합니다(위험 코드·registerPlugin 확인). */
+  function verifyPluginFile(url, cb) {
+    fetch(url, { cache: "no-store" }).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.text();
+    }).then(function (text) {
+      var scan = (window.SBPress && window.SBPress.scanSource)
+        ? window.SBPress.scanSource(text) : { ok: true, reasons: [] };
+      if (scan.ok && !/registerPlugin\s*\(/.test(text)) {
+        scan = { ok: false, reasons: ["SBPress.registerPlugin 호출 없음"] };
+      }
+      cb(scan);
+    }).catch(function (e) {
+      cb({ ok: false, reasons: ["파일을 읽지 못했습니다: " + (e && e.message ? e.message : e)] });
+    });
+  }
+
+  function manifestPayload(item) {
+    var m = (item && item.manifest && typeof item.manifest === "object") ? item.manifest : {};
+    return {
+      v: 1,
+      name: item.name || item.id || "",
+      version: item.version || "1.0.0",
+      author: item.author || "",
+      hooks: Array.isArray(m.hooks) ? m.hooks.slice(0, 12) : [],
+      permissions: Array.isArray(m.permissions) ? m.permissions.slice(0, 12) : []
+    };
   }
 
   function setPluginEnabled(id, on, cb) {
@@ -4328,19 +4560,27 @@
       return;
     }
     if (note) note.textContent = "설치하는 중…";
-    savePluginRow({
-      id: id, name: name, version: "1.0.0", description: desc || null,
-      script_url: url, source: "custom", enabled: true
-    }).then(function (r) {
-      if (r && r.error) {
-        if (note) note.textContent = "설치하지 못했습니다: " + r.error.message;
+    verifyPluginFile(url, function (scan) {
+      if (!scan.ok) {
+        if (note) note.textContent = "설치하지 않았습니다 — " + scan.reasons.join(", ");
+        plugMsg("위험한 코드가 있거나 플러그인 형식이 아니라서 설치하지 않았습니다: " + scan.reasons.join(", "), "err");
         return;
       }
-      $("#plug-id").value = ""; $("#plug-name").value = ""; $("#plug-url").value = ""; $("#plug-desc").value = "";
-      if (note) note.textContent = "설치하고 켰습니다: " + name + " — 사이트를 새로고침해 확인하세요.";
-      plugMsg("‘" + name + "’ 플러그인을 설치했습니다.", "ok");
-      reloadEngine();
-      loadPlugins(false);
+      savePluginRow({
+        id: id, name: name, version: "1.0.0", description: desc || null,
+        script_url: url, source: "custom", enabled: true,
+        manifest: { v: 1, name: name, version: "1.0.0", author: "", hooks: [], permissions: [] }
+      }).then(function (r) {
+        if (r && r.error) {
+          if (note) note.textContent = "설치하지 못했습니다: " + r.error.message;
+          return;
+        }
+        $("#plug-id").value = ""; $("#plug-name").value = ""; $("#plug-url").value = ""; $("#plug-desc").value = "";
+        if (note) note.textContent = "설치하고 켰습니다: " + name + " — 사이트를 새로고침해 확인하세요.";
+        plugMsg("‘" + name + "’ 플러그인을 설치했습니다.", "ok");
+        reloadEngine();
+        loadPlugins(false);
+      });
     });
   }
 
@@ -4407,12 +4647,19 @@
       var installed = !!own;
       var on = !!(own && own.enabled);
       var tags = (item.tags || []).map(function (t) { return '<span class="plug-tag">' + esc(t) + "</span>"; }).join("");
+      var m = (item.manifest && typeof item.manifest === "object") ? item.manifest : {};
+      var hooks = (Array.isArray(m.hooks) ? m.hooks : []).slice(0, 4)
+        .map(function (h) { return '<i class="plug-tag">hook · ' + esc(h) + "</i>"; }).join("");
+      var perms = (Array.isArray(m.permissions) ? m.permissions : []).slice(0, 3)
+        .map(function (x) { return '<i class="plug-tag perm">' + esc(x) + "</i>"; }).join("");
+      var newer = !!(installed && item.version && String(item.version) !== String(own.version || ""));
       var action;
       if (!installed) {
         action = '<button type="button" class="btn btn-primary btn-sm" data-mplug-install="' + esc(item.id) + '">설치 및 켜기</button>';
       } else {
         action = '<button type="button" class="btn btn-ghost btn-sm" data-mplug-toggle="' + esc(item.id) + '">' +
           (on ? "끄기" : "켜기") + "</button>" +
+          (newer ? '<button type="button" class="btn btn-ghost btn-sm" data-mplug-update="' + esc(item.id) + '">v' + esc(item.version) + " 으로 업데이트</button>" : "") +
           '<button type="button" class="btn btn-ghost btn-sm" data-mplug-remove="' + esc(item.id) + '">제거</button>';
       }
       return '<article class="plug-card" data-market-id="' + esc(item.id) + '">' +
@@ -4420,7 +4667,7 @@
           (installed ? '<span class="plug-badge ' + (on ? "b-on" : "b-off") + '">' + (on ? "설치됨 · 켜짐" : "설치됨 · 꺼짐") + "</span>" : "") + "</h3>" +
         '<p class="plug-desc">' + esc(item.description || "") + "</p>" +
         '<div class="plug-meta">' + (item.version ? "<span class=\"plug-tag\">v" + esc(item.version) + "</span>" : "") +
-          (item.author ? "<span>" + esc(item.author) + "</span>" : "") + tags + "</div>" +
+          (item.author ? "<span>" + esc(item.author) + "</span>" : "") + tags + hooks + perms + "</div>" +
         '<div class="plug-actions">' + action + "</div></article>";
     }).join("");
 
@@ -4433,6 +4680,9 @@
         setPluginEnabled(id, !(p && p.enabled));
       });
     });
+    [].forEach.call(box.querySelectorAll("[data-mplug-update]"), function (b) {
+      b.addEventListener("click", function () { updatePlugin(b.getAttribute("data-mplug-update"), b); });
+    });
     [].forEach.call(box.querySelectorAll("[data-mplug-remove]"), function (b) {
       b.addEventListener("click", function () { deletePlugin(b.getAttribute("data-mplug-remove")); });
     });
@@ -4443,19 +4693,28 @@
     (plugMarket.list || []).forEach(function (p) { if (p.id === id) item = p; });
     if (!item) return;
     if (btn) { btn.disabled = true; btn.textContent = "설치하는 중…"; }
-    savePluginRow({
-      id: item.id, name: item.name || item.id, version: item.version || "1.0.0",
-      description: item.description || null, author: item.author || null,
-      script_url: marketAbs(item.script_url), source: item.source || "market", enabled: true
-    }).then(function (r) {
-      if (r && r.error) {
-        plugMsg("설치하지 못했습니다: " + r.error.message, "err");
+    var url = marketAbs(item.script_url);
+    verifyPluginFile(url, function (scan) {
+      if (!scan.ok) {
         if (btn) { btn.disabled = false; btn.textContent = "설치 및 켜기"; }
+        plugMsg("‘" + (item.name || item.id) + "’ 을 설치하지 않았습니다 — " + scan.reasons.join(", "), "err");
         return;
       }
-      plugMsg("‘" + (item.name || item.id) + "’ 플러그인을 설치하고 켰습니다. 사이트를 새로고침해 확인하세요.", "ok");
-      reloadEngine();
-      loadPlugins(false);
+      savePluginRow({
+        id: item.id, name: item.name || item.id, version: item.version || "1.0.0",
+        description: item.description || null, author: item.author || null,
+        script_url: url, source: item.source || "market", enabled: true,
+        manifest: manifestPayload(item)
+      }).then(function (r) {
+        if (btn) { btn.disabled = false; btn.textContent = "설치 및 켜기"; }
+        if (r && r.error) {
+          plugMsg("설치하지 못했습니다: " + r.error.message, "err");
+          return;
+        }
+        plugMsg("‘" + (item.name || item.id) + "’ 플러그인을 설치하고 켰습니다. 사이트를 새로고침해 확인하세요.", "ok");
+        reloadEngine();
+        loadPlugins(false);
+      });
     });
   }
 

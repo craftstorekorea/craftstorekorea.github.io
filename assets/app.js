@@ -1321,8 +1321,10 @@
     if (blockBox) {
       blockBox.innerHTML = "";
       blockBox.hidden = true;
-      var usesPageImages = (page.blocks || []).some(function (b) {
-        return b && b.type === "gallery" && b.source !== "own";
+      var usesPageImages = ((window.CRAFT_HUNMIN && window.CRAFT_HUNMIN.parseBlocks)
+        ? window.CRAFT_HUNMIN.parseBlocks(page.blocks)
+        : (page.blocks || [])).some(function (b) {
+        return b && b.type === "gallery" && (!b.props || b.props.source !== "own");
       });
       gal.hidden = usesPageImages && gal.children.length > 0;
       var drawn = (window.CRAFT_HUNMIN && window.CRAFT_HUNMIN.render)

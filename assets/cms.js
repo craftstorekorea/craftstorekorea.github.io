@@ -568,10 +568,20 @@
     return rgb.map(function (n) { return n + (255 - n) * f; });
   }
   function applyTheme() {
-    var raw = cval("theme_accent_color");
+    /* v5.1 — 테마 토큰(site_contents.theme.tokens)이 있으면 포인트 색보다 먼저 적용합니다.
+       값은 색 코드·숫자·글꼴 이름뿐이라 CSS 주입이 될 수 없습니다. */
+    var tok = themeTokens();
+    var root = document.documentElement;
+    if (tok.bg) root.style.setProperty("--bg", tok.bg);
+    if (tok.ink) root.style.setProperty("--ink", tok.ink);
+    if (tok.radius != null) {
+      root.style.setProperty("--r", tok.radius + "px");
+      root.style.setProperty("--r-s", Math.max(0, tok.radius - 6) + "px");
+    }
+    if (tok.fontCss) root.style.setProperty("--font-head", tok.fontCss);
+    var raw = tok.accent || cval("theme_accent_color");
     var rgb = hexToRgb(raw);
     if (!rgb) return "";
-    var root = document.documentElement;
     var hex = rgbHex(rgb);
     root.style.setProperty("--accent", hex);
     root.style.setProperty("--accent-d", rgbHex(shade(rgb, -0.18)));
@@ -580,6 +590,33 @@
     var th = document.querySelector('meta[name="theme-color"]');
     if (th) th.setAttribute("content", hex);
     return hex;
+  }
+
+  /* 테마 토큰 — site_contents.theme.tokens (JSON 문자열). 잘못된 값은 버립니다. */
+  var TOKEN_FONTS = {
+    nanum: "'Nanum Gothic','나눔고딕',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif",
+    system: "-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic','Segoe UI',sans-serif",
+    serif: "Georgia,'Nanum Myeongjo','바탕',serif",
+    sans: "'Helvetica Neue',Arial,'Malgun Gothic',sans-serif"
+  };
+  function themeTokens() {
+    var raw = cval("theme.tokens");
+    var out = { accent: "", bg: "", ink: "", radius: null, fontCss: "" };
+    if (!raw) return out;
+    var v = raw;
+    if (typeof raw === "string") {
+      try { v = JSON.parse(raw); } catch (e) { return out; }
+    }
+    if (!v || typeof v !== "object") return out;
+    var hex = /^#[0-9a-f]{6}$/i;
+    if (hex.test(String(v.accent || ""))) out.accent = String(v.accent).toUpperCase();
+    if (hex.test(String(v.bg || ""))) out.bg = String(v.bg).toUpperCase();
+    if (hex.test(String(v.ink || ""))) out.ink = String(v.ink).toUpperCase();
+    var r = parseInt(v.radius, 10);
+    if (isFinite(r)) out.radius = Math.max(0, Math.min(32, r));
+    if (v.fontStack && TOKEN_FONTS[v.fontStack]) out.fontCss = TOKEN_FONTS[v.fontStack];
+    window.CRAFT_THEME_TOKENS = v;
+    return out;
   }
 
   /* ---------------- 테마 프리셋 (site_contents.theme.preset) ----------------

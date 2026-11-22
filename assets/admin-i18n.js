@@ -814,7 +814,78 @@
   "설정됨": "Configured",
   "기본값": "Defaults",
   "설정을 저장했습니다. 사이트를 새로고침하면 적용됩니다.": "Saved. Refresh the site to apply.",
-  "설정을 읽지 못했습니다: ": "Could not read settings: "
+  "설정을 읽지 못했습니다: ": "Could not read settings: ",
+  "hunmin 블록 추가": "Add a hunmin block",
+  "실행 취소": "Undo",
+  "다시 실행": "Redo",
+  "블록을 끌어(또는 ↑↓) 순서를 바꿉니다 · 실행 취소 20단계": "Drag a block (or use ↑↓) to reorder · undo up to 20 steps",
+  "아직 hunmin 블록이 없습니다. 아래에서 골라 추가하면 페이지 본문 위에 순서대로 나타납니다.": "No hunmin blocks yet. Add one below; blocks appear above the page body in order.",
+  "보이기": "Show",
+  "잠금": "Lock",
+  "풀기": "Unlock",
+  "복제": "Duplicate",
+  "최신글": "Latest posts",
+  "지도": "Map",
+  "구독/제보 폼": "Subscribe / report form",
+  "이미지 갤러리": "Image gallery",
+  "텍스트·배너": "Text · banner",
+  "버튼/CTA": "Button / CTA",
+  "임베드": "Embed",
+  "게시판 글을 실시간으로 카드에 담습니다.": "Shows board posts as live cards.",
+  "등록 공방의 전국 지도를 페이지에 놓습니다.": "Puts the national workshop map on the page.",
+  "뉴스레터 구독 또는 공방 등록·제보를 받습니다.": "Takes newsletter signups or workshop registrations.",
+  "페이지 사진이나 블록 사진을 설명과 함께 보여 줍니다.": "Shows page photos or block photos with captions.",
+  "제목·본문·버튼을 한 덩어리로 강조합니다.": "Highlights a title, body and button together.",
+  "머리글과 행을 가진 표를 넣습니다. 글자만 들어가 안전합니다.": "Adds a table with a header and rows. Text only, safe.",
+  "큰 안내 띠와 버튼 하나로 행동을 이끕니다.": "Leads with a big band and one button.",
+  "유튜브 영상이나 구글 드라이브 문서를 페이지에 놓습니다.": "Embeds a YouTube video or a Google Drive document.",
+  "머리글": "Columns",
+  "쉼표로 구분": "comma separated",
+  "표 설명": "Table caption",
+  "한 줄에 값 | 값": "one row per line: value | value",
+  "유튜브 · 구글 드라이브/문서": "YouTube · Google Drive/Docs",
+  "높이(px)": "Height (px)",
+  "유튜브 영상(주소·공유 링크)과 구글 드라이브 파일·문서·시트·슬라이드·설문 주소만 미리보기로 바뀝니다. 그 밖의 주소는 저장되지 않습니다.": "Only YouTube links and Google Drive files, Docs, Sheets, Slides and Forms become previews. Other URLs are not kept.",
+  "본문 위에 순서대로 조립 — 최신글·인기글·지도·구독/제보 폼·갤러리·텍스트·표·버튼/CTA·임베드(유튜브·드라이브)": "Assembled above the body in order — latest, popular, map, form, gallery, text, table, CTA, embed (YouTube/Drive)",
+  "실시간 미리보기": "Live preview",
+  "공개 페이지와 같은 모양 · 숨김 블록은 나오지 않습니다": "Same as the public page · hidden blocks are left out",
+  "표시할 블록이 없습니다(숨김 블록은 미리보기에도 나오지 않습니다).": "No blocks to show (hidden blocks stay out of the preview too).",
+  "위로": "Move up",
+  "아래로": "Move down",
+  "테마 토큰": "Theme tokens",
+  "색·모서리·글꼴만 담습니다": "Colour, radius and font only",
+  "v5.1 — 색·모서리·글꼴만 담습니다": "v5.1 — colour, radius and font only",
+  "테마 토큰 (accent · bg · ink · radius · fontStack — CSS 직접 주입 없이 변수로 적용)": "Theme tokens (accent · bg · ink · radius · fontStack — applied as CSS variables, no direct CSS)",
+  "CSS 를 직접 넣지 않고": "No CSS is injected;",
+  "의 값만 CSS 변수로 적용합니다. 저장하면 공개 사이트(한국어·English)에 바로 반영됩니다.": " values are applied as CSS variables. Saving applies to the public site in Korean and English right away.",
+  "포인트 색": "Accent colour",
+  "포인트 색 고르기": "Pick the accent colour",
+  "포인트 색 코드": "Accent colour code",
+  "바탕 색": "Background colour",
+  "글자 색": "Text colour",
+  "모서리(px)": "Corner radius (px)",
+  "모서리 둥글기": "Corner roundness",
+  "글꼴": "Font",
+  "나눔고딕 (기본)": "Nanum Gothic (default)",
+  "시스템 글꼴": "System font",
+  "명조 계열": "Serif",
+  "고딕 계열": "Sans-serif",
+  "토큰 저장": "Save tokens",
+  "기본값으로": "Reset to defaults",
+  "저장될 테마 토큰 JSON": "Theme token JSON to be saved",
+  "테마 토큰을 저장했습니다. 사이트를 새로 고치면 포인트 색·바탕·글자·모서리·글꼴이 바로 반영됩니다.": "Theme tokens saved. Refresh the site to apply the accent, background, text, radius and font.",
+  "테마 토큰을 불러오지 못했습니다: ": "Could not load theme tokens: ",
+  "색은 #RRGGBB 6자리로 넣어 주세요(예: #C86D44).": "Enter colours as 6-digit #RRGGBB (e.g. #C86D44).",
+  "기본 토큰으로 되돌렸습니다. 저장을 눌러 사이트에 반영하세요.": "Reset to the default tokens. Press save to apply them to the site.",
+  "버전 고정": "Pin version",
+  "고정 해제": "Unpin",
+  "버전을 고정하지 못했습니다: ": "Could not pin the version: ",
+  "위험한 코드가 있어 업데이트하지 않았습니다: ": "Not updated — unsafe code: ",
+  "위험한 코드가 있어 설치하지 않았습니다: ": "Not installed — unsafe code: ",
+  "위험한 코드가 있거나 플러그인 형식이 아니라서 설치하지 않았습니다: ": "Not installed — unsafe code or not a plugin: ",
+  "이 플러그인의 주소가 https:// 또는 / 가 아니어서 업데이트하지 않았습니다.": "Not updated — the plugin URL is not https:// or a same-site path.",
+  "고정된 버전 — 마켓 새 버전이 와도 바꾸지 않습니다.": "Pinned version — market updates do not change it.",
+  "관리자 화면 격리": "Isolated in admin"
 };
   var RULES = ([
   [
@@ -936,6 +1007,38 @@
   [
     "양식·금액 상한·결재자를",
     "form, amount limit and approver"
+  ],
+  [
+    "^(\\d+)번째 블록을 (\\d+)번째로 옮겼습니다\\.$",
+    "Moved block \\1 to position \\2."
+  ],
+  [
+    "^(\\d+)번째 블록 끌어서 순서 바꾸기$",
+    "Drag block \\1 to reorder"
+  ],
+  [
+    "^(\\d+)번째 블록 (복제|숨김|잠금|위로|아래로|삭제)$",
+    "Block \\1 \\2"
+  ],
+  [
+    "^(\\d+)번째 블록 ",
+    "Block \\1 "
+  ],
+  [
+    "^실행 취소 — 남은 되돌리기 (\\d+)단계$",
+    "Undo — \\1 steps left"
+  ],
+  [
+    "^다시 실행 — 남은 다시 실행 (\\d+)단계$",
+    "Redo — \\1 steps left"
+  ],
+  [
+    "^을 v(.+?) 으로 업데이트했습니다\\.$",
+    " updated to v\\1."
+  ],
+  [
+    "^(\\d+) / 9$",
+    "\\1 / 9"
   ],
   [
     "^(\\d+)번째 메뉴 삭제$",

@@ -47,7 +47,9 @@
     loading: false,
     loadedOnce: false,
     admin: null,              // null=모름, true/false
-    adminChecked: false
+    adminChecked: false,
+    failed: {},               // id → 이유 (오류로 격리된 플러그인 — 자동 비활성)
+    manifests: {}             // id → manifest v1
   };
 
   function recordError(plugin, message) {
@@ -73,28 +75,129 @@
     try { return new URL(String(url), base || location.href).href; } catch (e) { return String(url || ""); }
   }
 
+  /* ---------- v5.1 보안: 주소·코드 검사 ----------
+     · 스크립트 주소는 https:// 또는 사이트 안 경로(/)만 (http:// · javascript: · data: 거부)
+     · 코드에 eval · new Function · document.write · http:// · <script> 가 있으면 실행하지 않습니다. */
+  var UNSAFE = [
+    { re: /(^|[^\w$.])eval\s*\(/, why: "eval()" },
+    { re: /new\s+Function\s*\(/, why: "new Function()" },
+    { re: /document\.write\s*\(/, why: "document.write()" },
+    { re: /(^|[^\w:])http:\/\//i, why: "http:// 주소" },
+    { re: /<script[\s>]/i, why: "<script> 삽입" }
+  ];
+
+  function safeScriptUrl(raw) {
+    var s = String(raw == null ? "" : raw).trim();
+    if (!s) return "";
+    if (/^https:\/\//i.test(s)) return s;
+    if (s.charAt(0) === "/" && s.charAt(1) !== "/") return s;      // 사이트 안 경로
+    return "";
+  }
+
+  function scanSource(text) {
+    var s = String(text || "");
+    var reasons = [];
+    for (var i = 0; i < UNSAFE.length; i++) {
+      if (UNSAFE[i].re.test(s)) reasons.push(UNSAFE[i].why);
+    }
+    return { ok: reasons.length === 0, reasons: reasons };
+  }
+
+  /* 파일을 받아 코드를 검사합니다. 받지 못하면(CORS·오류) 검사 없이 통과로 둡니다(CSP·격리가 막아 줍니다). */
+  function scanRemote(url) {
+    return new Promise(function (resolve) {
+      var done = false, timer = null;
+      function settle(v) { if (done) return; done = true; if (timer) clearTimeout(timer); resolve(v); }
+      try {
+        timer = setTimeout(function () { settle({ ok: true, unchecked: true }); }, 4000);
+        fetch(url, { cache: "no-store", credentials: "omit" }).then(function (r) {
+          if (!r.ok) { settle({ ok: true, unchecked: true }); return null; }
+          return r.text();
+        }).then(function (t) {
+          if (t == null) return;
+          if (t.length > 600000) { settle({ ok: true, unchecked: true }); return; }
+          settle(scanSource(t));
+        }).catch(function () { settle({ ok: true, unchecked: true }); });
+      } catch (e) { settle({ ok: true, unchecked: true }); }
+    });
+  }
+
+  /* manifest v1 — name · version · author · hooks[] · permissions[] (없으면 정의에서 채웁니다) */
+  var HOOKS = ["menu", "card", "widget", "admin-tab", "css", "settings"];
+  function manifestOf(def) {
+    var m = (def && def.manifest && typeof def.manifest === "object") ? def.manifest : {};
+    var v = parseInt(m.v != null ? m.v : 1, 10);
+    if (!isFinite(v) || v < 1) v = 1;
+    var hooks = Array.isArray(m.hooks) ? m.hooks : (Array.isArray(def.hooks) ? def.hooks : []);
+    hooks = hooks.map(function (h) { return String(h || "").trim().slice(0, 40); })
+      .filter(function (h) { return h && HOOKS.indexOf(h) >= 0; }).slice(0, 12);
+    var perms = Array.isArray(m.permissions) ? m.permissions : (Array.isArray(def.permissions) ? def.permissions : []);
+    perms = perms.map(function (x) { return String(x || "").trim().slice(0, 40); })
+      .filter(Boolean).slice(0, 12);
+    return {
+      v: v,
+      name: String(m.name || def.name || def.id || "").slice(0, 80),
+      version: String(m.version || def.version || "1.0.0").slice(0, 24),
+      author: String(m.author || def.author || "").slice(0, 80),
+      hooks: hooks,
+      permissions: perms
+    };
+  }
+
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
   }
 
+  /* 오류가 난 플러그인의 흔적(메뉴·위젯·탭·카드·CSS)을 전부 걺어냅니다 — 사이트가 죽지 않게. */
+  function purgePlugin(id) {
+    state.menu = state.menu.filter(function (x) { return x.plugin !== id; });
+    Object.keys(state.widgets).forEach(function (z) {
+      state.widgets[z] = state.widgets[z].filter(function (w) { return w.plugin !== id; });
+    });
+    state.tabs.filter(function (t) { return t.plugin === id; }).forEach(function (t) {
+      var btn = document.querySelector('[data-sbp-admin-tab="' + id + '"][data-tab="sbp-' + t.id + '"]');
+      if (btn && btn.parentNode) btn.parentNode.removeChild(btn);
+      var panel = document.getElementById("tab-sbp-" + t.id);
+      if (panel && panel.parentNode) panel.parentNode.removeChild(panel);
+    });
+    state.tabs = state.tabs.filter(function (t) { return t.plugin !== id; });
+    state.cardFns = state.cardFns.filter(function (c) { return c.plugin !== id; });
+    delete state.css[id];
+    var st = document.getElementById("sbp-css-" + id);
+    if (st && st.parentNode) st.parentNode.removeChild(st);
+    try { renderMenu(); paintZones(); } catch (e) { /* noop */ }
+  }
+
+  function fail(id, message) {
+    state.failed[id] = String(message || "오류");
+    recordError(id, message);
+    purgePlugin(id);
+  }
+
   /* ---------------- 플러그인 등록 ---------------- */
   function registerPlugin(def) {
     if (!def || typeof def !== "object") { recordError("engine", "registerPlugin 에 정의 객체가 없습니다."); return false; }
-    var id = String(def.id || "").trim();
+    var id = String(def.id || "").trim().slice(0, 60);
     if (!id) { recordError("engine", "플러그인 id 가 없습니다."); return false; }
-    if (state.defs[id]) return true;                     // 같은 플러그인이 두 번 불러와도 한 번만 실행
+    if (state.defs[id] || state.failed[id]) return true;   // 두 번 불러와도 한 번만(실패한 것은 다시 등록하지 않음)
     if (typeof def.setup !== "function") { recordError(id, "setup(ctx) 함수가 없습니다."); return false; }
+    var man = manifestOf(def);
+    if (man.v > 1) { fail(id, "manifest v" + man.v + " 은 이 엔진이 읽을 수 없습니다(지원: v1)."); return false; }
 
     state.defs[id] = def;
     state.order.push(id);
+    state.manifests[id] = man;
 
     var ctx = makeContext(id);
     try {
       def.setup(ctx);
     } catch (e) {
-      recordError(id, "setup 실행 중 오류: " + (e && e.message ? e.message : e));
+      fail(id, "setup 실행 중 오류: " + (e && e.message ? e.message : e));
+      delete state.defs[id];
+      state.order = state.order.filter(function (x) { return x !== id; });
+      return false;
     }
     /* 새 플러그인의 훅을 이미 그려진 화면에도 반영합니다. */
     scheduleAll();
@@ -432,6 +535,7 @@
   function loadOne(row) {
     return new Promise(function (resolve) {
       if (state.defs[row.id]) { resolve(); return; }       // 이미 불러온 플러그인은 다시 실행하지 않습니다
+      if (state.failed[row.id]) { resolve(); return; }
       /* 보안(v1.3): 직접 올린 외부 JS(source='custom')는 관리자 화면에서 실행하지 않습니다.
          관리자 세션(토큰·관리 권한)을 외부 스크립트가 만질 수 없게 하는 격리입니다.
          기본(builtin)·마켓(market) 플러그인은 그대로 동작합니다. */
@@ -441,24 +545,47 @@
         resolve();
         return;
       }
-      var src = absUrl(row.script_url, location.origin + "/");
-      var s = document.createElement("script");
-      s.src = src;
-      s.async = true;
-      s.setAttribute("data-sbp-script", row.id);
-      var settled = false;
-      function done(ok, err) {
-        if (settled) return;
-        settled = true;
-        if (!ok) recordError(row.id, err || ("스크립트를 불러오지 못했습니다: " + src));
-        else if (!state.defs[row.id]) recordError(row.id, "스크립트가 SBPress.registerPlugin 을 호출하지 않았습니다.");
+      var safe = safeScriptUrl(row.script_url);
+      if (!safe) {
+        state.skipped[row.id] = "insecure-url";
+        fail(row.id, "스크립트 주소가 https:// 또는 사이트 안 경로(/)가 아니어서 실행하지 않았습니다: " + String(row.script_url || ""));
         resolve();
+        return;
       }
-      s.onload = function () { done(true); };
-      s.onerror = function () { done(false, "스크립트를 불러오지 못했습니다(404·차단·CORS): " + src); };
-      document.head.appendChild(s);
-      setTimeout(function () { done(true); }, 9000);   // 응답이 없는 CDN 에서도 사이트가 멈추지 않게
+      var src = absUrl(safe, location.origin + "/");
+      scanRemote(src).then(function (scan) {
+        if (scan && scan.ok === false) {
+          state.skipped[row.id] = "unsafe-code";
+          fail(row.id, "위험한 코드가 들어 있어 실행하지 않았습니다: " + (scan.reasons || []).join(", "));
+          resolve();
+          return;
+        }
+        injectScript(row, src, resolve);
+      });
     });
+  }
+
+  function injectScript(row, src, resolve) {
+    var s = document.createElement("script");
+    s.src = src;
+    s.async = true;
+    s.setAttribute("data-sbp-script", row.id);
+    var settled = false;
+    function done(ok, err) {
+      if (settled) return;
+      settled = true;
+      if (!ok) {
+        state.skipped[row.id] = "load-failed";
+        fail(row.id, err || ("스크립트를 불러오지 못했습니다: " + src));
+      } else if (!state.defs[row.id] && !state.failed[row.id]) {
+        fail(row.id, "스크립트가 SBPress.registerPlugin 을 호출하지 않았습니다.");
+      }
+      resolve();
+    }
+    s.onload = function () { done(true); };
+    s.onerror = function () { done(false, "스크립트를 불러오지 못했습니다(404·차단·CORS): " + src); };
+    document.head.appendChild(s);
+    setTimeout(function () { done(true); }, 9000);   // 응답이 없는 CDN 에서도 사이트가 멈추지 않게
   }
 
   function load(force) {
@@ -489,6 +616,9 @@
       var ok = !!state.defs[r.id];
       out.push({
         id: r.id, name: r.name, source: r.source, loaded: ok,
+        version: (state.manifests[r.id] && state.manifests[r.id].version) || r.version || "",
+        manifest: state.manifests[r.id] || null,
+        disabled: state.failed[r.id] || null,
         skipped: state.skipped[r.id] || null,
         errors: state.errors.filter(function (e) { return e.plugin === r.id; })
       });
@@ -497,6 +627,7 @@
       plugins: out,
       errors: state.errors.slice(),
       notices: state.notices.slice(),
+      disabled: Object.keys(state.failed).map(function (id) { return { id: id, reason: state.failed[id] }; }),
       adminPage: state.adminPage,
       admin: state.admin
     };
@@ -505,9 +636,14 @@
   /* ---------------- 공개 API ---------------- */
   var SBPress = {
     __engine: true,
-    version: "1.3.0",
+    version: "2.0.0",
     registerPlugin: registerPlugin,
     register: registerPlugin,
+    safeScriptUrl: safeScriptUrl,
+    scanSource: scanSource,
+    scanRemote: scanRemote,
+    manifestOf: manifestOf,
+    hooks: function () { return HOOKS.slice(); },
     renderMenu: renderMenu,
     applyCards: function () { resetCards(); applyCards(); },
     paintZones: paintZones,

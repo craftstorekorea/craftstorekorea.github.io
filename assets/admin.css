@@ -927,3 +927,42 @@ tr.owner-row td{background:#FFFAF6}
 .panel-tag.is-on { background: #eaf7ee; color: #2c6b3f; }
 .panel-tag.is-off { background: #f6f1ec; color: #7a6a5c; }
 #set-social-cb { word-break: break-all; font-size: 11.5px; }
+
+/* ---------- v5.1 hunmin 편집기 — 드래그 · 숨김/잠금 · 미리보기 ---------- */
+.hm-toolbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 10px;border:1px dashed var(--line-2);border-radius:10px;background:#FFFDFB}
+.hm-toolbar .mini{padding:5px 10px;font-size:.78rem;border-radius:8px;cursor:pointer}
+.hm-toolbar .mini[disabled]{opacity:.4;cursor:not-allowed}
+.hm-toolbar-count{font-size:.74rem;font-weight:800;color:var(--accent-d);letter-spacing:.02em}
+.hm-toolbar-hint{margin-left:auto;font-size:.72rem;color:var(--ink-3)}
+.hm-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.hm-drag{flex:none;width:24px;height:26px;border:1px solid transparent;background:transparent;border-radius:6px;color:var(--ink-3);font-size:.9rem;line-height:1;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.hm-drag:hover{border-color:var(--line-2);background:#fff;color:var(--ink)}
+.hm-drag:active{cursor:grabbing}
+.hm-block-card.is-dragging{opacity:.9;border-color:var(--accent);box-shadow:0 10px 24px -14px rgba(62,47,38,.5)}
+.hm-block-card.is-hidden{background:#FAF7F3}
+.hm-block-card.is-hidden .hm-block-type{opacity:.7}
+.hm-block-card.is-locked{border-style:dashed;border-color:var(--accent)}
+.hm-state{font-size:.66rem;font-weight:800;letter-spacing:.04em;padding:1px 6px;border-radius:999px;background:#F3E7DC;color:var(--accent-d)}
+.hm-state.lock{background:#EDE7F6;color:#55408C}
+.hm-block-head .hm-block-tools .mini[aria-pressed="true"]{border-color:var(--accent);color:var(--accent-d);background:#FFF6F0}
+.hm-preview-field{margin-top:12px}
+.hm-preview{border:1px solid var(--line-2);border-radius:12px;background:#fff;padding:16px;max-height:520px;overflow:auto}
+.hm-preview .hm-block{margin:0 0 18px}
+.hm-preview .hm-block:last-child{margin-bottom:0}
+.hm-embed-help{font-size:.72rem;color:var(--ink-3);margin-top:2px}
+
+/* ---------- v5.1 테마 토큰 ---------- */
+.theme-tokens{margin-top:18px;padding:16px;border:1px solid var(--line);border-radius:12px;background:#FFFDFB}
+.theme-tokens h3{font-size:.92rem;letter-spacing:-.01em;margin:0 0 6px}
+.theme-tokens h3 em{font-style:normal;font-size:.72rem;font-weight:600;color:var(--ink-3);margin-left:6px}
+.tt-color-row{display:flex;gap:6px;align-items:center}
+.tt-color-row input[type="color"]{width:38px;height:34px;padding:2px;border:1px solid var(--line-2);border-radius:8px;background:#fff}
+.tt-color-row input[type="text"],.tt-color-row input:not([type]){flex:1;min-width:0}
+.tt-json{margin:10px 0 0;padding:10px 12px;border-radius:8px;background:var(--bg-2);border:1px solid var(--line);font-size:.72rem;color:var(--ink-2);overflow-x:auto;white-space:pre-wrap;word-break:break-all}
+
+/* ---------- v5.1 플러그인 manifest ---------- */
+.plug-manifest{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.plug-manifest .plug-tag{font-size:.64rem;font-style:normal}
+.plug-tag.perm{background:#EEF3F8;color:#2F5A78}
+.plug-ver{font-weight:700;color:var(--ink-2)}
+.plug-upd{padding:3px 7px;font-size:.7rem;border-radius:7px;border:1px solid var(--accent);color:var(--accent-d);background:#FFF6F0;cursor:pointer}
