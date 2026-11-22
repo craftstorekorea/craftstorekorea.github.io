@@ -9,9 +9,49 @@
 --hero:linear-gradient(135deg,#3B2A20 0%,#6A4230 55%,#9A5A3A 100%);--hero-soft:#EADFD3;--hero-eyebrow:#E7B79B}
 
 *{box-sizing:border-box}
-html,body{margin:0;padding:0}
+html,body{margin:0;padding:0;height:100%}
 body{background:var(--bg);color:var(--ink);font-family:'Nanum Gothic','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
-     font-size:14px;line-height:1.62;-webkit-text-size-adjust:100%;overflow-x:hidden}
+     font-size:14px;line-height:1.62;-webkit-text-size-adjust:100%;overflow:hidden}
+/* Google Sites 임베드 프레임(고정 높이)에 맞춘 앱 셸 */
+.app{height:100%;display:flex;flex-direction:column;min-height:0}
+.apphead{flex:0 0 auto;padding:12px 14px 0}
+.appbody{flex:1 1 auto;min-height:0;overflow:auto;padding:0 14px 12px;overscroll-behavior:contain}
+.appfoot{flex:0 0 auto;padding:0 14px 10px}
+.app .hero{padding:14px 16px;border-radius:12px}
+.app .hero h1{font-size:19px;margin-bottom:4px}
+.app .hero p{font-size:12px;line-height:1.55}
+.app .stats{margin-top:8px;gap:6px}
+.app .stat{padding:4px 9px;min-width:0}
+.app .stat b{font-size:14px}
+.app .stat span{font-size:10px}
+.app h2.sec{margin:14px 0 7px;font-size:14.5px}
+.app .lead{font-size:12px;margin:-2px 0 8px}
+.app .bar{padding:8px 10px;margin:10px 0 8px}
+.app .searchrow input[type=search]{height:32px;font-size:12.5px}
+.app .searchrow select{height:32px;font-size:11.5px}
+.app .fgroup{margin-top:5px}
+.app .chip{padding:3px 8px;font-size:11px}
+.app .card{padding:11px 12px;border-radius:11px;gap:5px}
+.app .card h3{font-size:13px}
+.app .card p{font-size:11.5px;line-height:1.5}
+.app .grid{gap:9px}
+.app .tray{margin-top:8px}
+.app .note{font-size:11px;margin-top:8px;padding:8px 10px}
+.app .foot{margin-top:8px;font-size:11.5px}
+.app .cols{gap:9px}
+.app .block{padding:11px 12px;border-radius:11px}
+.app .block h3{font-size:13px}
+.app .block p{font-size:11.5px}
+@media (max-width:640px){
+  .apphead{padding:9px 9px 0}
+  .appbody{padding:0 9px 10px}
+  .appfoot{padding:0 9px 8px}
+  .app .hero{padding:12px 12px}
+  .app .hero h1{font-size:17px}
+  .app .hero p{font-size:11.5px}
+  .app .stat b{font-size:13px}
+  .app .grid{grid-template-columns:1fr;gap:8px}
+}
 a{color:var(--acc);text-decoration:none}
 a:hover{text-decoration:underline}
 .wrap{max-width:1120px;margin:0 auto;padding:18px 18px 26px}
@@ -55,7 +95,7 @@ h2.sec em{font-style:normal;font-size:11px;font-weight:700;color:var(--muted);le
 .mini.ghost{background:transparent}
 a.mini{text-decoration:none}
 /* filter bar */
-.bar{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin:16px 0 14px;position:relative;z-index:1}
+.bar{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin:16px 0 14px;position:sticky;top:0;z-index:4;box-shadow:0 4px 14px rgba(20,30,25,.05)}
 .searchrow{display:flex;gap:8px;flex-wrap:wrap}
 .searchrow input[type=search]{flex:1 1 240px;min-width:0;height:38px;border:1px solid var(--line2);border-radius:10px;
   padding:0 12px;font-size:13.5px;font-family:inherit;background:var(--bg-soft);color:var(--ink)}
@@ -128,20 +168,19 @@ table.cmp tr:first-child th{width:auto}
   .tray{border-radius:11px}
 }
 </style></head><body class=""><div class="wrap">
-  <section class="hero" style="padding:30px 26px">
-    <p class="eyebrow">우리동네공방 · WEEKLY CRAFT LETTER</p>
-    <h1 style="font-size:29px">전국의 공방과 수공예 이야기를<br>한곳에서</h1>
-    <p>매주 금요일, 전국 공방 소식을 소개·뉴스·인터뷰·정보 네 코너로 정리해 전합니다. 2026.11.21 업데이트 · 누적 46건.</p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">
-      <a class="btn" style="background:#fff;color:#8E3F20;border-color:#fff" href="https://sites.google.com/view/craftstore-kr/통합-검색">통합 검색 · 필터</a>
-      <a class="btn sec" style="background:transparent;color:#F6E7DC;border-color:rgba(255,255,255,.5)" href="https://docs.google.com/forms/d/e/1FAIpQLSfsAqB6xnd8iNofTPrmpF6XKYlWrb_vMhYaYuEvMup3IS2oiw/viewform" target="_blank" rel="noopener">공방 등록·제보</a>
-      <a class="btn sec" style="background:transparent;color:#F6E7DC;border-color:rgba(255,255,255,.5)" href="https://page.stibee.com/archives/252109" target="_blank" rel="noopener">뉴스레터 지난 호</a>
+  <section class="hero" style="padding:18px 20px">
+    <p class="eyebrow">우리동네공방 · WEEKLY CRAFT LETTER · 2026.11.21</p>
+    <h1 style="font-size:22px">전국의 공방과 수공예 이야기를 한곳에서</h1>
+    <p>매주 금요일, 전국 공방 소식을 소개·뉴스·인터뷰·정보 네 코너로 정리해 전합니다. 누적 46건 · 등록 공방 4곳.</p>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+      <a class="btn sm" style="background:#fff;color:#8E3F20;border-color:#fff" href="https://sites.google.com/view/craftstore-kr/통합-검색">통합 검색 · 필터</a>
+      <a class="btn sm sec" style="background:transparent;color:#F6E7DC;border-color:rgba(255,255,255,.5)" href="https://docs.google.com/forms/d/e/1FAIpQLSfsAqB6xnd8iNofTPrmpF6XKYlWrb_vMhYaYuEvMup3IS2oiw/viewform" target="_blank" rel="noopener">공방 등록·제보</a>
+      <a class="btn sm sec" style="background:transparent;color:#F6E7DC;border-color:rgba(255,255,255,.5)" href="https://page.stibee.com/archives/252109" target="_blank" rel="noopener">뉴스레터 지난 호</a>
     </div>
-    <div class="stats"><div class="stat"><b>46</b><span>누적 소식</span></div><div class="stat"><b>20</b><span>이번 주 뉴스</span></div><div class="stat"><b>4</b><span>등록 공방</span></div><div class="stat"><b>금 10시</b><span>뉴스레터</span></div></div>
   </section>
 
-  <h2 class="sec">네 가지 코너 <em>4 CORNERS</em></h2>
-  <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))"><a class="card" href="https://sites.google.com/view/craftstore-kr/공방-소개" style="text-decoration:none">
+  <h2 class="sec" style="margin:12px 0 6px">네 가지 코너 <em>46 STORIES</em></h2>
+  <div class="grid" style="grid-template-columns:repeat(4,1fr);gap:8px"><a class="card" href="https://sites.google.com/view/craftstore-kr/공방-소개" style="text-decoration:none">
   <div class="tags"><span class="tag acc">소개</span><span class="tag">10곳</span></div>
   <h3>공방 소개</h3><p>전국 공방과 공예체험 공간을 분야별로.</p><span class="meta">바로가기 →</span></a><a class="card" href="https://sites.google.com/view/craftstore-kr/공방-뉴스" style="text-decoration:none">
   <div class="tags"><span class="tag acc">뉴스</span><span class="tag">20건</span></div>
@@ -151,52 +190,28 @@ table.cmp tr:first-child th{width:auto}
   <div class="tags"><span class="tag acc">정보</span><span class="tag">11건</span></div>
   <h3>지원·공모 정보</h3><p>마감 있는 공모·지원·전시·클래스.</p><span class="meta">바로가기 →</span></a></div>
 
-  <h2 class="sec">이번 주 주요 공방 소식 <em>2026.11.13 ~ 11.20 · 11.21 업데이트</em></h2>
-  <p class="lead">이번 주 수집분 20건 가운데 먼저 볼 소식입니다. 전체 목록은 <a href="https://sites.google.com/view/craftstore-kr/공방-뉴스">공방 뉴스</a>에서.</p>
-  <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(268px,1fr))">
-    <a class="card" href="https://www.yna.co.kr/view/AKR20261119066700005" target="_blank" rel="noopener" style="text-decoration:none">
+  <h2 class="sec" style="margin:14px 0 6px">이번 주 주요 공방 소식 <em>2026.11.13 ~ 11.20 · 11.21 업데이트</em></h2>
+  <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:8px" data-x="1"><a class="card mini-card" href="https://www.yna.co.kr/view/AKR20261119066700005" target="_blank" rel="noopener" style="text-decoration:none">
       <div class="tags"><span class="tag acc">뉴스</span><span class="tag">서울</span><span class="tag">팝업·전시</span></div>
       <h3 style="font-size:14px">더현대 서울 &#x27;K-크래프트 하우스&#x27; 팝업, 11/21~29</h3>
       <p class="clamp">국가유산청과 아이디어스가 협업해 전승 공예품 230여 종을 소개합니다. 무료·예약 없이 관람할 수 있습니다.</p>
-      <div class="meta"><span>연합뉴스</span><span class="dot">·</span><span>2026-11-19</span></div></a><a class="card" href="https://www.hankyung.com/article/2026111980951" target="_blank" rel="noopener" style="text-decoration:none">
+      <div class="meta"><span>연합뉴스</span><span class="dot">·</span><span>2026-11-19</span></div></a><a class="card mini-card" href="https://www.hankyung.com/article/2026111980951" target="_blank" rel="noopener" style="text-decoration:none">
       <div class="tags"><span class="tag acc">뉴스</span><span class="tag">해외</span><span class="tag">업계</span></div>
       <h3 style="font-size:14px">르코르뷔지에·라이트가 사랑한 모로코 수공예 — ‘조용한 럭셔리’의 힘</h3>
       <p class="clamp">베니 러그·젤리지·젤라바가 르코르뷔지에, 라이트, 이브 생로랑, 디올을 거쳐 현대 럭셔리로 이어지는 흐름. 해외 수공예 사례 참고용입니다.</p>
-      <div class="meta"><span>한국경제</span><span class="dot">·</span><span>2026-11-19</span></div></a><a class="card" href="https://kr.aving.net/news/articleView.html?idxno=1817192" target="_blank" rel="noopener" style="text-decoration:none">
+      <div class="meta"><span>한국경제</span><span class="dot">·</span><span>2026-11-19</span></div></a><a class="card mini-card" href="https://kr.aving.net/news/articleView.html?idxno=1817192" target="_blank" rel="noopener" style="text-decoration:none">
       <div class="tags"><span class="tag acc">뉴스</span><span class="tag">서울</span><span class="tag">페어</span></div>
       <h3 style="font-size:14px">로컬바이브 2026, ‘로컬 공예’ 브랜드 11곳 코엑스 집결</h3>
       <p class="clamp">11/20~22 코엑스 C홀, 입장 1만 원. 망미장·린보워크샵·소목반 등 지역 공예 브랜드가 참가합니다.</p>
-      <div class="meta"><span>에이빙</span><span class="dot">·</span><span>2026-11-19</span></div></a><a class="card" href="https://www.mk.co.kr/news/culture/12212382" target="_blank" rel="noopener" style="text-decoration:none">
-      <div class="tags"><span class="tag acc">뉴스</span><span class="tag">전국</span><span class="tag">업계</span></div>
-      <h3 style="font-size:14px">59억 원에 낙찰된 조선 달항아리 — K-공예, 글로벌 아트로 도약할까</h3>
-      <p class="clamp">2026년 3월 뉴욕 크리스티에서 318만 6,000달러(약 47억 7,000만 원)에, 2023년에는 456만 달러(약 59억 4,000만 원)에 팔렸습니다. 박물관 문화상품 브랜드 뮷즈 매출은 2021년 65.9억 원에서 2025년 413.4억 원으로 커졌습니다.</p>
-      <div class="meta"><span>매일경제</span><span class="dot">·</span><span>2026-11-18</span></div></a><a class="card" href="https://www.socialimpactnews.net/news/articleView.html?idxno=7915" target="_blank" rel="noopener" style="text-decoration:none">
-      <div class="tags"><span class="tag acc">뉴스</span><span class="tag">경기</span><span class="tag">업계</span></div>
-      <h3 style="font-size:14px">커피박·사과박 재생가죽으로 매출 10배 — 평택 브라운스킨</h3>
-      <p class="clamp">가죽 부산물과 농식품 부산물을 섞은 재생가죽으로 500g·3만 5,000원 안전화 ‘DOIM’을 만듭니다. 매출은 2023년 9,100만 원에서 2025년 8억 7,600만 원으로, 외부 투자 없이 3년 연속 흑자입니다.</p>
-      <div class="meta"><span>소셜임팩트뉴스</span><span class="dot">·</span><span>2026-11-18</span></div></a><a class="card" href="https://www.mk.co.kr/news/culture/12212639" target="_blank" rel="noopener" style="text-decoration:none">
-      <div class="tags"><span class="tag acc">뉴스</span><span class="tag">전국</span><span class="tag">지역</span></div>
-      <h3 style="font-size:14px">지역공예 다시 ‘붐’ — 이천·부여·통영, 장인의 도시가 깨어난다</h3>
-      <p class="clamp">이천도자기축제는 방문 106만 명·판매 37.9억 원, 공방 323곳이 참여했습니다. 부여 123사비공예마을 ‘공예 런케이션’은 조기 마감, 통영메이드는 12월 공예트렌드페어에 섭니다.</p>
-      <div class="meta"><span>매일경제</span><span class="dot">·</span><span>2026-11-18</span></div></a>
-  </div>
+      <div class="meta"><span>에이빙</span><span class="dot">·</span><span>2026-11-19</span></div></a></div>
 
-  <h2 class="sec">공방 · 체험 공간 <em>WORKSHOPS</em></h2>
-  <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))">
-  <a class="card" href="https://sites.google.com/view/craftstore-kr/공방-지도게시판" style="text-decoration:none"><div class="tags"><span class="tag">부산</span><span class="tag acc">가죽공예</span></div><h3>가죽공방 본</h3><p class="clamp">2017년 문을 연 가죽공방. 서경원 대표가 주문 제작과 원데이클래스, 청각장애인 대상 가죽공예 수업, 자투리 가죽 업사이클링을 함께 합니다.</p><span class="meta">원데이 예 · 지도에서 보기 →</span></a><a class="card" href="https://sites.google.com/view/craftstore-kr/공방-지도게시판" style="text-decoration:none"><div class="tags"><span class="tag">경기</span><span class="tag acc">전통공예</span></div><h3>두두리공방</h3><p class="clamp">승경란 작가의 은입사(입사장) 공방. 2026년 11월 국가무형유산 제78호 입사장 보유자로 인정받았습니다.</p><span class="meta">원데이 협의 · 지도에서 보기 →</span></a><a class="card" href="https://sites.google.com/view/craftstore-kr/공방-지도게시판" style="text-decoration:none"><div class="tags"><span class="tag">강원</span><span class="tag acc">목공</span></div><h3>횡성목재문화체험장</h3><p class="clamp">원목 도마 만들기 등 목공 11종을 운영하는 목재 문화 체험장. 11월 24일~12월 18일 1차 시범운영은 체험료·재료비가 무료입니다(화~금 하루 2회, 전화 예약 033-342-7150).</p><span class="meta">원데이 예 · 지도에서 보기 →</span></a><a class="card" href="https://sites.google.com/view/craftstore-kr/공방-지도게시판" style="text-decoration:none"><div class="tags"><span class="tag">충남</span><span class="tag acc">도예·세라믹</span></div><h3>작공 (공주원도심작업실·공방조합)</h3><p class="clamp">공주 원도심에서 작업실·공방을 운영하는 10개 공방과 4명의 작가가 모인 조합(조합장 정연희). 골목길 음악회, 작공 아트마켓, 한줄 동화전을 열고 있습니다.</p><span class="meta">원데이 협의 · 지도에서 보기 →</span></a>
+  <div class="foot" style="margin-top:10px">
+    <a class="btn sm sec" href="https://sites.google.com/view/craftstore-kr/공방-뉴스">공방 뉴스 20건 전체</a>
+    <a class="btn sm ghost" href="https://sites.google.com/view/craftstore-kr/공방-지도게시판">공방 지도·게시판</a>
+    <a class="btn sm ghost" href="https://page.stibee.com/archives/252109">뉴스레터 지난 호</a>
+    <span style="color:#8A7C6F;font-size:11px">© 우리동네공방(@craftstore.kr) · 소식 저작권은 각 원문 매체</span>
   </div>
-
-  <h2 class="sec">뉴스레터 구독 <em>EVERY FRIDAY 10:00</em></h2>
-  <div class="cols">
-    <div class="block"><h3>매주 금요일 오전 10시</h3><p>한 주 공방 소식을 모아 우리동네공방 뉴스레터로 보내드립니다. 지난 호는 스티비 아카이브에서 모두 보실 수 있어요.</p>
-      <div class="cardacts"><a class="btn sm" href="https://page.stibee.com/archives/252109" target="_blank" rel="noopener">지난 호 보기</a>
-      <a class="btn sm sec" href="https://sites.google.com/view/craftstore-kr/뉴스레터">구독 신청</a></div></div>
-    <div class="block"><h3>공방을 아시나요?</h3><p>동네 공방·원데이 클래스·소식을 제보해 주세요. 확인 후 지도와 주간 소식에 반영합니다.</p>
-      <div class="cardacts"><a class="btn sm" href="https://docs.google.com/forms/d/e/1FAIpQLSfsAqB6xnd8iNofTPrmpF6XKYlWrb_vMhYaYuEvMup3IS2oiw/viewform" target="_blank" rel="noopener">등록·제보 폼</a>
-      <a class="btn sm ghost" href="https://www.instagram.com/craftstore.kr/" target="_blank" rel="noopener">인스타그램</a></div></div>
-  </div>
-
-  <p class="note">전국공방은 공방과 수공예 소식을 모아 나누는 우리동네공방(@craftstore.kr)의 웹사이트입니다. 사이트에 담긴 소식의 저작권은 각 원문 매체에 있습니다.</p>
+  <style>.mini-card{padding:9px 11px !important}.mini-card p{-webkit-line-clamp:2 !important}.mini-card .meta{font-size:11px}@media(max-width:640px){.grid{grid-template-columns:1fr !important}}</style>
 </div>
 <script>window.__CFG__ = {"filters": [], "ls": "cs"};window.__DATA__ = [];</script>
 <script>

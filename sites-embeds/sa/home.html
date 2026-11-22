@@ -9,9 +9,49 @@
 --hero:linear-gradient(135deg,#0E2A42 0%,#184A6B 55%,#2C6E8F 100%);--hero-soft:#CFE0EC;--hero-eyebrow:#8FC3DE}
 
 *{box-sizing:border-box}
-html,body{margin:0;padding:0}
+html,body{margin:0;padding:0;height:100%}
 body{background:var(--bg);color:var(--ink);font-family:'Nanum Gothic','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
-     font-size:14px;line-height:1.62;-webkit-text-size-adjust:100%;overflow-x:hidden}
+     font-size:14px;line-height:1.62;-webkit-text-size-adjust:100%;overflow:hidden}
+/* Google Sites 임베드 프레임(고정 높이)에 맞춘 앱 셸 */
+.app{height:100%;display:flex;flex-direction:column;min-height:0}
+.apphead{flex:0 0 auto;padding:12px 14px 0}
+.appbody{flex:1 1 auto;min-height:0;overflow:auto;padding:0 14px 12px;overscroll-behavior:contain}
+.appfoot{flex:0 0 auto;padding:0 14px 10px}
+.app .hero{padding:14px 16px;border-radius:12px}
+.app .hero h1{font-size:19px;margin-bottom:4px}
+.app .hero p{font-size:12px;line-height:1.55}
+.app .stats{margin-top:8px;gap:6px}
+.app .stat{padding:4px 9px;min-width:0}
+.app .stat b{font-size:14px}
+.app .stat span{font-size:10px}
+.app h2.sec{margin:14px 0 7px;font-size:14.5px}
+.app .lead{font-size:12px;margin:-2px 0 8px}
+.app .bar{padding:8px 10px;margin:10px 0 8px}
+.app .searchrow input[type=search]{height:32px;font-size:12.5px}
+.app .searchrow select{height:32px;font-size:11.5px}
+.app .fgroup{margin-top:5px}
+.app .chip{padding:3px 8px;font-size:11px}
+.app .card{padding:11px 12px;border-radius:11px;gap:5px}
+.app .card h3{font-size:13px}
+.app .card p{font-size:11.5px;line-height:1.5}
+.app .grid{gap:9px}
+.app .tray{margin-top:8px}
+.app .note{font-size:11px;margin-top:8px;padding:8px 10px}
+.app .foot{margin-top:8px;font-size:11.5px}
+.app .cols{gap:9px}
+.app .block{padding:11px 12px;border-radius:11px}
+.app .block h3{font-size:13px}
+.app .block p{font-size:11.5px}
+@media (max-width:640px){
+  .apphead{padding:9px 9px 0}
+  .appbody{padding:0 9px 10px}
+  .appfoot{padding:0 9px 8px}
+  .app .hero{padding:12px 12px}
+  .app .hero h1{font-size:17px}
+  .app .hero p{font-size:11.5px}
+  .app .stat b{font-size:13px}
+  .app .grid{grid-template-columns:1fr;gap:8px}
+}
 a{color:var(--acc);text-decoration:none}
 a:hover{text-decoration:underline}
 .wrap{max-width:1120px;margin:0 auto;padding:18px 18px 26px}
@@ -55,7 +95,7 @@ h2.sec em{font-style:normal;font-size:11px;font-weight:700;color:var(--muted);le
 .mini.ghost{background:transparent}
 a.mini{text-decoration:none}
 /* filter bar */
-.bar{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin:16px 0 14px;position:relative;z-index:1}
+.bar{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin:16px 0 14px;position:sticky;top:0;z-index:4;box-shadow:0 4px 14px rgba(20,30,25,.05)}
 .searchrow{display:flex;gap:8px;flex-wrap:wrap}
 .searchrow input[type=search]{flex:1 1 240px;min-width:0;height:38px;border:1px solid var(--line2);border-radius:10px;
   padding:0 12px;font-size:13.5px;font-family:inherit;background:var(--bg-soft);color:var(--ink)}
@@ -129,46 +169,30 @@ table.cmp tr:first-child th{width:auto}
 }
 </style></head><body class="">
 <div class="wrap">
-  <section class="hero">
+  <section class="hero" style="padding:16px 18px">
     <p class="eyebrow">STUDY ABROAD · PRICE TRANSPARENCY</p>
-    <h1>어학연수, 어디로 갈지보다<br>얼마가 들고, 얼마가 돌아오는지</h1>
-    <p>학비만 비교하면 놓치는 게 있습니다. 12주 총비용 · 무비자 수강 가능 여부 · 자녀 학비를 같은 기준으로 정리하고, 등록하면 정착 장학금으로 최대 학비의 15%를 돌려드립니다.</p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">
-      <a class="btn" style="background:#fff;color:#0E2A42;border-color:#fff" href="https://sites.google.com/view/studyabroad-kr/비용-계산기">비용 계산기 열기</a>
-      <a class="btn sec" style="background:transparent;color:#DCEBF4;border-color:rgba(255,255,255,.45)" href="https://sites.google.com/view/studyabroad-kr/programs">프로그램 찾기</a>
-      <a class="btn sec" style="background:transparent;color:#DCEBF4;border-color:rgba(255,255,255,.45)" href="https://sites.google.com/view/studyabroad-kr/contact">상담 신청</a>
+    <h1 style="font-size:21px">어학연수, 얼마가 들고 얼마가 돌아오는지</h1>
+    <p>12주 총비용 · 무비자 수강 · 자녀 학비를 같은 기준으로 정리하고, 등록하면 정착 장학금으로 최대 학비의 15%를 돌려드립니다.</p>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:9px">
+      <a class="btn sm" style="background:#fff;color:#0E2A42;border-color:#fff" href="https://sites.google.com/view/studyabroad-kr/비용-계산기">비용 계산기 열기</a>
+      <a class="btn sm sec" style="background:transparent;color:#DCEBF4;border-color:rgba(255,255,255,.45)" href="https://sites.google.com/view/studyabroad-kr/programs">프로그램 찾기</a>
+      <a class="btn sm sec" style="background:transparent;color:#DCEBF4;border-color:rgba(255,255,255,.45)" href="https://sites.google.com/view/studyabroad-kr/contact">상담 신청</a>
     </div>
-    <div class="stats"><div class="stat"><b>31개국</b><span>124개 과정</span></div><div class="stat"><b>385곳</b><span>해외 학교</span></div><div class="stat"><b>54도시</b><span>생활비 실측</span></div><div class="stat"><b>15%</b><span>학비 환급 상한</span></div></div>
   </section>
 
-  <h2 class="sec">세 가지 약속 <em>HOW WE WORK</em></h2>
-  <div class="cols">
-    <div class="block"><span class="tag acc">01 공시가 직납</span><h3 style="margin-top:8px">학비는 학교 계좌로</h3><p>등록금을 받거나 차감하지 않습니다. 학교 공시가 그대로, 영수증은 학생 명의.</p></div>
-    <div class="block"><span class="tag acc">02 숨은 마진 0%</span><h3 style="margin-top:8px">등록 수수료 0원</h3><p>어학원 소개 수수료에서 운영비만 남기고, 마진은 8% 상한으로 공개합니다.</p></div>
-    <div class="block"><span class="tag acc">03 정착 장학금</span><h3 style="margin-top:8px">최대 학비 15% 환급</h3><p>개강 4주 후 현금·필수비용 대납(보험·비자·픽업·eSIM)·후기 인증 중 선택.</p></div>
-  </div>
+  <p class="note" style="margin:9px 0 0;padding:7px 10px;font-size:11.5px">약속 — ① 학비는 학교 계좌로 직납(공시가 그대로, 영수증은 학생 명의) ② 등록 수수료 0원·플랫폼 마진 8% 상한 공개 ③ 정착 장학금 최대 학비 15% 환급(현금·보험·비자·픽업·eSIM 대납·후기 인증 중 선택)</p>
 
-  <h2 class="sec">사이트 지도 <em>9 PAGES</em></h2>
-  <p class="lead">2026년 11월 22일 기준. 표의 페이지 이름을 누르면 바로 이동합니다.</p>
+  <h2 class="sec" style="margin:12px 0 5px">사이트 지도 <em>9 PAGES · 2026.11.22</em></h2>
   <div class="tablewrap"><table class="map"><colgroup><col style="width:30%"><col></colgroup>
-    <thead><tr><th>메뉴</th><th>무엇을 볼 수 있나</th></tr></thead><tbody><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/어학원-문의처수집처">어학원 문의처·수집처</a></td><td>어학원·대학부설 어학당 125곳(31개국)의 공식 홈페이지·학비 안내·이메일·전화·온라인 문의 폼을 국가 필터로. 자료 원천 52곳 목록 포함</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/programs">프로그램 찾기</a></td><td>31개국 124개 과정을 검색·필터 게시판으로. 12주 총비용·무비자 수강·자녀 무상·아르바이트 조건</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/kids">자녀 무상교육·장기체류</a></td><td>부모 연수·유학 시 자녀 공립 K-12 무상 가능 지역(미국 F-2·노바스코샤 등)과 불가 지역, 조지아 1년 무비자 등 장기체류, 국내 영어캠프 9곳</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/kids/해외-학교-정보대학고등학교">해외 학교 정보(대학·고등학교)</a></td><td>자녀가 다닐 학교를 직접 고를 때. 사이판·괌·팔라우·미국령 사모아·하와이·몰디브·몰타·자메이카·바하마 9개 지역 385곳의 주소·전화·이메일·홈페이지</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/working-holiday">워킹홀리데이</a></td><td>29개 협정국을 검색·필터 게시판으로. 연령·쿼터·어학연수 가능 기간·비자비·재정증명·초기 정착비</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/cities">도시 생활비·아르바이트</a></td><td>54개 도시 월 생활비, 학생 아르바이트 허용 시간·최저임금·생활비 충당률, 비자 심사기간, 재정증빙 기준</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/scholarship">장학금 환급·비즈니스 모델</a></td><td>투명 마진 8% 상한, 정착 장학금 환급 구조(학비의 15% 상한), 손익분기, 정부·지자체 장학금 목록</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/비용-계산기">비용 계산기·비교 (신규)</a></td><td>국가·기간·숙소별 예상 비용과 장학금 환급액을 계산하고, 관심 과정을 최대 3개까지 나란히 비교</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/contact">상담·문의</a></td><td>구글 폼으로 희망 국가·기간·자녀 나이를 남기면 조건에 맞는 3곳을 비교해 회신</td></tr></tbody></table></div>
+    <thead><tr><th>메뉴</th><th>무엇을 볼 수 있나</th></tr></thead><tbody><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/어학원-문의처수집처">어학원 문의처·수집처</a></td><td>어학원·대학부설 어학당 125곳(31개국)의 홈페이지·학비 안내·이메일·전화·문의 폼</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/programs">프로그램 찾기</a></td><td>31개국 124개 과정 · 12주 총비용·무비자 수강·자녀 무상·아르바이트 조건</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/kids">자녀 무상교육·장기체류</a></td><td>자녀 공립 K-12 무상 가능·불가 지역, 조지아 1년 무비자, 국내 영어캠프 9곳</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/kids/해외-학교-정보대학고등학교">해외 학교 정보(대학·고등학교)</a></td><td>9개 지역 385곳의 주소·전화·이메일·홈페이지 (이메일 207곳 확인)</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/working-holiday">워킹홀리데이</a></td><td>29개 협정국 · 연령·쿼터·어학연수 가능 기간·비자비·재정증명</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/cities">도시 생활비·아르바이트</a></td><td>54개 도시 월 생활비·아르바이트 허용 시간·최저임금·충당률</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/scholarship">장학금 환급·비즈니스 모델</a></td><td>마진 8% 상한, 정착 장학금 환급(학비 15% 상한), 손익분기</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/비용-계산기">비용 계산기·비교 (신규)</a></td><td>기간·숙소별 예상 비용과 장학금 환급액 계산, 과정 최대 3개 비교</td></tr><tr><td class="pg"><a href="https://sites.google.com/view/studyabroad-kr/contact">상담·문의</a></td><td>희망 국가·기간·자녀 나이를 남기면 조건에 맞는 3곳을 비교해 회신</td></tr></tbody></table></div>
 
-  <h2 class="sec">바로 계산해 보기 <em>COST &amp; REFUND</em></h2>
-  <div class="cols">
-    <div class="block"><h3>12주 예상 비용</h3><p>학비·숙소·보험·비자·행정비를 같은 기준으로 합산하고, 도시 생활비까지 더해 실질 부담을 계산합니다.</p>
-      <div class="cardacts"><a class="btn sm" href="https://sites.google.com/view/studyabroad-kr/비용-계산기">계산기 열기</a></div></div>
-    <div class="block"><h3>장학금 환급</h3><p>플랫폼 마진 8% 상한 구조에서 학비의 최대 15%를 정착 장학금으로 돌려받는 금액을 미리 확인합니다.</p>
-      <div class="cardacts"><a class="btn sm sec" href="https://sites.google.com/view/studyabroad-kr/scholarship">환급 구조 보기</a></div></div>
-    <div class="block"><h3>학교·도시 비교</h3><p>385곳 해외 학교와 54개 도시 생활비를 조건별로 걸러 아이에게 맞는 선택지를 좁힙니다.</p>
-      <div class="cardacts"><a class="btn sm sec" href="https://sites.google.com/view/studyabroad-kr/kids/해외-학교-정보대학고등학교">해외 학교</a><a class="btn sm ghost" href="https://sites.google.com/view/studyabroad-kr/cities">도시 생활비</a></div></div>
-  </div>
   <p class="note">환율 기준일 2026-11-19 · 12주 기준 금액은 학비+등록·교재+숙소+보험+비자·행정비이며 항공권·용돈은 제외합니다. 계산기에서 기간·숙소·생활비를 바꿔 볼 수 있습니다.</p>
 </div>
 <style>
 .tablewrap{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
 table.map{width:100%;border-collapse:collapse;font-size:12.5px}
-table.map th{background:#0E2A42;color:#D6E6F1;text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:10px 12px}
-table.map td{padding:10px 12px;border-top:1px solid var(--line);vertical-align:top;color:var(--body);line-height:1.6}
+table.map th{background:#0E2A42;color:#D6E6F1;text-align:left;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:7px 10px}
+table.map td{padding:5px 10px;border-top:1px solid var(--line);vertical-align:top;color:var(--body);line-height:1.6}
 table.map td.pg{font-weight:800;color:var(--ink);white-space:nowrap}
 table.map tr:nth-child(even) td{background:#FAFCFD}
 @media(max-width:640px){table.map{font-size:12px}table.map td.pg{white-space:normal}table.map th,table.map td{padding:8px 9px}}
