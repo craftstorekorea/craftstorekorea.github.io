@@ -1,17 +1,17 @@
 {
   "name": "SBPress",
   "kind": "core-manifest",
-  "version": "4.1",
-  "generatedAt": "2026-11-23T05:00:06+09:00",
+  "version": "5.0",
+  "generatedAt": "2026-11-23T06:02:31+09:00",
   "generator": "craftstore_site/sync_template.py --manifest",
   "engine": {
     "html": {
       "index.html": {
-        "sha256": "a16fd5b8bba0d29cf2539e13a84787265ea930deee6864c36b37978e98ad06ad",
+        "sha256": "71b931f76134db93b8afc51de2969c07bcfa50d0741db7cb6f59390eeff95187",
         "strategy": "structural"
       },
       "admin.html": {
-        "sha256": "b65c7c137a7653e736e29246b2d2aa9231028eeb6fbc490af465d43b627924c0",
+        "sha256": "dd2d9e9f709f41997cc27f65ecec4023f6e5cd599760fbbb6b848cc61f9ced8b",
         "strategy": "structural"
       },
       "admin/index.html": {
@@ -29,15 +29,15 @@
     },
     "js": {
       "assets/app.js": {
-        "sha256": "4892ec61b574d901aac1ebd1fcade707f873e9b2b60e34e9e1d44ed978bac875",
+        "sha256": "bdc2503e86642de24e27c767ff6f985e0fe13e4281da7bdd8769cddd47fdf19b",
         "strategy": "copy"
       },
       "assets/admin.js": {
-        "sha256": "060f3e774bdff48f8bcb43ff145a52a929bb44d04baa9f300c12508dbbd2b6d4",
+        "sha256": "ab805a8b1bdc1595f017ef855ac32f1ed357a7060588a74e02135484be7864f9",
         "strategy": "copy"
       },
       "assets/admin-i18n.js": {
-        "sha256": "9f04f7b8d88543fab38110685e3d085472161e61aba4387c2c4abca2f9fc04a1",
+        "sha256": "dac48c2b12face84b303ede463222e62ae0c25ec46d627f771fdd49ee2b6bb74",
         "strategy": "copy"
       },
       "assets/archive.js": {
@@ -49,7 +49,7 @@
         "strategy": "copy"
       },
       "assets/auth.js": {
-        "sha256": "2982e347566be34976aa296b2ec724cc89180c8453d70979fbb6046e72b3d086",
+        "sha256": "6fb0eb0ee7e540805da0951aae12c55a8a895c0995773c824074f29903d441d6",
         "strategy": "copy"
       },
       "assets/body-format.js": {
@@ -73,7 +73,7 @@
         "strategy": "copy"
       },
       "assets/i18n.js": {
-        "sha256": "8a0b9afce27a06f87eacf148e318d7cd1f102d0e1b1bc77f86acb70b11d37745",
+        "sha256": "b9d400a2c3111c0118f04a91f36b7625b13ec345ac1ef5be385b8706437dbc64",
         "strategy": "copy"
       },
       "assets/korea-paths.js": {
@@ -81,7 +81,7 @@
         "strategy": "copy"
       },
       "assets/mypage.js": {
-        "sha256": "2f4b0cb1223ca0b51ef03ad0ef3b490287644923a2208bf2dbb1709ef34ca275",
+        "sha256": "8775da8aa9f6842b1f4b0a8d56fa421524ca74d4cadea901e342023297e72839",
         "strategy": "copy"
       },
       "assets/plugins.js": {
@@ -97,11 +97,19 @@
         "strategy": "copy"
       },
       "assets/tasks.js": {
-        "sha256": "e1dc3c97d37195b9d33e87be80b7ade50aef5d9f03d90588366e1c222e3c11e5",
+        "sha256": "e7c88b93fc83d8faf74215b6c547630c0d634f50e650c14c2c54533a41e30209",
         "strategy": "copy"
       },
       "assets/approvals.js": {
-        "sha256": "64474e1c17263a09995494990c08345a9f16e2e61c7ba95675cc032ab0c5bb2b",
+        "sha256": "3f0cfdce306674766c5d3f7ec45080df7e46e9a17b90a45058b40ec0b3978390",
+        "strategy": "copy"
+      },
+      "assets/drive.js": {
+        "sha256": "0f8e83a079f3f296fb9d5f85353426166bf774a6158a080eebee39c3df66acab",
+        "strategy": "copy"
+      },
+      "assets/notify.js": {
+        "sha256": "734c6e69911cfad8e6dd00258429373eb206f8f332fff6197e62b6449e6da1a9",
         "strategy": "copy"
       },
       "assets/plugins/admin-json-export.js": {
@@ -123,11 +131,11 @@
     },
     "css": {
       "assets/styles.css": {
-        "sha256": "207bae1935d2924a2b35953071918a992442a33d4f39f2be44dd0a380ca8a6fb",
+        "sha256": "b2a45bddfa459f4ff12ee376baff921b2e40d28d8a8bc43e1c1e117976ac78cb",
         "strategy": "copy"
       },
       "assets/admin.css": {
-        "sha256": "fcbcbb167c3136f87721015e862c84d4240a92a92f914ddaf6dc2b3fd4b03bd5",
+        "sha256": "159b90dbbd5d8dbec4118ff0c1c1412489d31f78579e96f825fda945d6ff55c4",
         "strategy": "copy"
       },
       "assets/static-post.css": {
@@ -137,7 +145,7 @@
     },
     "scripts": {
       "scripts/build_static_seo.py": {
-        "sha256": "cf250568dbd09cbc1c42a28e22ce28220e33a77c53609489b7e94e0f3ce4ca9c",
+        "sha256": "c45df4f03b0eebf902afd0adfe9da44430d57da273d23055643cf61c9a8a76cf",
         "strategy": "copy"
       },
       "scripts/build_feeds.py": {

@@ -50,7 +50,8 @@
   function cleanUrl() {
     try {
       var u = new URL(location.href);
-      ["naver_token", "type", "state", "naver_error", "code", "error_description", "error"].forEach(function (k) {
+      ["naver_token", "type", "state", "naver_error", "code", "error_description", "error",
+       "social_token", "social_type", "social_provider", "social_error"].forEach(function (k) {
         u.searchParams.delete(k);
       });
       history.replaceState(null, "", u.pathname + u.search + (location.hash || "#/home"));
@@ -398,18 +399,46 @@
     });
   }
 
+  /* site_contents 의 공개 키 — 없으면 "준비 중(관리자에서 키 입력 필요)" */
+  function siteKey(key) {
+    var C = window.CRAFT_CMS;
+    var map = (C && C.contents) ? C.contents() : {};
+    var row = map[key];
+    return row && row.value ? String(row.value).trim() : "";
+  }
+  function functionsBase() {
+    return (window.SBP_FUNCTIONS_URL || (CFG.url ? String(CFG.url).replace(/\/+$/, "") + "/functions/v1" : ""));
+  }
+  function socialStart(provider) {
+    var base = functionsBase();
+    if (!base) { msg(T("auth.social.notReady"), "warn"); return; }
+    msg(T("auth.social.moving"));
+    location.href = base + "/social-auth?provider=" + encodeURIComponent(provider);
+  }
+
   function oauth(p) {
     if (!sb) return;
-    if (p === "naver") {
-      if (!CFG.naverAuthUrl) return msg("네이버 로그인은 준비 중입니다. 이메일 또는 구글·카카오로 로그인해 주세요.", "warn");
-      msg("네이버로 이동합니다…");
-      location.href = CFG.naverAuthUrl;
-      return;
+    if (p === "naver" || p === "kakao") {
+      var ready = p === "naver"
+        ? (siteKey("social.naver_client_id") || CFG.naverAuthUrl)
+        : siteKey("social.kakao_rest_key");
+      if (!ready) return msg(T("auth.social.notReady"), "warn");
+      if (p === "naver" && CFG.naverAuthUrl && !siteKey("social.naver_client_id")) {
+        msg(T("auth.social.moving"));
+        location.href = CFG.naverAuthUrl;
+        return;
+      }
+      return socialStart(p);
     }
-    msg("이동 중…");
+    msg(T("auth.social.moving"));
     sb.auth.signInWithOAuth({
       provider: p,
-      options: { redirectTo: SITE }
+      /* 드라이브 Picker·자동 업로드를 위해 drive.file 범위만 더 받습니다(앱이 만든/고른 파일만). */
+      options: {
+        redirectTo: SITE,
+        scopes: "https://www.googleapis.com/auth/drive.file",
+        queryParams: { access_type: "offline", prompt: "consent" }
+      }
     }).then(function (r) {
       if (r.error) msg(koErr(r.error), "err");
     });
@@ -661,11 +690,31 @@
       return;
     }
     loadProfile().then(reloadBookmarks);
+    if (session.provider_refresh_token && window.SBP_DRIVE && window.SBP_DRIVE.saveConsent) {
+      window.SBP_DRIVE.saveConsent(session);      /* 구글 드라이브 동의를 서버에 암호화해 보관 */
+    }
     fireSession();
     if (force && modal && !modal.hidden) { msg("로그인되었습니다.", "ok"); setTimeout(closeAuth, 500); }
   }
 
   function handleReturn() {
+    var st = qs("social_token");
+    if (st) {
+      var styp = qs("social_type") || "magiclink";
+      var prov = qs("social_provider") || "";
+      cleanUrl();
+      sb.auth.verifyOtp({ token_hash: st, type: styp }).then(function (r) {
+        if (r.error) { openAuth("signin", T("auth.social.fail") + " " + koErr(r.error)); return; }
+        toast(prov === "naver" ? "네이버 계정으로 로그인되었습니다" : "카카오 계정으로 로그인되었습니다", "ok");
+      });
+      return;
+    }
+    var serr = qs("social_error");
+    if (serr) {
+      cleanUrl();
+      openAuth("signin", T("auth.social.fail") + " (" + serr + ")");
+      return;
+    }
     var t = qs("naver_token");
     if (t) {
       var typ = qs("type") || "magiclink";
@@ -742,6 +791,9 @@
     isSignedIn: function () { return !!session; },
     user: function () { return session ? session.user : null; },
     token: sessionToken,
+    session: function () { return session; },
+    /* 구글 Picker·드라이브 업로드가 쓰는 OAuth access token (브라우저 저장 없이 메모리에서만) */
+    providerToken: function () { return (session && session.provider_token) ? session.provider_token : ""; },
     profile: function () { return profile; },
     reloadProfile: function () { return loadProfile(); },
     memberGrade: gradeOf,

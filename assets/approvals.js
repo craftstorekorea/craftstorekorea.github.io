@@ -574,8 +574,18 @@
       (rows.length ? '<table class="appr-fields"><tbody>' + rows.map(function (r) {
         return "<tr><th>" + esc(r.label) + "</th><td>" + esc(r.value) + "</td></tr>";
       }).join("") + "</tbody></table>" : "") +
-      (attach ? '<p class="appr-attach">' + esc(I("appr.meta.attach")) + ": " +
-        (/^https?:\/\//i.test(attach) ? '<a href="' + esc(attach) + '" target="_blank" rel="noopener">' + esc(attach) + "</a>" : esc(attach)) + "</p>" : "") +
+      (function () {
+        var list = window.SBP_DRIVE && window.SBP_DRIVE.fromFields
+          ? window.SBP_DRIVE.fromFields(doc.fields || {})
+          : (attach ? [{ provider: "link", url: attach, name: attach }] : []);
+        if (!list.length) return "";
+        return '<div class="appr-attach"><span class="appr-attach-label">' + esc(I("appr.meta.attach")) + "</span>" +
+          list.map(function (a) {
+            return window.SBP_DRIVE && window.SBP_DRIVE.chip
+              ? window.SBP_DRIVE.chip(a)
+              : '<a href="' + esc(a.url) + '" target="_blank" rel="noopener">' + esc(a.name || a.url) + "</a>";
+          }).join("") + "</div>";
+      })() +
       '<h3 class="appr-h3">' + esc(I("appr.detail.body")) + "</h3>" +
       '<div class="appr-body">' + (doc.body ? esc(doc.body) : '<span class="muted">' + esc(I("appr.detail.noBody")) + "</span>") + "</div>" +
       '<h3 class="appr-h3">' + esc(I("appr.detail.line")) + "</h3>" +
@@ -886,6 +896,8 @@
     if (cb) cb.addEventListener("change", function () { state.ruleOn = cb.checked; });
   }
 
+  var attachCtl = null;
+
   function openCompose(prefill) {
     var form = $("#appr-compose");
     if (!form) return;
@@ -902,6 +914,10 @@
     $("#appr-doc-title").value = (prefill && prefill.title) || "";
     $("#appr-body").value = (prefill && prefill.body) || "";
     $("#appr-attach").value = "";
+    if (attachCtl && attachCtl.set) attachCtl.set(null);
+    if (!attachCtl && window.SBP_DRIVE && window.SBP_DRIVE.enhance) {
+      attachCtl = window.SBP_DRIVE.enhance($("#appr-attach"), { placeholderKey: "appr.form.attachPh" });
+    }
     $("#appr-approver-1").innerHTML = peopleOptions(null);
     $("#appr-approver-2").innerHTML = peopleOptions(null);
     pickList("agree");
@@ -938,7 +954,11 @@
       if (v !== "") fields[el.getAttribute("data-akey")] = el.value;
     });
     var attach = ($("#appr-attach").value || "").trim();
-    if (attach) fields.attachment = attach;
+    if (attach) {
+      fields.attachment = attach;
+      var meta = window.SBP_DRIVE && window.SBP_DRIVE.parse ? window.SBP_DRIVE.parse(attach) : null;
+      if (meta) fields.attachment_meta = meta;
+    }
     if (state.issueId) fields.issue_id = state.issueId;
     var a1 = $("#appr-approver-1").value;
     var a2 = $("#appr-approver-2").value;
@@ -1206,6 +1226,13 @@
     reload: function () { return refreshAll(); },
     signedIn: signedIn,
     compose: function (prefill) { openCompose(prefill || null); },
+    /* 알림에서 "결재 문서로 이동" — #/approvals?doc=<id> */
+    open: function (id) {
+      if (!id) return;
+      if (!signedIn()) { paintGate(); return; }
+      /* 목록을 아직 안 불러왔으면 한 번 불러온 뒤 엽니다(openDoc 이 스스로 처리합니다). */
+      Promise.resolve(state.docs.length ? null : refreshAll()).then(function () { return openDoc(id, true); });
+    },
     csv: csvText,
     downloadCsv: downloadCsv,
     print: function () { return printDoc(state.doc); },

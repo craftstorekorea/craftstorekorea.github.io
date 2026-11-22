@@ -920,3 +920,10 @@ tr.owner-row td{background:#FFFAF6}
   .appr-doc-meta{grid-template-columns:1fr}
   .appr-forms{grid-template-columns:1fr}
 }
+
+/* ===== v5.0 · 설정 · 연동 ===== */
+.set-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin: 8px 0 4px; }
+.set-grid .cms-field { margin: 0; }
+.panel-tag.is-on { background: #eaf7ee; color: #2c6b3f; }
+.panel-tag.is-off { background: #f6f1ec; color: #7a6a5c; }
+#set-social-cb { word-break: break-all; font-size: 11.5px; }

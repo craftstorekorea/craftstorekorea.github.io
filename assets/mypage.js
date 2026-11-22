@@ -117,6 +117,7 @@
         "</div>" +
         '<p class="mp-note">닉네임은 댓글과 게시판에 표시됩니다. 회원 등급은 운영자가 바꿀 수 있습니다.</p>' +
       "</section>" +
+      '<div id="mp-notify-slot"></div>' +
 
       '<section class="mp-card">' +
         '<div class="mp-card-head"><h3>내 찜 목록</h3><span class="panel-tag" id="mp-bm-n">' + state.bookmarks.length + "곳</span></div>" +
@@ -129,6 +130,12 @@
       "</section>";
 
     app.innerHTML = html;
+    /* v5.0 — 알림 수신 설정 (🔔 알림함과 같은 설정을 씁니다) */
+    var slot = $("#mp-notify-slot");
+    if (slot && window.CRAFT_NOTIFY && window.CRAFT_NOTIFY.prefsHtml) {
+      slot.innerHTML = window.CRAFT_NOTIFY.prefsHtml();
+      window.CRAFT_NOTIFY.mountPrefs(slot);
+    }
     bindProfile();
     renderBookmarks();
     renderComments();

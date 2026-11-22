@@ -161,7 +161,9 @@
     if (/^board\//.test(raw)) return { name: "board", arg: decodeURIComponent(raw.slice(6)), raw: raw };
     if (/^post\//.test(raw)) return { name: "post", arg: decodeURIComponent(raw.slice(5)), raw: raw };
     if (/^search(\?|$)/.test(raw)) return { name: "search", arg: searchQueryOf(raw), raw: "search" };
-    return { name: VIEW_KEYS.indexOf(raw) >= 0 ? raw : "home", arg: "", raw: raw };
+    /* #/tasks?issue=<id> · #/approvals?doc=<id> 처럼 화면 뒤에 붙는 물음표 인자 */
+    var head = String(raw).split("?")[0];
+    return { name: VIEW_KEYS.indexOf(head) >= 0 ? head : "home", arg: "", raw: raw };
   }
   /* #/search?q=검색어 — 주소창에 검색어를 남겨 링크로 공유할 수 있게 합니다. */
   function searchQueryOf(raw) {
@@ -1405,6 +1407,28 @@
       bodyBox.innerHTML = html;
       bodyBox.hidden = !html;
       bodyBox.className = "post-body fmt-" + ((window.CRAFT_BODY ? window.CRAFT_BODY.normalize(pFmt2) : "text"));
+    }
+
+    /* v5.0 — 글 첨부(구글 드라이브): 본문 아래에 칩으로 보여 주고 클릭하면 미리보기 */
+    var attachBox = $("#post-attach");
+    if (!attachBox && bodyBox && bodyBox.parentNode) {
+      attachBox = document.createElement("div");
+      attachBox.id = "post-attach";
+      attachBox.className = "post-attach";
+      bodyBox.parentNode.insertBefore(attachBox, bodyBox.nextSibling);
+    }
+    if (attachBox) {
+      var atts = (window.SBP_DRIVE && window.SBP_DRIVE.fromFields)
+        ? window.SBP_DRIVE.fromFields({ attachments: p.attachments }) : [];
+      attachBox.innerHTML = atts.length
+        ? '<span class="post-attach-label">' + (isEn() ? "Attachments" : "첨부") + "</span>" +
+          atts.map(function (a) {
+            return (window.SBP_DRIVE && window.SBP_DRIVE.chip)
+              ? window.SBP_DRIVE.chip(a)
+              : '<a href="' + esc(a.url) + '" target="_blank" rel="noopener">' + esc(a.name || a.url) + "</a>";
+          }).join("")
+        : "";
+      attachBox.hidden = !atts.length;
     }
 
     if (tags) {

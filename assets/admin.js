@@ -896,6 +896,7 @@
     if (name === "subscribers") loadSubscribers();
     if (name === "inbox") loadInbox();
     if (name === "backup") loadBackupCounts();
+    if (name === "settings") loadSettings();
     if (name === "plugins") loadPlugins();
     try { window.scrollTo({ top: 0, behavior: "auto" }); } catch (e) { /* noop */ }
   }
@@ -1558,6 +1559,14 @@
     $("#pf-kind").value = m.kind || "";
     $("#pf-period").value = m.period || "";
     $("#pf-image_url").value = p ? (p.image_url || "") : "";
+    if (pfAttach) pfAttach.set((p && Array.isArray(p.attachments) && p.attachments[0]) || null);
+    if (p && p.id && !(Array.isArray(p.attachments) && p.attachments.length)) {
+      /* 목록 select 에 attachments 가 없을 수 있어 한 번만 따로 읽습니다(없으면 조용히). */
+      sb.from("posts").select("attachments").eq("id", p.id).then(function (r) {
+        var row = r && !r.error && Array.isArray(r.data) ? r.data[0] : null;
+        if (row && Array.isArray(row.attachments) && row.attachments[0] && pfAttach) pfAttach.set(row.attachments[0]);
+      }).catch(function () { /* noop */ });
+    }
     $("#pf-is_pinned").checked = !!(p && p.is_pinned);
     $("#pf-publish_at").value = p && p.publish_at ? toLocalInput(p.publish_at) : "";
     paintPublishHint();
@@ -1610,6 +1619,8 @@
       : "이미 지난 시각이라 저장 즉시 공개됩니다. : " + v.replace("T", " ");
   }
 
+  var pfAttach = null;
+
   function savePost(e) {
     if (e) e.preventDefault();
     var title = ($("#pf-title").value || "").trim();
@@ -1636,7 +1647,12 @@
       is_pinned: !!($("#pf-is_pinned") && $("#pf-is_pinned").checked),
       publish_at: toIso($("#pf-publish_at").value),
       sort_order: parseInt($("#pf-sort_order").value || "0", 10) || 0,
-      meta: {}
+      meta: {},
+      attachments: (function () {
+        var v = ($("#pf-attach").value || "").trim();
+        var att = (window.SBP_DRIVE && window.SBP_DRIVE.parse) ? window.SBP_DRIVE.parse(v) : null;
+        return att && att.fileId ? [att] : [];
+      })()
     };
     if (cat === "뉴스" || cat === "소개") body.meta.tag = ($("#pf-tag").value || "").trim();
     if (cat === "인터뷰") { body.meta.person = ($("#pf-person").value || "").trim(); body.meta.role = ($("#pf-role").value || "").trim(); }
@@ -1661,8 +1677,18 @@
     var btn = $("#post-save");
     btn.disabled = true;
     $("#pf-msg").textContent = "저장하는 중…";
-    var req = prev ? sb.from("posts").update(body).eq("id", prev.id) : sb.from("posts").insert(body);
-    req.then(function (r) {
+    function doSave(b) {
+      return prev ? sb.from("posts").update(b).eq("id", prev.id) : sb.from("posts").insert(b);
+    }
+    /* 17_v50 을 아직 실행하지 않은 DB — attachments 열이 없다는 오류면 그 열만 빼고 다시 저장합니다. */
+    doSave(body).then(function (r) {
+      if (r && r.error && /attachments/i.test(r.error.message || "")) {
+        var b2 = {};
+        Object.keys(body).forEach(function (k) { if (k !== "attachments") b2[k] = body[k]; });
+        return doSave(b2);
+      }
+      return r;
+    }).then(function (r) {
       btn.disabled = false;
       if (r.error) {
         $("#pf-msg").textContent = "저장 실패: " + r.error.message;
@@ -3312,6 +3338,74 @@
     });
   }
 
+  /* ---------------- v5.0 · 설정 · 연동 ---------------- */
+  var SETTING_GROUPS = {
+    drive: [["drive.picker_api_key", "#set-drive-key", "Google Drive Picker API 키"],
+            ["drive.picker_app_id", "#set-drive-app", "Google Drive Picker 앱 ID"],
+            ["drive.folder_id", "#set-drive-folder", "SBPress 업로드 폴더 ID"]],
+    social: [["social.kakao_rest_key", "#set-kakao-key", "카카오 REST API 키"],
+             ["social.naver_client_id", "#set-naver-id", "네이버 로그인 Client ID"]],
+    notify: [["notify.daily_cap", "#set-notify-cap", "알림 메일 1일 상한"],
+             ["notify.from_email", "#set-notify-from", "알림 보내는 사람 주소"]]
+  };
+  var settingsLoaded = false;
+
+  function setBadge(id, text, ok) {
+    var n = document.getElementById(id);
+    if (!n) return;
+    n.textContent = text;
+    n.classList.toggle("is-on", !!ok);
+    n.classList.toggle("is-off", !ok);
+  }
+
+  function loadSettings() {
+    var keys = [];
+    Object.keys(SETTING_GROUPS).forEach(function (g) {
+      SETTING_GROUPS[g].forEach(function (row) { keys.push(row[0]); });
+    });
+    var cb = document.getElementById("set-social-cb");
+    var u = (window.CRAFT_SUPABASE && window.CRAFT_SUPABASE.url) || "";
+    if (cb) cb.textContent = u ? (u.replace(/\/+$/, "") + "/functions/v1/social-auth?provider=kakao") : "—";
+    var stamp = document.getElementById("set-stamp");
+    if (stamp) stamp.textContent = "불러오는 중…";
+    sb.from("site_contents").select("key,value").in("key", keys).then(function (r) {
+      if (r.error) { cmsMsg("set-msg", "설정을 읽지 못했습니다: " + r.error.message, "err"); return; }
+      var map = {};
+      (r.data || []).forEach(function (row) { map[row.key] = row.value || ""; });
+      Object.keys(SETTING_GROUPS).forEach(function (g) {
+        SETTING_GROUPS[g].forEach(function (row) {
+          var el = document.querySelector(row[1]);
+          if (el) el.value = map[row[0]] == null ? "" : map[row[0]];
+        });
+      });
+      var driveOn = !!(map["drive.picker_api_key"] && map["drive.picker_app_id"]);
+      setBadge("set-drive-state", driveOn ? "켜짐" : "키 없음", driveOn);
+      var kakao = !!map["social.kakao_rest_key"], naver = !!map["social.naver_client_id"];
+      setBadge("set-social-state",
+        kakao && naver ? "카카오 · 네이버 켜짐" : kakao ? "카카오만 켜짐" : naver ? "네이버만 켜짐" : "키 없음",
+        kakao || naver);
+      setBadge("set-notify-state", map["notify.daily_cap"] ? "설정됨" : "기본값", !!map["notify.daily_cap"]);
+      settingsLoaded = true;
+      if (stamp) stamp.textContent = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+    });
+  }
+
+  function saveSettings(group) {
+    var rows = SETTING_GROUPS[group] || [];
+    var payload = rows.map(function (row) {
+      var el = document.querySelector(row[1]);
+      return { key: row[0], value: el ? String(el.value || "").trim() : "", section: "연동 · 알림", label: row[2] };
+    });
+    var btn = document.getElementById("set-" + group + "-save");
+    if (btn) btn.disabled = true;
+    sb.from("site_contents").upsert(payload, { onConflict: "key" }).then(function (r) {
+      if (btn) btn.disabled = false;
+      if (r.error) { cmsMsg("set-msg", "저장하지 못했습니다: " + r.error.message, "err"); return; }
+      cmsMsg("set-msg", "설정을 저장했습니다. 사이트를 새로고침하면 적용됩니다.", "ok");
+      loadSettings();
+    });
+  }
+
   function initCms() {
     [].forEach.call(document.querySelectorAll(".admin-tab"), function (b) {
       b.addEventListener("click", function () { activateTab(b.getAttribute("data-tab")); });
@@ -3320,6 +3414,12 @@
     /* --- 플러그인 · 마켓 --- */
     var auReload = $("#audit-reload");
     if (auReload) auReload.addEventListener("click", function () { CMS.auditLoaded = false; loadAudit(); });
+    ["drive", "social", "notify"].forEach(function (g) {
+      var b = document.getElementById("set-" + g + "-save");
+      if (b) b.addEventListener("click", function () { saveSettings(g); });
+    });
+    var setReload = document.getElementById("set-reload");
+    if (setReload) setReload.addEventListener("click", loadSettings);
     var plReload = $("#plugins-reload");
     if (plReload) plReload.addEventListener("click", function () { loadPlugins(); });
     var plInstall = $("#plug-install");
@@ -3330,6 +3430,9 @@
     if (plSave) plSave.addEventListener("click", saveMarketUrl);
     var plMreload = $("#plug-market-reload");
     if (plMreload) plMreload.addEventListener("click", loadMarket);
+    if (window.SBP_DRIVE && window.SBP_DRIVE.enhance && $("#pf-attach")) {
+      pfAttach = window.SBP_DRIVE.enhance($("#pf-attach"), { placeholderKey: "drive.ph" });
+    }
     var saveBtn = $("#pages-save");
     if (saveBtn) saveBtn.addEventListener("click", savePages);
     var reload = $("#pages-reload");

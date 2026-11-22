@@ -97,6 +97,7 @@ CSP_SITE = "; ".join([
     "object-src 'none'",
     "script-src 'self' 'unsafe-inline'" + ((" https://" + SITE_HOST) if SITE_HOST else "") +
     " https://www.googletagmanager.com https://www.google-analytics.com https://cdn.jsdelivr.net"
+    " https://apis.google.com https://accounts.google.com"
     " http://127.0.0.1:* http://localhost:*",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' data: https://fonts.gstatic.com",
@@ -104,8 +105,11 @@ CSP_SITE = "; ".join([
     "connect-src 'self'" + ((" https://%s wss://%s" % (SITE_HOST, SITE_HOST)) if SITE_HOST else "") +
     " https://www.google-analytics.com https://*.google-analytics.com "
     "https://*.analytics.google.com https://www.googletagmanager.com https://cdn.jsdelivr.net "
-    "https://raw.githubusercontent.com https://docs.google.com http://127.0.0.1:* http://localhost:*",
-    "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
+    "https://raw.githubusercontent.com https://docs.google.com https://www.googleapis.com "
+    "https://oauth2.googleapis.com https://kauth.kakao.com https://kapi.kakao.com "
+    "https://nid.naver.com https://openapi.naver.com http://127.0.0.1:* http://localhost:*",
+    "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com "
+    "https://drive.google.com https://docs.google.com https://accounts.google.com",
     "media-src 'self' https: blob:",
     "form-action 'self'",
 ])

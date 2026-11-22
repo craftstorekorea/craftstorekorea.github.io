@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- CSP: SBPress v2.0 — build_static_seo.py --csp 로 갱신 (사이트마다 Supabase 주소가 다릅니다) -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' https://haaikrynfrrwcpyuvrrr.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://cdn.jsdelivr.net http://127.0.0.1:* http://localhost:*; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https: http:; connect-src 'self' https://haaikrynfrrwcpyuvrrr.supabase.co wss://haaikrynfrrwcpyuvrrr.supabase.co https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://cdn.jsdelivr.net https://raw.githubusercontent.com https://docs.google.com http://127.0.0.1:* http://localhost:*; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; media-src 'self' https: blob:; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' https://haaikrynfrrwcpyuvrrr.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://cdn.jsdelivr.net https://apis.google.com https://accounts.google.com http://127.0.0.1:* http://localhost:*; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https: http:; connect-src 'self' https://haaikrynfrrwcpyuvrrr.supabase.co wss://haaikrynfrrwcpyuvrrr.supabase.co https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://cdn.jsdelivr.net https://raw.githubusercontent.com https://docs.google.com https://www.googleapis.com https://oauth2.googleapis.com https://kauth.kakao.com https://kapi.kakao.com https://nid.naver.com https://openapi.naver.com http://127.0.0.1:* http://localhost:*; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://drive.google.com https://docs.google.com https://accounts.google.com; media-src 'self' https: blob:; form-action 'self'">
 <title>관리자 · 전국공방</title>
 <meta name="robots" content="noindex,nofollow">
 <link rel="canonical" href="/admin">
@@ -96,6 +96,7 @@
       <button class="admin-tab" role="tab" type="button" data-tab="subscribers" aria-selected="false">구독자 · 뉴스레터</button>
       <button class="admin-tab" role="tab" type="button" data-tab="inbox" aria-selected="false">폼 접수함 <span class="tab-n" id="tab-inbox-count"></span></button>
       <button class="admin-tab" role="tab" type="button" data-tab="backup" aria-selected="false">백업 · 복원</button>
+      <button class="admin-tab" role="tab" type="button" data-tab="settings" aria-selected="false">설정 · 연동</button>
       <button class="admin-tab" role="tab" type="button" data-tab="plugins" aria-selected="false">플러그인 · 마켓</button>
     </nav>
 
@@ -947,6 +948,67 @@
       </div>
     </div>
 
+    <!-- ============ 설정 · 연동 (v5.0) ============ -->
+    <div class="tabpanel" id="tab-settings" role="tabpanel" hidden>
+      <div class="dash-head">
+        <div>
+          <h1>설정 · 연동</h1>
+          <p class="dash-sub">구글 드라이브 첨부와 카카오·네이버 로그인, 알림 메일의 키를 넣습니다. 키를 넣으면 사이트가 바로 켜지고, 비우면 안전하게 안내만 합니다.</p>
+        </div>
+        <div class="dash-actions">
+          <span class="dash-stamp" id="set-stamp"></span>
+          <button type="button" class="btn btn-ghost btn-sm" id="set-reload">새로고침</button>
+        </div>
+      </div>
+      <p class="panel-note" id="set-note">Supabase site_contents · 공개 읽기 / 관리자만 수정</p>
+      <p class="cms-hint" id="set-note2">여기에는 브라우저에 공개해도 되는 키만 넣습니다. Secret 은 Edge Function 시크릿에만 둡니다.</p>
+      <p class="cms-toast" id="set-msg" role="status" aria-live="polite"></p>
+
+      <section class="panel panel-wide" id="p-set-drive">
+        <div class="panel-head">
+          <h2>구글 드라이브 첨부</h2>
+          <div class="panel-tools"><span class="panel-tag" id="set-drive-state">확인 중</span>
+            <button type="button" class="btn btn-primary btn-sm" id="set-drive-save">저장</button></div>
+        </div>
+        <p class="panel-note">공유 링크 방식은 키 없이 바로 됩니다. 아래 키를 넣으면 Google Drive에서 선택(Picker)과 자동 업로드가 켜집니다.</p>
+        <div class="set-grid">
+          <label class="cms-field"><span>Picker API 키 <em>GCP API 키</em></span><input id="set-drive-key" type="text" autocomplete="off" placeholder="AIza…"></label>
+          <label class="cms-field"><span>Picker 앱 ID <em>GCP 프로젝트 번호</em></span><input id="set-drive-app" type="text" autocomplete="off" placeholder="891882946268"></label>
+          <label class="cms-field"><span>업로드 폴더 ID <em>비우면 자동 생성</em></span><input id="set-drive-folder" type="text" autocomplete="off" placeholder="1AbC…"></label>
+        </div>
+        <p class="cms-hint" id="set-drive-hint">필요한 시크릿: GOOGLE_CLIENT_ID · GOOGLE_CLIENT_SECRET · TOKEN_SECRET · 함수 drive-upload</p>
+      </section>
+
+      <section class="panel panel-wide" id="p-set-social">
+        <div class="panel-head">
+          <h2>카카오 · 네이버 로그인</h2>
+          <div class="panel-tools"><span class="panel-tag" id="set-social-state">확인 중</span>
+            <button type="button" class="btn btn-primary btn-sm" id="set-social-save">저장</button></div>
+        </div>
+        <p class="panel-note">두 키 중 공개 키만 넣습니다. 로그인 중계는 함수 social-auth 가 하고, Secret 은 그 함수의 시크릿에만 둡니다.</p>
+        <div class="set-grid">
+          <label class="cms-field"><span>카카오 REST API 키</span><input id="set-kakao-key" type="text" autocomplete="off" placeholder="developers.kakao.com"></label>
+          <label class="cms-field"><span>네이버 Client ID</span><input id="set-naver-id" type="text" autocomplete="off" placeholder="developers.naver.com"></label>
+        </div>
+        <p class="cms-hint">Redirect URI: <code id="set-social-cb">…</code></p>
+        <p class="cms-hint" id="set-social-hint">시크릿: KAKAO_REST_KEY · NAVER_CLIENT_ID · NAVER_CLIENT_SECRET · STATE_SECRET</p>
+      </section>
+
+      <section class="panel panel-wide" id="p-set-notify">
+        <div class="panel-head">
+          <h2>알림 메일</h2>
+          <div class="panel-tools"><span class="panel-tag" id="set-notify-state">확인 중</span>
+            <button type="button" class="btn btn-primary btn-sm" id="set-notify-save">저장</button></div>
+        </div>
+        <p class="panel-note">인앱 알림은 SQL 만 실행하면 켜집니다. 메일은 함수 notify 가 하루 상한을 지켜 보냅니다.</p>
+        <div class="set-grid">
+          <label class="cms-field"><span>1일 상한(통/사용자) <em>기본 20</em></span><input id="set-notify-cap" type="number" min="1" max="200" value="20"></label>
+          <label class="cms-field"><span>보내는 사람 주소</span><input id="set-notify-from" type="email" placeholder="no-reply@example.com"></label>
+        </div>
+        <p class="cms-hint" id="set-notify-hint">시크릿: CRON_SECRET · RESEND_API_KEY 또는 NOTIFY_WEBHOOK · NOTIFY_FROM · 크론은 매시 함수 notify 호출</p>
+      </section>
+    </div>
+
     <!-- ============ 플러그인 · 마켓 ============ -->
     <div class="tabpanel" id="tab-plugins" role="tabpanel" hidden>
       <div class="dash-head">
@@ -1085,6 +1147,10 @@
           <label class="cms-field"><span>출처 이름 <em>정보: 기관</em></span><input id="pf-source_name" maxlength="80"></label>
         </div>
         <label class="cms-field"><span>원문·신청 링크</span><input id="pf-source_url" type="url" maxlength="500" placeholder="https://"></label>
+        <div class="cms-field"><span>첨부 (Google Drive) <em>공유 링크를 붙이면 미리보기가 열립니다</em></span>
+          <input id="pf-attach" type="url" maxlength="500" placeholder="https://drive.google.com/file/d/…">
+          <div class="drive-chips" id="pf-attach-chips"></div>
+        </div>
         <div class="cms-grid3">
           <label class="cms-field"><span>발행일</span><input id="pf-published_at" type="date"></label>
           <label class="cms-field"><span>마감일 <em>정보</em></span><input id="pf-deadline" type="date"></label>
@@ -1374,6 +1440,7 @@
 <script src="/assets/hunmin.js"></script>
 <script src="/assets/body-format.js"></script>
 <script src="/assets/editor.js"></script>
+<script src="/assets/drive.js"></script>
 <script src="/assets/admin.js"></script>
 <script src="/assets/admin-i18n.js"></script>
 <script src="/assets/plugins.js"></script>

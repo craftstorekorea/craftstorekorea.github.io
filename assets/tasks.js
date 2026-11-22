@@ -796,6 +796,11 @@
         }
       }
       return rmLoad();
+    }).then(function () {
+      var m = /issue=([^&]+)/.exec(String(location.hash || ""));
+      if (m && RM.issues.some(function (x) { return x.id === decodeURIComponent(m[1]); })) {
+        rmOpenIssue(decodeURIComponent(m[1]));
+      }
     });
   }
 
@@ -1182,6 +1187,12 @@
       "</div>" +
       '<div class="rm-d-desc">' + (it.description ? "<p>" + esc(it.description) + "</p>" : "") +
         "<p class=\"rm-d-meta\">" + esc(rmI("author")) + ": " + esc(rmName(it.author_id)) + " · " + esc(ymd(it.created_at)) + "</p></div>" +
+      '<div class="rm-d-attach" id="rm-d-attach-box">' +
+        '<div class="rm-d-attach-head"><span>' + esc(rmI("attach")) + '</span>' +
+          (canEdit ? '<span class="rm-d-attach-hint">' + esc(rmI("attachHint")) + "</span>" : "") + "</div>" +
+        '<div class="drive-chips" id="rm-d-attach-chips">' + rmAttachChips(it) + "</div>" +
+        (canEdit ? '<input id="rm-d-attach" type="url" class="drive-input" placeholder="' + esc(rmI("attachPh")) + '">' : "") +
+      "</div>" +
       '<div class="rm-d-actions">' +
         (canEdit ? '<button type="button" class="btn btn-primary btn-sm" id="rm-d-save">' + esc(rmI("save")) + "</button>" +
           '<button type="button" class="btn btn-ghost btn-sm danger" id="rm-d-del">' + esc(rmI("delete")) + "</button>" : "") +
@@ -1227,6 +1238,7 @@
         esc(rmI("commentPh")) + '"></textarea><button type="button" class="btn btn-primary btn-sm" id="rm-comment-add">' +
         esc(rmI("addComment")) + "</button></div>" : "");
 
+    rmPaintDetailBind(it);
     var close = function () { $("#rm-modal").hidden = true; RM.detail = null; };
     $("#rm-d-close").addEventListener("click", close);
     $("#rm-d-close2").addEventListener("click", close);
@@ -1290,6 +1302,12 @@
       });
     });
   }
+  function rmPaintDetailBind(it) {
+    rmBindAttach(it, rmCanEditIssue(it));
+    var head = $("#rm-d-attach-chips");
+    if (head) head.innerHTML = rmAttachChips(it);
+  }
+
   function rmDocStatus(st) {
     var map = { draft: "appr.badge.draft", pending: "appr.badge.pending", approved: "appr.badge.approved",
                 rejected: "appr.badge.rejected", canceled: "appr.badge.canceled" };
@@ -1304,6 +1322,32 @@
     return String(m && m.email || "").split("@")[0];
   }
 
+  function rmAttachList(it) {
+    if (window.SBP_DRIVE && window.SBP_DRIVE.fromFields && it) {
+      return window.SBP_DRIVE.fromFields({ attachments: it.attachments });
+    }
+    return [];
+  }
+  function rmAttachChips(it) {
+    var list = rmAttachList(it);
+    if (!list.length) return '<span class="rm-empty sm">' + esc(rmI("noAttach")) + "</span>";
+    if (window.SBP_DRIVE && window.SBP_DRIVE.chip) return list.map(function (a) { return window.SBP_DRIVE.chip(a); }).join("");
+    return list.map(function (a) {
+      return '<a href="' + esc(a.url) + '" target="_blank" rel="noopener">' + esc(a.name || a.url) + "</a>";
+    }).join("");
+  }
+  function rmBindAttach(it, canEdit) {
+    if (!canEdit) return;
+    var inp = $("#rm-d-attach");
+    if (!inp || !window.SBP_DRIVE || !window.SBP_DRIVE.enhance) return;
+    RM.attach = null;
+    window.SBP_DRIVE.enhance(inp, {
+      placeholderKey: "drive.ph",
+      value: (it.attachments && it.attachments[0]) || "",
+      onChange: function (att) { RM.attach = att; }
+    });
+  }
+
   function rmSaveDetail(it) {
     var body = {
       status: $("#rm-d-status").value,
@@ -1315,6 +1359,10 @@
       estimated_hours: $("#rm-d-est").value ? Number($("#rm-d-est").value) : null,
       spent_hours: $("#rm-d-spent").value ? Number($("#rm-d-spent").value) : null
     };
+    /* 드라이브 첨부 — 입력칸에 링크를 붙였거나 Picker 로 골랐으면 저장 */
+    var att = (window.SBP_DRIVE && window.SBP_DRIVE.parse) ? window.SBP_DRIVE.parse($("#rm-d-attach") ? $("#rm-d-attach").value : "") : null;
+    if (RM.attach && RM.attach.fileId) att = RM.attach;
+    if (att && att.fileId) body.attachments = [att];
     if (body.status === "closed") body.closed_at = new Date().toISOString();
     request("issues?id=eq." + encodeURIComponent(it.id), {
       method: "PATCH", prefer: "return=representation", body: body
