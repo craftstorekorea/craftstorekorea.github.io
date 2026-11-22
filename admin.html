@@ -220,6 +220,21 @@
             <tbody></tbody>
           </table>
         </div>
+        <div class="clean-box" id="audit-clean">
+          <h3 class="sub-h">감사 로그 백업 · 정리</h3>
+          <p class="cms-hint">기준일 이전 로그를 먼저 JSON 파일로 내려받아 보관한 뒤에만 정리할 수 있습니다. 서버 함수를 실행한 사이트에서는 정리한 사실이 감사 로그에 한 줄 남습니다.</p>
+          <div class="clean-row">
+            <select id="audit-days" class="admin-select" aria-label="감사 로그 보관 기준">
+              <option value="30">30일 이전</option>
+              <option value="90" selected>90일 이전</option>
+              <option value="180">180일 이전</option>
+            </select>
+            <button type="button" class="btn btn-ghost btn-sm" id="audit-backup">JSON 백업</button>
+            <button type="button" class="btn btn-ghost btn-sm danger" id="audit-purge" disabled>정리</button>
+            <span class="panel-tag" id="audit-clean-state"></span>
+          </div>
+          <p class="cms-toast" id="audit-clean-msg" role="status" aria-live="polite"></p>
+        </div>
       </section>
 
       <section class="panel panel-wide" id="p-stats">
@@ -265,6 +280,42 @@
         </ul>
         <p class="cms-hint" id="budget-git-hint">정적 글 HTML 은 배포마다 다시 구워져 .git 이력이 빨리 늘어납니다. 한 달에 한 번 git gc --aggressive 로 압축하거나, 봇 커밋을 한 달 단위로 squash 하세요.</p>
         <p class="cms-toast" id="budget-msg" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="panel panel-wide" id="p-dbusage">
+        <div class="panel-head">
+          <h2>Supabase 500MB · 1GB 사용량</h2>
+          <div class="panel-tools">
+            <span class="panel-tag" id="dbusage-stamp"></span>
+            <button type="button" class="btn btn-ghost btn-sm" id="dbusage-reload">새로고침</button>
+          </div>
+        </div>
+        <p class="panel-note" id="dbusage-note">무료 한도(DB 500MB · Storage 1GB) 대비 지금 쓴 양과 하루 증가 속도를 봅니다. 서버 함수를 실행하기 전에는 화면에서 추정합니다.</p>
+        <div class="usage-cards">
+          <article class="usage-card" id="usage-db-card">
+            <div class="usage-head"><b>DB 사용량</b><span class="usage-pct" id="usage-db-pct">–</span></div>
+            <div class="usage-bar" role="img" aria-labelledby="usage-db-pct"><i id="usage-db-fill"></i></div>
+            <p class="usage-line"><span id="usage-db-bytes">–</span> <span class="muted">/ 500 MB</span></p>
+            <p class="usage-line muted" id="usage-db-dday">증가 속도 측정 전</p>
+          </article>
+          <article class="usage-card" id="usage-st-card">
+            <div class="usage-head"><b>Storage 사용량</b><span class="usage-pct" id="usage-st-pct">–</span></div>
+            <div class="usage-bar" role="img" aria-labelledby="usage-st-pct"><i id="usage-st-fill"></i></div>
+            <p class="usage-line"><span id="usage-st-bytes">–</span> <span class="muted">/ 1 GB</span></p>
+            <p class="usage-line"><span id="usage-st-files">–</span></p>
+            <p class="usage-line muted" id="usage-st-dday">증가 속도 측정 전</p>
+          </article>
+        </div>
+        <details class="usage-tables" id="usage-tables">
+          <summary>표별 행 수 · 추정 용량</summary>
+          <div class="table-wrap">
+            <table class="admin-table" id="usage-table">
+              <thead><tr><th>표</th><th class="num">행</th><th class="num">용량</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </details>
+        <p class="cms-toast" id="dbusage-msg" role="status" aria-live="polite"></p>
       </section>
 
       <section class="panel panel-wide" id="p-links">
@@ -566,7 +617,27 @@
         <span class="panel-tag" id="img-saved"></span>
       </div>
       <p class="cms-toast" id="media-msg" role="status" aria-live="polite"></p>
+      <section class="cms-group" id="orphan-group">
+        <div class="mgr-head">
+          <div>
+            <h2>고아 이미지(미사용) 정리</h2>
+            <p class="cms-hint">글·페이지·사이트 문구 어디에서도 쓰이지 않는 site-media 버킷 파일만 찾아 보여 줍니다. 지우면 되돌릴 수 없으니 목록을 확인한 뒤 지우세요.</p>
+          </div>
+          <div class="orphan-tools">
+            <button type="button" class="btn btn-ghost btn-sm" id="orphan-scan">고아 이미지 찾기</button>
+          </div>
+        </div>
+        <p class="orphan-sum" id="orphan-sum">아직 찾지 않았습니다. ‘고아 이미지 찾기’를 누르면 글·페이지·사이트 문구의 참조와 대조합니다.</p>
+        <p class="cms-toast" id="orphan-msg" role="status" aria-live="polite"></p>
+        <div class="orphan-bar" id="orphan-bar" hidden>
+          <label class="cms-check-row"><input type="checkbox" id="orphan-all"><span>모두 선택</span></label>
+          <span class="panel-tag" id="orphan-sel"></span>
+          <button type="button" class="btn btn-primary btn-sm" id="orphan-del">선택 삭제</button>
+        </div>
+        <div class="orphan-grid" id="orphan-grid"></div>
+      </section>
       <div class="media-grid" id="media-grid"></div>
+
     </div>
 
     <!-- ============ 댓글 관리 ============ -->
@@ -717,6 +788,21 @@
           </table>
         </div>
         <p class="cms-toast" id="inbox-msg" role="status" aria-live="polite"></p>
+        <div class="clean-box" id="inbox-clean">
+          <h3 class="sub-h">완료 접수 백업 · 정리</h3>
+          <p class="cms-hint">처리 완료된 접수 중 기준일이 지난 것만 JSON 으로 먼저 내려받은 뒤 지웁니다. 새 접수·처리 중인 접수는 지우지 않습니다.</p>
+          <div class="clean-row">
+            <select id="inbox-days" class="admin-select" aria-label="접수 보관 기준">
+              <option value="30">30일 이전</option>
+              <option value="90" selected>90일 이전</option>
+              <option value="180">180일 이전</option>
+            </select>
+            <button type="button" class="btn btn-ghost btn-sm" id="inbox-backup">JSON 백업</button>
+            <button type="button" class="btn btn-ghost btn-sm danger" id="inbox-purge" disabled>정리</button>
+            <span class="panel-tag" id="inbox-clean-state"></span>
+          </div>
+          <p class="cms-toast" id="inbox-clean-msg" role="status" aria-live="polite"></p>
+        </div>
       </section>
     </div>
 

@@ -841,3 +841,37 @@ tr.owner-row td{background:#FFFAF6}
 .budget-grid li{background:var(--card,#FFFDFB);border:1px solid var(--line,#E6DCD1);border-radius:12px;padding:10px 12px;min-width:0}
 .budget-k{display:block;font-size:.76rem;font-weight:700;color:var(--ink-3,#7C6759);margin-bottom:2px}
 .budget-grid b{display:block;font-size:1.06rem;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---- v3.1: Supabase 사용량 게이지 · 고아 이미지 · 로그/접수 정리 ---- */
+.usage-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0 14px}
+.usage-card{border:1px solid var(--line,#E6DCD1);border-radius:14px;padding:14px 16px;background:var(--card,#FFFDFB);min-width:0}
+.usage-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:8px}
+.usage-head b{font-size:.9rem}
+.usage-pct{font-size:1.2rem;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.usage-bar{height:10px;border-radius:999px;background:#EFE7DE;overflow:hidden;margin:0 0 10px}
+.usage-bar>i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#4C6338,#8CA06D);transition:width .4s ease}
+.usage-bar.warn>i{background:linear-gradient(90deg,#B4682E,#E0A06F)}
+.usage-bar.crit>i{background:linear-gradient(90deg,#A83A2A,#D2674F)}
+.usage-line{margin:2px 0;font-size:.84rem;display:flex;gap:6px;flex-wrap:wrap;align-items:baseline;min-width:0;overflow-wrap:anywhere}
+.usage-tables{margin:6px 0 12px}
+.usage-tables>summary{cursor:pointer;font-size:.84rem;font-weight:700;color:var(--accent-d,#8A4A2A);padding:4px 0}
+.usage-tables .table-wrap{margin-top:8px}
+.orphan-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.orphan-sum{margin:4px 0 8px;font-size:.84rem;color:var(--ink-3,#7C6759)}
+.orphan-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:6px 0 12px;padding:8px 10px;border:1px dashed var(--line,#E6DCD1);border-radius:12px}
+.orphan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.orphan-card{margin:0;border:1px solid var(--line,#E6DCD1);border-radius:12px;overflow:hidden;background:var(--card,#FFFDFB);min-width:0}
+.orphan-pick{display:block;position:relative;background:#F1EAE2}
+.orphan-pick input{position:absolute;top:8px;left:8px;width:18px;height:18px;accent-color:var(--accent);z-index:1}
+.orphan-pick img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
+.orphan-card figcaption{display:flex;flex-direction:column;gap:2px;padding:8px 10px 10px;min-width:0}
+.orphan-card b{font-size:.8rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.clean-box{margin-top:16px;padding:12px 14px 6px;border:1px solid var(--line,#E6DCD1);border-radius:14px;background:var(--bg-2,#FAF6F1)}
+.clean-box .sub-h{margin:0 0 4px}
+.clean-box .cms-hint{margin:0 0 10px}
+.clean-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.clean-row .panel-tag{margin:0}
+@media (max-width:820px){
+  .usage-cards{grid-template-columns:1fr}
+  .orphan-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+}

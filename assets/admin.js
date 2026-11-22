@@ -884,7 +884,7 @@
       p.hidden = p.id !== "tab-" + name;
     });
     if (name === "dash" && !CMS.adminsLoaded) loadAdmins();
-    if (name === "dash") { loadAudit(); loadStats(); loadBudget(); }
+    if (name === "dash") { loadAudit(); loadStats(); loadBudget(); loadDbUsage(); }
     if (name === "pages") { if (!CMS.loaded.pages) loadPages(); loadPageManager(); }
     if (name === "brand" && !CMS.loaded.brand) loadBrand();
     if (name === "brand") { loadGrade(); loadTheme(); }
@@ -1029,11 +1029,8 @@
     var r = sb.storage.from("site-media").getPublicUrl(path);
     return (r && r.data && r.data.publicUrl) || "";
   }
-  function loadMedia() {
-    var box = $("#media-grid");
-    if (!box || !sb) return Promise.resolve();
-    box.innerHTML = '<p class="panel-msg">불러오는 중…</p>';
-    cmsMsg("media-msg", "Storage site-media 를 읽는 중…");
+  /* site-media 전체(폴더 포함) 목록 — 미디어 라이브러리와 v3.1 사용량·고아 이미지가 함께 씁니다. */
+  function fetchMediaItems() {
     var items = [];
     function walk(prefix, depth) {
       return sb.storage.from("site-media").list(prefix, { limit: 1000, sortBy: { column: "name", order: "asc" } })
@@ -1064,6 +1061,16 @@
     }
     return walk("", 0).then(function () {
       items.sort(function (a, b) { return String(b.updated).localeCompare(String(a.updated)); });
+      return items;
+    });
+  }
+
+  function loadMedia() {
+    var box = $("#media-grid");
+    if (!box || !sb) return Promise.resolve();
+    box.innerHTML = '<p class="panel-msg">불러오는 중…</p>';
+    cmsMsg("media-msg", "Storage site-media 를 읽는 중…");
+    return fetchMediaItems().then(function (items) {
       CMS.media = items;
       CMS.loaded.media = true;
       fillMediaFolders();
@@ -3682,6 +3689,8 @@
     if (cr) cr.addEventListener("click", function () { CMS.loaded.comments = false; loadComments(); });
     /* v2.2 — 이미지 압축 설정 · KO/EN 탭 · 통계 · 구독자 · 뉴스레터 */
     wireV22();
+    /* v3.1 — Supabase 사용량 게이지 · 고아 이미지 · 로그/접수 백업 후 정리 */
+    wireV31();
     document.addEventListener("keydown", function (e) {
       if (e.key !== "Escape") return;
       if (!$("#rev-drawer").hidden) closeHistory();
@@ -4357,6 +4366,513 @@
         if (msg) msg.textContent = "마켓 주소를 저장했습니다: " + v;
         loadMarket();
       });
+  }
+
+  /* ==========================================================================
+     v3.1 — Supabase 500MB · 1GB 수명 관리
+     --------------------------------------------------------------------------
+     · 사용량 게이지: 서버 함수 get_db_usage_stats() 가 있으면 정확한 값과 남은 날,
+       없으면 화면에서 표 행 수(HEAD count)·표본 JSON 크기·storage.list() 로 추정합니다.
+     · 고아 이미지: site-media 전체 목록과 글·페이지·사이트 문구의 참조를 대조해
+       어디에서도 쓰이지 않는 파일만 골라 냅니다(삭제 전 한 번 더 확인).
+     · 로그·접수 정리: 기준일 이전 자료를 JSON 으로 먼저 내려받아야 정리 버튼이 열립니다.
+     ========================================================================== */
+  var DB_LIMIT = 524288000;    /* 500MB */
+  var ST_LIMIT = 1073741824;   /* 1GB */
+  var USAGE_TABLES = ["site_contents", "posts", "pages", "boards", "comments", "profiles",
+    "bookmarks", "tasks", "revisions", "form_submissions", "newsletter_subscribers",
+    "plugins", "admin_users", "audit_logs", "rate_limits", "captcha_challenges"];
+  var USAGE = { loaded: false, inflight: null, source: "", data: null, tables: [] };
+  var ORPHAN = { rows: [], scanned: false, at: "", busy: false };
+  var CLEAN = { audit: { days: 90, at: "", count: 0 }, inbox: { days: 90, at: "", count: 0 } };
+
+  function byteLen(s) {
+    var text = String(s == null ? "" : s);
+    try { return new TextEncoder().encode(text).length; } catch (e) { return text.length; }
+  }
+  function usagePct(used, limit) {
+    var p = limit ? (Number(used || 0) / limit) * 100 : 0;
+    if (p > 0 && p < 0.01) return "<0.01%";
+    return (p >= 10 ? p.toFixed(1) : p.toFixed(2)) + "%";
+  }
+  function ddayText(days) {
+    if (days == null || isNaN(days)) return "증가 속도 측정 전";
+    if (Number(days) <= 0) return "한도에 닿았습니다";
+    return "이 속도면 약 " + num(days) + "일 뒤 한도";
+  }
+  function paintUsageBar(key, used, limit) {
+    var pct = limit ? Math.min(100, (Number(used || 0) / limit) * 100) : 0;
+    var fill = $("#" + key + "-fill");
+    if (fill) fill.style.width = (pct > 0 ? Math.max(1.5, pct) : 0) + "%";
+    var bar = fill && fill.parentNode;
+    if (bar && bar.classList) bar.className = "usage-bar" + (pct >= 90 ? " crit" : pct >= 70 ? " warn" : "");
+    var lab = $("#" + key + "-pct");
+    if (lab) lab.textContent = usagePct(used, limit);
+  }
+  function paintUsageTables(rows) {
+    var body = $("#usage-table tbody");
+    if (!body) return;
+    rows = (rows || []).slice().sort(function (a, b) { return (b.bytes || 0) - (a.bytes || 0); });
+    body.innerHTML = rows.length ? rows.map(function (t) {
+      return "<tr><td><code>" + esc(t.name) + "</code></td>" +
+        '<td class="num">' + esc(num(t.rows)) + "</td>" +
+        '<td class="num">' + esc(t.bytes == null ? "–" : fmtBytes(t.bytes)) + (t.estimated ? " ~" : "") + "</td></tr>";
+    }).join("") : '<tr class="empty-row"><td colspan="3">표를 읽지 못했습니다.</td></tr>';
+  }
+
+  function loadDbUsage(force) {
+    if (!sb || !$("#p-dbusage")) return Promise.resolve();
+    if (USAGE.inflight && !force) return USAGE.inflight;
+    if (USAGE.loaded && !force) { renderDbUsage(); return Promise.resolve(); }
+    cmsMsg("dbusage-msg", "사용량을 읽는 중…");
+    function fromRpc() {
+      return sb.rpc("get_db_usage_stats").then(function (res) {
+        if (!res.error && res.data) return { source: "rpc", data: res.data };
+        return fromEstimate((res.error && res.error.message) || "");
+      }, function (err) {
+        return fromEstimate((err && err.message) || "");
+      });
+    }
+    function fromEstimate(errText) {
+      return estimateUsage().then(function (est) { est.rpcError = errText; return est; });
+    }
+    USAGE.inflight = fromRpc().then(function (out) {
+      USAGE.inflight = null;
+      USAGE.source = out.source;
+      USAGE.data = out.data;
+      USAGE.tables = out.tables || (out.data && out.data.db && out.data.db.tables) || [];
+      USAGE.loaded = true;
+      renderDbUsage();
+      var note = $("#dbusage-note");
+      if (note) {
+        note.textContent = out.source === "rpc"
+          ? "서버 함수 get_db_usage_stats() 가 센 정확한 값입니다. 하루 한 번 스냅샷을 남겨 최근 4주 증가 속도와 남은 날을 계산합니다."
+          : "서버 함수를 찾지 못해 화면에서 추정했습니다. 표 행 수와 표본 행의 JSON 크기, storage.list() 로 계산하므로 실제와 조금 다를 수 있습니다. supabase/14_v31_storage_lifecycle.sql 을 실행하면 정확한 값과 남은 날이 켜집니다.";
+      }
+      cmsMsg("dbusage-msg", "");
+    }).catch(function (e) {
+      USAGE.inflight = null;
+      cmsMsg("dbusage-msg", "사용량을 읽지 못했습니다: " + ((e && e.message) || "알 수 없는 오류"), "err");
+    });
+    return USAGE.inflight;
+  }
+
+  function renderDbUsage() {
+    var d = USAGE.data || {};
+    var db = d.db || {}, st = d.storage || {};
+    var dbBytes = Number(db.bytes || 0), stBytes = Number(st.bytes || 0);
+    var g = d.growth || {};
+    paintUsageBar("usage-db", dbBytes, DB_LIMIT);
+    paintUsageBar("usage-st", stBytes, ST_LIMIT);
+    var el;
+    if ((el = $("#usage-db-bytes"))) el.textContent = fmtBytes(dbBytes);
+    if ((el = $("#usage-st-bytes"))) el.textContent = fmtBytes(stBytes);
+    if ((el = $("#usage-st-files"))) el.textContent = st.files == null ? "파일 수 확인 전" : ("파일 " + num(st.files) + "개");
+    if ((el = $("#usage-db-dday"))) el.textContent = ddayText(g.dbDaysLeft);
+    if ((el = $("#usage-st-dday"))) el.textContent = ddayText(g.storageDaysLeft);
+    if ((el = $("#dbusage-stamp"))) {
+      var time = new Date().toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit" });
+      el.textContent = (USAGE.source === "rpc" ? "정확" : "추정") + " · " + time;
+    }
+    paintUsageTables(USAGE.tables);
+  }
+
+  /* 서버 함수가 없을 때: 표 행 수(HEAD) + 표본 JSON 크기 + storage.list() 로 추정합니다. */
+  function estimateUsage() {
+    var tables = [];
+    var chain = Promise.resolve();
+    USAGE_TABLES.forEach(function (name) {
+      chain = chain.then(function () {
+        return sb.from(name).select("*", { count: "exact", head: true }).then(function (r) {
+          if (r && r.error) return null;
+          var rows = (r && r.count != null) ? r.count : null;
+          if (rows === 0) { tables.push({ name: name, rows: 0, bytes: 0, estimated: true }); return null; }
+          return sb.from(name).select("*").limit(12).then(function (s) {
+            var sample = (s && s.data) || [];
+            if (!sample.length) { tables.push({ name: name, rows: rows, bytes: 0, estimated: true }); return; }
+            var per = byteLen(JSON.stringify(sample)) / sample.length;
+            /* 행 본문 + 인덱스·페이지 여유를 1.35배로 봅니다(추정). */
+            tables.push({ name: name, rows: rows, bytes: Math.round(per * (rows == null ? sample.length : rows) * 1.35), estimated: true });
+          });
+        });
+      });
+    });
+    return chain.then(function () {
+      var dbBytes = 0;
+      tables.forEach(function (t) { dbBytes += Number(t.bytes || 0); });
+      var out = {
+        source: "estimate", tables: tables,
+        data: { limits: { dbBytes: DB_LIMIT, storageBytes: ST_LIMIT },
+          db: { bytes: dbBytes, percent: (dbBytes / DB_LIMIT) * 100, tables: tables },
+          storage: null, growth: {} }
+      };
+      return fetchMediaItems().then(function (items) {
+        var bytes = 0;
+        items.forEach(function (m) { bytes += Number(m.size || 0); });
+        out.data.storage = { bucket: "site-media", files: items.length, bytes: bytes, percent: (bytes / ST_LIMIT) * 100 };
+        return out;
+      }, function () { return out; });
+    });
+  }
+
+  /* ---------------- 고아 이미지(미사용) 탐지 ---------------- */
+  function collectStrings(v, out) {
+    if (v == null) return;
+    if (typeof v === "string") { if (v) out.push(v); return; }
+    if (Object.prototype.toString.call(v) === "[object Array]") {
+      v.forEach(function (x) { collectStrings(x, out); });
+      return;
+    }
+    if (typeof v === "object") {
+      Object.keys(v).forEach(function (k) { collectStrings(v[k], out); });
+    }
+  }
+  function pageRows(table, keyCol, pageSize, maxPages) {
+    var out = [], page = 0, capped = false;
+    function step(from) {
+      if (page >= maxPages) { capped = true; return Promise.resolve(out); }
+      page++;
+      return sb.from(table).select("*").order(keyCol, { ascending: true }).range(from, from + pageSize - 1)
+        .then(function (r) {
+          if (r.error) throw r.error;
+          var rows = r.data || [];
+          rows.forEach(function (x) { out.push(x); });
+          if (rows.length < pageSize) return out;
+          return step(from + pageSize);
+        });
+    }
+    return step(0).then(function () { return { rows: out, capped: capped }; });
+  }
+  function collectReferenceText() {
+    var parts = [], warnings = [], jobs = [];
+    /* 참조를 빠뜨리면 쓰는 이미지를 고아로 잘못 지울 수 있어, 읽지 못한 표는 경고로 남깁니다. */
+    [
+      ["posts", "id", true], ["pages", "slug", true], ["site_contents", "key", true],
+      ["boards", "id", false], ["comments", "id", false], ["tasks", "id", false],
+      ["revisions", "id", false]
+    ].forEach(function (job) {
+      jobs.push(pageRows(job[0], job[1], 500, 40).then(function (res) {
+        res.rows.forEach(function (row) { collectStrings(row, parts); });
+        if (res.capped) warnings.push(job[0] + " (상한)");
+      }, function (e) {
+        if (job[2]) throw new Error(job[0] + ": " + ((e && e.message) || "읽지 못했습니다"));
+        warnings.push(job[0] + ": " + ((e && e.message) || "읽지 못했습니다"));
+      }));
+    });
+    return Promise.all(jobs).then(function () { return { text: parts.join("\n"), warnings: warnings }; });
+  }
+  function refForms(s) {
+    var out = [], v = String(s == null ? "" : s);
+    if (!v) return out;
+    out.push(v);
+    try { out.push(encodeURI(v)); } catch (e) { /* noop */ }
+    try { out.push(encodeURIComponent(v)); } catch (e) { /* noop */ }
+    try { var d = decodeURIComponent(v); if (d !== v) out.push(d); } catch (e) { /* noop */ }
+    return out;
+  }
+  function isReferenced(m, text) {
+    var keys = [];
+    [m.path, m.url, m.name].forEach(function (v) { keys = keys.concat(refForms(v)); });
+    for (var i = 0; i < keys.length; i++) {
+      if (keys[i] && text.indexOf(keys[i]) >= 0) return true;
+    }
+    return false;
+  }
+  function scanOrphanMedia() {
+    if (!sb || ORPHAN.busy) return;
+    ORPHAN.busy = true;
+    var btn = $("#orphan-scan");
+    if (btn) btn.disabled = true;
+    cmsMsg("orphan-msg", "파일 목록과 참조를 모으는 중…");
+    var items = [];
+    fetchMediaItems().then(function (list) {
+      items = list;
+      CMS.media = list; CMS.loaded.media = true;
+      fillMediaFolders(); renderMedia();
+      return collectReferenceText();
+    }).then(function (ref) {
+      var rows = items.filter(function (m) { return !isReferenced(m, ref.text); }).map(function (m) {
+        return { path: m.path, name: m.name, size: Number(m.size || 0), folder: m.folder, updated: m.updated, url: m.url };
+      });
+      ORPHAN.rows = rows;
+      ORPHAN.scanned = true;
+      ORPHAN.at = new Date().toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit" });
+      renderOrphans();
+      cmsMsg("orphan-msg", ref.warnings.length
+        ? ("일부 표를 읽지 못했습니다(참조를 놓칠 수 있음): " + ref.warnings.join(", "))
+        : "", ref.warnings.length ? "err" : "");
+    }).catch(function (e) {
+      cmsMsg("orphan-msg", "고아 이미지를 찾지 못했습니다: " + ((e && e.message) || "알 수 없는 오류"), "err");
+    }).then(function () {
+      ORPHAN.busy = false;
+      if (btn) btn.disabled = false;
+    });
+  }
+  function orphanTotal() {
+    var n = 0;
+    ORPHAN.rows.forEach(function (m) { n += Number(m.size || 0); });
+    return n;
+  }
+  function renderOrphans() {
+    var box = $("#orphan-grid");
+    if (!box) return;
+    var sum = $("#orphan-sum");
+    if (sum) {
+      sum.textContent = !ORPHAN.scanned
+        ? "아직 찾지 않았습니다. ‘고아 이미지 찾기’를 누르면 글·페이지·사이트 문구의 참조와 대조합니다."
+        : (ORPHAN.rows.length
+          ? ("고아 이미지 " + ORPHAN.rows.length + "개 · 회수 가능 " + fmtBytes(orphanTotal()) + " · " + ORPHAN.at)
+          : "고아 이미지가 없습니다. 모든 파일이 글·페이지·사이트 문구에서 쓰이고 있습니다.");
+    }
+    var bar = $("#orphan-bar");
+    if (bar) bar.hidden = !(ORPHAN.scanned && ORPHAN.rows.length);
+    var all = $("#orphan-all");
+    if (all) all.checked = false;
+    if (!ORPHAN.rows.length) {
+      box.innerHTML = ORPHAN.scanned ? '<p class="panel-msg">' + esc(sum && sum.textContent ? sum.textContent : "") + "</p>" : "";
+      paintOrphanPicked();
+      return;
+    }
+    box.innerHTML = ORPHAN.rows.map(function (m) {
+      return '<figure class="orphan-card">' +
+        '<label class="orphan-pick"><input type="checkbox" data-path="' + esc(m.path) + '" aria-label="' + esc(m.name) + '">' +
+        '<img src="' + esc(m.url) + '" alt="" loading="lazy"></label>' +
+        "<figcaption><b title=\"" + esc(m.path) + "\">" + esc(m.name) + "</b>" +
+        '<span class="media-meta">' + esc(m.folder) + " · " + esc(fmtBytes(m.size)) + "</span></figcaption></figure>";
+    }).join("");
+    paintOrphanPicked();
+  }
+  function orphanPicked() {
+    return [].filter.call(document.querySelectorAll("#orphan-grid input[data-path]"), function (b) { return b.checked; })
+      .map(function (b) { return b.getAttribute("data-path"); });
+  }
+  function paintOrphanPicked() {
+    var picked = orphanPicked(), bytes = 0;
+    ORPHAN.rows.forEach(function (m) { if (picked.indexOf(m.path) >= 0) bytes += Number(m.size || 0); });
+    var el = $("#orphan-sel");
+    if (el) el.textContent = picked.length ? ("선택 " + picked.length + "개 · " + fmtBytes(bytes)) : "선택 없음";
+    var all = $("#orphan-all");
+    if (all) {
+      var boxes = document.querySelectorAll("#orphan-grid input[data-path]");
+      all.checked = boxes.length > 0 && picked.length === boxes.length;
+    }
+    var del = $("#orphan-del");
+    if (del) del.disabled = !picked.length;
+  }
+  function deleteOrphans() {
+    var picked = orphanPicked();
+    if (!picked.length) return;
+    var bytes = 0;
+    ORPHAN.rows.forEach(function (m) { if (picked.indexOf(m.path) >= 0) bytes += Number(m.size || 0); });
+    if (!window.confirm("고아 이미지 " + picked.length + "개(" + fmtBytes(bytes) + ")를 삭제할까요?\n글·페이지에서 쓰지 않는 파일만 골랐지만, 되돌릴 수 없습니다.")) return;
+    var btn = $("#orphan-del");
+    if (btn) btn.disabled = true;
+    cmsMsg("orphan-msg", "삭제하는 중…");
+    var done = 0;
+    function chunk(list) {
+      if (!list.length) return Promise.resolve();
+      var part = list.slice(0, 100);
+      return sb.storage.from("site-media").remove(part).then(function (r) {
+        if (r.error) throw new Error(r.error.message || "삭제 실패");
+        done += part.length;
+        return chunk(list.slice(100));
+      });
+    }
+    chunk(picked).then(function () {
+      ORPHAN.rows = ORPHAN.rows.filter(function (m) { return picked.indexOf(m.path) < 0; });
+      CMS.media = CMS.media.filter(function (m) { return picked.indexOf(m.path) < 0; });
+      fillMediaFolders(); renderMedia(); renderOrphans();
+      cmsMsg("orphan-msg", "고아 이미지 " + done + "개(" + fmtBytes(bytes) + ")를 삭제했습니다.", "ok");
+      loadDbUsage(true);
+    }).catch(function (e) {
+      cmsMsg("orphan-msg", "삭제하지 못했습니다: " + ((e && e.message) || "알 수 없는 오류"), "err");
+      paintOrphanPicked();
+    });
+    if (btn) btn.disabled = false;
+  }
+
+  /* ---------------- 오래된 감사 로그 · 완료 접수: JSON 백업 후 정리 ---------------- */
+  function isoCutoff(days) { return new Date(Date.now() - days * 86400000).toISOString(); }
+  function selectDays(id, def) {
+    var el = $("#" + id);
+    var n = parseInt(el && el.value, 10);
+    return (n && n > 0) ? n : def;
+  }
+  function missingFn(err) {
+    if (!err) return false;
+    var code = String(err.code || ""), msg = String(err.message || "");
+    return code === "42883" || code === "PGRST202" || /could not find the function|does not exist|schema cache/i.test(msg);
+  }
+  function paintClean(kind) {
+    var st = CLEAN[kind];
+    var days = kind === "audit" ? selectDays("audit-days", 90) : selectDays("inbox-days", 90);
+    var tag = $("#" + kind + "-clean-state");
+    var btn = $("#" + kind + "-purge");
+    var ready = !!st.at && st.days === days && st.count > 0;
+    if (tag) {
+      tag.textContent = !st.at ? "백업 필요"
+        : (st.days !== days ? "기준을 바꿈 — 다시 백업"
+          : (st.count > 0 ? "백업 " + st.count + "건 · 정리 가능" : "지울 자료 없음"));
+    }
+    if (btn) btn.disabled = !ready;
+  }
+  function backupAudit() {
+    var days = selectDays("audit-days", 90), cut = isoCutoff(days);
+    var rows = [], page = 0, pageSize = 1000;
+    cmsMsg("audit-clean-msg", "내려받을 로그를 모으는 중…");
+    function step(from) {
+      if (page >= 20) return Promise.resolve(rows);
+      page++;
+      return sb.from("audit_logs").select("created_at,actor_email,action,target_table,target_id,detail")
+        .lt("created_at", cut).order("created_at", { ascending: false }).range(from, from + pageSize - 1)
+        .then(function (r) {
+          if (r.error) throw r.error;
+          var got = r.data || [];
+          got.forEach(function (x) { rows.push(x); });
+          if (got.length < pageSize) return rows;
+          return step(from + pageSize);
+        });
+    }
+    step(0).then(function () {
+      var payload = { format: "sbpress-audit-backup", version: "3.1", exportedAt: new Date().toISOString(),
+        days: days, cutoff: cut, count: rows.length, rows: rows };
+      downloadBlob("SBPress_감사로그_" + days + "일_" + todayKST() + ".json", JSON.stringify(payload, null, 2));
+      CLEAN.audit = { days: days, at: new Date().toISOString(), count: rows.length };
+      paintClean("audit");
+      cmsMsg("audit-clean-msg", rows.length
+        ? ("감사 로그 " + rows.length + "건을 JSON 으로 내려받았습니다. 이제 ‘정리’를 누를 수 있습니다.")
+        : "기준일 이전 감사 로그가 없습니다.", "ok");
+    }).catch(function (e) {
+      cmsMsg("audit-clean-msg", "백업하지 못했습니다: " + ((e && e.message) || "알 수 없는 오류"), "err");
+    });
+  }
+  function purgeAudit() {
+    var days = selectDays("audit-days", 90);
+    if (!CLEAN.audit.at || CLEAN.audit.days !== days) {
+      cmsMsg("audit-clean-msg", "먼저 JSON 백업을 내려받아 주세요.", "err");
+      return;
+    }
+    if (!window.confirm("기준(" + days + "일) 이전 감사 로그를 지울까요?\n먼저 내려받은 JSON 파일이 유일한 사본입니다. 되돌릴 수 없습니다.")) return;
+    var cut = isoCutoff(days);
+    cmsMsg("audit-clean-msg", "정리하는 중…");
+    function finish(n, viaRpc) {
+      CLEAN.audit = { days: days, at: "", count: 0 };
+      CMS.auditLoaded = false;
+      loadAudit();
+      paintClean("audit");
+      cmsMsg("audit-clean-msg", viaRpc
+        ? ("감사 로그 " + n + "건을 정리했습니다. 정리 기록을 감사 로그에 남겼습니다.")
+        : ("감사 로그 " + n + "건을 일반 삭제로 정리했습니다. 서버 함수가 없어 감사 로그에는 기록을 남기지 못했습니다."), "ok");
+      loadDbUsage(true);
+    }
+    sb.rpc("purge_old_audit_logs", { p_days: days }).then(function (res) {
+      if (!res.error) { finish((res.data && res.data.purged) || 0, true); return; }
+      if (!missingFn(res.error)) throw res.error;
+      return sb.from("audit_logs").delete().lt("created_at", cut).then(function (r) {
+        if (r.error) {
+          cmsMsg("audit-clean-msg", "서버 함수가 없어 감사 로그를 지우지 못했습니다(권한). supabase/14_v31_storage_lifecycle.sql 을 실행해 주세요.", "err");
+          paintClean("audit");
+          return;
+        }
+        finish((r.data || []).length, false);
+      });
+    }).catch(function (e) {
+      cmsMsg("audit-clean-msg", "정리하지 못했습니다: " + ((e && e.message) || "알 수 없는 오류"), "err");
+      paintClean("audit");
+    });
+  }
+  function inboxDone(r) {
+    return r.is_handled === true || String(r.status || "") === "done" || String((r.payload || {}).__status || "") === "done";
+  }
+  function backupInbox() {
+    var days = selectDays("inbox-days", 90), cut = isoCutoff(days);
+    cmsMsg("inbox-clean-msg", "내려받을 접수를 모으는 중…");
+    sb.from("form_submissions").select("*").lt("created_at", cut)
+      .order("created_at", { ascending: true }).limit(5000).then(function (r) {
+        if (r.error) throw r.error;
+        var rows = (r.data || []).filter(inboxDone);
+        var payload = { format: "sbpress-submissions-backup", version: "3.1", exportedAt: new Date().toISOString(),
+          days: days, cutoff: cut, count: rows.length, rows: rows };
+        downloadBlob("SBPress_완료접수_" + days + "일_" + todayKST() + ".json", JSON.stringify(payload, null, 2));
+        CLEAN.inbox = { days: days, at: new Date().toISOString(), count: rows.length };
+        paintClean("inbox");
+        cmsMsg("inbox-clean-msg", rows.length
+          ? ("완료 접수 " + rows.length + "건을 JSON 으로 내려받았습니다. 이제 ‘정리’를 누를 수 있습니다.")
+          : "기준일 이전에 처리 완료된 접수가 없습니다.", "ok");
+      }).catch(function (e) {
+        cmsMsg("inbox-clean-msg", "백업하지 못했습니다: " + ((e && e.message) || "알 수 없는 오류"), "err");
+      });
+  }
+  function purgeInbox() {
+    var days = selectDays("inbox-days", 90);
+    if (!CLEAN.inbox.at || CLEAN.inbox.days !== days) {
+      cmsMsg("inbox-clean-msg", "먼저 JSON 백업을 내려받아 주세요.", "err");
+      return;
+    }
+    if (!window.confirm("기준(" + days + "일) 이전의 완료 접수를 지울까요?\n새 접수·처리 중인 접수는 그대로 두고, 먼저 내려받은 JSON 파일이 유일한 사본입니다.")) return;
+    var cut = isoCutoff(days);
+    cmsMsg("inbox-clean-msg", "정리하는 중…");
+    function finish(n, viaRpc) {
+      CLEAN.inbox = { days: days, at: "", count: 0 };
+      loadInbox(true);
+      paintClean("inbox");
+      cmsMsg("inbox-clean-msg", viaRpc
+        ? ("완료 접수 " + n + "건을 정리했습니다. 정리 기록을 감사 로그에 남겼습니다.")
+        : ("완료 접수 " + n + "건을 일반 삭제로 정리했습니다. 서버 함수가 없어 감사 로그에는 기록을 남기지 못했습니다."), "ok");
+      loadDbUsage(true);
+    }
+    sb.rpc("purge_handled_submissions", { p_days: days }).then(function (res) {
+      if (!res.error) { finish((res.data && res.data.purged) || 0, true); return; }
+      if (!missingFn(res.error)) throw res.error;
+      return sb.from("form_submissions").select("*").lt("created_at", cut).limit(5000).then(function (r) {
+        if (r.error) throw r.error;
+        var ids = (r.data || []).filter(inboxDone).map(function (x) { return x.id; });
+        var removed = 0;
+        function chunk(list) {
+          if (!list.length) { finish(removed, false); return Promise.resolve(); }
+          var part = list.slice(0, 50);
+          return sb.from("form_submissions").delete().in("id", part).then(function (d) {
+            if (d.error) throw d.error;
+            removed += part.length;
+            return chunk(list.slice(50));
+          });
+        }
+        return chunk(ids);
+      });
+    }).catch(function (e) {
+      cmsMsg("inbox-clean-msg", "정리하지 못했습니다: " + ((e && e.message) || "알 수 없는 오류"), "err");
+      paintClean("inbox");
+    });
+  }
+
+  function wireV31() {
+    var r = $("#dbusage-reload");
+    if (r) r.addEventListener("click", function () { loadDbUsage(true); });
+    var scan = $("#orphan-scan");
+    if (scan) scan.addEventListener("click", scanOrphanMedia);
+    var grid = $("#orphan-grid");
+    if (grid) grid.addEventListener("change", paintOrphanPicked);
+    var all = $("#orphan-all");
+    if (all) all.addEventListener("change", function () {
+      [].forEach.call(document.querySelectorAll("#orphan-grid input[data-path]"), function (b) { b.checked = all.checked; });
+      paintOrphanPicked();
+    });
+    var del = $("#orphan-del");
+    if (del) del.addEventListener("click", deleteOrphans);
+    [["#audit-days", "audit"], ["#inbox-days", "inbox"]].forEach(function (pair) {
+      var sel = $(pair[0]);
+      if (sel) sel.addEventListener("change", function () { paintClean(pair[1]); });
+    });
+    var ab = $("#audit-backup");
+    if (ab) ab.addEventListener("click", backupAudit);
+    var ap = $("#audit-purge");
+    if (ap) ap.addEventListener("click", purgeAudit);
+    var ib = $("#inbox-backup");
+    if (ib) ib.addEventListener("click", backupInbox);
+    var ip = $("#inbox-purge");
+    if (ip) ip.addEventListener("click", purgeInbox);
+    paintClean("audit");
+    paintClean("inbox");
   }
 
   /* ---------------- 시작 ---------------- */

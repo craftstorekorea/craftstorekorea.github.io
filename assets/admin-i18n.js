@@ -621,7 +621,58 @@
   "인기글": "Popular posts",
   "조회수가 많은 글을 위에서부터 모읍니다.": "Lists the posts with the most views first.",
   "전체 게시판": "All boards",
-  "최신 소식": "Latest news"
+  "최신 소식": "Latest news",
+  "Supabase 500MB · 1GB 사용량": "Supabase 500 MB · 1 GB usage",
+  "무료 한도(DB 500MB · Storage 1GB) 대비 지금 쓴 양과 하루 증가 속도를 봅니다. 서버 함수를 실행하기 전에는 화면에서 추정합니다.": "Shows how much of the free limits (500 MB database · 1 GB storage) is used and how fast it grows per day. Before the server function is installed, the screen estimates the figures.",
+  "DB 사용량": "Database usage",
+  "Storage 사용량": "Storage usage",
+  "증가 속도 측정 전": "Growth not measured yet",
+  "표별 행 수 · 추정 용량": "Rows and size by table",
+  "표": "Table",
+  "용량": "Size",
+  "사용량을 읽는 중…": "Reading usage…",
+  "서버 함수 get_db_usage_stats() 가 센 정확한 값입니다. 하루 한 번 스냅샷을 남겨 최근 4주 증가 속도와 남은 날을 계산합니다.": "Exact figures from the get_db_usage_stats() server function. A daily snapshot gives the four-week growth rate and the days of headroom.",
+  "서버 함수를 찾지 못해 화면에서 추정했습니다. 표 행 수와 표본 행의 JSON 크기, storage.list() 로 계산하므로 실제와 조금 다를 수 있습니다. supabase/14_v31_storage_lifecycle.sql 을 실행하면 정확한 값과 남은 날이 켜집니다.": "The server function was not found, so the screen estimated these figures from row counts, sample JSON size and storage.list(). Run supabase/14_v31_storage_lifecycle.sql for exact figures and days of headroom.",
+  "사용량을 읽지 못했습니다: ": "Could not read usage: ",
+  "정확": "exact",
+  "추정": "estimate",
+  "파일 수 확인 전": "File count pending",
+  "표를 읽지 못했습니다.": "Could not read the tables.",
+  "한도에 닿았습니다": "Limit reached",
+  "고아 이미지(미사용) 정리": "Unused (orphan) images",
+  "글·페이지·사이트 문구 어디에서도 쓰이지 않는 site-media 버킷 파일만 찾아 보여 줍니다. 지우면 되돌릴 수 없으니 목록을 확인한 뒤 지우세요.": "Finds only files in the site-media bucket that no post, page or site text uses. Deleting cannot be undone, so check the list first.",
+  "고아 이미지 찾기": "Find unused images",
+  "아직 찾지 않았습니다. ‘고아 이미지 찾기’를 누르면 글·페이지·사이트 문구의 참조와 대조합니다.": "Not scanned yet. Press “Find unused images” to compare against references in posts, pages and site text.",
+  "모두 선택": "Select all",
+  "선택 삭제": "Delete selected",
+  "선택 없음": "Nothing selected",
+  "파일 목록과 참조를 모으는 중…": "Collecting files and references…",
+  "고아 이미지가 없습니다. 모든 파일이 글·페이지·사이트 문구에서 쓰이고 있습니다.": "No unused images. Every file is referenced by a post, page or site text.",
+  "감사 로그 백업 · 정리": "Audit log backup · cleanup",
+  "기준일 이전 로그를 먼저 JSON 파일로 내려받아 보관한 뒤에만 정리할 수 있습니다. 서버 함수를 실행한 사이트에서는 정리한 사실이 감사 로그에 한 줄 남습니다.": "Download the logs older than the cut-off as a JSON file first; cleanup unlocks only after that. Where the server function is installed, the cleanup itself is recorded in the audit log.",
+  "감사 로그 보관 기준": "Audit log retention",
+  "30일 이전": "Older than 30 days",
+  "90일 이전": "Older than 90 days",
+  "180일 이전": "Older than 180 days",
+  "JSON 백업": "Back up JSON",
+  "정리": "Clean up",
+  "완료 접수 백업 · 정리": "Handled submissions backup · cleanup",
+  "처리 완료된 접수 중 기준일이 지난 것만 JSON 으로 먼저 내려받은 뒤 지웁니다. 새 접수·처리 중인 접수는 지우지 않습니다.": "Only handled submissions older than the cut-off are downloaded as JSON and then deleted. New and in-progress submissions are kept.",
+  "접수 보관 기준": "Submission retention",
+  "백업 필요": "Backup needed",
+  "기준을 바꿈 — 다시 백업": "Cut-off changed — back up again",
+  "지울 자료 없음": "Nothing to delete",
+  "내려받을 로그를 모으는 중…": "Collecting logs to download…",
+  "내려받을 접수를 모으는 중…": "Collecting submissions to download…",
+  "기준일 이전 감사 로그가 없습니다.": "No audit logs older than the cut-off.",
+  "기준일 이전에 처리 완료된 접수가 없습니다.": "No handled submissions older than the cut-off.",
+  "먼저 JSON 백업을 내려받아 주세요.": "Download the JSON backup first.",
+  "정리하는 중…": "Cleaning up…",
+  "서버 함수가 없어 감사 로그를 지우지 못했습니다(권한). supabase/14_v31_storage_lifecycle.sql 을 실행해 주세요.": "The server function is missing and the audit log cannot be deleted (permission). Run supabase/14_v31_storage_lifecycle.sql.",
+  "추가": "Added",
+  "게시글": "Post",
+  "URL 복사": "Copy URL",
+  "복사됨": "Copied"
 };
   var RULES = ([
   [
@@ -947,6 +998,78 @@
   [
     "^페이지를 만들었습니다: (.+?) · 사이트 (#\\/page\\/.+?) 에 반영됩니다\\.$",
     "Page created: \\1 · live at \\2"
+  ],
+  [
+    "^파일 (\\d+)개$",
+    "\\1 files"
+  ],
+  [
+    "^최근 (\\d+)건$",
+    "Last \\1"
+  ],
+  [
+    "^이 속도면 약 (.+)일 뒤 한도$",
+    "About \\1 days of headroom at this rate"
+  ],
+  [
+    "^선택 (\\d+)개 · (.+)$",
+    "\\1 selected · \\2"
+  ],
+  [
+    "^백업 (\\d+)건 · 정리 가능$",
+    "\\1 backed up · ready"
+  ],
+  [
+    "^고아 이미지 (\\d+)개 · 회수 가능 (.+?) · (.+)$",
+    "\\1 unused images · \\2 recoverable · \\3"
+  ],
+  [
+    "^고아 이미지 (\\d+)개\\((.+?)\\)를 삭제할까요\\?[\\s\\S]*$",
+    "Delete \\1 unused images (\\2)? The files cannot be restored."
+  ],
+  [
+    "^고아 이미지 (\\d+)개\\((.+?)\\)를 삭제했습니다\\.$",
+    "Deleted \\1 unused images (\\2)."
+  ],
+  [
+    "^고아 이미지를 찾지 못했습니다: (.+)$",
+    "Could not scan for unused images: \\1"
+  ],
+  [
+    "^일부 표를 읽지 못했습니다\\(참조를 놓칠 수 있음\\): (.+)$",
+    "Some tables could not be read, so references may be missing: \\1"
+  ],
+  [
+    "^감사 로그 (\\d+)건을 JSON 으로 내려받았습니다\\. 이제 ‘정리’를 누를 수 있습니다\\.$",
+    "Downloaded \\1 audit logs as JSON. You can press “Clean up” now."
+  ],
+  [
+    "^감사 로그 (\\d+)건을 정리했습니다\\. 정리 기록을 감사 로그에 남겼습니다\\.$",
+    "Removed \\1 audit logs. The cleanup was recorded in the audit log."
+  ],
+  [
+    "^감사 로그 (\\d+)건을 일반 삭제로 정리했습니다\\. 서버 함수가 없어 감사 로그에는 기록을 남기지 못했습니다\\.$",
+    "Removed \\1 audit logs with a direct delete. Without the server function the cleanup could not be recorded."
+  ],
+  [
+    "^완료 접수 (\\d+)건을 JSON 으로 내려받았습니다\\. 이제 ‘정리’를 누를 수 있습니다\\.$",
+    "Downloaded \\1 handled submissions as JSON. You can press “Clean up” now."
+  ],
+  [
+    "^완료 접수 (\\d+)건을 정리했습니다\\. 정리 기록을 감사 로그에 남겼습니다\\.$",
+    "Removed \\1 handled submissions. The cleanup was recorded in the audit log."
+  ],
+  [
+    "^완료 접수 (\\d+)건을 일반 삭제로 정리했습니다\\. 서버 함수가 없어 감사 로그에는 기록을 남기지 못했습니다\\.$",
+    "Removed \\1 handled submissions with a direct delete. Without the server function the cleanup could not be recorded."
+  ],
+  [
+    "^백업하지 못했습니다: (.+)$",
+    "Could not back up: \\1"
+  ],
+  [
+    "^정리하지 못했습니다: (.+)$",
+    "Could not clean up: \\1"
   ]
 ]).map(function (r) {
     /* 파이썬 쪽 규칙은 \1 로 그룹을 가리킵니다 — JS replace 는 $1 을 씁니다. */
