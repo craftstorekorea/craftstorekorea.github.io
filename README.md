@@ -59,11 +59,13 @@ CSP(`CSP_SITE`)를 그 Supabase 주소로 계산합니다. 주소를 바꾸면 `
 
 ```
 index.html                한 페이지, 탭 여러 개(해시 라우팅) + KO|EN 전환
+sbpress.config.json       사이트 설정(v2.0) — 이름·주소·Supabase·GA4·기능 스위치 (assets/config.js 가 읽음)
 admin.html                관리자 페이지 → 주소는 /admin (.html 없이)
 privacy.html              개인정보처리방침 → /privacy
 terms.html                이용약관 → /terms
 admin/ · privacy/ · terms/  끝에 / 를 붙여 들어온 주소를 /admin · /privacy · /terms 로 넘기는 스텁
 assets/styles.css         디자인 토큰과 전체 레이아웃
+assets/config.js          sbpress.config.json 을 먼저 읽어 window.SBPRESS_CONFIG 로 노출 (브랜드·GA4 주입)
 assets/app.js             렌더링·검색·필터·지도
 assets/data.js            이번 주 소식·공방·정보 데이터 (여기만 고치면 됩니다)
 assets/archive.js         뉴스레터 아카이브 2024–2026 (8개 호, 151건) 데이터
