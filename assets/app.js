@@ -52,6 +52,38 @@
   var I18N = window.CRAFT_I18N || null;
   function T(key, vars) { return I18N ? I18N.t(key, vars) : key; }
   function isEn() { return !!(I18N && I18N.isEn && I18N.isEn()); }
+
+  /* ---------------- 영문(KO/EN) 본문 고르기 ----------------
+     CMS 가 붙여 준 it.en(영문) 이 있고 지금이 EN 모드면 그 값을, 아니면 한국어를 씁니다.
+     영문을 비워 둔 글·페이지는 한국어가 그대로 나옵니다. */
+  function enOf(it) { return (it && it.en && isEn()) ? it.en : null; }
+  function enText(it, field, fallback) {
+    var e = enOf(it);
+    return (e && e[field]) ? e[field] : fallback;
+  }
+  function locTitle(it) { return enText(it, "title", it && it.title) || ""; }
+  function locSummary(it, fallback) { return enText(it, "summary", fallback) || ""; }
+  function locBody(it, fallback) { return enText(it, "body", fallback) || ""; }
+  function locFormat(it, fallback) { return enText(it, "format", fallback) || fallback || "text"; }
+  /* 조회수 — 값은 CMS(viewCount)가 서버 값 + 이 브라우저에서 센 값을 합쳐 줍니다. */
+  function viewsOf(it) {
+    var C = window.CRAFT_CMS;
+    var key = (it && it.slug) ? it.slug : it;
+    var n = (C && C.viewCount) ? C.viewCount(key) : (it && it.views) || 0;
+    return Number(n) || 0;
+  }
+  function viewTag(it) {
+    var slug = (it && it.slug) || "";
+    return '<span class="views" title="' + esc(T("post.views.title")) + '">👁 <b data-views="' +
+      esc(slug) + '">' + viewsOf(it) + "</b></span>";
+  }
+  function enFallbackBadge(it) {
+    if (!isEn()) return "";
+    var e = it && it.en;
+    if (e && e.title) return "";
+    return '<span class="en-fallback" title="' + esc(T("post.en.fallback.title")) + '">' +
+      esc(T("post.en.fallback")) + "</span>";
+  }
   function signedIn() {
     return !!(window.CRAFT_AUTH && window.CRAFT_AUTH.isSignedIn && window.CRAFT_AUTH.isSignedIn());
   }
@@ -447,15 +479,15 @@
     row.__sbpPost = it;
     row.innerHTML =
       '<div class="news-num"><span class="post-no">No. ' + no + "</span></div>" +
-      '<div class="news-body"><h3>' + pinBadge(it) + '<a href="' + esc(it.url) + '" target="_blank" rel="noopener">' + esc(it.title) + "</a></h3>" +
-      "<p>" + esc(it.desc) + "</p>" +
+      '<div class="news-body"><h3>' + pinBadge(it) + '<a href="' + esc(it.url) + '" target="_blank" rel="noopener">' + esc(locTitle(it)) + "</a></h3>" +
+      "<p>" + esc(locSummary(it, it.desc)) + "</p>" +
       '<div class="news-tags">' + (it.tag ? '<span class="chip">' + esc(it.tag) + "</span>" : "") +
       (it.region ? '<span class="chip region">' + esc(it.region) + "</span>" : "") + "</div></div>" +
       '<div class="news-side"><span class="src">' + esc(it.source) + "</span><span>" + shortDate(it.date) + "</span>" +
-      '<span data-cmt></span>' +
-      (hasBody(it) ? '<a class="read" href="#/post/' + encodeURIComponent(it.slug) + '">글 보기</a>' : "") +
-      '<a class="ext" href="' + esc(it.url) + '" target="_blank" rel="noopener">원문 <svg width="12" height="12" aria-hidden="true"><use href="#i-ext"/></svg></a></div>';
-    cmt(row, it.slug, it.title, it.image);
+      viewTag(it) + '<span data-cmt></span>' +
+      (hasBody(it) ? '<a class="read" href="#/post/' + encodeURIComponent(it.slug) + '">' + esc(T("post.read")) + "</a>" : "") +
+      '<a class="ext" href="' + esc(it.url) + '" target="_blank" rel="noopener">' + esc(T("post.source")) + ' <svg width="12" height="12" aria-hidden="true"><use href="#i-ext"/></svg></a></div>';
+    cmt(row, it.slug, locTitle(it), it.image);
     return row;
   }
 
@@ -510,14 +542,15 @@
       card.innerHTML =
         '<div class="iv-top"><span class="post-no">No. ' + no + '</span>' + pinBadge(it) + '</div>' +
         '<span class="qmark" aria-hidden="true">“</span>' +
-        "<blockquote>" + esc(it.quote) + "</blockquote>" +
-        "<p>" + esc(it.desc) + "</p>" +
+        "<blockquote>" + esc(locSummary(it, it.quote)) + "</blockquote>" +
+        "<p>" + esc(locBody(it, it.desc)) + "</p>" +
         '<div class="iv-who"><span class="iv-avatar">' + esc(who) + "</span>" +
         "<span><b>" + esc(it.person) + "</b><span>" + esc(it.role) + " · " + esc(it.source) + " " + shortDate(it.date) + "</span></span>" +
-        '<a href="' + esc(it.url) + '" target="_blank" rel="noopener">인터뷰 읽기 <svg width="12" height="12" aria-hidden="true"><use href="#i-ext"/></svg></a></div>' +
-        (hasBody(it) ? '<p class="iv-read"><a href="#/post/' + encodeURIComponent(it.slug) + '">본문 보기 →</a></p>' : "") +
+        '<a href="' + esc(it.url) + '" target="_blank" rel="noopener">' + esc(T("post.interview")) + ' <svg width="12" height="12" aria-hidden="true"><use href="#i-ext"/></svg></a></div>' +
+        '<p class="iv-views">' + viewTag(it) + "</p>" +
+        (hasBody(it) ? '<p class="iv-read"><a href="#/post/' + encodeURIComponent(it.slug) + '">' + esc(T("post.read.body")) + "</a></p>" : "") +
         '<div class="cmt-slot" data-cmt></div>';
-      cmt(card, it.slug, it.title, it.image);
+      cmt(card, it.slug, locTitle(it), it.image);
       ivg.appendChild(card);
     });
     renderPager($("#iv-pager"), st, function (n) {
@@ -778,11 +811,11 @@
       row.innerHTML =
         '<div class="info-date"><span class="post-no">No. ' + no + "</span><b" + (it.due ? "" : ' class="loose"') + ">" + (it.due ? md(it.due) : "상시") + "</b>" +
         '<span class="dday ' + st.cls + '">' + st.label + "</span></div>" +
-        '<div class="info-body"><h3>' + pinBadge(it) + esc(it.title) + "</h3>" +
-        '<div class="meta"><span class="kind">' + esc(it.kind) + "</span><span>" + esc(it.org) + "</span><span>" + esc(it.period) + "</span><span data-cmt></span></div>" +
-        "<p>" + esc(it.desc) + "</p></div>" +
-        '<a class="info-go" href="' + esc(it.url) + '" target="_blank" rel="noopener">자세히 <svg width="13" height="13" aria-hidden="true"><use href="#i-ext"/></svg></a>';
-      cmt(row, it.slug, it.title, it.image);
+        '<div class="info-body"><h3>' + pinBadge(it) + esc(locTitle(it)) + "</h3>" +
+        '<div class="meta"><span class="kind">' + esc(it.kind) + "</span><span>" + esc(it.org) + "</span><span>" + esc(it.period) + "</span>" + viewTag(it) + '<span data-cmt></span></div>' +
+        "<p>" + esc(locSummary(it, it.desc)) + "</p></div>" +
+        '<a class="info-go" href="' + esc(it.url) + '" target="_blank" rel="noopener">' + esc(T("post.detail")) + ' <svg width="13" height="13" aria-hidden="true"><use href="#i-ext"/></svg></a>';
+      cmt(row, it.slug, locTitle(it), it.image);
       list.appendChild(row);
     });
     renderPager($("#info-pager"), page, function (n) {
@@ -1248,29 +1281,34 @@
       return;
     }
     if (empty) empty.hidden = true;
-    $("#page-eyebrow").textContent = BRAND + " · 페이지";
-    $("#page-title").textContent = page.title || "";
+    $("#page-eyebrow").textContent = BRAND + " · " + T("page.eyebrow");
+    /* EN 모드이고 영문 제목·본문이 있으면 그것을 먼저 보여 줍니다(없으면 한국어). */
+    var pen = (C && C.pageEn) ? C.pageEn(slug) : {};
+    var pTitle = (isEn() && pen.title) ? pen.title : (page.title || "");
+    var pSub = (isEn() && pen.subtitle) ? pen.subtitle : (page.subtitle || "");
+    var pBodyText = (isEn() && pen.body) ? pen.body : (page.body || "");
+    var pFmt = (isEn() && pen.body && pen.format) ? pen.format : (page.body_format || "text");
+    $("#page-title").textContent = pTitle;
     var sub = $("#page-sub");
-    sub.textContent = page.subtitle || "";
-    sub.hidden = !page.subtitle;
+    sub.textContent = pSub;
+    sub.hidden = !pSub;
     var gal = $("#page-gallery");
     gal.innerHTML = "";
     (page.images || []).forEach(function (im) {
       if (!im || !im.url) return;
       var fig = document.createElement("figure");
-      fig.innerHTML = '<img src="' + esc(im.url) + '" alt="' + esc(im.caption || page.title || "") +
+      fig.innerHTML = '<img src="' + esc(im.url) + '" alt="' + esc(im.caption || pTitle || "") +
         '" loading="lazy"><figcaption>' + esc(im.caption || "") + "</figcaption>";
       gal.appendChild(fig);
     });
     var body = $("#page-body");
     if (body) {
-      var pfr = (page.body_format || "text");
-      if (window.CRAFT_BODY && String(page.body || "").trim()) {
-        body.innerHTML = window.CRAFT_BODY.render(page.body, pfr);
+      if (window.CRAFT_BODY && String(pBodyText || "").trim()) {
+        body.innerHTML = window.CRAFT_BODY.render(pBodyText, pFmt);
       } else {
-        body.textContent = page.body || "";
+        body.textContent = pBodyText || "";
       }
-      body.hidden = !String(page.body || "").trim();
+      body.hidden = !String(pBodyText || "").trim();
     }
 
     /* hunmin 블록 — 순서대로 제목·부제 아래에 조립합니다. */
@@ -1327,7 +1365,9 @@
       if (bk === p.category) { boardName = list[i].name; board = list[i]; }
     }
     $("#post-eyebrow").textContent = "게시판" + (boardName ? " · " + boardName : "");
-    $("#post-title").textContent = p.title || "";
+    var pen2 = (C && C.enPost) ? C.enPost(p) : {};
+    var title = (isEn() && pen2.title) ? pen2.title : (p.title || "");
+    $("#post-title").textContent = title;
 
     if (meta) {
       var bits = [];
@@ -1335,27 +1375,34 @@
       if (p.author_name) bits.push(esc(p.author_name));
       if (p.region) bits.push(esc(p.region));
       if (p.published_at) bits.push(esc(String(p.published_at).slice(0, 10)));
-      if (p.is_pinned) bits.push("📌 고정");
-      meta.innerHTML = bits.length ? bits.join('<i aria-hidden="true">·</i>') : "";
+      if (p.is_pinned) bits.push(isEn() ? "📌 Pinned" : "📌 고정");
+      bits.push(viewTag(p));
+      if (isEn() && !pen2.title) bits.push(enFallbackBadge(p));
+      meta.innerHTML = bits.join('<i aria-hidden="true">·</i>');
+      /* 조회수는 한 세션에 한 번만 셉니다(중복 방지) — 서버 값이 오면 위 숫자가 바로 바뀝니다. */
+      if (C && C.countView) C.countView(p);
     }
 
     if (hero) {
-      if (p.image_url) { hero.src = p.image_url; hero.alt = p.title || ""; hero.hidden = false; }
+      if (p.image_url) { hero.src = p.image_url; hero.alt = title; hero.hidden = false; }
       else { hero.hidden = true; hero.removeAttribute("src"); }
     }
 
     if (bodyBox) {
       var html = "";
-      if (String(p.body || "").trim()) {
+      var pBody = (isEn() && pen2.body) ? pen2.body : p.body;
+      var pFmt2 = (isEn() && pen2.body && pen2.format) ? pen2.format : p.body_format;
+      var pSum = (isEn() && pen2.summary) ? pen2.summary : p.summary;
+      if (String(pBody || "").trim()) {
         html = (window.CRAFT_BODY)
-          ? window.CRAFT_BODY.render(p.body, p.body_format)
-          : esc(p.body).replace(/\n/g, "<br>");
-      } else if (String(p.summary || "").trim()) {
-        html = "<p>" + esc(p.summary) + "</p>";
+          ? window.CRAFT_BODY.render(pBody, pFmt2)
+          : esc(pBody).replace(/\n/g, "<br>");
+      } else if (String(pSum || "").trim()) {
+        html = "<p>" + esc(pSum) + "</p>";
       }
       bodyBox.innerHTML = html;
       bodyBox.hidden = !html;
-      bodyBox.className = "post-body fmt-" + ((window.CRAFT_BODY ? window.CRAFT_BODY.normalize(p.body_format) : "text"));
+      bodyBox.className = "post-body fmt-" + ((window.CRAFT_BODY ? window.CRAFT_BODY.normalize(pFmt2) : "text"));
     }
 
     if (tags) {
@@ -1384,7 +1431,7 @@
 
     if (slot) {
       slot.innerHTML = "";
-      cmt(slot, p.slug || String(p.id), p.title, p.image_url || "");
+      cmt(slot, p.slug || String(p.id), title, p.image_url || "");
     }
   }
 
@@ -1411,18 +1458,22 @@
     }
     ((C && C.publicPosts) ? C.publicPosts() : []).forEach(function (p) {
       var m = p.meta || {};
+      var en = (C && C.enPost) ? C.enPost(p) : {};
       var tags = [m.tag, m.person, m.role, m.kind, m.period].filter(Boolean);
       out.push({
         kind: "post", key: p.slug || String(p.id), href: "#/post/" + encodeURIComponent(p.slug || String(p.id)),
         title: String(p.title || ""), summary: stripTags(p.summary || ""), body: stripTags(p.body || ""),
+        titleEn: String(en.title || ""), summaryEn: stripTags(en.summary || ""), bodyEn: stripTags(en.body || ""),
         tags: tags, category: p.category || "", board: boardName(p.category),
         date: String(p.published_at || p.created_at || "").slice(0, 10)
       });
     });
     ((C && C.publicPages) ? C.publicPages() : []).forEach(function (g) {
+      var en = (C && C.pageEn) ? C.pageEn(g.slug) : {};
       out.push({
         kind: "page", key: g.slug, href: "#/page/" + encodeURIComponent(g.slug || ""),
         title: String(g.title || ""), summary: stripTags(g.subtitle || ""), body: stripTags(g.body || ""),
+        titleEn: String(en.title || ""), summaryEn: stripTags(en.subtitle || ""), bodyEn: stripTags(en.body || ""),
         tags: [], category: "", board: "", date: String(g.updated_at || g.created_at || "").slice(0, 10)
       });
     });
@@ -1431,9 +1482,16 @@
   }
 
   /* 검색어(공백으로 나눈 낱말)가 모두 들어 있어야 결과에 넣고, 제목·태그에 맞을수록 위로 올립니다. */
+  /* 검색 결과·점수에 영문 본문도 함께 넣습니다(한국어·영어 어느 낱말로도 찾게). */
+  function docTitle(d) { return (isEn() && d.titleEn) ? d.titleEn : (d.title || ""); }
+  function docSummary(d) { return (isEn() && d.summaryEn) ? d.summaryEn : (d.summary || ""); }
+  function docBody(d) { return (isEn() && d.bodyEn) ? d.bodyEn : (d.body || ""); }
+
   function scoreDoc(doc, terms) {
-    var title = doc.title.toLowerCase(), sum = doc.summary.toLowerCase();
-    var body = doc.body.toLowerCase(), tags = doc.tags.join(" ").toLowerCase(), cat = (doc.board + " " + doc.category).toLowerCase();
+    var title = (doc.title + " | " + (doc.titleEn || "")).toLowerCase();
+    var sum = (doc.summary + " | " + (doc.summaryEn || "")).toLowerCase();
+    var body = (doc.body + " | " + (doc.bodyEn || "")).toLowerCase();
+    var tags = doc.tags.join(" ").toLowerCase(), cat = (doc.board + " " + doc.category).toLowerCase();
     var score = 0;
     for (var i = 0; i < terms.length; i++) {
       var t = terms[i], hit = 0;
@@ -1459,7 +1517,7 @@
   }
 
   function snippetOf(doc, terms) {
-    var src = doc.summary || doc.body || "";
+    var src = docSummary(doc) || docBody(doc) || "";
     var low = src.toLowerCase(), at = -1;
     for (var i = 0; i < terms.length; i++) {
       var k = low.indexOf(terms[i]);
@@ -1527,7 +1585,7 @@
       return '<a class="search-hit" href="' + esc(d.href) + '" data-kind="' + d.kind + '">' +
         '<span class="search-hit-kind">' + esc(kind) + "</span>" +
         '<span class="search-hit-main">' +
-          "<strong>" + highlight(d.title || "(제목 없음)", terms) + "</strong>" +
+          "<strong>" + highlight(docTitle(d) || "(제목 없음)", terms) + "</strong>" +
           '<span class="search-hit-meta">' + bits.map(esc).join('<i aria-hidden="true">·</i>') + "</span>" +
           (snip ? '<span class="search-hit-snip">' + highlight(snip, terms) + "</span>" : "") +
         "</span>" +

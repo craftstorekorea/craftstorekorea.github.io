@@ -541,7 +541,76 @@
   "‘덮어쓰는 것에 동의합니다’에 체크해 주세요.": "Tick “I agree to overwrite” first.",
   "검사 통과 — 확인에 체크하면 복원할 수 있습니다.": "Check passed — tick Confirm to enable restore.",
   "파일을 읽지 못했습니다.": "Could not read the file.",
-  "백업 파일": "Backup file"
+  "백업 파일": "Backup file",
+  "구독자 · 뉴스레터": "Subscribers · newsletter",
+  "뉴스레터 구독 신청을 한곳에서 보고, 발행한 글을 골라 메일로 보낼 HTML 뉴스레터를 만듭니다.": "See every newsletter signup in one place and build an email-ready HTML newsletter from published posts.",
+  "구독자 목록": "Subscribers",
+  "구독 폼으로 들어온 신청을 이메일 하나로 모읍니다. 해지로 바꿔도 명부에서 지우지 않고 표시만 바꿉니다.": "Signups from the form are grouped by email. Unsubscribing keeps the record and only changes the status.",
+  "이메일·이름 검색": "Search email or name",
+  "구독자 검색": "Search subscribers",
+  "구독 중": "Subscribed",
+  "해지": "Unsubscribed",
+  "경로": "Source",
+  "신청일": "Signed up",
+  "이번 달 신규": "New this month",
+  "뉴스레터 만들기": "Compose newsletter",
+  "발행한 글을 고르면 메일 앱에서 잘 보이는": "Pick published posts that render well in mail apps to build",
+  "뉴스레터로 조립합니다. 발송은 쓰시는 메일 서비스에 이 HTML 을 붙여 넣어 하세요(이 화면은 HTML 만 만듭니다).": " a newsletter. Send it from your own mail service — this screen only builds the HTML.",
+  "인라인 스타일 HTML": "inline-styled HTML",
+  "메일 제목 *": "Email subject *",
+  "이번 주 공방 소식": "This week at the workshops",
+  "머리 인사": "Opening line",
+  "이번 주 공방 소식을 모았습니다.": "Here is this week's workshop news.",
+  "맺음말": "Closing line",
+  "구독을 해지하려면 이 메일에 답장해 주세요.": "To unsubscribe, reply to this email.",
+  "담을 글": "Posts to include",
+  "전체 선택": "Select all",
+  "선택 해제": "Clear",
+  "최근 5개": "Latest 5",
+  "HTML 복사": "Copy HTML",
+  "HTML 내려받기": "Download HTML",
+  "Supabase newsletter_subscribers · 관리자만 읽고 고칩니다.": "Supabase newsletter_subscribers · admins only.",
+  "Supabase newsletter_subscribers · 관리자만 읽고 고칩니다. 해지로 바꿔도 명부에서 지우지 않습니다.": "Supabase newsletter_subscribers · admins only. Unsubscribing keeps the record.",
+  "newsletter_subscribers 표가 아직 없어 form_submissions 의 구독 신청을 읽기 전용으로 보여 줍니다. supabase/13_v22_newsletter_stats_i18n.sql 을 실행하면 상태(구독 중·해지)를 직접 바꿀 수 있습니다.": "The newsletter_subscribers table does not exist yet, so signups from form_submissions are shown read-only. Run supabase/13_v22_newsletter_stats_i18n.sql to change status here.",
+  "조회수 · 최근 7일": "Views · last 7 days",
+  "인기글 TOP 5": "Top 5 posts",
+  "최근 7일 접수 · 댓글": "Last 7 days: submissions · comments",
+  "글 조회수(increment_post_view)와 최근 7일 접수·댓글 흐름입니다. GA4 를 열지 않아도 여기서 바로 봅니다.": "Post views (increment_post_view) and the last 7 days of submissions and comments — no need to open GA4.",
+  "posts.view_count 열이 아직 없어 조회수는 –로 보입니다. supabase/13_v22_newsletter_stats_i18n.sql 을 실행하면 쌓이기 시작합니다. 최근 7일 접수·댓글은 지금도 셉니다.": "The posts.view_count column is missing, so views show as –. Run supabase/13_v22_newsletter_stats_i18n.sql to start counting. Submissions and comments are counted now.",
+  "아직 조회수가 기록된 글이 없습니다.": "No post views recorded yet.",
+  "조건에 맞는 구독자가 없습니다.": "No subscriber matches these filters.",
+  "아직 구독 신청이 없습니다.": "No newsletter signups yet.",
+  "구독 상태를 저장했습니다.": "Subscriber status saved.",
+  "구독 상태를 저장하지 못했습니다: ": "Could not save the subscriber status: ",
+  "발행한 글이 없습니다. ‘게시판 관리’에서 글을 먼저 발행해 주세요.": "No published posts yet. Publish one in “Posts” first.",
+  "글 목록을 불러오는 중…": "Loading posts…",
+  "담을 글을 하나 이상 골라 주세요.": "Pick at least one post to include.",
+  "HTML 을 복사했습니다 — 메일 서비스의 HTML 편집기에 붙여 넣으세요.": "HTML copied — paste it into the HTML editor of your mail service.",
+  "복사하지 못했습니다. ‘HTML 내려받기’로 파일을 받아 주세요.": "Could not copy. Use “Download HTML” instead.",
+  "영문 본문은 저장하지 못했습니다: ": "Could not save the English text: ",
+  "업로드 완료 — ": "Upload complete — ",
+  "글 본문 언어": "Post body language",
+  "페이지 본문 언어": "Page body language",
+  "한국어": "Korean",
+  "English 칸을 비우면 사이트 EN 모드에서도 한국어 글이 그대로 나옵니다.": "Leave the English fields empty to keep showing the Korean post in EN mode.",
+  "English 칸을 비우면 사이트 EN 모드에서도 한국어 문구가 그대로 나옵니다.": "Leave the English fields empty to keep showing the Korean text in EN mode.",
+  "영문 제목 — 비우면 한국어 제목": "English title — empty shows the Korean title",
+  "영문 요약 — 비우면 한국어 요약": "English summary — empty shows the Korean summary",
+  "영문 본문 — 비우면 한국어 본문": "English body — empty shows the Korean body",
+  "영문 부제 — 비우면 한국어 부제": "English subtitle — empty shows the Korean subtitle",
+  "본문 형식(English)": "Body format (English)",
+  "한국어와 같게": "Same as Korean",
+  "영문 미리보기는 공개 사이트 EN 모드에서 확인하세요.": "Check the English preview on the public site in EN mode.",
+  "hunmin 블록은 한국어 본문과 함께 모든 언어에 나옵니다.": "hunmin blocks appear in every language alongside the Korean body.",
+  "원본 그대로 올리기": "Upload the original",
+  "WebP 압축·리사이즈를 건너뜁니다": "skip WebP compression and resizing",
+  "원본 그대로": "Original",
+  "기본은 긴 변 1600px·WebP 품질 82% 로 줄여 올리고, 원본 대비 절감 용량을 보여 줍니다.": "By default images are resized to 1600px on the long edge at WebP quality 82%, and the saving against the original is shown.",
+  "최신글·인기글·지도·구독/제보 폼·갤러리·텍스트": "latest · popular · map · form · gallery · text",
+  "인기글": "Popular posts",
+  "조회수가 많은 글을 위에서부터 모읍니다.": "Lists the posts with the most views first.",
+  "전체 게시판": "All boards",
+  "최신 소식": "Latest news"
 };
   var RULES = ([
   [
@@ -811,6 +880,62 @@
   [
     "^모두 (\\d+)행$",
     "\\2 rows in total"
+  ],
+  [
+    "^최근 7일 접수 (\\d+)건 · 댓글 (\\d+)건$",
+    "Last 7 days: \\1 submissions · \\2 comments"
+  ],
+  [
+    "^7일 · (.+)$",
+    "\\1"
+  ],
+  [
+    "^구독 중 (\\d+)명 · 명부$",
+    "\\1 subscribed · roster"
+  ],
+  [
+    "^구독 중 (\\d+)명 · 접수 기록$",
+    "\\1 subscribed · form records"
+  ],
+  [
+    "^전체 (\\d+)명$",
+    "\\1 subscribers"
+  ],
+  [
+    "^(\\d+) / (\\d+)명$",
+    "\\1 / \\2 subscribers"
+  ],
+  [
+    "^구독자 (\\d+)명을 CSV 로 내려받았습니다\\.$",
+    "Downloaded \\1 subscribers as CSV."
+  ],
+  [
+    "^미리보기 — 글 (\\d+)개 · HTML (.+)$",
+    "Preview — \\1 posts · HTML \\2"
+  ],
+  [
+    "^뉴스레터 HTML 을 내려받았습니다 \\(글 (\\d+)개 · (.+)\\)\\.$",
+    "Newsletter HTML downloaded (\\1 posts · \\2)."
+  ],
+  [
+    "^원본 그대로 올렸습니다 — WebP 로 바꿔도 더 작아지지 않았습니다\\((.+?)\\)\\.$",
+    "Kept the original — WebP would not be smaller (\\1)."
+  ],
+  [
+    "^WebP (\\d+)×(\\d+) · (.+?) → (.+?) \\((\\d+)% 절감\\)$",
+    "WebP \\1×\\2 · \\3 → \\4 (\\5% smaller)"
+  ],
+  [
+    "^이번 방문 절감 (.+)$",
+    "Saved \\1 this visit"
+  ],
+  [
+    "^페이지를 수정했습니다: (.+?) · 사이트 (#\\/page\\/.+?) 에 반영됩니다\\.$",
+    "Page updated: \\1 · live at \\2"
+  ],
+  [
+    "^페이지를 만들었습니다: (.+?) · 사이트 (#\\/page\\/.+?) 에 반영됩니다\\.$",
+    "Page created: \\1 · live at \\2"
   ]
 ]).map(function (r) {
     /* 파이썬 쪽 규칙은 \1 로 그룹을 가리킵니다 — JS replace 는 $1 을 씁니다. */

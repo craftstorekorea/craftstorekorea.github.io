@@ -92,6 +92,7 @@
       <button class="admin-tab" role="tab" type="button" data-tab="tasks" aria-selected="false">업무 관리 <span class="tab-n" id="tab-task-count"></span></button>
       <button class="admin-tab" role="tab" type="button" data-tab="media" aria-selected="false">미디어 라이브러리</button>
       <button class="admin-tab" role="tab" type="button" data-tab="comments" aria-selected="false">댓글 관리 <span class="tab-n" id="tab-cmt-count"></span></button>
+      <button class="admin-tab" role="tab" type="button" data-tab="subscribers" aria-selected="false">구독자 · 뉴스레터</button>
       <button class="admin-tab" role="tab" type="button" data-tab="inbox" aria-selected="false">폼 접수함 <span class="tab-n" id="tab-inbox-count"></span></button>
       <button class="admin-tab" role="tab" type="button" data-tab="backup" aria-selected="false">백업 · 복원</button>
       <button class="admin-tab" role="tab" type="button" data-tab="plugins" aria-selected="false">플러그인 · 마켓</button>
@@ -221,6 +222,28 @@
         </div>
       </section>
 
+      <section class="panel panel-wide" id="p-stats">
+        <div class="panel-head">
+          <h2>조회수 · 최근 7일</h2>
+          <div class="panel-tools">
+            <span class="panel-tag" id="stats-stamp"></span>
+            <button type="button" class="btn btn-ghost btn-sm" id="stats-reload">새로고침</button>
+          </div>
+        </div>
+        <p class="panel-note" id="stats-note">글 조회수(increment_post_view)와 최근 7일 접수·댓글 흐름입니다. GA4 를 열지 않아도 여기서 바로 봅니다.</p>
+        <div class="stats-grid">
+          <div class="stats-block">
+            <h3 class="sub-h">인기글 TOP 5</h3>
+            <ol class="rank" id="top-posts"></ol>
+          </div>
+          <div class="stats-block">
+            <h3 class="sub-h">최근 7일 접수 · 댓글</h3>
+            <div class="week-chart" id="week-chart"></div>
+            <p class="cms-hint" id="week-sum"></p>
+          </div>
+        </div>
+      </section>
+
       <section class="panel panel-wide" id="p-links">
         <div class="panel-head"><h2>관리 바로가기</h2></div>
         <ul class="quick" id="quick-links"></ul>
@@ -284,7 +307,7 @@
       <section class="cms-group" id="form-sub-group">
         <h2>hunmin 폼 접수</h2>
         <p class="cms-hint">페이지의 <code>[구독/제보 폼]</code> 블록으로 들어온 뉴스레터 구독·공방 등록·제보 내역은 상단 <b>‘폼 접수함’ 탭</b>에서 상태·메모와 함께 관리합니다.</p>
-        <p class="cms-hint" id="form-sub-note">접수 <b id="form-sub-count">–</b>건 · <button type="button" class="rowlink" id="form-sub-go">폼 접수함 열기</button></p>
+        <p class="cms-hint" id="form-sub-note">접수 <b id="form-sub-count">–</b> · <button type="button" class="rowlink" id="form-sub-go">폼 접수함 열기</button></p>
       </section>
     </div>
 
@@ -514,6 +537,11 @@
         <select id="media-folder" class="admin-select" aria-label="폴더 선택"><option value="">폴더 전체</option></select>
         <span class="panel-tag" id="media-count"></span>
       </div>
+      <div class="img-opt">
+        <label class="cms-check-row"><input type="checkbox" id="img-original"><span>원본 그대로 올리기 <em>WebP 압축·리사이즈를 건너뜁니다</em></span></label>
+        <span class="cms-hint" id="img-opt-note">기본은 긴 변 1600px·WebP 품질 82% 로 줄여 올리고, 원본 대비 절감 용량을 보여 줍니다.</span>
+        <span class="panel-tag" id="img-saved"></span>
+      </div>
       <p class="cms-toast" id="media-msg" role="status" aria-live="polite"></p>
       <div class="media-grid" id="media-grid"></div>
     </div>
@@ -545,6 +573,78 @@
           <tbody></tbody>
         </table>
       </div>
+    </div>
+
+    <!-- ============ 구독자 · 뉴스레터 (v2.2) ============ -->
+    <div class="tabpanel" id="tab-subscribers" role="tabpanel" hidden>
+      <div class="dash-head">
+        <div>
+          <h1>구독자 · 뉴스레터</h1>
+          <p class="dash-sub">뉴스레터 구독 신청을 한곳에서 보고, 발행한 글을 골라 메일로 보낼 HTML 뉴스레터를 만듭니다.</p>
+        </div>
+        <div class="dash-actions">
+          <span class="dash-stamp" id="sub-stamp"></span>
+          <button type="button" class="btn btn-ghost btn-sm" id="sub-reload">새로고침</button>
+        </div>
+      </div>
+      <p class="panel-note" id="sub-note">Supabase newsletter_subscribers · 관리자만 읽고 고칩니다.</p>
+
+      <section class="cms-group" id="sub-group">
+        <div class="mgr-head">
+          <div>
+            <h2>구독자 목록</h2>
+            <p class="cms-hint">구독 폼으로 들어온 신청을 이메일 하나로 모읍니다. 해지로 바꿔도 명부에서 지우지 않고 표시만 바꿉니다.</p>
+          </div>
+          <button type="button" class="btn btn-ghost btn-sm" id="sub-csv">CSV 내려받기</button>
+        </div>
+        <div class="cms-toolbar">
+          <input type="search" id="sub-q" class="admin-input" placeholder="이메일·이름 검색" aria-label="구독자 검색">
+          <select id="sub-status" class="admin-select" aria-label="구독 상태 필터">
+            <option value="">상태 전체</option>
+            <option value="subscribed">구독 중</option>
+            <option value="unsubscribed">해지</option>
+          </select>
+          <span class="panel-tag" id="sub-count"></span>
+        </div>
+        <div class="sub-kpis" id="sub-kpis">
+          <span class="sub-kpi">구독 중 <b id="sub-k-on">–</b></span>
+          <span class="sub-kpi">해지 <b id="sub-k-off">–</b></span>
+          <span class="sub-kpi">이번 달 신규 <b id="sub-k-new">–</b></span>
+        </div>
+        <p class="cms-toast" id="sub-msg" role="status" aria-live="polite"></p>
+        <div class="table-wrap">
+          <table class="admin-table" id="sub-table">
+            <thead><tr><th>이메일</th><th>이름</th><th>상태</th><th>경로</th><th>신청일</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="cms-group" id="nl-group">
+        <h2>뉴스레터 만들기</h2>
+        <p class="cms-hint">발행한 글을 고르면 메일 앱에서 잘 보이는 <b>인라인 스타일 HTML</b> 뉴스레터로 조립합니다. 발송은 쓰시는 메일 서비스에 이 HTML 을 붙여 넣어 하세요(이 화면은 HTML 만 만듭니다).</p>
+        <div class="cms-grid2">
+          <label class="cms-field"><span>메일 제목 *</span><input id="nl-subject" maxlength="120" placeholder="이번 주 공방 소식"></label>
+          <label class="cms-field"><span>머리 인사 <em>선택</em></span><input id="nl-lead" maxlength="200" placeholder="이번 주 공방 소식을 모았습니다."></label>
+        </div>
+        <label class="cms-field"><span>맺음말 <em>선택</em></span><input id="nl-foot" maxlength="200" placeholder="구독을 해지하려면 이 메일에 답장해 주세요."></label>
+        <div class="nl-pick-head">
+          <span>담을 글 <b id="nl-count">0</b></span>
+          <span class="nl-pick-tools">
+            <button type="button" class="rowlink" id="nl-all">전체 선택</button>
+            <button type="button" class="rowlink" id="nl-none">선택 해제</button>
+            <button type="button" class="rowlink" id="nl-recent">최근 5개</button>
+          </span>
+        </div>
+        <ul class="nl-picks" id="nl-posts"></ul>
+        <div class="nl-actions">
+          <button type="button" class="btn btn-ghost btn-sm" id="nl-preview-go">미리보기</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="nl-copy">HTML 복사</button>
+          <button type="button" class="btn btn-primary btn-sm" id="nl-download">HTML 내려받기</button>
+          <span class="cms-toast" id="nl-msg" role="status" aria-live="polite"></span>
+        </div>
+        <div class="nl-preview" id="nl-preview" hidden></div>
+      </section>
     </div>
 
     <!-- ============ 폼 접수함 (v2.1) ============ -->
@@ -741,6 +841,11 @@
             </select>
           </label>
         </div>
+        <div class="ed-langtabs" id="pf-langtabs" role="group" aria-label="글 본문 언어">
+          <button type="button" data-plang="ko" aria-pressed="true">한국어</button>
+          <button type="button" data-plang="en" aria-pressed="false">English</button>
+          <span class="ed-langhint" id="pf-langhint">English 칸을 비우면 사이트 EN 모드에서도 한국어 글이 그대로 나옵니다.</span>
+        </div>
         <label class="cms-field"><span>제목 *</span><input id="pf-title" required maxlength="200"></label>
         <label class="cms-field"><span>슬러그 <em>주소·댓글 키 — 비우면 자동</em></span><input id="pf-slug" maxlength="80" placeholder="news-21"></label>
         <label class="cms-field"><span>요약 <em>뉴스·소개: 카드 설명 / 인터뷰: 인용문 / 정보: 한 줄 설명</em></span><textarea id="pf-summary" rows="2"></textarea></label>
@@ -759,6 +864,25 @@
             </label>
             <button type="button" class="btn btn-ghost btn-sm" id="pf-preview-toggle" aria-pressed="false">미리보기</button>
             <span class="ed-msg" id="pf-ed-msg" role="status" aria-live="polite"></span>
+          </div>
+        </div>
+        <div class="ed-pane-en" id="pf-en" hidden>
+          <label class="cms-field"><span>Title (English)</span><input id="pf-title_en" maxlength="200" placeholder="영문 제목 — 비우면 한국어 제목"></label>
+          <label class="cms-field"><span>Summary (English)</span><textarea id="pf-summary_en" rows="2" placeholder="영문 요약 — 비우면 한국어 요약"></textarea></label>
+          <div class="cms-field ed-field">
+            <span>Body (English)</span>
+            <textarea id="pf-body_en" rows="8" placeholder="영문 본문 — 비우면 한국어 본문"></textarea>
+            <div class="ed-foot">
+              <label class="ed-format">본문 형식(English)
+                <select id="pf-body_format_en" class="admin-select">
+                  <option value="">한국어와 같게</option>
+                  <option value="text">일반 텍스트</option>
+                  <option value="markdown">마크다운</option>
+                  <option value="html">HTML</option>
+                </select>
+              </label>
+              <span class="ed-msg">영문 미리보기는 공개 사이트 EN 모드에서 확인하세요.</span>
+            </div>
           </div>
         </div>
         <div class="cms-grid2">
@@ -796,6 +920,7 @@
               <label for="pf-img-file" class="btn btn-ghost btn-sm">이미지 올리기</label>
               <input id="pf-image_url" class="admin-input" placeholder="또는 이미지 주소(URL)">
               <button type="button" class="btn btn-ghost btn-sm" id="pf-img-clear">지우기</button>
+              <label class="img-keep"><input type="checkbox" id="pf-img-original"> 원본 그대로</label>
             </div>
           </div>
           <p class="cms-hint" id="pf-img-msg"></p>
@@ -830,6 +955,11 @@
           <label class="cms-field"><span>주소(slug) *</span><input id="pg-slug" maxlength="60" placeholder="about" spellcheck="false"></label>
           <label class="cms-field"><span>정렬 순서</span><input id="pg-sort" type="number" min="0" step="1" value="0"></label>
         </div>
+        <div class="ed-langtabs" id="pg-langtabs" role="group" aria-label="페이지 본문 언어">
+          <button type="button" data-plang="ko" aria-pressed="true">한국어</button>
+          <button type="button" data-plang="en" aria-pressed="false">English</button>
+          <span class="ed-langhint" id="pg-langhint">English 칸을 비우면 사이트 EN 모드에서도 한국어 문구가 그대로 나옵니다.</span>
+        </div>
         <label class="cms-field"><span>제목 *</span><input id="pg-title" maxlength="120"></label>
         <label class="cms-field"><span>부제 <em>선택</em></span><input id="pg-subtitle" maxlength="200"></label>
         <div class="cms-field ed-field">
@@ -849,8 +979,27 @@
             <span class="ed-msg" id="pg-ed-msg" role="status" aria-live="polite"></span>
           </div>
         </div>
+        <div class="ed-pane-en" id="pg-en" hidden>
+          <label class="cms-field"><span>Title (English)</span><input id="pg-title_en" maxlength="120" placeholder="영문 제목 — 비우면 한국어 제목"></label>
+          <label class="cms-field"><span>Subtitle (English)</span><input id="pg-subtitle_en" maxlength="200" placeholder="영문 부제 — 비우면 한국어 부제"></label>
+          <div class="cms-field ed-field">
+            <span>Body (English)</span>
+            <textarea id="pg-body_en" rows="8" placeholder="영문 본문 — 비우면 한국어 본문"></textarea>
+            <div class="ed-foot">
+              <label class="ed-format">본문 형식(English)
+                <select id="pg-body_format_en" class="admin-select">
+                  <option value="">한국어와 같게</option>
+                  <option value="text">일반 텍스트</option>
+                  <option value="markdown">마크다운</option>
+                  <option value="html">HTML</option>
+                </select>
+              </label>
+              <span class="ed-msg">hunmin 블록은 한국어 본문과 함께 모든 언어에 나옵니다.</span>
+            </div>
+          </div>
+        </div>
         <div class="cms-field hm-editor-field">
-          <span>hunmin 블록 <em>본문 위에 순서대로 조립 — 최신글·지도·구독/제보 폼·갤러리·텍스트</em></span>
+          <span>hunmin 블록 <em>본문 위에 순서대로 조립 — 최신글·인기글·지도·구독/제보 폼·갤러리·텍스트</em></span>
           <div class="hm-editor" id="pg-blocks"></div>
         </div>
         <div class="cms-field">

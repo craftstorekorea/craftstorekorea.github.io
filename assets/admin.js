@@ -884,7 +884,7 @@
       p.hidden = p.id !== "tab-" + name;
     });
     if (name === "dash" && !CMS.adminsLoaded) loadAdmins();
-    if (name === "dash") loadAudit();
+    if (name === "dash") { loadAudit(); loadStats(); }
     if (name === "pages") { if (!CMS.loaded.pages) loadPages(); loadPageManager(); }
     if (name === "brand" && !CMS.loaded.brand) loadBrand();
     if (name === "brand") { loadGrade(); loadTheme(); }
@@ -892,25 +892,129 @@
     if (name === "tasks") loadTasksAdmin();
     if (name === "media") loadMedia();
     if (name === "comments" && !CMS.loaded.comments) loadComments();
+    if (name === "subscribers") loadSubscribers();
     if (name === "inbox") loadInbox();
     if (name === "backup") loadBackupCounts();
     if (name === "plugins") loadPlugins();
     try { window.scrollTo({ top: 0, behavior: "auto" }); } catch (e) { /* noop */ }
   }
 
-  /* ---------------- Storage 업로드 ---------------- */
-  function uploadSiteImage(file, prefix) {
+  /* ---------------- Storage 업로드 (+ WebP 압축 · 리사이즈) ----------------
+     올리는 순간 브라우저에서 긴 변 1600px 로 줄이고 WebP(품질 82%)로 바꿉니다.
+     · 사진이 많아도 Supabase 무료 Storage(1GB)를 아끼고 사이트가 가벼워집니다.
+     · 미디어 라이브러리의 ‘원본 그대로 올리기’를 켜면 압축을 건너뜁니다.
+     · SVG·GIF(움짤)는 브라우저가 다시 그릴 수 없어 그대로 올립니다. */
+  var IMG_PREF_KEY = "sbp:img:original";
+  var IMG_MAX = 1600;
+  var IMG_QUALITY = 0.82;
+  var imgSavedBytes = 0;
+  var lastImgStat = null;
+
+  function imgKeepOriginal() {
+    try { return localStorage.getItem(IMG_PREF_KEY) === "1"; } catch (e) { return false; }
+  }
+  function imgSetKeepOriginal(on) {
+    try { localStorage.setItem(IMG_PREF_KEY, on ? "1" : "0"); } catch (e) { /* noop */ }
+    ["#img-original", "#pf-img-original"].forEach(function (sel) {
+      var n = $(sel);
+      if (n) n.checked = !!on;
+    });
+  }
+  function imgCanOptimize(file) {
+    if (!file || imgKeepOriginal()) return false;
+    if (!/^image\/(jpeg|jpg|png|webp|bmp)$/i.test(String(file.type || ""))) return false;
+    return !!(document.createElement("canvas").getContext && document.createElement("canvas").getContext("2d"));
+  }
+  function imgLoad(file) {
+    if (window.createImageBitmap) {
+      return window.createImageBitmap(file).catch(function () { return imgLoadTag(file); });
+    }
+    return imgLoadTag(file);
+  }
+  function imgLoadTag(file) {
+    return new Promise(function (res, rej) {
+      var url = URL.createObjectURL(file);
+      var im = new Image();
+      im.onload = function () { try { URL.revokeObjectURL(url); } catch (e) { /* noop */ } res(im); };
+      im.onerror = function () { try { URL.revokeObjectURL(url); } catch (e) { /* noop */ } rej(new Error("이미지를 읽지 못했습니다.")); };
+      im.src = url;
+    });
+  }
+  function imgBaseName(name) {
+    return String(name || "image").replace(/\.[^.]+$/, "").replace(/[^A-Za-z0-9._-]/g, "-").slice(0, 48) || "image";
+  }
+  /* → { file: 올릴 File, stat: {original,size,width,height,outW,outH,saved,optimized,type} | null } */
+  function imgOptimize(file) {
+    return imgLoad(file).then(function (img) {
+      var w = img.width || img.naturalWidth || 0, h = img.height || img.naturalHeight || 0;
+      if (!w || !h) return { file: file, stat: null };
+      var scale = Math.min(1, IMG_MAX / Math.max(w, h));
+      var tw = Math.max(1, Math.round(w * scale)), th = Math.max(1, Math.round(h * scale));
+      var cv = document.createElement("canvas");
+      cv.width = tw; cv.height = th;
+      var ctx = cv.getContext("2d");
+      if (!ctx) return { file: file, stat: null };
+      if (/image\/jpe?g/i.test(String(file.type || ""))) { ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, tw, th); }
+      ctx.drawImage(img, 0, 0, tw, th);
+      return new Promise(function (res) {
+        if (!cv.toBlob) { res({ file: file, stat: null }); return; }
+        cv.toBlob(function (blob) {
+          if (!blob) { res({ file: file, stat: null }); return; }
+          var smaller = blob.size < file.size;
+          var out = smaller ? new File([blob], imgBaseName(file.name) + ".webp", { type: "image/webp", lastModified: Date.now() }) : file;
+          res({
+            file: out,
+            stat: {
+              original: file.size, size: out.size, width: w, height: h,
+              outW: smaller ? tw : w, outH: smaller ? th : h,
+              saved: Math.max(0, file.size - out.size), optimized: smaller,
+              resized: smaller && scale < 1, type: out.type
+            }
+          });
+        }, "image/webp", IMG_QUALITY);
+      });
+    }).catch(function () { return { file: file, stat: null }; });
+  }
+  function imgStatText(stat) {
+    if (!stat) return "";
+    if (!stat.optimized) {
+      return "원본 그대로 올렸습니다 — WebP 로 바꿔도 더 작아지지 않았습니다(" + fmtBytes(stat.original) + ").";
+    }
+    var pct = Math.round((stat.saved / Math.max(1, stat.original)) * 100);
+    return "WebP " + stat.outW + "×" + stat.outH + " · " + fmtBytes(stat.original) + " → " +
+      fmtBytes(stat.size) + " (" + pct + "% 절감)";
+  }
+  function paintImgSaved() {
+    var el = $("#img-saved");
+    if (!el) return;
+    el.textContent = imgSavedBytes > 0 ? "이번 방문 절감 " + fmtBytes(imgSavedBytes) : "";
+  }
+  function imgDone(msgSel, okText, stat) {
+    if (stat) { lastImgStat = stat; imgSavedBytes += stat.saved; paintImgSaved(); }
+    var el = msgSel ? (typeof msgSel === "string" ? $(msgSel) : msgSel) : null;
+    if (!el) return;
+    el.className = "cms-toast ok";
+    el.innerHTML = (okText ? "<span>" + esc(okText) + "</span>" : "") +
+      (stat ? '<span class="img-stat">' + esc(imgStatText(stat)) + "</span>" : "");
+  }
+
+  function uploadSiteImage(file, prefix, msgSel, okText) {
     if (!file) return Promise.reject(new Error("파일이 없습니다."));
     if (!/^image\//.test(file.type || "")) return Promise.reject(new Error("이미지 파일만 올릴 수 있습니다."));
     if (file.size > 5 * 1024 * 1024) return Promise.reject(new Error("이미지는 5MB까지 올릴 수 있습니다."));
-    var ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
-    var path = prefix + "-" + Date.now().toString(36) + "." + ext;
-    return sb.storage.from("site-media").upload(path, file, { upsert: true, contentType: file.type }).then(function (r) {
-      if (r.error) throw new Error(r.error.message || "업로드 실패");
-      var pub = sb.storage.from("site-media").getPublicUrl(path);
-      var url = (pub && pub.data && pub.data.publicUrl) || "";
-      if (!url) throw new Error("공개 주소를 받지 못했습니다.");
-      return url;
+    var prep = imgCanOptimize(file) ? imgOptimize(file) : Promise.resolve({ file: file, stat: null });
+    return prep.then(function (r) {
+      var up = r.file;
+      var ext = (String(up.name || "").split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+      var path = prefix + "-" + Date.now().toString(36) + "." + ext;
+      return sb.storage.from("site-media").upload(path, up, { upsert: true, contentType: up.type }).then(function (res) {
+        if (res.error) throw new Error(res.error.message || "업로드 실패");
+        var pub = sb.storage.from("site-media").getPublicUrl(path);
+        var url = (pub && pub.data && pub.data.publicUrl) || "";
+        if (!url) throw new Error("공개 주소를 받지 못했습니다.");
+        imgDone(msgSel, okText, r.stat);
+        return url;
+      });
     });
   }
 
@@ -1073,7 +1177,7 @@
           return;
         }
         CMS.pages = (res.data || []).map(function (r) { return { key: r.key, section: r.section || "기타", label: r.label || r.key, value: r.value || "", image_url: r.image_url || "", _v: r.value || "", _i: r.image_url || "" }; })
-          .filter(function (p) { return p.section !== BRAND_SECTION && p.section !== GRADE_SECTION; });   // 헤더·푸터·head·회원 등급은 전용 탭에서 편집합니다
+          .filter(function (p) { return p.section !== BRAND_SECTION && p.section !== GRADE_SECTION && p.section !== I18N_SECTION; });   // 헤더·푸터·head·회원 등급·영문 저장분은 전용 화면에서 다룹니다
         CMS.loaded.pages = true;
         renderPages();
         var note = $("#pages-note");
@@ -1201,13 +1305,13 @@
         if (!p || !file) return;
         var msg = box.querySelector('[data-imgmsg="' + key + '"]');
         if (msg) msg.textContent = "올리는 중…";
-        uploadSiteImage(file, "pages/" + key.replace(/[^a-z0-9._-]/gi, "-")).then(function (url) {
+        uploadSiteImage(file, "pages/" + key.replace(/[^a-z0-9._-]/gi, "-"), msg,
+          "업로드 완료 — ‘변경 저장’을 누르면 사이트에 반영됩니다.").then(function (url) {
           p._i = url;
           var urlInput = box.querySelector('[data-url="' + key + '"]');
           if (urlInput) urlInput.value = url;
           paintPrev(key, url);
           markDirty(key, true);
-          if (msg) msg.textContent = "업로드 완료 — ‘변경 저장’을 누르면 사이트에 반영됩니다.";
         }).catch(function (e) {
           if (msg) msg.textContent = "업로드 실패: " + (e.message || "알 수 없는 오류");
         });
@@ -1259,6 +1363,8 @@
         return;
       }
       CMS.posts = list.data || [];
+      CMS.postEnCols = CMS.posts.length
+        ? Object.prototype.hasOwnProperty.call(CMS.posts[0], "title_en") : CMS.postEnCols;
       CMS.commentCounts = {};
       (cmts.data || []).forEach(function (c) { CMS.commentCounts[c.post_key] = (CMS.commentCounts[c.post_key] || 0) + 1; });
       CMS.loaded.posts = true;
@@ -1387,12 +1493,43 @@
     return !isNaN(d.getTime()) && d.getTime() > Date.now();
   }
 
+  /* 글 편집기의 한국어/English 탭 — 영문 칸을 비우면 사이트 EN 모드에서도 한국어가 나갑니다. */
+  function postEnRow(p) {
+    var m = (p && p.meta && p.meta.en) || {};
+    return {
+      title: (p && p.title_en) || m.title || "",
+      summary: (p && p.summary_en) || m.summary || "",
+      body: (p && p.body_en) || m.body || "",
+      format: (p && p.body_format_en) || m.body_format || ""
+    };
+  }
+  function postLangPane(which) {
+    var en = which === "en";
+    ["#pf-title", "#pf-slug", "#pf-summary"].forEach(function (sel) {
+      var n = $(sel), f = n && n.closest ? n.closest(".cms-field") : null;
+      if (f) f.hidden = en;
+    });
+    var bodyField = $("#pf-body") && $("#pf-body").closest ? $("#pf-body").closest(".cms-field") : null;
+    if (bodyField) bodyField.hidden = en;
+    var pane = $("#pf-en");
+    if (pane) pane.hidden = !en;
+    [].forEach.call(document.querySelectorAll("#pf-langtabs [data-plang]"), function (b) {
+      b.setAttribute("aria-pressed", b.getAttribute("data-plang") === (en ? "en" : "ko") ? "true" : "false");
+    });
+  }
+
   function openPostEditor(id) {
     var p = null;
     if (id) { for (var i = 0; i < CMS.posts.length; i++) if (CMS.posts[i].id === id) { p = CMS.posts[i]; break; } }
     CMS.editing = p;
     var m = p && p.meta ? p.meta : {};
+    var en = postEnRow(p);
     $("#post-modal-title").textContent = p ? "글 수정" : "새 글";
+    postLangPane("ko");
+    $("#pf-title_en").value = en.title;
+    $("#pf-summary_en").value = en.summary;
+    $("#pf-body_en").value = en.body;
+    if ($("#pf-body_format_en")) $("#pf-body_format_en").value = en.format;
     setCategoryValue(p ? p.category : "뉴스");
     $("#pf-state").value = p ? (p.status === "draft" ? "draft" : String(!!p.is_published)) : "true";
     $("#pf-title").value = p ? p.title : "";
@@ -1496,6 +1633,22 @@
     if (cat === "뉴스" || cat === "소개") body.meta.tag = ($("#pf-tag").value || "").trim();
     if (cat === "인터뷰") { body.meta.person = ($("#pf-person").value || "").trim(); body.meta.role = ($("#pf-role").value || "").trim(); }
     if (cat === "정보") { body.meta.kind = ($("#pf-kind").value || "").trim(); body.meta.period = ($("#pf-period").value || "").trim(); }
+
+    /* 영문(KO/EN) — 열이 있으면 title_en…, 아직 없으면 meta.en 에 담습니다(사이트가 둘 다 읽습니다). */
+    var en = {
+      title: ($("#pf-title_en").value || "").trim(),
+      summary: ($("#pf-summary_en").value || "").trim(),
+      body: ($("#pf-body_en").value || "").trim(),
+      body_format: ($("#pf-body_format_en") && $("#pf-body_format_en").value) || ""
+    };
+    if (CMS.postEnCols) {
+      body.title_en = en.title || null;
+      body.summary_en = en.summary || null;
+      body.body_en = en.body || null;
+      body.body_format_en = en.body_format || null;
+    } else if (en.title || en.summary || en.body || en.body_format) {
+      body.meta.en = { title: en.title, summary: en.summary, body: en.body, body_format: en.body_format };
+    }
 
     var btn = $("#post-save");
     btn.disabled = true;
@@ -1688,6 +1841,8 @@
         return;
       }
       CMS.customPages = res.data || [];
+      CMS.pageEnCols = CMS.customPages.length
+        ? Object.prototype.hasOwnProperty.call(CMS.customPages[0], "title_en") : CMS.pageEnCols;
       renderPageTable();
     });
   }
@@ -1777,9 +1932,67 @@
     return max + 1;
   }
 
+  /* 페이지 편집기의 한국어/English 탭 (KO/EN 본문) */
+  function pageLangPane(which) {
+    var en = which === "en";
+    ["#pg-title", "#pg-subtitle"].forEach(function (sel) {
+      var n = $(sel), f = n && n.closest ? n.closest(".cms-field") : null;
+      if (f) f.hidden = en;
+    });
+    var bodyField = $("#pg-body") && $("#pg-body").closest ? $("#pg-body").closest(".cms-field") : null;
+    if (bodyField) bodyField.hidden = en;
+    [].forEach.call(document.querySelectorAll("#pg-langtabs [data-plang]"), function (b) {
+      b.setAttribute("aria-pressed", b.getAttribute("data-plang") === (en ? "en" : "ko") ? "true" : "false");
+    });
+    var pane = $("#pg-en");
+    if (pane) pane.hidden = !en;
+  }
+  function pageEnAdmin(p) {
+    if (!p) return { title: "", subtitle: "", body: "", format: "" };
+    var cached = (CMS.pageEnRows || {})[p.slug] || {};
+    return {
+      title: p.title_en || cached.title || "",
+      subtitle: p.subtitle_en || cached.subtitle || "",
+      body: p.body_en || cached.body || "",
+      format: p.body_format_en || cached.format || ""
+    };
+  }
+  function loadPageEnRow(slug, cb) {
+    if (!slug) { cb(null); return; }
+    sb.from("site_contents").select("key,value").eq("key", "page_en:" + slug).then(function (r) {
+      var raw = (r.data && r.data[0] && r.data[0].value) || "";
+      var o = {};
+      try { o = JSON.parse(raw || "{}") || {}; } catch (e) { o = {}; }
+      CMS.pageEnRows = CMS.pageEnRows || {};
+      CMS.pageEnRows[slug] = o;
+      cb(o);
+    }, function () { cb(null); });
+  }
+  function savePageEn(slug, en) {
+    var json = JSON.stringify({
+      title: en.title || "", subtitle: en.subtitle || "", body: en.body || "", format: en.body_format || ""
+    });
+    return sb.from("site_contents").upsert({
+      key: "page_en:" + slug, section: I18N_SECTION, label: "영문 본문 (" + slug + ")", value: json
+    }, { onConflict: "key" });
+  }
+
   function openPageEditor(slug) {
     var p = slug ? pageBySlugAdmin(slug) : null;
     CMS.editingPage = p;
+    var en = pageEnAdmin(p);
+    pageLangPane("ko");
+    $("#pg-title_en").value = en.title;
+    $("#pg-subtitle_en").value = en.subtitle;
+    $("#pg-body_en").value = en.body;
+    if ($("#pg-body_format_en")) $("#pg-body_format_en").value = en.format;
+    if (p && !CMS.pageEnCols) loadPageEnRow(p.slug, function (row) {
+      if (!row || !CMS.editingPage || CMS.editingPage.slug !== p.slug) return;
+      $("#pg-title_en").value = row.title || "";
+      $("#pg-subtitle_en").value = row.subtitle || "";
+      $("#pg-body_en").value = row.body || "";
+      if ($("#pg-body_format_en")) $("#pg-body_format_en").value = row.format || "";
+    });
     CMS.pageImages = (p && Array.isArray(p.images) ? p.images : []).map(function (im) {
       return { url: (im && im.url) || "", caption: (im && im.caption) || "" };
     }).filter(function (im) { return im.url; });
@@ -1898,6 +2111,20 @@
       is_published: $("#pg-published").checked,
       sort_order: parseInt($("#pg-sort").value || "0", 10) || 0
     };
+
+    /* 영문(KO/EN) — pages.title_en… 열이 있으면 그곳에, 아직 없으면 site_contents(page_en:<slug>) 에 담습니다. */
+    var en = {
+      title: ($("#pg-title_en").value || "").trim(),
+      subtitle: ($("#pg-subtitle_en").value || "").trim(),
+      body: ($("#pg-body_en").value || "").trim(),
+      body_format: ($("#pg-body_format_en") && $("#pg-body_format_en").value) || ""
+    };
+    if (CMS.pageEnCols) {
+      payload.title_en = en.title || null;
+      payload.subtitle_en = en.subtitle || null;
+      payload.body_en = en.body || null;
+      payload.body_format_en = en.body_format || null;
+    }
     var btn = $("#page-save");
     btn.disabled = true;
     $("#pg-msg").textContent = "저장하는 중…";
@@ -1907,6 +2134,12 @@
     req.then(function (r) {
       btn.disabled = false;
       if (r.error) { $("#pg-msg").textContent = "저장 실패: " + r.error.message; return; }
+      if (CMS.pageEnRows) delete CMS.pageEnRows[slug];
+      if (!CMS.pageEnCols) {
+        savePageEn(slug, en).then(function (r2) {
+          if (r2 && r2.error) cmsMsg("page-msg", "영문 본문은 저장하지 못했습니다: " + r2.error.message, "err");
+        });
+      }
       draftDel(draftKey("page", p ? p.slug : "new"));
       closePageEditor();
       cmsMsg("page-msg", (p ? "페이지를 수정했습니다: " : "페이지를 만들었습니다: ") + slug +
@@ -2936,6 +3169,8 @@
       published_at: v("#pf-published_at"), deadline: v("#pf-deadline"), sort_order: v("#pf-sort_order"),
       tag: v("#pf-tag"), person: v("#pf-person"), role: v("#pf-role"), kind: v("#pf-kind"),
       period: v("#pf-period"), image_url: v("#pf-image_url"),
+      title_en: v("#pf-title_en"), summary_en: v("#pf-summary_en"), body_en: v("#pf-body_en"),
+      body_format_en: v("#pf-body_format_en"),
       is_pinned: !!($("#pf-is-pinned") && $("#pf-is-pinned").checked), publish_at: v("#pf-publish_at")
     };
   }
@@ -2951,6 +3186,8 @@
     set("#pf-sort_order", d.sort_order); set("#pf-tag", d.tag); set("#pf-person", d.person);
     set("#pf-role", d.role); set("#pf-kind", d.kind); set("#pf-period", d.period);
     set("#pf-image_url", d.image_url); set("#pf-publish_at", d.publish_at);
+    set("#pf-title_en", d.title_en); set("#pf-summary_en", d.summary_en);
+    set("#pf-body_en", d.body_en); set("#pf-body_format_en", d.body_format_en);
     var pin = $("#pf-is-pinned");
     if (pin) pin.checked = !!d.is_pinned;
     syncPostFields();
@@ -2964,6 +3201,8 @@
     return {
       slug: v("#pg-slug"), title: v("#pg-title"), subtitle: v("#pg-subtitle"), body: v("#pg-body"),
       body_format: v("#pg-body_format"), sort_order: v("#pg-sort"),
+      title_en: v("#pg-title_en"), subtitle_en: v("#pg-subtitle_en"), body_en: v("#pg-body_en"),
+      body_format_en: v("#pg-body_format_en"),
       is_published: !!($("#pg-published") && $("#pg-published").checked),
       images: (CMS.pageImages || []).slice(),
       blocks: (CMS.pageBlocks || []).slice()
@@ -2975,6 +3214,8 @@
     function set(sel, val) { var n = $(sel); if (n && val != null) n.value = val; }
     set("#pg-title", d.title); set("#pg-subtitle", d.subtitle); set("#pg-body", d.body);
     set("#pg-body_format", d.body_format); set("#pg-sort", d.sort_order);
+    set("#pg-title_en", d.title_en); set("#pg-subtitle_en", d.subtitle_en);
+    set("#pg-body_en", d.body_en); set("#pg-body_format_en", d.body_format_en);
     var pub = $("#pg-published");
     if (pub) pub.checked = d.is_published !== false;
     CMS.pageImages = (d.images || []).slice();
@@ -3096,10 +3337,9 @@
       var f = logoFile.files && logoFile.files[0];
       if (!f) return;
       $("#logo-msg").textContent = "올리는 중…";
-      uploadSiteImage(f, "header/logo").then(function (url) {
+      uploadSiteImage(f, "header/logo", "#logo-msg", "업로드 완료 — ‘변경 저장’을 누르면 사이트에 반영됩니다.").then(function (url) {
         $("#logo-url").value = url;
         paintLogo(url);
-        $("#logo-msg").textContent = "업로드 완료 — ‘변경 저장’을 누르면 사이트에 반영됩니다.";
       }).catch(function (e) { $("#logo-msg").textContent = "업로드 실패: " + (e.message || "알 수 없는 오류"); });
     });
     var logoUrl = $("#logo-url");
@@ -3194,7 +3434,9 @@
       });
       chain.then(function () {
         pgFile.value = "";
-        $("#pg-img-msg").textContent = files.length + "장을 올렸습니다. ‘저장’을 누르면 페이지에 반영됩니다.";
+        imgDone("#pg-img-msg", files.length + "장을 올렸습니다. ‘저장’을 누르면 페이지에 반영됩니다.", null);
+        var el = $("#pg-img-msg");
+        if (el && lastImgStat) el.innerHTML += '<span class="img-stat">' + esc(imgStatText(lastImgStat)) + "</span>";
       }).catch(function (e) {
         pgFile.value = "";
         $("#pg-img-msg").textContent = "업로드 실패: " + (e.message || "알 수 없는 오류");
@@ -3387,10 +3629,10 @@
       var f = file.files && file.files[0];
       if (!f) return;
       $("#pf-img-msg").textContent = "올리는 중…";
-      uploadSiteImage(f, "posts/" + catPrefix($("#pf-category").value)).then(function (url) {
+      uploadSiteImage(f, "posts/" + catPrefix($("#pf-category").value), "#pf-img-msg",
+        "업로드 완료 — ‘저장’을 누르면 글이 반영됩니다.").then(function (url) {
         $("#pf-image_url").value = url;
         paintPostPreview(url);
-        $("#pf-img-msg").textContent = "업로드 완료 — ‘저장’을 누르면 글이 반영됩니다.";
       }).catch(function (e) { $("#pf-img-msg").textContent = "업로드 실패: " + (e.message || "알 수 없는 오류"); });
     });
     var urlInput = $("#pf-image_url");
@@ -3416,9 +3658,11 @@
       if (!f) return;
       cmsMsg("media-msg", "올리는 중… (" + f.name + ")");
       uploadSiteImage(f, "library").then(function (url) {
-        cmsMsg("media-msg", "업로드 완료 — " + url, "ok");
+        var stat = lastImgStat;
         mediaFile.value = "";
-        loadMedia();
+        Promise.resolve(loadMedia()).then(function () {
+          imgDone("#media-msg", "업로드 완료 — " + url, stat);
+        });
       }).catch(function (e) {
         cmsMsg("media-msg", "업로드 실패: " + (e.message || "알 수 없는 오류"), "err");
       });
@@ -3436,6 +3680,8 @@
     });
     var cr = $("#cmt-reload");
     if (cr) cr.addEventListener("click", function () { CMS.loaded.comments = false; loadComments(); });
+    /* v2.2 — 이미지 압축 설정 · KO/EN 탭 · 통계 · 구독자 · 뉴스레터 */
+    wireV22();
     document.addEventListener("keydown", function (e) {
       if (e.key !== "Escape") return;
       if (!$("#rev-drawer").hidden) closeHistory();
@@ -3456,6 +3702,8 @@
   /* ---------------- 4. 헤더 · 푸터 · Head ---------------- */
   var BRAND_SECTION = "헤더 · 푸터 · Head";
   var GRADE_SECTION = "회원 등급";
+  /* 영문 본문 임시 저장(page_en:<slug>)은 화면 문구 슬롯이 아니므로 목록에서 빠집니다. */
+  var I18N_SECTION = "i18n";
   var VIEW_TARGETS = ["home", "workshops", "news", "interview", "archive", "info", "map", "tasks"];
   var DEFAULT_MENU = [
     { label: "홈", label_ko: "홈", label_en: "Home", target: "home", visible: true, note: "" },
@@ -4112,6 +4360,446 @@
   }
 
   /* ---------------- 시작 ---------------- */
+  /* ============================================================
+     6. v2.2 — 조회수 · 최근 7일 통계 / 구독자 · 뉴스레터 (13_v22_newsletter_stats_i18n.sql)
+     ============================================================ */
+  var SUB = { rows: [], mode: "table", loaded: false };
+  var NL = { picked: {} };
+  var STATS = { loaded: false };
+
+  function kstYmd(d) {
+    try {
+      return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+    } catch (e) {
+      var p = function (n) { return (n < 10 ? "0" : "") + n; };
+      return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+    }
+  }
+  function isoDaysAgo(n) { return new Date(Date.now() - n * 86400000).toISOString(); }
+  function mdLabel(ymd) { var b = String(ymd).split("-"); return b.length === 3 ? (Number(b[1]) + "/" + Number(b[2])) : ymd; }
+
+  /* ---------------- 조회수 · 최근 7일 ---------------- */
+  function topPostsJob() {
+    var base = "id,slug,title,category,is_published,deleted_at";
+    return sb.from("posts").select(base + ",view_count").order("view_count", { ascending: false }).limit(5)
+      .then(function (r) {
+        if (!r.error) return { rows: r.data || [], withViews: true };
+        return sb.from("posts").select(base).order("published_at", { ascending: false }).limit(5)
+          .then(function (r2) { return { rows: r2.data || [], withViews: false }; });
+      });
+  }
+
+  function loadStats() {
+    if (!sb) return Promise.resolve();
+    var topEl = $("#top-posts"), chart = $("#week-chart"), sum = $("#week-sum"), note = $("#stats-note"), stamp = $("#stats-stamp");
+    if (topEl && !STATS.loaded) topEl.innerHTML = '<li class="muted">불러오는 중…</li>';
+    var since = isoDaysAgo(7);
+    function soft(p) { return p.then(function (r) { return r; }, function (e) { return { error: e }; }); }
+    return Promise.all([
+      topPostsJob(),
+      soft(sb.from("comments").select("created_at,is_hidden").gte("created_at", since).limit(5000)),
+      soft(sb.from("form_submissions").select("created_at,kind").gte("created_at", since).limit(5000))
+    ]).then(function (res) {
+      var top = res[0] || { rows: [], withViews: false };
+      var rows = (top.rows || []).filter(function (p) { return !p.deleted_at; });
+
+      /* TOP 5 */
+      if (topEl) {
+        topEl.innerHTML = rows.length ? rows.map(function (p, i) {
+          return '<li><span class="rn">' + (i + 1) + '</span>' +
+            '<span class="rname" title="' + esc(p.title) + '">' + esc(p.title) + '</span>' +
+            '<b class="rc">' + (p.view_count == null ? "–" : p.view_count) + '</b></li>';
+        }).join("") : '<li class="muted">아직 조회수가 기록된 글이 없습니다.</li>';
+      }
+
+      /* 최근 7일 접수·댓글 */
+      var days = [];
+      for (var i = 6; i >= 0; i--) days.push(kstYmd(new Date(Date.now() - i * 86400000)));
+      function byDay(list) {
+        var m = {};
+        (list || []).forEach(function (x) {
+          var k = kstYmd(new Date(x.created_at));
+          if (!k) return;
+          m[k] = (m[k] || 0) + 1;
+        });
+        return m;
+      }
+      var subsRow = (res[2] && res[2].data) ? res[2].data : [];
+      var cmtRow = ((res[1] && res[1].data) ? res[1].data : []).filter(function (c) { return !c.is_hidden; });
+      var sMap = byDay(subsRow), cMap = byDay(cmtRow);
+      var max = 1;
+      days.forEach(function (d) { max = Math.max(max, sMap[d] || 0, cMap[d] || 0); });
+      if (chart) {
+        chart.innerHTML = '<div class="wk-legend"><span class="wk-k wk-s">접수</span><span class="wk-k wk-c">댓글</span></div>' +
+          '<div class="wk-row">' + days.map(function (d) {
+            var s = sMap[d] || 0, c = cMap[d] || 0;
+            return '<div class="wk-day" title="' + esc(d) + ' · 접수 ' + s + '건 · 댓글 ' + c + '건">' +
+              '<div class="wk-bars">' +
+                '<i class="wk-b wk-s" style="height:' + Math.round((s / max) * 100) + '%"></i>' +
+                '<i class="wk-b wk-c" style="height:' + Math.round((c / max) * 100) + '%"></i>' +
+              "</div>" +
+              '<span class="wk-lb">' + esc(mdLabel(d)) + "</span></div>";
+          }).join("") + "</div>";
+      }
+      if (sum) {
+        var sTotal = subsRow.length, cTotal = cmtRow.length;
+        sum.textContent = "최근 7일 접수 " + sTotal + "건 · 댓글 " + cTotal + "건";
+      }
+      if (note) {
+        note.textContent = top.withViews
+          ? "글 조회수(increment_post_view)와 최근 7일 접수·댓글 흐름입니다. GA4 를 열지 않아도 여기서 바로 봅니다."
+          : "posts.view_count 열이 아직 없어 조회수는 –로 보입니다. supabase/13_v22_newsletter_stats_i18n.sql 을 실행하면 쌓이기 시작합니다. 최근 7일 접수·댓글은 지금도 셉니다.";
+      }
+      if (stamp) stamp.textContent = "7일 · " + mdLabel(days[0]) + "~" + mdLabel(days[6]);
+      STATS.loaded = true;
+    });
+  }
+
+  /* ---------------- 구독자 ---------------- */
+  function normSub(x) {
+    return {
+      email: String(x.email || "").toLowerCase().trim(),
+      name: x.name || "",
+      status: x.status === "unsubscribed" ? "unsubscribed" : "subscribed",
+      source: x.source || (x.payload && x.payload.source) || "",
+      page: x.page_slug || "",
+      note: x.note || "",
+      created_at: x.first_at || x.created_at || ""
+    };
+  }
+
+  function subNote(fallback) {
+    var el = $("#sub-note");
+    if (!el) return;
+    el.textContent = fallback
+      ? "newsletter_subscribers 표가 아직 없어 form_submissions 의 구독 신청을 읽기 전용으로 보여 줍니다. supabase/13_v22_newsletter_stats_i18n.sql 을 실행하면 상태(구독 중·해지)를 직접 바꿀 수 있습니다."
+      : "Supabase newsletter_subscribers · 관리자만 읽고 고칩니다. 해지로 바꿔도 명부에서 지우지 않습니다.";
+  }
+
+  function loadSubscribers(force) {
+    if (!sb) return Promise.resolve();
+    if (SUB.loaded && !force) { renderSubscribers(); ensureNewsletterPicks(); return Promise.resolve(); }
+    var body = $("#sub-table tbody");
+    if (body) body.innerHTML = '<tr class="empty-row"><td colspan="6">불러오는 중…</td></tr>';
+    function soft(p) { return p.then(function (r) { return r; }, function (e) { return { error: e }; }); }
+    return soft(sb.from("newsletter_subscribers").select("*").order("first_at", { ascending: false }).limit(2000))
+      .then(function (r) {
+        if (!r.error) {
+          SUB.mode = "table";
+          SUB.rows = (r.data || []).map(normSub).filter(function (x) { return x.email; });
+          SUB.loaded = true;
+          subNote(false);
+          renderSubscribers();
+          ensureNewsletterPicks();
+          return;
+        }
+        return soft(sb.from("form_submissions").select("id,kind,email,name,payload,page_slug,created_at")
+          .eq("kind", "newsletter").order("created_at", { ascending: false }).limit(2000)).then(function (r2) {
+          SUB.mode = "form";
+          var seen = {};
+          SUB.rows = ((r2 && r2.data) || []).map(normSub).filter(function (x) {
+            if (!x.email || seen[x.email]) return false;
+            seen[x.email] = 1;
+            return true;
+          });
+          SUB.loaded = true;
+          subNote(true);
+          renderSubscribers();
+          ensureNewsletterPicks();
+        });
+      });
+  }
+
+  function renderSubscribers() {
+    var body = $("#sub-table tbody");
+    if (!body) return;
+    var q = (($("#sub-q") || {}).value || "").trim().toLowerCase();
+    var st = (($("#sub-status") || {}).value || "");
+    var rows = SUB.rows.filter(function (x) {
+      if (st && x.status !== st) return false;
+      if (!q) return true;
+      return (x.email + " " + x.name).toLowerCase().indexOf(q) >= 0;
+    });
+    var on = SUB.rows.filter(function (x) { return x.status === "subscribed"; }).length;
+    var off = SUB.rows.length - on;
+    var thisMonth = kstYmd(new Date()).slice(0, 7);
+    var fresh = SUB.rows.filter(function (x) { return String(x.created_at).slice(0, 7) === thisMonth; }).length;
+    if ($("#sub-k-on")) $("#sub-k-on").textContent = on;
+    if ($("#sub-k-off")) $("#sub-k-off").textContent = off;
+    if ($("#sub-k-new")) $("#sub-k-new").textContent = fresh;
+    if ($("#sub-count")) $("#sub-count").textContent = rows.length === SUB.rows.length
+      ? "전체 " + SUB.rows.length + "명" : rows.length + " / " + SUB.rows.length + "명";
+    if ($("#sub-stamp")) $("#sub-stamp").textContent = "구독 중 " + on + "명 · " + (SUB.mode === "table" ? "명부" : "접수 기록");
+    if (!rows.length) {
+      body.innerHTML = '<tr class="empty-row"><td colspan="6">' +
+        (SUB.rows.length ? "조건에 맞는 구독자가 없습니다." : "아직 구독 신청이 없습니다.") + "</td></tr>";
+      return;
+    }
+    body.innerHTML = rows.map(function (x) {
+      var badge = x.status === "unsubscribed"
+        ? '<span class="badge b-off">해지</span>' : '<span class="badge b-ok">구독 중</span>';
+      var ctrl = SUB.mode === "table"
+        ? '<select class="admin-select sub-status-sel" data-email="' + esc(x.email) + '" aria-label="구독 상태">' +
+            '<option value="subscribed"' + (x.status === "subscribed" ? " selected" : "") + '>구독 중</option>' +
+            '<option value="unsubscribed"' + (x.status === "unsubscribed" ? " selected" : "") + '>해지</option></select>'
+        : "";
+      return "<tr>" +
+        '<td class="ellip" data-th="이메일"><a href="mailto:' + esc(x.email) + '">' + esc(x.email) + "</a></td>" +
+        '<td data-th="이름">' + esc(x.name || "–") + "</td>" +
+        '<td data-th="상태">' + badge + "</td>" +
+        '<td class="muted" data-th="경로">' + esc(x.source || "–") + (x.page ? " · " + esc(x.page) : "") + "</td>" +
+        '<td class="muted" data-th="신청일">' + esc(String(x.created_at || "").slice(0, 10) || "–") + "</td>" +
+        '<td class="row-actions">' + ctrl + "</td></tr>";
+    }).join("");
+    [].forEach.call(body.querySelectorAll(".sub-status-sel"), function (sel) {
+      sel.addEventListener("change", function () { setSubStatus(sel.getAttribute("data-email"), sel.value); });
+    });
+  }
+
+  function setSubStatus(email, status) {
+    var row = null;
+    for (var i = 0; i < SUB.rows.length; i++) if (SUB.rows[i].email === email) row = SUB.rows[i];
+    if (!row) return;
+    var prev = row.status;
+    row.status = status === "unsubscribed" ? "unsubscribed" : "subscribed";
+    sb.from("newsletter_subscribers").update({ status: row.status, updated_at: new Date().toISOString() }).eq("email", email)
+      .then(function (r) {
+        if (r.error) {
+          row.status = prev;
+          renderSubscribers();
+          cmsMsg("sub-msg", "구독 상태를 저장하지 못했습니다: " + r.error.message, "err");
+          return;
+        }
+        renderSubscribers();
+        cmsMsg("sub-msg", "구독 상태를 저장했습니다.", "ok");
+      }, function (e) {
+        row.status = prev;
+        renderSubscribers();
+        cmsMsg("sub-msg", "구독 상태를 저장하지 못했습니다: " + (e && e.message || "권한을 확인해 주세요."), "err");
+      });
+  }
+
+  function downloadSubCsv() {
+    var head = ["이메일", "이름", "상태", "신청 경로", "페이지", "신청일"];
+    var lines = [head.join(",")].concat(SUB.rows.map(function (x) {
+      return [x.email, x.name, x.status === "unsubscribed" ? "해지" : "구독 중", x.source, x.page,
+        String(x.created_at || "").slice(0, 10)].map(function (c) {
+        return '"' + String(c == null ? "" : c).replace(/"/g, '""') + '"';
+      }).join(",");
+    }));
+    var blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "subscribers-" + kstYmd(new Date()) + ".csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+    cmsMsg("sub-msg", "구독자 " + SUB.rows.length + "명을 CSV 로 내려받았습니다.", "ok");
+  }
+
+  /* ---------------- 뉴스레터 만들기 ---------------- */
+  function nlPosts() {
+    return (CMS.posts || []).filter(function (p) {
+      return p && !p.deleted_at && p.is_published && p.status !== "draft" &&
+        (!p.publish_at || new Date(p.publish_at).getTime() <= Date.now());
+    }).sort(function (a, b) {
+      var da = String(a.published_at || a.created_at || ""), db = String(b.published_at || b.created_at || "");
+      if (da !== db) return da < db ? 1 : -1;
+      return (b.sort_order || 0) - (a.sort_order || 0);
+    });
+  }
+
+  function ensureNewsletterPicks() {
+    var box = $("#nl-posts");
+    if (!box) return;
+    if (!CMS.loaded.posts) {
+      box.innerHTML = '<li class="muted">글 목록을 불러오는 중…</li>';
+      loadPosts().then(renderNewsletterPicks, renderNewsletterPicks);
+      return;
+    }
+    renderNewsletterPicks();
+  }
+
+  function nlCount() {
+    var n = Object.keys(NL.picked).length;
+    var el = $("#nl-count");
+    if (el) el.textContent = String(n);
+    return n;
+  }
+
+  function renderNewsletterPicks() {
+    var box = $("#nl-posts");
+    if (!box) return;
+    var rows = nlPosts();
+    if (!rows.length) {
+      box.innerHTML = '<li class="muted">발행한 글이 없습니다. ‘게시판 관리’에서 글을 먼저 발행해 주세요.</li>';
+      nlCount();
+      return;
+    }
+    box.innerHTML = rows.map(function (p) {
+      var slug = p.slug || String(p.id);
+      var checked = NL.picked[slug] ? " checked" : "";
+      var views = p.view_count == null ? "" : "👁 " + p.view_count;
+      return '<li><label class="nl-pick"><input type="checkbox" data-nl="' + esc(slug) + '"' + checked + '>' +
+        '<span class="nl-pick-main"><b>' + esc(p.title || "") + '</b><span class="nl-pick-meta">' +
+          esc([boardNameFor(p.category), String(p.published_at || "").slice(0, 10)].filter(Boolean).join(" · ")) +
+        '</span></span><span class="nl-pick-views">' + esc(views) + "</span></label></li>";
+    }).join("");
+    [].forEach.call(box.querySelectorAll("[data-nl]"), function (cb) {
+      cb.addEventListener("change", function () {
+        var k = cb.getAttribute("data-nl");
+        if (cb.checked) NL.picked[k] = true; else delete NL.picked[k];
+        nlCount();
+      });
+    });
+    nlCount();
+  }
+
+  function nlPickAll(mode) {
+    NL.picked = {};
+    var rows = nlPosts();
+    if (mode === "all") rows.forEach(function (p) { NL.picked[p.slug || String(p.id)] = true; });
+    else if (mode === "recent") rows.slice(0, 5).forEach(function (p) { NL.picked[p.slug || String(p.id)] = true; });
+    renderNewsletterPicks();
+  }
+
+  function nlBaseUrl() {
+    return String(SC.siteUrl || "").replace(/\/+$/, "") || (location.origin && location.origin !== "null" ? location.origin : "");
+  }
+  function nlPlain(s) {
+    return String(s == null ? "" : s).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  }
+  function nlLink(slug) {
+    return nlBaseUrl() + "/#/post/" + encodeURIComponent(slug);
+  }
+  function nlIsoDate() { return kstYmd(new Date()); }
+
+  /* 메일 앱 호환: 표(table) 레이아웃 + 인라인 스타일만 사용합니다. */
+  function nlBuild() {
+    var subject = (($("#nl-subject") || {}).value || "").trim() || (brandName() + " 소식");
+    var lead = (($("#nl-lead") || {}).value || "").trim();
+    var foot = (($("#nl-foot") || {}).value || "").trim() || "구독을 해지하시려면 이 메일에 답장해 주세요.";
+    var rows = nlPosts().filter(function (p) { return NL.picked[p.slug || String(p.id)]; });
+    var items = rows.map(function (p) {
+      var slug = p.slug || String(p.id);
+      var link = nlLink(slug);
+      var sum = nlPlain(p.summary || p.body || "");
+      if (sum.length > 220) sum = sum.slice(0, 220).trim() + "…";
+      var img = p.image_url
+        ? '<td width="132" valign="top" style="padding:0 14px 0 0;"><a href="' + esc(link) + '" style="text-decoration:none;">' +
+          '<img src="' + esc(p.image_url) + '" width="118" alt="" style="display:block;width:118px;max-width:118px;height:auto;border:0;border-radius:8px;"></a></td>'
+        : "";
+      return '<tr><td style="padding:18px 0;border-bottom:1px solid #e8e2da;">' +
+        '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' + img +
+        '<td valign="top">' +
+          '<div style="font-size:12px;color:#a08b7c;letter-spacing:.04em;margin-bottom:4px;">' +
+            esc([boardNameFor(p.category), String(p.published_at || "").slice(0, 10)].filter(Boolean).join(" · ")) + "</div>" +
+          '<a href="' + esc(link) + '" style="color:#3E2F26;font-size:17px;line-height:1.35;font-weight:bold;text-decoration:none;">' +
+            esc(p.title || "") + "</a>" +
+          (sum ? '<div style="color:#6b5b50;font-size:14px;line-height:1.65;margin:8px 0 10px;">' + esc(sum) + "</div>" : '<div style="height:10px;"></div>') +
+          '<a href="' + esc(link) + '" style="display:inline-block;background:#3E2F26;color:#ffffff;font-size:13px;' +
+            'text-decoration:none;padding:9px 16px;border-radius:6px;">글 읽기 →</a>' +
+        "</td></tr></table></td></tr>";
+    }).join("");
+    var base = nlBaseUrl();
+    var html = [
+      "<!DOCTYPE html>",
+      '<html lang="ko"><head><meta charset="utf-8">',
+      '<meta name="viewport" content="width=device-width,initial-scale=1">',
+      "<title>" + esc(subject) + "</title></head>",
+      '<body style="margin:0;padding:0;background:#f4f1ec;">',
+      '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f1ec;"><tr><td align="center" style="padding:24px 12px;">',
+      '<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background:#ffffff;border-radius:10px;">',
+      '<tr><td style="padding:26px 28px 6px;">',
+      '<div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#C86D44;font-weight:bold;">' + esc(brandName()) + "</div>",
+      '<h1 style="margin:10px 0 0;font-size:23px;line-height:1.35;color:#3E2F26;">' + esc(subject) + "</h1>",
+      (lead ? '<p style="margin:10px 0 0;font-size:14px;line-height:1.7;color:#6b5b50;">' + esc(lead) + "</p>" : ""),
+      "</td></tr>",
+      '<tr><td style="padding:6px 28px 0;">',
+      '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">' + items + "</table>",
+      "</td></tr>",
+      '<tr><td style="padding:22px 28px 28px;">',
+      '<p style="margin:0 0 10px;font-size:13px;line-height:1.7;color:#8a7768;">' + esc(foot) + "</p>",
+      '<p style="margin:0;font-size:12px;line-height:1.7;color:#a08b7c;">' + esc(brandName()) +
+        (base ? ' · <a href="' + esc(base) + '" style="color:#a08b7c;">' + esc(base.replace(/^https?:\/\//, "")) + "</a>" : "") +
+        " · " + esc(nlIsoDate()) + "</p>",
+      "</td></tr>",
+      "</table></td></tr></table></body></html>"
+    ].join("\n");
+    return { html: html, count: rows.length, subject: subject, bytes: new Blob([html]).size };
+  }
+
+  function nlPreview() {
+    var out = nlBuild();
+    if (!out.count) { cmsMsg("nl-msg", "담을 글을 하나 이상 골라 주세요.", "err"); return null; }
+    var box = $("#nl-preview");
+    if (box) { box.innerHTML = out.html; box.hidden = false; }
+    cmsMsg("nl-msg", "미리보기 — 글 " + out.count + "개 · HTML " + fmtBytes(out.bytes), "ok");
+    return out;
+  }
+
+  function nlCopy() {
+    var out = nlPreview();
+    if (!out) return;
+    copyText(out.html).then(function () {
+      cmsMsg("nl-msg", "HTML 을 복사했습니다 — 메일 서비스의 HTML 편집기에 붙여 넣으세요.", "ok");
+    }).catch(function () {
+      cmsMsg("nl-msg", "복사하지 못했습니다. ‘HTML 내려받기’로 파일을 받아 주세요.", "err");
+    });
+  }
+
+  function nlDownload() {
+    var out = nlBuild();
+    if (!out.count) { cmsMsg("nl-msg", "담을 글을 하나 이상 골라 주세요.", "err"); return; }
+    downloadBlob("newsletter-" + nlIsoDate() + ".html", out.html, "text/html;charset=utf-8");
+    cmsMsg("nl-msg", "뉴스레터 HTML 을 내려받았습니다 (글 " + out.count + "개 · " + fmtBytes(out.bytes) + ").", "ok");
+  }
+
+  function wireV22() {
+    /* 이미지 압축 설정 — 미디어 탭과 글 편집기의 체크박스가 같은 값을 씁니다. */
+    ["#img-original", "#pf-img-original"].forEach(function (sel) {
+      var n = $(sel);
+      if (!n) return;
+      n.checked = imgKeepOriginal();
+      n.addEventListener("change", function () { imgSetKeepOriginal(n.checked); });
+    });
+
+    /* KO / English 탭 */
+    [].forEach.call(document.querySelectorAll("#pf-langtabs [data-plang]"), function (b) {
+      b.addEventListener("click", function () { postLangPane(b.getAttribute("data-plang")); });
+    });
+    [].forEach.call(document.querySelectorAll("#pg-langtabs [data-plang]"), function (b) {
+      b.addEventListener("click", function () { pageLangPane(b.getAttribute("data-plang")); });
+    });
+
+    /* 대시보드 통계 */
+    var sr = $("#stats-reload");
+    if (sr) sr.addEventListener("click", function () { STATS.loaded = false; loadStats(); });
+
+    /* 구독자 */
+    var subReload = $("#sub-reload");
+    if (subReload) subReload.addEventListener("click", function () { SUB.loaded = false; loadSubscribers(true); });
+    var subQ = $("#sub-q");
+    if (subQ) subQ.addEventListener("input", renderSubscribers);
+    var subSt = $("#sub-status");
+    if (subSt) subSt.addEventListener("change", renderSubscribers);
+    var subCsv = $("#sub-csv");
+    if (subCsv) subCsv.addEventListener("click", downloadSubCsv);
+
+    /* 뉴스레터 */
+    var nlAll = $("#nl-all");
+    if (nlAll) nlAll.addEventListener("click", function () { nlPickAll("all"); });
+    var nlNone = $("#nl-none");
+    if (nlNone) nlNone.addEventListener("click", function () { nlPickAll("none"); });
+    var nlRecent = $("#nl-recent");
+    if (nlRecent) nlRecent.addEventListener("click", function () { nlPickAll("recent"); });
+    var nlPrev = $("#nl-preview-go");
+    if (nlPrev) nlPrev.addEventListener("click", nlPreview);
+    var nlCp = $("#nl-copy");
+    if (nlCp) nlCp.addEventListener("click", nlCopy);
+    var nlDl = $("#nl-download");
+    if (nlDl) nlDl.addEventListener("click", nlDownload);
+  }
+
   function start() {
     if (booted) return;
     booted = true;

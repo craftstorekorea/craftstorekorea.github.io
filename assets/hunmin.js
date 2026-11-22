@@ -20,6 +20,13 @@
   var SC = window.SBPRESS_CONFIG || {};
   function brandName() { return (SBP && SBP.brandName) ? SBP.brandName() : (SC.siteName || "사이트"); }
   function tagline() { return (SBP && SBP.tagline) ? (SBP.tagline() || SBP.brandName()) : (SC.tagline || SC.siteName || "사이트"); }
+  /* 블록 안의 새 문구도 사이트 KO|EN 을 따라갑니다(사전에 없는 키는 키 그대로 — 테스트가 잡습니다). */
+  var I18N = window.CRAFT_I18N || null;
+  function hT(key) { return (I18N && I18N.t) ? I18N.t(key) : key; }
+  function hEn(p, field) {
+    if (!I18N || !I18N.isEn || !I18N.isEn()) return "";
+    return (p && p.en && p.en[field]) ? p.en[field] : "";
+  }
 
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
@@ -58,6 +65,11 @@
       type: "posts", label: "최신글", badge: "posts", icon: "news",
       desc: "게시판 글을 실시간으로 카드에 담습니다.",
       defaults: { type: "posts", board: "all", count: 3, title: "최신 소식" }
+    },
+    {
+      type: "popular", label: "인기글", badge: "popular", icon: "pin",
+      desc: "조회수가 많은 글을 위에서부터 모읍니다.",
+      defaults: { type: "popular", board: "all", count: 3, title: "인기글" }
     },
     {
       type: "map", label: "지도", badge: "map", icon: "map",
@@ -106,7 +118,7 @@
       else if (typeof raw[k2] === "number" || typeof raw[k2] === "boolean") b[k2] = raw[k2];
     }
     b.type = def.type;
-    if (def.type === "posts") {
+    if (def.type === "posts" || def.type === "popular") {
       b.board = str(b.board || "all").slice(0, 60) || "all";
       b.count = Math.max(1, Math.min(12, parseInt(b.count, 10) || 3));
     }
@@ -168,6 +180,41 @@
         "</span></a></li>";
     }).join("");
     sec.innerHTML = head + '<ul class="hm-post-list">' + cards + "</ul>";
+    return sec;
+  }
+
+  function renderPopular(b) {
+    var C = window.CRAFT_CMS;
+    var sec = el("section", "hm-block hm-posts hm-popular");
+    var rows = (C && C.popularPosts) ? C.popularPosts(b.board, b.count || 3) : [];
+    var board = (C && C.boardsList) ? C.boardsList().filter(function (x) { return x.slug === b.board; })[0] : null;
+    var more = b.board === "all" ? "#/news" : "#/board/" + encodeURIComponent(b.board);
+    var head = '<div class="hm-head"><div><p class="hm-eyebrow">hunmin · ' + esc(hT("hm.popular.eyebrow")) + '</p>' +
+      "<h2>" + esc(b.title || hT("hm.popular.title")) + "</h2></div>" +
+      (rows.length ? '<a class="link-more" href="' + esc(more) + '">' + esc(board ? board.name : hT("hm.popular.all")) +
+        " <svg width=\"14\" height=\"14\" aria-hidden=\"true\"><use href=\"#i-arrow\"/></svg></a>" : "") + "</div>";
+    if (!rows.length) {
+      sec.innerHTML = head + '<p class="hm-empty">' + esc(hT("hm.popular.empty")) + "</p>";
+      return sec;
+    }
+    var counted = rows.some(function (r) { return (r.views || 0) > 0; });
+    var cards = rows.map(function (p, i) {
+      var href = p.url || ("#/board/" + encodeURIComponent(p.boardSlug || "news"));
+      var ext = p.url ? ' target="_blank" rel="noopener"' : "";
+      return '<li class="hm-post"><a href="' + esc(href) + '"' + ext + ">" +
+        '<span class="hm-rank">' + (i + 1) + "</span>" +
+        (p.image ? '<span class="hm-post-img"><img src="' + esc(p.image) + '" alt="" loading="lazy"></span>' : "") +
+        '<span class="hm-post-body">' +
+          '<span class="hm-post-tags"><span class="tag">' + esc(p.tag || p.boardName || "") + "</span>" +
+            (p.pinned ? '<span class="pin-badge">📌</span>' : "") +
+            (counted ? '<span class="hm-views">👁 ' + (p.views || 0) + "</span>" : "") + "</span>" +
+          "<h3>" + esc(hEn(p, "title") || p.title) + "</h3>" +
+          (p.summary ? "<p>" + esc(hEn(p, "summary") || p.summary) + "</p>" : "") +
+          '<span class="hm-post-meta">' + esc([p.boardName, dateKo(p.date)].filter(Boolean).join(" · ")) + "</span>" +
+        "</span></a></li>";
+    }).join("");
+    sec.innerHTML = head + (counted ? "" : '<p class="hm-views-note">' + esc(hT("hm.popular.note")) + "</p>") +
+      '<ul class="hm-post-list">' + cards + "</ul>";
     return sec;
   }
 
@@ -351,6 +398,7 @@
       var node = null;
       try {
         if (b.type === "posts") node = renderPosts(b);
+        else if (b.type === "popular") node = renderPopular(b);
         else if (b.type === "map") node = renderMap(b);
         else if (b.type === "form") node = renderForm(b);
         else if (b.type === "gallery") node = renderGallery(b, page);
@@ -389,12 +437,12 @@
   }
 
   function blockFields(b, i, opts) {
-    if (b.type === "posts") {
+    if (b.type === "posts" || b.type === "popular") {
       var boards = [["all", "전체 게시판"]].concat((opts.boards || []).map(function (x) { return [x.slug, x.name]; }));
       return '<div class="hm-grid2">' +
         field("게시판", "board", b.board, { select: boards }) +
         field("글 수", "count", b.count, { select: [["3", "3개"], ["6", "6개"], ["9", "9개"]] }) +
-        "</div>" + field("제목", "title", b.title, { maxlength: 80, placeholder: "최신 소식" });
+        "</div>" + field("제목", "title", b.title, { maxlength: 80, placeholder: b.type === "popular" ? "인기글" : "최신 소식" });
     }
     if (b.type === "map") {
       return field("제목", "title", b.title, { maxlength: 80 }) +

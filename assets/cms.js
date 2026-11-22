@@ -119,13 +119,48 @@
   /* ---------------- posts → 사이트 데이터 ---------------- */
   function num(v) { return v == null ? "" : String(v); }
 
+  /* ---------------- 영문(KO/EN) 본문 ----------------
+     글: posts.title_en/summary_en/body_en 열 → 없으면 meta.en (13_v22 SQL 전 폴백)
+     페이지: pages.title_en/… 열 → 없으면 site_contents 의 page_en:<slug> JSON (폴백)
+     값이 비어 있으면 한국어를 그대로 씁니다(화면에서 pick). */
+  var viewColumn = null;                 // posts.view_count 열이 있는지 (null = 아직 모름)
+
+  function enPost(p) {
+    var m = p && p.meta && p.meta.en ? p.meta.en : {};
+    return {
+      title: num(p && p.title_en) || num(m.title),
+      summary: num(p && p.summary_en) || num(m.summary),
+      body: num(p && p.body_en) || num(m.body),
+      format: num(p && p.body_format_en) || num(m.body_format)
+    };
+  }
+  function pageEnRow(slug) {
+    var row = contents["page_en:" + slug];
+    if (!row || !row.value) return {};
+    try {
+      var o = JSON.parse(row.value);
+      return (o && typeof o === "object") ? o : {};
+    } catch (e) { return {}; }
+  }
+  function enPage(pg) {
+    var s = pg ? pageEnRow(pg.slug) : {};
+    return {
+      title: num(pg && pg.title_en) || num(s.title),
+      subtitle: num(pg && pg.subtitle_en) || num(s.subtitle),
+      body: num(pg && pg.body_en) || num(s.body),
+      format: num(pg && pg.body_format_en) || num(s.format)
+    };
+  }
+  function hasEn(o) { return !!(o && (o.title || o.summary || o.subtitle || o.body)); }
+
   function mapArticle(p) {
     return {
       slug: p.slug, title: p.title, desc: num(p.summary),
       tag: (p.meta && p.meta.tag) || p.category, region: num(p.region),
       source: num(p.source_name), date: num(p.published_at), url: num(p.source_url),
       image: p.image_url || "", _id: p.id, body: p.body || "", format: p.body_format || "text",
-      pinned: !!p.is_pinned, publish_at: p.publish_at || null, sort: p.sort_order || 0
+      pinned: !!p.is_pinned, publish_at: p.publish_at || null, sort: p.sort_order || 0,
+      views: baseViews(p), en: enPost(p)
     };
   }
   function mapInterview(p) {
@@ -135,7 +170,8 @@
       person: m.person || "공방", role: m.role || "", source: num(p.source_name),
       date: num(p.published_at), url: num(p.source_url), image: p.image_url || "", _id: p.id,
       body: p.body || "", format: p.body_format || "text",
-      pinned: !!p.is_pinned, publish_at: p.publish_at || null, sort: p.sort_order || 0
+      pinned: !!p.is_pinned, publish_at: p.publish_at || null, sort: p.sort_order || 0,
+      views: baseViews(p), en: enPost(p)
     };
   }
   function mapInfo(p) {
@@ -146,11 +182,112 @@
       slug: p.slug, title: p.title, org: num(p.source_name), period: m.period || "",
       due: due, kind: m.kind || "정보", desc: num(p.summary), url: num(p.source_url),
       image: p.image_url || "", _id: p.id, body: p.body || "", format: p.body_format || "text",
-      pinned: !!p.is_pinned, publish_at: p.publish_at || null, sort: p.sort_order || 0
+      pinned: !!p.is_pinned, publish_at: p.publish_at || null, sort: p.sort_order || 0,
+      views: baseViews(p), en: enPost(p)
     };
+  }
+
+  /* ---------------- 조회수 (posts.view_count · increment_post_view) -------------
+     · 브라우저 한 세션(sessionStorage)에 한 번만 셉니다.
+     · 13_v22 SQL 을 아직 실행하지 않아 RPC 가 없으면 localStorage 로만 세고
+       화면에는 그 브라우저에서 센 값이 보입니다(안내 문구는 관리자 대시보드에). */
+  var viewCache = Object.create(null);
+  var localView = {};
+
+  function baseViews(p) { return Math.max(0, parseInt(p && p.view_count, 10) || 0); }
+  function localKey(slug) { return "sbp:views:" + slug; }
+  function seenKey(slug) { return "sbp:seen:" + slug; }
+  function readLocal(slug) {
+    try { return Math.max(0, parseInt(localStorage.getItem(localKey(slug)), 10) || 0); } catch (e) { return 0; }
+  }
+  function writeLocal(slug, n) {
+    try { localStorage.setItem(localKey(slug), String(n)); } catch (e) { /* 저장 실패는 무시 */ }
+  }
+  function slugOf(p) { return p ? (p.slug || (p._id != null ? String(p._id) : "")) : ""; }
+
+  function viewCountFor(pOrKey) {
+    var slug = typeof pOrKey === "string" ? pOrKey : slugOf(pOrKey);
+    if (!slug) return 0;
+    if (viewCache[slug] != null) return viewCache[slug];
+    var p = (pOrKey && typeof pOrKey === "object") ? pOrKey : postBySlug(slug);
+    var n = baseViews(p);
+    if (p && p.view_count == null) n += readLocal(slug);
+    return n;
+  }
+
+  function paintViews(slug) {
+    var n = viewCache[slug] != null ? viewCache[slug] : viewCountFor(slug);
+    $$('[data-views="' + String(slug).replace(/"/g, "") + '"]').forEach(function (el) {
+      el.textContent = String(n);
+    });
+    try {
+      document.dispatchEvent(new CustomEvent("craft:views", { detail: { slug: slug, count: n } }));
+    } catch (e) { /* 옛 브라우저 */ }
+  }
+
+  function countView(p) {
+    var slug = slugOf(p);
+    if (!slug) return;
+    try {
+      if (sessionStorage.getItem(seenKey(slug))) return;
+      sessionStorage.setItem(seenKey(slug), "1");
+    } catch (e) { /* 차단된 저장소면 그냥 셉니다 */ }
+
+    var base = baseViews(p);
+    if (viewColumn === false) {           // 열이 없다고 이미 확인된 경우 — 서버에 묻지 않습니다.
+      var ln = readLocal(slug) + 1;
+      writeLocal(slug, ln);
+      viewCache[slug] = base + ln;
+      paintViews(slug);
+      return;
+    }
+    fetch(API + "/rest/v1/rpc/increment_post_view", {
+      method: "POST",
+      headers: { apikey: KEY, Authorization: "Bearer " + KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ p_slug: slug })
+    }).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }).then(function (n) {
+      viewCache[slug] = (typeof n === "number" && n >= 0) ? n : base + 1;
+      paintViews(slug);
+    }).catch(function () {
+      viewColumn = false;                 // RPC 가 없으면 이번 방문에서는 다시 부르지 않습니다.
+      var ln2 = readLocal(slug) + 1;
+      writeLocal(slug, ln2);
+      viewCache[slug] = base + ln2;
+      paintViews(slug);
+    });
+  }
+
+  /* ---------------- 인기글 (hunmin 블록 · 관리자) ---------------- */
+  function popularPosts(slug, limit) {
+    var n = Math.max(1, Math.min(12, parseInt(limit, 10) || 3));
+    var rows = postsAll.filter(isPublicPost);
+    if (slug && slug !== "all") {
+      var b = boardBySlug(slug);
+      if (!b) return [];
+      var key = boardKey(b);
+      rows = rows.filter(function (p) { return p.category === key; });
+    }
+    rows = rows.slice().sort(function (a, b) {
+      var va = baseViews(a), vb = baseViews(b);
+      if (va !== vb) return vb - va;
+      var da = rowDate(a), db = rowDate(b);
+      if (da !== db) return da < db ? 1 : -1;
+      return (a.sort_order || 0) - (b.sort_order || 0);
+    });
+    return rows.slice(0, n).map(function (p) {
+      var c = postCard(p);
+      c.views = baseViews(p);
+      return c;
+    });
   }
   function applyPosts(rows) {
     postsAll = rows.slice();
+    if (rows.length) {
+      viewColumn = rows.some(function (p) { return p && Object.prototype.hasOwnProperty.call(p, "view_count"); });
+    }
     var by = { "소개": [], "뉴스": [], "인터뷰": [], "정보": [] };
     rows.forEach(function (p) { if (by[p.category]) by[p.category].push(p); });
     // 상단 고정(PIN) 글이 먼저, 그다음 sort_order 순서입니다.
@@ -185,7 +322,8 @@
       date: rowDate(p), image: p.image_url || "", url: num(p.source_url),
       category: p.category, boardSlug: boardSlugOfCategory(p.category),
       boardName: boardNameOfCategory(p.category), tag: m.tag || p.category,
-      pinned: !!p.is_pinned, sort: p.sort_order || 0
+      pinned: !!p.is_pinned, sort: p.sort_order || 0,
+      views: baseViews(p), en: enPost(p)
     };
   }
   function isPublicPost(p) {
@@ -1166,6 +1304,15 @@
     countFor: function (slug) { return postsForBoard(slug).length; },
     postsFor: function (slug) { return postsForBoard(slug); },
     recentPosts: recentPosts,
+    popularPosts: popularPosts,
+    /* 조회수 — 글 상세를 열 때 countView(p), 화면에는 viewCount(p|slug) */
+    countView: countView,
+    viewCount: viewCountFor,
+    hasViewColumn: function () { return viewColumn !== false; },
+    /* 영문(KO/EN) 본문 — 열이 없으면 meta.en / site_contents 폴백 */
+    enPost: enPost,
+    enPage: enPage,
+    hasEn: hasEn,
     allPosts: function () { return postsAll.slice(); },
     /* 통합 검색용 — 지금 공개된 글·페이지만 돌려줍니다(휴지통·임시저장·예약 제외). */
     publicPosts: function () { return postsAll.filter(isPublicPost); },
@@ -1177,6 +1324,11 @@
     feedRss: feedRss,
     theme: function () { return window.CRAFT_THEME || "magazine"; },
     pageList: function () { return customPages.slice(); },
+    pageEn: function (slug) {
+      var pg = null;
+      for (var i = 0; i < customPages.length; i++) if (customPages[i].slug === slug) pg = customPages[i];
+      return enPage(pg);
+    },
     pageBySlug: function (slug) {
       for (var i = 0; i < customPages.length; i++) if (customPages[i].slug === slug) return customPages[i];
       return null;

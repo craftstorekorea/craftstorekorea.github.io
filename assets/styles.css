@@ -1676,3 +1676,20 @@ body[data-theme="craft"] .hm-prov{fill:#F1E0CB}
   .search-hit-go{display:none}
   .search-count{margin-left:0;width:100%}
 }
+
+/* ===== SBPress v2.2 — 조회수 · 인기글 · 영문 본문 안내 ===== */
+.views{display:inline-flex;align-items:center;gap:3px;font-size:.76rem;color:var(--ink-3);font-variant-numeric:tabular-nums;white-space:nowrap}
+.views b{font-weight:800;color:var(--ink-2)}
+.news-side .views,.info-item .meta .views{font-size:.75rem}
+.iv-views{margin:6px 0 0}
+.en-fallback{
+  display:inline-block;font-size:.72rem;font-weight:800;color:#8a6746;
+  background:#F7EBDD;border-radius:999px;padding:2px 8px
+}
+.hm-post .hm-rank{
+  flex:none;align-self:flex-start;width:24px;height:24px;border-radius:999px;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:.76rem;font-weight:800;background:var(--accent-s);color:var(--ink)
+}
+.hm-views{font-size:.72rem;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.hm-views-note{margin:-2px 0 10px;font-size:.78rem;color:var(--ink-3)}

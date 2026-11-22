@@ -19,7 +19,7 @@ GitHub Pages로 배포합니다.
 | 아카이브 (2024–2026) | 뉴스레터 아카이브 8개 호·4개 코너 151건, 호/코너 필터 + 키워드 검색 |
 | 지원·공모 | 마감일 기준 정렬, 분야 필터, D-day 자동 계산 |
 | 지도·게시판 | 시·도 SVG 지도 + 공개 시트 연동 검색·필터 게시판 |
-| 직접 만든 페이지 | `#/page/<slug>` — 제목·부제·본문·여러 이미지 + **hunmin 블록**(최신글·지도·구독/제보 폼·갤러리·텍스트)을 순서대로 조립 (관리자에서 생성) |
+| 직접 만든 페이지 | `#/page/<slug>` — 제목·부제·본문·여러 이미지 + **hunmin 블록**(최신글·인기글·지도·구독/제보 폼·갤러리·텍스트)을 순서대로 조립 (관리자에서 생성) |
 | 글 상세 | `#/post/<slug>` — 글 제목·요약·본문(마크다운·HTML 안전 렌더)·태그·댓글. 게시판 카드의 **글 보기** 로 들어갑니다 |
 | 마이페이지 | `#/mypage` — 로그인한 회원의 닉네임(수정)·회원 등급·**내 찜 목록**(해제)·**내가 쓴 댓글**(글 링크). 헤더 사용자 메뉴에서 열립니다 |
 | 직접 만든 게시판 | `#/board/<slug>` — 게시판별 페이지당 글 수·댓글 정책 (관리자에서 생성) |
@@ -77,7 +77,7 @@ assets/admin.css          관리자 화면 전용 레이아웃(모바일 카드�
 assets/cms.js             Supabase 문구·글 불러오기, 댓글 버튼·드로어
 assets/i18n.js            한국어/영어 사전과 KO|EN 스위치 (localStorage 'craft-lang')
 assets/tasks.js           업무 관리 화면 (#/tasks) — 로그인·등급 게이트, 보드 CRUD
-assets/hunmin.js          hunmin 블록 — 사이트 렌더(최신글·지도·폼·갤러리·텍스트) + 관리자 편집기
+assets/hunmin.js          hunmin 블록 — 사이트 렌더(최신글·인기글·지도·폼·갤러리·텍스트) + 관리자 편집기
 assets/body-format.js     본문 형식(text·markdown·html) 변환 + 화이트리스트 정화 — 공개 사이트·관리자 미리보기 공용
 assets/editor.js          관리자 글·페이지 본문 툴바(굵게·기울임·제목·링크·목록·인용·이미지)·미리보기
 assets/mypage.js          마이페이지 (#/mypage) — 내 정보·착·내가 쓴 댓글
@@ -94,6 +94,23 @@ p/<slug>/index.html       페이지 정적 SEO 페이지 (../build_static_seo.py
 > `/admin` 은 루트 스텁이 열려 자기 자신으로 되돌아가는 고리가 됩니다. 그래서 실제 페이지는
 > `admin.html`·`privacy.html`·`terms.html` 에 두고(주소는 `/admin`·`/privacy`·`/terms`),
 > 폴더의 `index.html` 은 `/admin/` 처럼 끝에 `/` 를 붙여 들어온 주소만 받아 넘깁니다.
+
+## v2.2 기능 (구독자·뉴스레터 · 조회수/통계 · KO·EN 본문 · 이미지 WebP 압축)
+
+- **구독자 · 뉴스레터** (`/admin`): `newsletter_subscribers` 를 상태(구독 중·해지)·검색으로 걸러 보고 CSV 로 내려받습니다.
+  발행 글을 골라 **인라인 스타일 표 HTML** 뉴스레터를 조립하고 `미리보기` · `HTML 복사` · `HTML 내려받기`(발송은 메일 서비스에서).
+  마이그레이션 전에는 `form_submissions(kind='newsletter')` 를 읽기 전용으로 보여 줍니다.
+- **조회수 · 인기글**: 글 상세를 열면 `increment_post_view(p_slug)` 로 1 올리고(브라우저 한 세션 한 번), 카드·상세에 `👁 N`.
+  `hunmin` 블록 `[인기글]` 은 조회수 순으로, 조회수가 없으면 최신 글 순으로 보여 줍니다.
+  `/admin` 대시보드 **조회수 · 최근 7일** 패널: 인기글 TOP 5 + 최근 7일 접수·댓글 막대(KST).
+  마이그레이션 전에는 `localStorage('sbp:views:<slug>')` 폴백으로 동작합니다.
+- **KO·EN 본문**: 글·페이지 편집기의 `한국어 | English` 탭. `posts.*_en`·`pages.*_en` 에 저장하고,
+  EN 모드에서는 영문을 먼저 보여 주며 비어 있으면 한국어로 폴백(상세에 `영문 없음` 배지).
+  마이그레이션 전에는 글 `meta.en`, 페이지 `site_contents('page_en:<slug>')` 에 임시 저장합니다.
+- **이미지 WebP 압축**: 모든 업로드가 긴 변 1600px·WebP 품질 82% 로 줄어 올라가고, `4.4 MB → 760 KB (83% 절감)` 처럼 표시합니다.
+  `원본 그대로 올리기`(미디어 라이브러리·글 편집기)로 예외, SVG·GIF 는 원본 유지.
+- 설정·검증 기록: `../supabase/13_v22_newsletter_stats_i18n.md` · DB `../supabase/13_v22_newsletter_stats_i18n.sql`,
+  테스트 `cd .. && CMS_TEST_MODE=v10 python3 cms_test.py`.
 
 ## v2.1 기능 (통합 검색·공유·접수함·백업·자동 SEO·KO/EN)
 
@@ -117,7 +134,7 @@ p/<slug>/index.html       페이지 정적 SEO 페이지 (../build_static_seo.py
 - 사이트의 **문구·이미지**(`site_contents`), **게시판 글**(`posts`), **회원 댓글**(`comments`)은 Supabase에 있습니다.
   `assets/cms.js` 가 페이지를 열 때 읽어 반영하고, Supabase에 연결하지 못하면 `data.js` 기본값으로 보입니다.
 - `/admin` 탭: **페이지 텍스트·이미지**(문구 수정·이미지 업로드) · **헤더 · 푸터 · Head**(로고·브랜드 이름·메뉴 순서/숨김/외부링크 + 메뉴 한국어/영어 이름, 회원 등급 이름·업무 관리 최소 등급, 푸터 회사 정보·SNS, `<head>` 코드) ·
-  **게시판 관리**(글 작성·수정·발행/숨김·삭제, 상단 고정(PIN)·예약 발행, 글 번호 `No. N`) · **업무 관리**(전체 업무 보기·상태 변경·삭제) ·
+  **게시판 관리**(글 작성·수정·발행/숨김·삭제, 상단 고정(PIN)·예약 발행, 글 번호 `No. N`, KO/EN 본문 탭) · **구독자 · 뉴스레터**(구독자 명부·CSV·뉴스레터 HTML 만들기) · **업무 관리**(전체 업무 보기·상태 변경·삭제) ·
   **미디어 라이브러리**(`site-media` 전체 파일 목록·썸네일·URL 복사·삭제·업로드) · **댓글 관리**(숨김/공개·삭제). 이미지는 Storage `site-media` 버킷에 올라갑니다.
 - **게시판 글 편집기 — 리치 에디터·임시저장**: 본문 위 툴바(굵게·기울임·제목·링크·목록·인용·**이미지 삽입**)와 **미리보기**,
   **본문 형식**(일반 텍스트·마크다운·HTML)이 있습니다. 이미지는 `site-media` 에 올라가고 본문에 바로 들어갑니다.
@@ -143,7 +160,7 @@ p/<slug>/index.html       페이지 정적 SEO 페이지 (../build_static_seo.py
 - 공개 게시판 카드(소개·뉴스·인터뷰·정보·아카이브)에는 `No. N` 순번 배지가 붙습니다.
 - **테마 프리셋**: 헤더 · 푸터 · Head 탭 맨 위 **테마 · 디자인** 의 카드 3장(매거진형 · 공방/쇼케이스형 · 기관 소개형).
   `site_contents.theme.preset` 에 저장되고 `<body data-theme="…">` 로 색·모서리·목록 레이아웃이 바뀝니다.
-- **hunmin 블록**: 페이지 편집기에서 `[최신글]`·`[지도]`·`[구독/제보 폼]`·`[이미지 갤러리]`·`[텍스트·배너]` 를
+- **hunmin 블록**: 페이지 편집기에서 `[최신글]`·`[인기글]`·`[지도]`·`[구독/제보 폼]`·`[이미지 갤러리]`·`[텍스트·배너]` 를
   추가하고 ↑/↓ 로 순서를 바꿉니다. 최신글은 공개 글을 실시간으로, 폼은 `rpc submit_form` 으로 접수합니다
   (관리자 페이지 탭의 **hunmin 폼 접수** 에서 확인).
 - **휴지통 · 수정 이력**: 글·페이지의 `삭제` 는 휴지통(`deleted_at`)으로 옮기고, `🗑 휴지통 보기` 에서 복구·영구 삭제합니다.
@@ -167,7 +184,7 @@ p/<slug>/index.html       페이지 정적 SEO 페이지 (../build_static_seo.py
 - **대댓글(답글)**: 댓글의 `답글` 을 누르면 부모 댓글 아래에 들여쓰기로 달립니다(`comments.parent_id`).
   회원과 비회원(캡차) 모두 쓸 수 있고 **한 단계**만 허용합니다(답글에 다시 답글 금지 — 서버 트리거가 거부).
 - 설정·검증 기록: `../supabase/07_cms.md` · `../supabase/08_grades_lang_tasks.md` · `../supabase/09_plugins_market.md` · `../supabase/10_v12_editor_community.md`, DB 파일 `../supabase/03_cms_comments.sql` · `../supabase/04_header_footer_head.sql` · `../supabase/05_cms_plus.sql` · `../supabase/06_pages_boards_captcha.sql` · `../supabase/07_grades_lang_tasks.sql` · `../supabase/08_themes_hunmin_trash_revisions.sql` · `../supabase/10_v12_editor_community.sql`,
-  테스트 `cd .. && CMS_TEST_MODE=user|admin|brand|plus|v2|v3|v3admin|v4|plugins|v6|v7|v8 python3 cms_test.py`,
+  테스트 `cd .. && CMS_TEST_MODE=user|admin|brand|plus|v2|v3|v3admin|v4|plugins|v6|v7|v8|v9|v10 python3 cms_test.py`,
   정적 SEO `cd .. && python3 build_static_seo.py` (검사 `--check`, 비우기 `--clean`),
   서버 검증 `cd ../supabase && SUPABASE_MGMT_TOKEN=… python3 06_check.py` · `07_check.py` · `08_check.py` · `09_check.py` · `10_check.py`.
 
