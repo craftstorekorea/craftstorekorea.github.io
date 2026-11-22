@@ -198,7 +198,7 @@
   function loadAll(force) {
     var stamp = $("#dash-stamp");
     if (stamp) stamp.textContent = "불러오는 중…";
-    Promise.all([loadMembers(), loadBookmarks(), loadSheet(), loadPostIndex(), loadGrade(), loadTasksAdmin(), loadAdmins(), loadAudit()]).then(function () {
+    Promise.all([loadMembers(), loadBookmarks(), loadSheet(), loadPostIndex(), loadGrade(), loadTasksAdmin(), loadAdmins(), loadAudit(), loadInbox()]).then(function () {
       recount();
       renderMembers();
       renderPopular();
@@ -551,7 +551,8 @@
   }
   function gradeOptions(sel) {
     return [1, 2, 3].map(function (g) {
-      return '<option value="' + g + '"' + (g === sel ? " selected" : "") + ">" + g + "단계 · " + esc(gradeName(g)) + "</option>";
+      return '<option value="' + g + '"' + (g === sel ? " selected" : "") + ">" +
+        esc(tr(g + "단계") + " · " + tr(gradeName(g))) + "</option>";
     }).join("");
   }
   function setGrade(id, grade) {
@@ -884,13 +885,15 @@
     });
     if (name === "dash" && !CMS.adminsLoaded) loadAdmins();
     if (name === "dash") loadAudit();
-    if (name === "pages") { if (!CMS.loaded.pages) loadPages(); loadPageManager(); loadFormSubs(); }
+    if (name === "pages") { if (!CMS.loaded.pages) loadPages(); loadPageManager(); }
     if (name === "brand" && !CMS.loaded.brand) loadBrand();
     if (name === "brand") { loadGrade(); loadTheme(); }
     if (name === "posts") { if (!CMS.loaded.posts) loadPosts(); loadBoards(); }
     if (name === "tasks") loadTasksAdmin();
     if (name === "media") loadMedia();
     if (name === "comments" && !CMS.loaded.comments) loadComments();
+    if (name === "inbox") loadInbox();
+    if (name === "backup") loadBackupCounts();
     if (name === "plugins") loadPlugins();
     try { window.scrollTo({ top: 0, behavior: "auto" }); } catch (e) { /* noop */ }
   }
@@ -1421,10 +1424,17 @@
     syncPostFields();
     $("#post-modal").hidden = false;
     document.body.classList.add("cms-lock");
+    var key = draftKey("post", p ? (p.id || p.slug) : "new");
+    showDraftBanner("post", key);
+    var an = $("#pf-autosave");
+    if (an) an.textContent = "";
+    startAutosave("post", key);
     setTimeout(function () { $("#pf-title").focus(); }, 50);
   }
 
   function closePostEditor() {
+    stopAutosave();
+    $("#pf-draft").hidden = true;
     $("#post-modal").hidden = true;
     document.body.classList.remove("cms-lock");
     CMS.editing = null;
@@ -1497,6 +1507,7 @@
         $("#pf-msg").textContent = "저장 실패: " + r.error.message;
         return;
       }
+      draftDel(draftKey("post", prev ? (prev.id || prev.slug) : "new"));
       closePostEditor();
       CMS.loaded.posts = false;
       loadPosts().then(function () { cmsMsg("posts-msg", "글을 저장했습니다.", "ok"); });
@@ -1794,6 +1805,11 @@
     $("#page-modal").hidden = false;
     document.body.classList.add("cms-lock");
     mountHunmin();
+    var pkey = draftKey("page", p ? p.slug : "new");
+    showDraftBanner("page", pkey);
+    var pan = $("#pg-autosave");
+    if (pan) pan.textContent = "";
+    startAutosave("page", pkey);
     setTimeout(function () { $("#pg-title").focus(); }, 50);
   }
 
@@ -1817,6 +1833,8 @@
   }
 
   function closePageEditor() {
+    stopAutosave();
+    $("#pg-draft").hidden = true;
     $("#page-modal").hidden = true;
     document.body.classList.remove("cms-lock");
     CMS.editingPage = null;
@@ -1889,6 +1907,7 @@
     req.then(function (r) {
       btn.disabled = false;
       if (r.error) { $("#pg-msg").textContent = "저장 실패: " + r.error.message; return; }
+      draftDel(draftKey("page", p ? p.slug : "new"));
       closePageEditor();
       cmsMsg("page-msg", (p ? "페이지를 수정했습니다: " : "페이지를 만들었습니다: ") + slug +
         " · 사이트 #/page/" + slug + " 에 반영됩니다.", "ok");
@@ -2434,47 +2453,614 @@
     });
   }
 
-  /* ---------------- hunmin 폼 접수 ---------------- */
-  function loadFormSubs() {
-    var body = $("#form-sub-table tbody");
-    if (!body || !sb) return Promise.resolve();
-    body.innerHTML = '<tr class="empty-row"><td colspan="5">불러오는 중…</td></tr>';
-    return sb.from("form_submissions").select("id,kind,email,name,payload,page_slug,created_at")
-      .order("created_at", { ascending: false }).limit(100)
-      .then(function (r) {
-        if (r.error) {
-          body.innerHTML = '<tr class="empty-row"><td colspan="5">불러오지 못했습니다: ' + esc(r.error.message) + "</td></tr>";
-          return;
+  /* ==========================================================================
+     v2.1 · 폼 접수함 (form_submissions — 문의·구독·제보 관리)
+     --------------------------------------------------------------------------
+     · DB 의 status · admin_note 열이 있으면 그대로 쓰고, 없으면 payload 안의
+       __status · __note 와 is_handled 로 같은 뜻을 남깁니다(마이그레이션 전에도 동작).
+     · 제출은 공개 RPC, 열람·수정·삭제는 관리자만 할 수 있습니다(RLS).
+     ========================================================================== */
+  var INBOX = {
+    rows: [], cols: { status: false, note: false },
+    kind: "all", status: "all", q: "", sel: null, loaded: false
+  };
+  var INBOX_STATUS = { new: "새 접수", in_progress: "처리 중", done: "완료" };
+  var INBOX_BADGE = { new: "b-wait", in_progress: "b-warn", done: "b-ok" };
+
+  /* 관리자 KO/EN 사전(assets/admin-i18n.js)이 있으면 그 자리에서 영어로 바꿔 넣습니다. */
+  function tr(text) {
+    var I = window.ADMIN_I18N;
+    if (!I || !I.t || I.lang() !== "en") return text;
+    return I.t(text);
+  }
+
+  function inboxStatusOf(r) {
+    if (INBOX.cols.status && r.status) return String(r.status);
+    var p = r.payload || {};
+    if (p.__status) return String(p.__status);
+    return r.is_handled ? "done" : "new";
+  }
+  function inboxNoteOf(r) {
+    if (INBOX.cols.note) return String(r.admin_note || "");
+    return String((r.payload || {}).__note || "");
+  }
+  function inboxKindLabel(kind) { return kind === "newsletter" ? "구독" : "등록·제보"; }
+  function inboxPayloadText(r) {
+    var p = r.payload || {};
+    if (r.kind === "newsletter") {
+      return [tr("뉴스레터 구독"), p.source, p.page].filter(Boolean).join(" · ") || tr("뉴스레터 구독");
+    }
+    return [p.title, p.region, p.craft, p.phone, p.desc].filter(Boolean).join(" · ") || "(내용 없음)";
+  }
+  function inboxMatch(r) {
+    if (INBOX.kind !== "all" && r.kind !== INBOX.kind) return false;
+    if (INBOX.status !== "all" && inboxStatusOf(r) !== INBOX.status) return false;
+    if (!INBOX.q) return true;
+    var hay = [r.name, r.email, inboxPayloadText(r), r.page_slug, inboxNoteOf(r)].join(" ").toLowerCase();
+    return hay.indexOf(INBOX.q) >= 0;
+  }
+
+  function paintInboxKpis() {
+    var n = { new: 0, in_progress: 0, done: 0, all: INBOX.rows.length };
+    INBOX.rows.forEach(function (r) { var st = inboxStatusOf(r); if (n[st] == null) n[st] = 0; n[st]++; });
+    var map = { "inbox-k-new": n["new"], "inbox-k-progress": n["in_progress"] || 0,
+                "inbox-k-done": n["done"], "inbox-k-all": n.all };
+    Object.keys(map).forEach(function (id) { var el = $("#" + id); if (el) el.textContent = map[id]; });
+    var badge = $("#tab-inbox-count");
+    if (badge) badge.textContent = n["new"] ? String(n["new"]) : "";
+    var sub = $("#form-sub-count");
+    if (sub) sub.textContent = n.all;
+  }
+
+  function renderInbox() {
+    var body = $("#inbox-table tbody");
+    if (!body) return;
+    paintInboxKpis();
+    var rows = INBOX.rows.filter(inboxMatch);
+    if (!rows.length) {
+      body.innerHTML = '<tr class="empty-row"><td colspan="6">' +
+        (INBOX.rows.length ? "조건에 맞는 접수가 없습니다." : "아직 접수된 내용이 없습니다.") + "</td></tr>";
+      return;
+    }
+    body.innerHTML = rows.map(function (r) {
+      var st = inboxStatusOf(r);
+      var who = [r.name, r.email].filter(Boolean).join(" / ") || "–";
+      var txt = inboxPayloadText(r);
+      return "<tr>" +
+        '<td class="muted" data-th="접수">' + esc(fmtRevTime(r.created_at)) + "</td>" +
+        '<td data-th="종류"><span class="badge ' + (r.kind === "newsletter" ? "b-ok" : "b-wait") + '">' +
+          esc(inboxKindLabel(r.kind)) + "</span></td>" +
+        '<td data-th="이름·이메일">' + esc(who) + "</td>" +
+        '<td class="ellip" data-th="내용" title="' + esc(txt) + '">' + esc(txt) + "</td>" +
+        '<td data-th="상태"><span class="badge ' + (INBOX_BADGE[st] || "b-wait") + '">' +
+          esc(INBOX_STATUS[st] || st) + "</span></td>" +
+        '<td><button type="button" class="rowlink inbox-open" data-id="' + esc(r.id) + '">열기</button></td>' +
+        "</tr>";
+    }).join("");
+    [].forEach.call(body.querySelectorAll(".inbox-open"), function (b) {
+      b.addEventListener("click", function () { openInbox(b.getAttribute("data-id")); });
+    });
+  }
+
+  function loadInbox(force) {
+    var body = $("#inbox-table tbody");
+    if (!sb) return Promise.resolve();
+    if (INBOX.loaded && !force) { renderInbox(); return Promise.resolve(); }
+    if (body) body.innerHTML = '<tr class="empty-row"><td colspan="6">불러오는 중…</td></tr>';
+    var full = "id,kind,email,name,payload,page_slug,is_handled,created_at,status,admin_note,handled_at";
+    var base = "id,kind,email,name,payload,page_slug,is_handled,created_at";
+    function q(sel) {
+      return sb.from("form_submissions").select(sel).order("created_at", { ascending: false }).limit(200);
+    }
+    return q(full).then(function (r) {
+      if (!r.error) { INBOX.cols = { status: true, note: true }; return r; }
+      /* status · admin_note 열이 아직 없으면(마이그레이션 전) 기본 열만 읽습니다. */
+      INBOX.cols = { status: false, note: false };
+      return q(base);
+    }).then(function (r) {
+      if (r.error) {
+        if (body) body.innerHTML = '<tr class="empty-row"><td colspan="6">불러오지 못했습니다: ' + esc(r.error.message) + "</td></tr>";
+        return;
+      }
+      INBOX.rows = r.data || [];
+      INBOX.loaded = true;
+      renderInbox();
+      var note = $("#inbox-note");
+      if (note) {
+        note.innerHTML = INBOX.cols.status
+          ? "Supabase <code>form_submissions</code> · 상태·관리 메모는 관리자만 읽고 쓸 수 있습니다."
+          : "Supabase <code>form_submissions</code> · <b>status 열이 아직 없어</b> 처리 상태를 <code>is_handled</code>·<code>payload</code> 에 남깁니다. " +
+            "정식 열을 쓰려면 <code>supabase/12_v21_enhancements.sql</code> 을 한 번 실행해 주세요.";
+      }
+      var stamp = $("#inbox-stamp");
+      if (stamp) stamp.textContent = "마지막 확인 " + new Date().toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit" });
+    });
+  }
+
+  function openInbox(id) {
+    var r = null;
+    for (var i = 0; i < INBOX.rows.length; i++) if (INBOX.rows[i].id === id) { r = INBOX.rows[i]; break; }
+    if (!r) return;
+    INBOX.sel = r;
+    var p = r.payload || {};
+    $("#inbox-modal-title").textContent = inboxKindLabel(r.kind) + " 접수";
+    $("#inbox-detail-meta").innerHTML =
+      '<span class="badge ' + (r.kind === "newsletter" ? "b-ok" : "b-wait") + '">' + esc(inboxKindLabel(r.kind)) + "</span>" +
+      "<span>" + esc(fmtRevTime(r.created_at)) + "</span>" +
+      (r.page_slug ? "<span>페이지 <code>" + esc(r.page_slug) + "</code></span>" : "") +
+      (r.email ? '<a class="rowlink" href="mailto:' + esc(r.email) + '">메일 쓰기</a>' : "");
+    var rows = [];
+    function add(k, v) { if (v != null && String(v).trim() !== "") rows.push([k, String(v)]); }
+    add("이름", r.name);
+    add("이메일", r.email);
+    Object.keys(p).forEach(function (k) {
+      if (k === "__status" || k === "__note") return;
+      var v = p[k];
+      if (v == null || v === "") return;
+      if (typeof v === "object") v = JSON.stringify(v);
+      add(k, v);
+    });
+    $("#inbox-fields").innerHTML = rows.length
+      ? rows.map(function (kv) {
+          return "<dt>" + esc(kv[0]) + "</dt><dd>" + (/(url|link|링크)/i.test(kv[0])
+            ? '<a class="rowlink" href="' + esc(kv[1]) + '" target="_blank" rel="noopener">' + esc(kv[1]) + "</a>"
+            : esc(kv[1])) + "</dd>";
+        }).join("")
+      : "<dt>내용</dt><dd>(비어 있음)</dd>";
+    $("#inbox-status-sel").value = inboxStatusOf(r);
+    $("#inbox-note-input").value = inboxNoteOf(r);
+    var hint = $("#inbox-status-hint");
+    if (hint) hint.textContent = INBOX.cols.status
+      ? "상태를 바꾸면 이 접수의 처리 상황이 함께 바뀝니다."
+      : "status 열이 없어 is_handled(완료 여부)와 payload.__status 로 저장합니다.";
+    cmsMsg("inbox-modal-msg", "");
+    $("#inbox-modal").hidden = false;
+    document.body.classList.add("cms-lock");
+  }
+
+  function closeInbox() {
+    $("#inbox-modal").hidden = true;
+    document.body.classList.remove("cms-lock");
+    INBOX.sel = null;
+  }
+
+  function saveInbox() {
+    var r = INBOX.sel;
+    if (!r) return;
+    var st = $("#inbox-status-sel").value;
+    if (!INBOX_STATUS[st]) st = "new";
+    var note = ($("#inbox-note-input").value || "").trim();
+    var patch = { is_handled: st === "done" };
+    if (INBOX.cols.status) {
+      patch.status = st;
+      patch.handled_at = st === "done" ? new Date().toISOString() : null;
+    }
+    if (INBOX.cols.note) patch.admin_note = note || null;
+    if (!INBOX.cols.status || !INBOX.cols.note) {
+      var merged = {};
+      var src = r.payload || {};
+      Object.keys(src).forEach(function (k) { merged[k] = src[k]; });
+      if (!INBOX.cols.status) merged.__status = st;
+      if (!INBOX.cols.note) merged.__note = note || "";
+      patch.payload = merged;
+    }
+    $("#inbox-save").disabled = true;
+    cmsMsg("inbox-modal-msg", "저장하는 중…");
+    sb.from("form_submissions").update(patch).eq("id", r.id).then(function (res) {
+      $("#inbox-save").disabled = false;
+      if (res.error) { cmsMsg("inbox-modal-msg", "저장 실패: " + res.error.message, "err"); return; }
+      if (INBOX.cols.status) r.status = st;
+      if (INBOX.cols.note) r.admin_note = note || null;
+      r.is_handled = st === "done";
+      if (!INBOX.cols.status || !INBOX.cols.note) r.payload = patch.payload;
+      renderInbox();
+      closeInbox();
+      cmsMsg("inbox-msg", "접수 상태를 ‘" + INBOX_STATUS[st] + "’(으)로 저장했습니다.", "ok");
+    }).catch(function (err) {
+      $("#inbox-save").disabled = false;
+      cmsMsg("inbox-modal-msg", "저장 실패: " + ((err && err.message) || "알 수 없는 오류"), "err");
+    });
+  }
+
+  function deleteInbox() {
+    var r = INBOX.sel;
+    if (!r) return;
+    if (!window.confirm("이 접수 내용을 지울까요? 되돌릴 수 없습니다.")) return;
+    cmsMsg("inbox-modal-msg", "지우는 중…");
+    sb.from("form_submissions").delete().eq("id", r.id).then(function (res) {
+      if (res.error) { cmsMsg("inbox-modal-msg", "삭제 실패: " + res.error.message, "err"); return; }
+      INBOX.rows = INBOX.rows.filter(function (x) { return x.id !== r.id; });
+      closeInbox();
+      renderInbox();
+      cmsMsg("inbox-msg", "접수 내용을 지웠습니다.", "ok");
+    });
+  }
+
+  function downloadInboxCsv() {
+    var rows = INBOX.rows.filter(inboxMatch);
+    var head = ["접수", "종류", "이름", "이메일", "상태", "관리 메모", "페이지", "내용"];
+    var lines = [head.join(",")].concat(rows.map(function (r) {
+      var cells = [fmtRevTime(r.created_at), inboxKindLabel(r.kind), r.name || "", r.email || "",
+                   INBOX_STATUS[inboxStatusOf(r)] || "", inboxNoteOf(r), r.page_slug || "", inboxPayloadText(r)];
+      return cells.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(",");
+    }));
+    var blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = brandName() + "_폼접수_" + todayKST() + ".csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+    cmsMsg("inbox-msg", "접수 " + rows.length + "건을 CSV 로 내려받았습니다.", "ok");
+  }
+
+  /* ==========================================================================
+     v2.1 · 전체 백업 / 복원
+     --------------------------------------------------------------------------
+     · 내보내기: site_contents · pages · boards · posts + sbpress.config.json
+     · 복원: 파일을 먼저 검사(형식·행 모양·개수)하고, 확인을 체크해야 실행합니다.
+       같은 id/key 는 upsert 로 덮어쓰고, 파일에 없는 자료는 지우지 않습니다.
+     ========================================================================== */
+  var BACKUP_FORMAT = "sbpress-backup";
+  var BACKUP_TABLES = [
+    { name: "site_contents", label: "사이트 문구", conflict: "key" },
+    { name: "pages", label: "페이지", conflict: "id" },
+    { name: "boards", label: "게시판", conflict: "id" },
+    { name: "posts", label: "글", conflict: "id" }
+  ];
+  var BACKUP = { data: null, ok: false, report: [], warnings: [], counts: {} };
+
+  function paintBackupCounts(c) {
+    var map = { "bc-contents": c.site_contents, "bc-pages": c.pages, "bc-boards": c.boards, "bc-posts": c.posts };
+    Object.keys(map).forEach(function (id) {
+      var el = $("#" + id);
+      if (el) el.textContent = (map[id] == null ? "–" : map[id]);
+    });
+    var cfgEl = $("#bc-config");
+    if (cfgEl) cfgEl.textContent = (c.config === false ? "없음" : "포함");
+  }
+
+  function loadBackupCounts() {
+    if (!sb) return Promise.resolve();
+    var c = {};
+    var jobs = BACKUP_TABLES.map(function (t) {
+      return sb.from(t.name).select("*", { count: "exact", head: true }).then(function (r) {
+        c[t.name] = (r && typeof r.count === "number") ? r.count : (r && !r.error ? "?" : "–");
+      }, function () { c[t.name] = "–"; });
+    });
+    c.config = null;
+    return Promise.all(jobs).then(function () {
+      return fetch("/sbpress.config.json", { cache: "no-store" }).then(function (r) {
+        c.config = !!r.ok;
+      }).catch(function () { c.config = false; });
+    }).then(function () {
+      BACKUP.counts = c;
+      paintBackupCounts(c);
+      var stamp = $("#backup-stamp");
+      if (stamp) stamp.textContent = "현황 " + new Date().toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit" });
+    });
+  }
+
+  function downloadBlob(name, text, type) {
+    var blob = new Blob([text], { type: type || "application/json;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  }
+
+  function exportBackup() {
+    if (!sb) return;
+    var btn = $("#backup-export");
+    if (btn) btn.disabled = true;
+    cmsMsg("backup-export-msg", "자료를 모으는 중…");
+    var jobs = BACKUP_TABLES.map(function (t) {
+      return sb.from(t.name).select("*").limit(5000).then(function (r) {
+        return { name: t.name, rows: r.error ? null : (r.data || []), error: r.error ? r.error.message : "" };
+      }, function (e) {
+        return { name: t.name, rows: null, error: (e && e.message) || "요청 실패" };
+      });
+    });
+    var cfgJob = fetch("/sbpress.config.json", { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; });
+    Promise.all(jobs.concat([cfgJob])).then(function (res) {
+      if (btn) btn.disabled = false;
+      var cfg = res.pop();
+      var out = {
+        format: BACKUP_FORMAT, version: "2.1", site: brandName(), siteUrl: (SC.siteUrl || ""),
+        exportedAt: new Date().toISOString(), counts: {}, config: cfg, tables: {}
+      };
+      var bad = [];
+      res.forEach(function (r) {
+        if (r.error) bad.push(r.name + " (" + r.error + ")");
+        out.tables[r.name] = r.rows || [];
+        out.counts[r.name] = (r.rows || []).length;
+      });
+      var name = "sbpress-backup-" + todayKST() + ".json";
+      downloadBlob(name, JSON.stringify(out, null, 1));
+      var total = Object.keys(out.counts).reduce(function (a, k) { return a + out.counts[k]; }, 0);
+      cmsMsg("backup-export-msg", bad.length
+        ? "일부를 담지 못했습니다: " + bad.join(", ")
+        : "백업 " + name + " — " + total + "건을 내려받았습니다.", bad.length ? "err" : "ok");
+    });
+  }
+
+  function clearBackupPick() {
+    BACKUP = { data: null, ok: false, report: [], warnings: [], counts: BACKUP.counts };
+    var f = $("#backup-file");
+    if (f) f.value = "";
+    var nm = $("#backup-file-name");
+    if (nm) nm.textContent = "선택한 파일 없음";
+    var box = $("#backup-report");
+    if (box) { box.hidden = true; box.innerHTML = ""; }
+    var wrap = $("#backup-confirm-wrap");
+    if (wrap) wrap.hidden = true;
+    var chk = $("#backup-confirm");
+    if (chk) chk.checked = false;
+    var run = $("#backup-restore");
+    if (run) run.disabled = true;
+    cmsMsg("backup-msg", "");
+  }
+
+  function inspectBackup(file) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      var data = null, why = "";
+      try { data = JSON.parse(String(reader.result || "")); } catch (e) { why = "JSON 파일이 아닙니다."; }
+      if (!why && (!data || typeof data !== "object")) why = "내용이 비어 있습니다.";
+      if (!why && data.format !== BACKUP_FORMAT) why = "SBPress 백업 파일이 아닙니다(format 값 확인).";
+      if (!why && (!data.tables || typeof data.tables !== "object")) why = "tables 가 없습니다.";
+      var report = [], warnings = [], total = 0;
+      if (!why) {
+        BACKUP_TABLES.forEach(function (t) {
+          var rows = data.tables[t.name];
+          if (!Array.isArray(rows)) { warnings.push(t.label + " — 배열이 아니라 건너뜁니다"); return; }
+          var good = rows.filter(function (r) { return r && typeof r === "object" && !Array.isArray(r) && r[t.conflict]; });
+          var skip = rows.length - good.length;
+          if (skip) warnings.push(t.label + " — " + skip + "행은 " + t.conflict + " 가 없어 건너뜁니다");
+          report.push({ name: t.name, label: t.label, conflict: t.conflict, count: good.length, skip: skip, rows: good });
+          total += good.length;
+        });
+        if (!total) why = "가져올 자료가 없습니다.";
+      }
+      var nm = $("#backup-file-name");
+      if (nm) nm.textContent = file.name + " · " + Math.round(file.size / 1024) + "KB";
+      var box = $("#backup-report");
+      if (why) {
+        BACKUP = { data: null, ok: false, report: [], warnings: [], counts: BACKUP.counts };
+        if (box) {
+          box.hidden = false;
+          box.innerHTML = '<p class="backup-bad">검사 결과: ' + esc(why) + "</p>";
         }
-        var rows = r.data || [];
-        if (!rows.length) {
-          body.innerHTML = '<tr class="empty-row"><td colspan="5">아직 접수된 내용이 없습니다.</td></tr>';
-          return;
-        }
-        body.innerHTML = rows.map(function (s) {
-          var p = s.payload || {};
-          var detail = s.kind === "newsletter"
-            ? "뉴스레터 구독"
-            : [p.title, p.region, p.craft, p.phone, p.desc].filter(Boolean).join(" · ");
-          return "<tr>" +
-            '<td class="muted" data-th="접수">' + esc(fmtRevTime(s.created_at)) + "</td>" +
-            '<td data-th="종류"><span class="badge ' + (s.kind === "newsletter" ? "b-ok" : "b-wait") + '">' +
-              (s.kind === "newsletter" ? "구독" : "등록·제보") + "</span></td>" +
-            '<td data-th="이메일·이름">' + esc([s.email, s.name].filter(Boolean).join(" / ") || "–") + "</td>" +
-            '<td class="ellip" data-th="내용" title="' + esc(detail) + '">' + esc(detail || "–") + "</td>" +
-            '<td><button type="button" class="rowlink danger form-sub-del" data-id="' + esc(s.id) + '">삭제</button></td>' +
-            "</tr>";
-        }).join("");
-        [].forEach.call(body.querySelectorAll(".form-sub-del"), function (b) {
-          b.addEventListener("click", function () {
-            if (!window.confirm("이 접수 내용을 지울까요? 되돌릴 수 없습니다.")) return;
-            sb.from("form_submissions").delete().eq("id", b.getAttribute("data-id")).then(function () {
-              loadFormSubs();
-              cmsMsg("form-sub-msg", "접수 내용을 지웠습니다.", "ok");
+        var wrap0 = $("#backup-confirm-wrap");
+        if (wrap0) wrap0.hidden = true;
+        cmsMsg("backup-msg", "이 파일은 복원할 수 없습니다: " + why, "err");
+        return;
+      }
+      BACKUP = { data: data, ok: true, report: report, warnings: warnings, counts: BACKUP.counts };
+      var when = data.exportedAt ? fmtRevTime(data.exportedAt) : "?";
+      var html = '<p class="backup-summary">' +
+        (data.site ? "사이트 <b>" + esc(String(data.site)) + "</b> · " : "") +
+        "내보낸 시각 <b>" + esc(when) + "</b> · 모두 <b>" + total + "</b>행</p>" +
+        '<table class="admin-table backup-table"><thead><tr><th>자료</th><th class="num">행</th><th>기준 열</th></tr></thead><tbody>' +
+        report.map(function (r2) {
+          return "<tr><td>" + esc(r2.label) + " <code>" + esc(r2.name) + "</code></td>" +
+            '<td class="num">' + r2.count + "</td><td class=\"muted\">" + esc(r2.conflict) + "</td></tr>";
+        }).join("") + "</tbody></table>";
+      if (warnings.length) html += '<ul class="backup-warn">' + warnings.map(function (w) { return "<li>" + esc(w) + "</li>"; }).join("") + "</ul>";
+      if (data.config) html += '<p class="cms-hint">설정 파일도 들어 있습니다(사이트 이름 · 주소 · 기능 스위치). 설정은 자동으로 바뀌지 않습니다.</p>';
+      if (box) { box.hidden = false; box.innerHTML = html; }
+      var wrap = $("#backup-confirm-wrap");
+      if (wrap) wrap.hidden = false;
+      var chk = $("#backup-confirm");
+      if (chk) chk.checked = false;
+      var run = $("#backup-restore");
+      if (run) run.disabled = true;
+      cmsMsg("backup-msg", "검사 통과 — 확인에 체크하면 복원할 수 있습니다.", "ok");
+    };
+    reader.onerror = function () { cmsMsg("backup-msg", "파일을 읽지 못했습니다.", "err"); };
+    reader.readAsText(file, "utf-8");
+  }
+
+  function runBackupRestore() {
+    if (!BACKUP.ok || !BACKUP.data) return;
+    if (!$("#backup-confirm").checked) {
+      cmsMsg("backup-msg", "‘덮어쓰는 것에 동의합니다’에 체크해 주세요.", "err");
+      return;
+    }
+    if (!window.confirm("백업 파일의 자료로 기존 자료를 덮어쓸까요?\n같은 id·key 는 바뀌고, 파일에 없는 자료는 그대로 남습니다.")) return;
+    var run = $("#backup-restore");
+    if (run) run.disabled = true;
+    cmsMsg("backup-msg", "복원하는 중…");
+    var out = [];
+    var chain = Promise.resolve();
+    BACKUP.report.forEach(function (t) {
+      chain = chain.then(function () {
+        if (!t.rows.length) { out.push(t.label + " 0행"); return null; }
+        var chunks = [], size = 100;
+        for (var i = 0; i < t.rows.length; i += size) chunks.push(t.rows.slice(i, i + size));
+        var sub = chunks.reduce(function (p, chunk) {
+          return p.then(function () {
+            return sb.from(t.name).upsert(chunk, { onConflict: t.conflict }).then(function (r) {
+              if (r.error) throw new Error(t.label + ": " + r.error.message);
             });
           });
-        });
+        }, Promise.resolve());
+        return sub.then(function () { out.push(t.label + " " + t.rows.length + "행"); });
       });
+    });
+    chain.then(function () {
+      cmsMsg("backup-msg", "복원 완료 — " + out.join(" · ") + ". 화면을 새로 고치면 목록에 반영됩니다.", "ok");
+      CMS.loaded.posts = false; CMS.loaded.pages = false; CMS.loaded.brand = false; CMS.loaded.comments = false;
+      loadBackupCounts();
+      if (INBOX.loaded) loadInbox(true);
+      if (run) run.disabled = false;
+    }).catch(function (e) {
+      cmsMsg("backup-msg", "복원 중 멈췄습니다: " + ((e && e.message) || "알 수 없는 오류"), "err");
+      if (run) run.disabled = false;
+    });
+  }
+
+  /* ==========================================================================
+     v2.1 · 에디터 자동 임시저장 (localStorage)
+     --------------------------------------------------------------------------
+     · 글·페이지 편집기가 열려 있는 동안 4초마다, 그리고 입력이 멈추면 1.2초 뒤에
+       초안을 localStorage 에 남깁니다. 창이 갑자기 닫혀도 다시 열 때 복구할 수 있습니다.
+     · 저장에 성공하면 그 초안은 지웁니다.
+     ========================================================================== */
+  var DRAFT_PREFIX = "sbp:draft:";
+  var draftTimer = 0, draftDebounce = 0, draftLast = "", draftKeyNow = "";
+
+  function draftKey(kind, id) { return DRAFT_PREFIX + kind + ":" + (id || "new"); }
+  function draftSet(key, data) {
+    try { localStorage.setItem(key, JSON.stringify({ v: 1, at: new Date().toISOString(), data: data })); return true; }
+    catch (e) { return false; }
+  }
+  function draftGet(key) {
+    try {
+      var raw = localStorage.getItem(key);
+      if (!raw) return null;
+      var o = JSON.parse(raw);
+      return (o && o.data) ? o : null;
+    } catch (e) { return null; }
+  }
+  function draftDel(key) { try { if (key) localStorage.removeItem(key); } catch (e) { /* noop */ } }
+
+  function readPostDraft() {
+    function v(sel) { var n = $(sel); return n ? n.value : ""; }
+    return {
+      category: v("#pf-category"), state: v("#pf-state"), title: v("#pf-title"), slug: v("#pf-slug"),
+      summary: v("#pf-summary"), body: v("#pf-body"), body_format: v("#pf-body_format"),
+      region: v("#pf-region"), source_name: v("#pf-source_name"), source_url: v("#pf-source_url"),
+      published_at: v("#pf-published_at"), deadline: v("#pf-deadline"), sort_order: v("#pf-sort_order"),
+      tag: v("#pf-tag"), person: v("#pf-person"), role: v("#pf-role"), kind: v("#pf-kind"),
+      period: v("#pf-period"), image_url: v("#pf-image_url"),
+      is_pinned: !!($("#pf-is-pinned") && $("#pf-is-pinned").checked), publish_at: v("#pf-publish_at")
+    };
+  }
+
+  function applyPostDraft(d) {
+    if (!d) return;
+    function set(sel, val) { var n = $(sel); if (n && val != null) n.value = val; }
+    set("#pf-category", d.category); setCategoryValue(d.category || "뉴스");
+    set("#pf-state", d.state); set("#pf-title", d.title); set("#pf-slug", d.slug);
+    set("#pf-summary", d.summary); set("#pf-body", d.body); set("#pf-body_format", d.body_format);
+    set("#pf-region", d.region); set("#pf-source_name", d.source_name); set("#pf-source_url", d.source_url);
+    set("#pf-published_at", d.published_at); set("#pf-deadline", d.deadline);
+    set("#pf-sort_order", d.sort_order); set("#pf-tag", d.tag); set("#pf-person", d.person);
+    set("#pf-role", d.role); set("#pf-kind", d.kind); set("#pf-period", d.period);
+    set("#pf-image_url", d.image_url); set("#pf-publish_at", d.publish_at);
+    var pin = $("#pf-is-pinned");
+    if (pin) pin.checked = !!d.is_pinned;
+    syncPostFields();
+    paintPostPreview(d.image_url || "");
+    paintPublishHint();
+    if (postEditor) postEditor.refresh();
+  }
+
+  function readPageDraft() {
+    function v(sel) { var n = $(sel); return n ? n.value : ""; }
+    return {
+      slug: v("#pg-slug"), title: v("#pg-title"), subtitle: v("#pg-subtitle"), body: v("#pg-body"),
+      body_format: v("#pg-body_format"), sort_order: v("#pg-sort"),
+      is_published: !!($("#pg-published") && $("#pg-published").checked),
+      images: (CMS.pageImages || []).slice(),
+      blocks: (CMS.pageBlocks || []).slice()
+    };
+  }
+
+  function applyPageDraft(d) {
+    if (!d) return;
+    function set(sel, val) { var n = $(sel); if (n && val != null) n.value = val; }
+    set("#pg-title", d.title); set("#pg-subtitle", d.subtitle); set("#pg-body", d.body);
+    set("#pg-body_format", d.body_format); set("#pg-sort", d.sort_order);
+    var pub = $("#pg-published");
+    if (pub) pub.checked = d.is_published !== false;
+    CMS.pageImages = (d.images || []).slice();
+    renderPageImages();
+    if (Array.isArray(d.blocks)) {
+      CMS.pageBlocks = d.blocks;
+      mountHunmin();
+    }
+    if (pageEditor) pageEditor.refresh();
+  }
+
+  function paintAutosaveNote(kind) {
+    var el = $(kind === "post" ? "#pf-autosave" : "#pg-autosave");
+    if (!el) return;
+    el.textContent = "자동 저장됨 " + new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function autosaveOnce(kind) {
+    var key = draftKeyNow;
+    if (!key) return false;
+    var data, modal = $(kind === "post" ? "#post-modal" : "#page-modal");
+    if (!modal || modal.hidden) return false;
+    data = kind === "post" ? readPostDraft() : readPageDraft();
+    var sig = JSON.stringify(data);
+    if (sig === draftLast) return false;
+    /* 아직 아무것도 쓰지 않은 새 글·페이지는 초안으로 남기지 않습니다. */
+    if (!String(data.title || "").trim() && !String(data.body || "").trim()) return false;
+    draftLast = sig;
+    if (!draftSet(key, data)) return false;
+    paintAutosaveNote(kind);
+    return true;
+  }
+
+  function startAutosave(kind, key) {
+    stopAutosave();
+    draftKeyNow = key;
+    draftLast = "";
+    draftTimer = setInterval(function () { autosaveOnce(kind); }, 4000);
+    var form = $(kind === "post" ? "#post-form" : "#page-form");
+    if (form) {
+      form.addEventListener("input", function () {
+        clearTimeout(draftDebounce);
+        draftDebounce = setTimeout(function () { autosaveOnce(kind); }, 1200);
+      });
+      form.addEventListener("change", function () {
+        clearTimeout(draftDebounce);
+        draftDebounce = setTimeout(function () { autosaveOnce(kind); }, 600);
+      });
+    }
+  }
+
+  function stopAutosave() {
+    if (draftTimer) { clearInterval(draftTimer); draftTimer = 0; }
+    if (draftDebounce) { clearTimeout(draftDebounce); draftDebounce = 0; }
+    draftKeyNow = "";
+  }
+
+  function showDraftBanner(kind, key) {
+    var box = $(kind === "post" ? "#pf-draft" : "#pg-draft");
+    var txt = $(kind === "post" ? "#pf-draft-text" : "#pg-draft-text");
+    if (!box) return;
+    var d = draftGet(key);
+    if (!d) { box.hidden = true; return; }
+    var label = (d.data && (d.data.title || d.data.slug)) || "";
+    txt.textContent = "자동 저장된 임시본이 있습니다" +
+      (d.at ? " · " + fmtRevTime(d.at) : "") + (label ? " · " + label : "");
+    box.hidden = false;
+  }
+
+  function wireDraftBanner(kind) {
+    var restore = $(kind === "post" ? "#pf-draft-restore" : "#pg-draft-restore");
+    var discard = $(kind === "post" ? "#pf-draft-discard" : "#pg-draft-discard");
+    if (restore) restore.addEventListener("click", function () {
+      var d = draftGet(draftKeyNow);
+      if (!d) return;
+      if (kind === "post") applyPostDraft(d.data); else applyPageDraft(d.data);
+      var box = $(kind === "post" ? "#pf-draft" : "#pg-draft");
+      if (box) box.hidden = true;
+      cmsMsg(kind === "post" ? "pf-msg" : "pg-msg", "자동 저장된 임시본을 복구했습니다. 저장을 눌러야 반영됩니다.", "ok");
+    });
+    if (discard) discard.addEventListener("click", function () {
+      if (!window.confirm("자동 저장된 임시본을 지울까요? 되돌릴 수 없습니다.")) return;
+      draftDel(draftKeyNow);
+      var box = $(kind === "post" ? "#pf-draft" : "#pg-draft");
+      if (box) box.hidden = true;
+    });
   }
 
   function initCms() {
@@ -2645,6 +3231,73 @@
     if (adminTq) adminTq.addEventListener("input", renderTasksAdmin);
     var adminTs = $("#tasks-admin-status");
     if (adminTs) adminTs.addEventListener("change", renderTasksAdmin);
+
+    /* --- v2.1: 폼 접수함 --- */
+    var ibReload = $("#inbox-reload");
+    if (ibReload) ibReload.addEventListener("click", function () { loadInbox(true); });
+    var ibCsv = $("#inbox-csv");
+    if (ibCsv) ibCsv.addEventListener("click", downloadInboxCsv);
+    var ibKind = $("#inbox-kind");
+    if (ibKind) ibKind.addEventListener("change", function () { INBOX.kind = ibKind.value; renderInbox(); });
+    var ibStatus = $("#inbox-status");
+    if (ibStatus) ibStatus.addEventListener("change", function () { INBOX.status = ibStatus.value; renderInbox(); });
+    var ibQ = $("#inbox-q");
+    if (ibQ) ibQ.addEventListener("input", function () { INBOX.q = (ibQ.value || "").trim().toLowerCase(); renderInbox(); });
+    var ibKpis = $("#inbox-kpis");
+    if (ibKpis) ibKpis.addEventListener("click", function (e) {
+      var li = e.target.closest("[data-k]");
+      if (!li) return;
+      INBOX.status = li.getAttribute("data-k") || "all";
+      if (ibStatus) ibStatus.value = INBOX.status;
+      renderInbox();
+    });
+    [["#inbox-close", closeInbox], ["#inbox-close-x", closeInbox]].forEach(function (pair) {
+      var b = $(pair[0]);
+      if (b) b.addEventListener("click", pair[1]);
+    });
+    var inboxModal = $("#inbox-modal");
+    if (inboxModal) inboxModal.addEventListener("click", function (e) {
+      if (e.target === inboxModal) closeInbox();
+    });
+    var ibSave = $("#inbox-save");
+    if (ibSave) ibSave.addEventListener("click", saveInbox);
+    var ibDel = $("#inbox-del");
+    if (ibDel) ibDel.addEventListener("click", deleteInbox);
+    var fsGo = $("#form-sub-go");
+    if (fsGo) fsGo.addEventListener("click", function () { activateTab("inbox"); });
+
+    /* --- v2.1: 백업 · 복원 --- */
+    var bkReload = $("#backup-reload");
+    if (bkReload) bkReload.addEventListener("click", loadBackupCounts);
+    var bkExport = $("#backup-export");
+    if (bkExport) bkExport.addEventListener("click", exportBackup);
+    var bkFile = $("#backup-file");
+    if (bkFile) bkFile.addEventListener("change", function () {
+      var f = bkFile.files && bkFile.files[0];
+      if (f) inspectBackup(f);
+    });
+    var bkClear = $("#backup-clear");
+    if (bkClear) bkClear.addEventListener("click", clearBackupPick);
+    var bkConfirm = $("#backup-confirm");
+    if (bkConfirm) bkConfirm.addEventListener("change", function () {
+      var run = $("#backup-restore");
+      if (run) run.disabled = !(bkConfirm.checked && BACKUP.ok);
+    });
+    var bkRun = $("#backup-restore");
+    if (bkRun) bkRun.addEventListener("click", runBackupRestore);
+    var bkCfg = $("#backup-config-dl");
+    if (bkCfg) bkCfg.addEventListener("click", function () {
+      if (!BACKUP.data || !BACKUP.data.config) {
+        cmsMsg("backup-msg", "이 백업 파일에는 설정이 들어 있지 않습니다.", "err");
+        return;
+      }
+      downloadBlob("sbpress.config.json", JSON.stringify(BACKUP.data.config, null, 2));
+      cmsMsg("backup-msg", "sbpress.config.json 을 내려받았습니다. 저장소 루트에 올리면 반영됩니다.", "ok");
+    });
+
+    /* --- v2.1: 자동 임시저장 배너 --- */
+    wireDraftBanner("post");
+    wireDraftBanner("page");
 
     /* --- hunmin 폼 접수 · 검색엔진 피드 --- */
     var sv = $("#feed-sitemap-view");

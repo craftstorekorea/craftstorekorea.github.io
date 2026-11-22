@@ -24,6 +24,7 @@ GitHub Pages로 배포합니다.
 | 마이페이지 | `#/mypage` — 로그인한 회원의 닉네임(수정)·회원 등급·**내 찜 목록**(해제)·**내가 쓴 댓글**(글 링크). 헤더 사용자 메뉴에서 열립니다 |
 | 직접 만든 게시판 | `#/board/<slug>` — 게시판별 페이지당 글 수·댓글 정책 (관리자에서 생성) |
 | 업무 관리 | `#/tasks` — 로그인한 회원의 3칸 업무 보드(할 일·진행 중·완료). **로그아웃 상태에서는 메뉴에 나타나지 않고**, 주소로 들어가도 로그인 안내만 보입니다 |
+| 통합 검색 (v2.1) | 헤더의 🔍 또는 `#/search?q=<검색어>` — 발행된 글(제목·요약·본문·태그·게시판)과 공개 페이지를 한 번에 찾고, 낱말을 띄어 쓰면 모두 들어간 글만 보여 줍니다. 결과는 그대로 링크로 공유할 수 있습니다 |
 
 모든 게시판 목록(공방 소개·공방 뉴스·작가 인터뷰·지원·공모·직접 만든 게시판)은
 게시판 설정의 **페이지당 글 수**만큼 보여 주고, 하단에 `이전 1 2 3 … 다음` 페이지 번호를 붙입니다.
@@ -93,6 +94,23 @@ p/<slug>/index.html       페이지 정적 SEO 페이지 (../build_static_seo.py
 > `/admin` 은 루트 스텁이 열려 자기 자신으로 되돌아가는 고리가 됩니다. 그래서 실제 페이지는
 > `admin.html`·`privacy.html`·`terms.html` 에 두고(주소는 `/admin`·`/privacy`·`/terms`),
 > 폴더의 `index.html` 은 `/admin/` 처럼 끝에 `/` 를 붙여 들어온 주소만 받아 넘깁니다.
+
+## v2.1 기능 (통합 검색·공유·접수함·백업·자동 SEO·KO/EN)
+
+- **통합 검색** — `assets/app.js` 의 `#/search` 화면. `assets/cms.js` 의 `publicPosts()`·`publicPages()` 로 공개 자료만 색인합니다
+  (휴지통·임시저장·예약 발행 제외). 제목·태그 일치를 더 높게 점수화하고, `<mark>` 로 검색어를 강조합니다.
+- **글 공유** — `assets/share.js`. `[data-sbp-copy]`(링크 복사 · 토스트) · `[data-sbp-share]`(Web Share API, 없거나 실패하면 링크 복사).
+  글 상세(`#/post/…`)와 정적 글 페이지(`post/<slug>/`)가 함께 씁니다. 정적 페이지 CSP 는 `script-src 'self'` 만 열어 `/assets/share.js` 만 허용합니다.
+- **폼 접수함** — `/admin → 폼 접수함`. `public.form_submissions` 를 관리자 RLS 로 읽어 상태(새 접수·처리 중·완료)·관리 메모를 남기고 CSV 로 내려받습니다.
+  `status`·`admin_note` 열이 없으면(마이그레이션 전) `is_handled`·`payload.__status`·`payload.__note` 로 같은 뜻을 남기고 화면에 안내합니다.
+- **자동 임시저장** — 글·페이지 편집기를 4초마다, 입력이 멈추면 1.2초 뒤 `localStorage('sbp:draft:post:<id>')` 에 남깁니다.
+  창이 닫혔다 다시 열면 ‘자동 저장된 임시본이 있습니다 · 복구 / 삭제’ 배너가 뜨고, 저장에 성공하면 초안을 지웁니다.
+- **전체 백업/복원** — `/admin → 백업 · 복원`. `site_contents`·`pages`·`boards`·`posts` + `sbpress.config.json` 을 JSON 한 파일로 내려받고,
+  복원은 파일을 먼저 검사(형식·행 모양·id/key)한 뒤 ‘덮어쓰는 것에 동의합니다’를 체크해야 실행됩니다(파일에 없는 자료는 지우지 않음).
+- **자동 SEO 갱신** — `.github/workflows/sbpress-seo.yml` + `scripts/build_static_seo.py`·`scripts/build_feeds.py`.
+  `main` 푸시(또는 수동 실행) 시 `post/`·`p/`·`sitemap.xml`·`rss.xml` 이 바뀌었을 때만 봇이 커밋합니다.
+- **관리자 KO/EN** — `assets/admin-i18n.js`. `/admin` 오른쪽 위 `KO | EN`(public 사이트와 같은 `localStorage('craft-lang')`).
+  화면의 UI 문구만 바꾸고 글 제목·회원 별명 같은 자료는 그대로 둡니다. 번역은 `tools_gen_admin_i18n.py` 의 사전(약 520개)과 규칙으로 만듭니다.
 
 ## 관리자 CMS · 댓글
 

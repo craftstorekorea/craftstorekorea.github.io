@@ -29,6 +29,11 @@
     </a>
     <div class="admin-head-right">
       <span class="admin-badge">ADMIN</span>
+      <div class="admin-lang" id="admin-lang" role="group" aria-label="관리자 언어">
+        <button type="button" data-alang="ko" aria-pressed="true">KO</button>
+        <span class="admin-lang-sep" aria-hidden="true">|</span>
+        <button type="button" data-alang="en" aria-pressed="false">EN</button>
+      </div>
       <span class="admin-who" id="admin-who" hidden></span>
       <button type="button" class="btn btn-ghost btn-sm" id="logout-btn" hidden>로그아웃</button>
       <a class="btn btn-ghost btn-sm" href="/">사이트로</a>
@@ -87,6 +92,8 @@
       <button class="admin-tab" role="tab" type="button" data-tab="tasks" aria-selected="false">업무 관리 <span class="tab-n" id="tab-task-count"></span></button>
       <button class="admin-tab" role="tab" type="button" data-tab="media" aria-selected="false">미디어 라이브러리</button>
       <button class="admin-tab" role="tab" type="button" data-tab="comments" aria-selected="false">댓글 관리 <span class="tab-n" id="tab-cmt-count"></span></button>
+      <button class="admin-tab" role="tab" type="button" data-tab="inbox" aria-selected="false">폼 접수함 <span class="tab-n" id="tab-inbox-count"></span></button>
+      <button class="admin-tab" role="tab" type="button" data-tab="backup" aria-selected="false">백업 · 복원</button>
       <button class="admin-tab" role="tab" type="button" data-tab="plugins" aria-selected="false">플러그인 · 마켓</button>
     </nav>
 
@@ -276,14 +283,8 @@
 
       <section class="cms-group" id="form-sub-group">
         <h2>hunmin 폼 접수</h2>
-        <p class="cms-hint">페이지의 <code>[구독/제보 폼]</code> 블록으로 들어온 뉴스레터 구독·공방 등록·제보 내역입니다(최근 100건).</p>
-        <div class="table-wrap">
-          <table class="admin-table" id="form-sub-table">
-            <thead><tr><th>접수</th><th>종류</th><th>이메일·이름</th><th>내용</th><th></th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <p class="cms-toast" id="form-sub-msg" role="status" aria-live="polite"></p>
+        <p class="cms-hint">페이지의 <code>[구독/제보 폼]</code> 블록으로 들어온 뉴스레터 구독·공방 등록·제보 내역은 상단 <b>‘폼 접수함’ 탭</b>에서 상태·메모와 함께 관리합니다.</p>
+        <p class="cms-hint" id="form-sub-note">접수 <b id="form-sub-count">–</b>건 · <button type="button" class="rowlink" id="form-sub-go">폼 접수함 열기</button></p>
       </section>
     </div>
 
@@ -546,6 +547,111 @@
       </div>
     </div>
 
+    <!-- ============ 폼 접수함 (v2.1) ============ -->
+    <div class="tabpanel" id="tab-inbox" role="tabpanel" hidden>
+      <div class="dash-head">
+        <div>
+          <h1>폼 접수함</h1>
+          <p class="dash-sub">페이지의 <code>[구독/제보 폼]</code> 블록으로 들어온 뉴스레터 구독·공방 등록·제보 내역입니다. 상태(새 접수 → 처리 중 → 완료)와 관리 메모를 남겨 처리 상황을 관리합니다.</p>
+        </div>
+        <div class="dash-actions">
+          <span class="dash-stamp" id="inbox-stamp"></span>
+          <button type="button" class="btn btn-ghost btn-sm" id="inbox-csv">CSV 내려받기</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="inbox-reload">새로고침</button>
+        </div>
+      </div>
+      <p class="panel-note" id="inbox-note">Supabase <code>form_submissions</code> · 제출은 누구나, 열람·수정은 관리자만 할 수 있습니다.</p>
+
+      <ul class="inbox-kpis" id="inbox-kpis">
+        <li data-k="new"><b id="inbox-k-new">–</b><span>새 접수</span></li>
+        <li data-k="in_progress"><b id="inbox-k-progress">–</b><span>처리 중</span></li>
+        <li data-k="done"><b id="inbox-k-done">–</b><span>완료</span></li>
+        <li data-k="all"><b id="inbox-k-all">–</b><span>전체</span></li>
+      </ul>
+
+      <section class="panel panel-wide" id="p-inbox">
+        <div class="panel-head">
+          <h2>접수 내역</h2>
+          <div class="panel-tools inbox-tools">
+            <select id="inbox-kind" class="admin-select" aria-label="종류로 거르기">
+              <option value="all">종류 전체</option>
+              <option value="newsletter">구독</option>
+              <option value="submit">등록·제보</option>
+            </select>
+            <select id="inbox-status" class="admin-select" aria-label="상태로 거르기">
+              <option value="all">상태 전체</option>
+              <option value="new">새 접수</option>
+              <option value="in_progress">처리 중</option>
+              <option value="done">완료</option>
+            </select>
+            <input id="inbox-q" class="admin-input" type="search" placeholder="이름·이메일·내용 검색" aria-label="접수 검색">
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="admin-table" id="inbox-table">
+            <thead><tr><th>접수</th><th>종류</th><th>이름·이메일</th><th>내용</th><th>상태</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="cms-toast" id="inbox-msg" role="status" aria-live="polite"></p>
+      </section>
+    </div>
+
+    <!-- ============ 백업 · 복원 (v2.1) ============ -->
+    <div class="tabpanel" id="tab-backup" role="tabpanel" hidden>
+      <div class="dash-head">
+        <div>
+          <h1>백업 · 복원</h1>
+          <p class="dash-sub">설정·페이지·게시판·글·사이트 문구를 JSON 한 파일로 내려받고, 그 파일로 되돌립니다.</p>
+        </div>
+        <div class="dash-actions">
+          <span class="dash-stamp" id="backup-stamp"></span>
+          <button type="button" class="btn btn-ghost btn-sm" id="backup-reload">현황 새로고침</button>
+        </div>
+      </div>
+      <p class="panel-note">Supabase 공개 데이터를 그대로 읽어 담습니다. 백업 파일에는 공개 키·설정이 들어 있으니 <b>공개 저장소에 올리지 마세요</b>.</p>
+
+      <div class="backup-grid">
+        <section class="cms-group" id="backup-export-group">
+          <h2>전체 백업 내보내기</h2>
+          <p class="cms-hint">지금 사이트의 <code>site_contents</code> · <code>pages</code> · <code>boards</code> · <code>posts</code> 와 <code>sbpress.config.json</code> 을 한 파일(<code>sbpress-backup-YYYY-MM-DD.json</code>)로 담습니다.</p>
+          <ul class="backup-counts" id="backup-counts">
+            <li>설정 <b id="bc-config">–</b></li>
+            <li>사이트 문구 <b id="bc-contents">–</b></li>
+            <li>페이지 <b id="bc-pages">–</b></li>
+            <li>게시판 <b id="bc-boards">–</b></li>
+            <li>글 <b id="bc-posts">–</b></li>
+          </ul>
+          <div class="backup-actions">
+            <button type="button" class="btn btn-primary btn-sm" id="backup-export">전체 백업 내려받기</button>
+            <span class="cms-hint" id="backup-export-note"></span>
+          </div>
+          <p class="cms-toast" id="backup-export-msg" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="cms-group" id="backup-restore-group">
+          <h2>백업 복원 (검증 후 가져오기)</h2>
+          <p class="cms-hint">내려받은 JSON 파일을 고르면 <b>먼저 검사</b>만 합니다. 무엇이 바뀌는지 확인한 뒤 ‘복원 실행’을 눌러야 반영됩니다. 같은 <code>id</code>·<code>key</code> 는 덮어쓰고, 파일에 없는 자료는 지우지 않습니다.</p>
+          <div class="backup-file">
+            <input type="file" id="backup-file" accept="application/json,.json" class="sr-only">
+            <label for="backup-file" class="btn btn-ghost btn-sm">백업 파일 고르기</label>
+            <span class="cms-hint" id="backup-file-name">선택한 파일 없음</span>
+          </div>
+          <div class="backup-report" id="backup-report" hidden></div>
+          <label class="cms-check cms-field" id="backup-confirm-wrap" hidden>
+            <span>확인</span>
+            <span class="cms-check-row"><input type="checkbox" id="backup-confirm"><em>위 내용으로 기존 자료를 덮어쓰는 것에 동의합니다.</em></span>
+          </label>
+          <div class="backup-actions">
+            <button type="button" class="btn btn-primary btn-sm" id="backup-restore" disabled>복원 실행</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="backup-clear">선택 취소</button>
+          </div>
+          <p class="cms-hint" id="backup-config-hint">설정 파일(<code>sbpress.config.json</code>)은 저장소의 정적 파일이라 여기서 자동으로 바뀌지 않습니다. 복원 후 필요하면 <button type="button" class="rowlink" id="backup-config-dl">백업 안의 설정 파일 내려받기</button> 로 받아 저장소에 올려 주세요.</p>
+          <p class="cms-toast" id="backup-msg" role="status" aria-live="polite"></p>
+        </section>
+      </div>
+    </div>
+
     <!-- ============ 플러그인 · 마켓 ============ -->
     <div class="tabpanel" id="tab-plugins" role="tabpanel" hidden>
       <div class="dash-head">
@@ -617,6 +723,11 @@
         <h2 id="post-modal-title">새 글</h2>
         <button type="button" class="cms-modal-x" id="post-cancel-x" aria-label="닫기">×</button>
       </header>
+      <div class="draft-banner" id="pf-draft" hidden role="status" aria-live="polite">
+        <span class="draft-text" id="pf-draft-text">자동 저장된 임시본이 있습니다.</span>
+        <button type="button" class="btn btn-ghost btn-sm" id="pf-draft-restore">복구</button>
+        <button type="button" class="btn btn-ghost btn-sm danger" id="pf-draft-discard">삭제</button>
+      </div>
       <form id="post-form" novalidate>
         <div class="cms-grid2">
           <label class="cms-field"><span>분류 *</span>
@@ -693,6 +804,7 @@
         <div class="cms-modal-foot">
           <button type="button" class="btn btn-ghost btn-sm" id="post-history" hidden>수정 이력</button>
           <button type="button" class="btn btn-ghost btn-sm danger" id="post-delete" hidden>휴지통으로</button>
+          <span class="autosave-note" id="pf-autosave" role="status" aria-live="polite"></span>
           <span class="spacer"></span>
           <button type="button" class="btn btn-ghost btn-sm" id="post-cancel">취소</button>
           <button type="submit" class="btn btn-primary btn-sm" id="post-save">저장</button>
@@ -708,6 +820,11 @@
         <h2 id="page-modal-title">새 페이지</h2>
         <button type="button" class="cms-modal-x" id="page-cancel-x" aria-label="닫기">×</button>
       </header>
+      <div class="draft-banner" id="pg-draft" hidden role="status" aria-live="polite">
+        <span class="draft-text" id="pg-draft-text">자동 저장된 임시본이 있습니다.</span>
+        <button type="button" class="btn btn-ghost btn-sm" id="pg-draft-restore">복구</button>
+        <button type="button" class="btn btn-ghost btn-sm danger" id="pg-draft-discard">삭제</button>
+      </div>
       <form id="page-form" novalidate>
         <div class="cms-grid2">
           <label class="cms-field"><span>주소(slug) *</span><input id="pg-slug" maxlength="60" placeholder="about" spellcheck="false"></label>
@@ -754,6 +871,7 @@
         <div class="cms-modal-foot">
           <button type="button" class="btn btn-ghost btn-sm" id="page-history" hidden>수정 이력</button>
           <button type="button" class="btn btn-ghost btn-sm danger" id="page-delete" hidden>휴지통으로</button>
+          <span class="autosave-note" id="pg-autosave" role="status" aria-live="polite"></span>
           <span class="spacer"></span>
           <button type="button" class="btn btn-ghost btn-sm" id="page-cancel">취소</button>
           <button type="submit" class="btn btn-primary btn-sm" id="page-save">저장</button>
@@ -763,6 +881,40 @@
   </div>
 
   <!-- ============ 게시판 편집기 ============ -->
+  <!-- ============ 폼 접수 상세 (v2.1) ============ -->
+  <div class="cms-modal" id="inbox-modal" hidden>
+    <div class="cms-modal-card" role="dialog" aria-modal="true" aria-labelledby="inbox-modal-title">
+      <header class="cms-modal-head">
+        <h2 id="inbox-modal-title">접수 내용</h2>
+        <button type="button" class="cms-modal-x" id="inbox-close-x" aria-label="닫기">×</button>
+      </header>
+      <div class="inbox-detail">
+        <p class="inbox-detail-meta" id="inbox-detail-meta"></p>
+        <dl class="inbox-fields" id="inbox-fields"></dl>
+        <div class="cms-grid2">
+          <label class="cms-field"><span>처리 상태</span>
+            <select id="inbox-status-sel" class="admin-select">
+              <option value="new">새 접수</option>
+              <option value="in_progress">처리 중</option>
+              <option value="done">완료</option>
+            </select>
+          </label>
+          <label class="cms-field"><span>관리 메모 <em>관리자만 봅니다</em></span>
+            <input id="inbox-note-input" maxlength="200" placeholder="예: 11/25 답장 보냄">
+          </label>
+        </div>
+        <p class="cms-hint" id="inbox-status-hint"></p>
+        <p class="cms-toast" id="inbox-modal-msg" role="status" aria-live="polite"></p>
+        <div class="cms-modal-foot">
+          <button type="button" class="btn btn-ghost btn-sm danger" id="inbox-del">삭제</button>
+          <span class="spacer"></span>
+          <button type="button" class="btn btn-ghost btn-sm" id="inbox-close">닫기</button>
+          <button type="button" class="btn btn-primary btn-sm" id="inbox-save">저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="cms-modal" id="board-modal" hidden>
     <div class="cms-modal-card" role="dialog" aria-modal="true" aria-labelledby="board-modal-title">
       <header class="cms-modal-head">
@@ -832,6 +984,7 @@
 <script src="/assets/body-format.js"></script>
 <script src="/assets/editor.js"></script>
 <script src="/assets/admin.js"></script>
+<script src="/assets/admin-i18n.js"></script>
 <script src="/assets/plugins.js"></script>
 </body>
 </html>

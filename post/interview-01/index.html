@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- CSP: SBPress v2.0 — build_static_seo.py --csp 로 갱신 (사이트마다 Supabase 주소가 다릅니다) -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; img-src 'self' data: https: http:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; script-src 'self'; img-src 'self' data: https: http:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; form-action 'self'">
 <title>1평 수선 공방에서 로레알·유니클로까지 — ‘비저블 멘딩’ — 전국공방</title>
 <meta name="description" content="해진 옷만 꿰매는 게 아니라 사람 사이의 틈도 메우는 거죠.">
 <meta property="og:type" content="article">
@@ -47,6 +47,18 @@ img.hero{width:100%;max-height:420px;object-fit:cover;border-radius:16px;margin:
 .foot a{color:var(--accent-d)}
 .spa{margin-top:22px;padding:14px 18px;background:var(--card);border:1px solid var(--line);border-radius:12px;font-size:.9rem}
 footer{margin-top:34px;color:var(--ink-3);font-size:.8rem;text-align:center}
+.share-bar{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 0}
+.share-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border:1px solid #D8C9BA;
+border-radius:999px;background:#fff;color:var(--ink-2);font:inherit;font-size:.85rem;font-weight:700;cursor:pointer}
+.share-btn:hover{border-color:var(--accent);color:var(--accent-d);background:var(--accent-s)}
+.share-btn.primary{background:var(--ink);border-color:var(--ink);color:#FBF8F4}
+.share-btn.primary:hover{background:var(--accent-d);border-color:var(--accent-d);color:#fff}
+.sbp-toast{position:fixed;left:50%;bottom:32px;z-index:50;transform:translate(-50%,10px);max-width:min(92vw,440px);
+padding:12px 20px;border-radius:999px;background:var(--ink);color:#FBF8F4;font-size:.86rem;font-weight:700;
+text-align:center;box-shadow:0 18px 44px -20px rgba(0,0,0,.6);opacity:0;pointer-events:none;
+transition:opacity .2s ease,transform .2s ease}
+.sbp-toast.show{opacity:1;transform:translate(-50%,0)}
+.sbp-toast.err{background:#8C2B22}
 </style>
 </head>
 <body>
@@ -62,8 +74,10 @@ footer{margin-top:34px;color:var(--ink-3);font-size:.8rem;text-align:center}
 <div class="body">공연기획 20년을 접고 2024년 1평 남짓한 공방으로 창업했습니다. 낡은 흔적을 숨기지 않고 드러내는 ‘비저블 멘딩’으로 로레알·유니클로·무인양품과 협업하고, 유니클로 명동점 수선 워크숍은 60명 모집에 500명 넘게 신청했습니다.</div>
 <div class="tags"><span class="chip">인터뷰</span></div>
 <div class="foot"><a href="https://www.hankyung.com/article/2026111982391" target="_blank" rel="noopener noreferrer">원문 보기</a><a href="/#/board/interview">게시판 목록</a></div>
+<div class="share-bar"><button type="button" class="share-btn" data-sbp-copy="https://craftstorekorea.github.io/post/interview-01/">링크 복사</button><button type="button" class="share-btn primary" data-sbp-share data-share-url="https://craftstorekorea.github.io/post/interview-01/" data-share-title="1평 수선 공방에서 로레알·유니클로까지 — ‘비저블 멘딩’">공유하기</button></div>
 <p class="spa">💬 댓글을 쓰거나 다른 글을 보려면 <a href="https://craftstorekorea.github.io/#/post/interview-01">인터랙티브 화면</a>을 여세요.</p>
 <footer>© 2026 전국공방 · <a href="/privacy">개인정보처리방침</a> · <a href="/terms">이용약관</a></footer>
 </main>
+<script src="/assets/share.js" defer></script>
 </body>
 </html>

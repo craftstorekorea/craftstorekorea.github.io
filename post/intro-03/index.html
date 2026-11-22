@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- CSP: SBPress v2.0 — build_static_seo.py --csp 로 갱신 (사이트마다 Supabase 주소가 다릅니다) -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; img-src 'self' data: https: http:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; script-src 'self'; img-src 'self' data: https: http:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; form-action 'self'">
 <title>도봉구 공방 3곳 대표가 강사로 — 덕성여대 공예교육, 제작품 30점 기부 — 전국공방</title>
 <meta name="description" content="4년째 이어온 지역사회 공유배움터 프로그램. 올해 가죽·리본·라탄공예 5회에 30명이 참여했고, 강사는 도봉구에서 공방을 운영하는 최주경(공방비록)·구성진(민트에이)·정은주(토토얀공방) 대표입니다. 만든 작품은 지역 가정에 전달했습니다.">
 <meta property="og:type" content="article">
@@ -47,6 +47,18 @@ img.hero{width:100%;max-height:420px;object-fit:cover;border-radius:16px;margin:
 .foot a{color:var(--accent-d)}
 .spa{margin-top:22px;padding:14px 18px;background:var(--card);border:1px solid var(--line);border-radius:12px;font-size:.9rem}
 footer{margin-top:34px;color:var(--ink-3);font-size:.8rem;text-align:center}
+.share-bar{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 0}
+.share-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border:1px solid #D8C9BA;
+border-radius:999px;background:#fff;color:var(--ink-2);font:inherit;font-size:.85rem;font-weight:700;cursor:pointer}
+.share-btn:hover{border-color:var(--accent);color:var(--accent-d);background:var(--accent-s)}
+.share-btn.primary{background:var(--ink);border-color:var(--ink);color:#FBF8F4}
+.share-btn.primary:hover{background:var(--accent-d);border-color:var(--accent-d);color:#fff}
+.sbp-toast{position:fixed;left:50%;bottom:32px;z-index:50;transform:translate(-50%,10px);max-width:min(92vw,440px);
+padding:12px 20px;border-radius:999px;background:var(--ink);color:#FBF8F4;font-size:.86rem;font-weight:700;
+text-align:center;box-shadow:0 18px 44px -20px rgba(0,0,0,.6);opacity:0;pointer-events:none;
+transition:opacity .2s ease,transform .2s ease}
+.sbp-toast.show{opacity:1;transform:translate(-50%,0)}
+.sbp-toast.err{background:#8C2B22}
 </style>
 </head>
 <body>
@@ -62,8 +74,10 @@ footer{margin-top:34px;color:var(--ink-3);font-size:.8rem;text-align:center}
 <div class="body"></div>
 <div class="tags"><span class="chip">공방</span><span class="chip">소개</span></div>
 <div class="foot"><a href="https://www.asiatime.co.kr/article/20261117500128" target="_blank" rel="noopener noreferrer">원문 보기</a><a href="/#/board/intro">게시판 목록</a></div>
+<div class="share-bar"><button type="button" class="share-btn" data-sbp-copy="https://craftstorekorea.github.io/post/intro-03/">링크 복사</button><button type="button" class="share-btn primary" data-sbp-share data-share-url="https://craftstorekorea.github.io/post/intro-03/" data-share-title="도봉구 공방 3곳 대표가 강사로 — 덕성여대 공예교육, 제작품 30점 기부">공유하기</button></div>
 <p class="spa">💬 댓글을 쓰거나 다른 글을 보려면 <a href="https://craftstorekorea.github.io/#/post/intro-03">인터랙티브 화면</a>을 여세요.</p>
 <footer>© 2026 전국공방 · <a href="/privacy">개인정보처리방침</a> · <a href="/terms">이용약관</a></footer>
 </main>
+<script src="/assets/share.js" defer></script>
 </body>
 </html>

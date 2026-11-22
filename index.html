@@ -41,6 +41,8 @@
     <symbol id="i-map" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m9 4 6 2.2L20 4v14l-5 2.2L9 18l-5 2.2V6z"/><path d="M9 4v14M15 6.2V20"/></symbol>
     <symbol id="i-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="m4 7 8 6 8-6"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13.5a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1 1"/><path d="M14 10.5a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5l1-1"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="17.5" cy="6" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><circle cx="17.5" cy="18" r="2.5"/><path d="M8.8 10.8 15.2 7.2M8.8 13.2l6.4 3.6"/></symbol>
   </defs>
 </svg>
 
@@ -62,6 +64,10 @@
       <button class="tab" role="tab" data-view="map" aria-selected="false">지도·게시판</button>
       <button class="tab" role="tab" data-view="tasks" data-auth-only="1" aria-selected="false" hidden>업무 관리</button>
     </nav>
+    <button class="header-search" id="search-open" type="button" aria-label="통합 검색" data-i18n-aria="search.open.aria">
+      <svg width="16" height="16" aria-hidden="true"><use href="#i-search"/></svg>
+      <span class="header-search-text" data-i18n="search.open">검색</span>
+    </button>
     <div class="lang-switch" id="lang-switch" role="group" aria-label="메뉴 언어">
       <button type="button" data-lang="ko" aria-pressed="true">KO</button>
       <span class="lang-sep" aria-hidden="true">|</span>
@@ -443,8 +449,35 @@
         <div class="post-body" id="post-body"></div>
         <div class="post-tags" id="post-tags"></div>
         <div class="post-foot" id="post-foot"></div>
+        <div class="post-share" id="post-share" hidden></div>
         <div class="post-cmt" id="post-cmt"></div>
         <p class="page-empty" id="post-empty" hidden>글을 찾을 수 없습니다. 주소를 확인해 주세요.</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ 통합 검색 (#/search?q=…) ============ -->
+  <div class="view" id="view-search" role="tabpanel" hidden>
+    <section class="section">
+      <div class="wrap search-view">
+        <p class="eyebrow" data-i18n="search.eyebrow">통합 검색</p>
+        <h1 class="page-title" data-i18n="search.title">무엇을 찾으세요?</h1>
+        <form class="search-form" id="search-form" role="search" autocomplete="off">
+          <label class="sr-only" for="search-input" data-i18n="search.label">검색어</label>
+          <svg class="search-form-icon" width="18" height="18" aria-hidden="true"><use href="#i-search"/></svg>
+          <input id="search-input" type="search" name="q" enterkeyhint="search" autocomplete="off"
+                 placeholder="글 제목·요약·본문·태그, 페이지 제목으로 찾기" data-i18n-ph="search.ph">
+          <button class="btn btn-primary btn-sm" type="submit" data-i18n="search.submit">검색</button>
+        </form>
+        <div class="search-filters" id="search-filters" role="group" aria-label="검색 범위">
+          <button type="button" class="scope-btn" data-scope="all" aria-pressed="true" data-i18n="search.scope.all">전체</button>
+          <button type="button" class="scope-btn" data-scope="post" aria-pressed="false" data-i18n="search.scope.post">글</button>
+          <button type="button" class="scope-btn" data-scope="page" aria-pressed="false" data-i18n="search.scope.page">페이지</button>
+          <span class="search-count" id="search-count" role="status" aria-live="polite"></span>
+        </div>
+        <p class="search-hint" id="search-hint" data-i18n="search.hint">제목·요약·본문·태그·게시판 이름에서 한 번에 찾습니다. 낱말을 띄어 쓰면 모두 들어간 글만 보여 줍니다.</p>
+        <div class="search-results" id="search-results"></div>
+        <p class="page-empty" id="search-empty" hidden></p>
       </div>
     </section>
   </div>
@@ -543,6 +576,7 @@
 <script src="assets/hunmin.js"></script>
 <script src="assets/body-format.js"></script>
 <script src="assets/editor.js"></script>
+<script src="assets/share.js"></script>
 <script src="assets/app.js"></script>
 <script src="assets/tasks.js"></script>
 <script src="assets/mypage.js"></script>

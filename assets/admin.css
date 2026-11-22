@@ -695,3 +695,68 @@ tr.owner-row td{background:#FFFAF6}
 @media (max-width:720px){
   .sec-grid{grid-template-columns:1fr 1fr}
 }
+
+/* ============================================================================
+   2026-11 · SBPress v2.1 — 폼 접수함 · 백업/복원 · 자동 임시저장 배너
+   ============================================================================ */
+
+/* ---------- 폼 접수함 ---------- */
+.inbox-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 16px;list-style:none;padding:0}
+.inbox-kpis li{
+  display:flex;flex-direction:column;gap:2px;padding:14px 16px;border:1px solid var(--line);
+  border-radius:var(--r-s);background:var(--card);cursor:pointer;
+}
+.inbox-kpis li b{font-size:1.3rem;font-weight:800;letter-spacing:-.03em}
+.inbox-kpis li span{font-size:.76rem;font-weight:700;color:var(--ink-3)}
+.inbox-kpis li[data-k="new"] b{color:var(--accent-d)}
+.inbox-kpis li[data-k="in_progress"] b{color:#8A6A3F}
+.inbox-kpis li[data-k="done"] b{color:#4C6338}
+.inbox-tools{flex-wrap:wrap;gap:8px}
+.inbox-tools .admin-select,.inbox-tools .admin-input{min-width:130px}
+.inbox-detail-meta{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:.82rem;color:var(--ink-2);margin:0 0 14px}
+.inbox-fields{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px 14px;margin:0 0 18px;font-size:.88rem}
+.inbox-fields dt{color:var(--ink-3);font-weight:700}
+.inbox-fields dd{margin:0;color:var(--ink);line-height:1.65;word-break:break-word;white-space:pre-wrap}
+.badge.b-warn{background:#F6EEE0;color:#8A6A3F}
+
+/* ---------- 백업 · 복원 ---------- */
+.backup-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.backup-counts{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;list-style:none;padding:0;margin:12px 0 16px}
+.backup-counts li{padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-s);background:#fff;font-size:.78rem;color:var(--ink-3);font-weight:700;display:flex;justify-content:space-between;gap:8px}
+.backup-counts li b{color:var(--ink);font-size:.95rem}
+.backup-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:12px 0 4px}
+.backup-file{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:10px 0 12px}
+.backup-report{margin:8px 0 12px}
+.backup-report .backup-summary{margin:0 0 10px;font-size:.86rem;color:var(--ink-2)}
+.backup-table{margin:0 0 10px}
+.backup-warn{margin:0 0 10px;padding:10px 14px 10px 30px;border:1px solid #E7C4AE;background:#FFF6F1;border-radius:var(--r-s);font-size:.8rem;line-height:1.7;color:#5B4433}
+.backup-bad{margin:0;padding:12px 14px;border:1px solid #E7C4AE;background:#FFF6F1;border-radius:var(--r-s);font-size:.86rem;font-weight:700;color:#8C2B22}
+
+/* ---------- 자동 임시저장 ---------- */
+.draft-banner{
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px;
+  margin:0 0 4px;padding:11px 16px;border:1px solid #E7C4AE;background:#FFF6F1;
+  border-radius:var(--r-s);font-size:.84rem;font-weight:700;color:#5B4433;
+}
+.draft-banner[hidden]{display:none}
+.draft-banner .draft-text{flex:1 1 220px;min-width:0;font-weight:700;line-height:1.5}
+.autosave-note{font-size:.74rem;font-weight:700;color:var(--ink-3);margin-left:10px}
+
+@media (max-width:720px){
+  .inbox-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .inbox-fields{grid-template-columns:1fr;gap:2px 0}
+  .inbox-fields dt{margin-top:8px}
+}
+
+/* ---------- 관리자 KO / EN 전환 (assets/admin-i18n.js) ---------- */
+.admin-lang{display:inline-flex;align-items:center;gap:1px;flex:none;font-size:.78rem;font-weight:800;letter-spacing:.03em}
+.admin-lang button{
+  padding:4px 9px;border:0;border-radius:8px;background:transparent;color:var(--ink-3);
+  font:inherit;font-weight:800;cursor:pointer;
+}
+.admin-lang button:hover{color:var(--accent-d);background:var(--accent-s)}
+.admin-lang button.on{color:var(--ink);background:var(--accent-s)}
+.admin-lang-sep{color:var(--line-2);font-weight:400;line-height:1}
+
+/* 빈 목록 안내(.panel-msg)는 3열 그리드(.rank li) 안에서도 한 줄로 읽히게 합니다. */
+.rank li.panel-msg{display:block;grid-template-columns:none}

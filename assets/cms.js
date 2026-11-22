@@ -1167,6 +1167,11 @@
     postsFor: function (slug) { return postsForBoard(slug); },
     recentPosts: recentPosts,
     allPosts: function () { return postsAll.slice(); },
+    /* 통합 검색용 — 지금 공개된 글·페이지만 돌려줍니다(휴지통·임시저장·예약 제외). */
+    publicPosts: function () { return postsAll.filter(isPublicPost); },
+    publicPages: function () {
+      return customPages.filter(function (pg) { return pg && pg.is_published !== false && !pg.deleted_at; });
+    },
     feedPayload: feedPayload,
     feedSitemap: feedSitemap,
     feedRss: feedRss,

@@ -128,7 +128,15 @@
     if (/^page\//.test(raw)) return { name: "page", arg: decodeURIComponent(raw.slice(5)), raw: raw };
     if (/^board\//.test(raw)) return { name: "board", arg: decodeURIComponent(raw.slice(6)), raw: raw };
     if (/^post\//.test(raw)) return { name: "post", arg: decodeURIComponent(raw.slice(5)), raw: raw };
+    if (/^search(\?|$)/.test(raw)) return { name: "search", arg: searchQueryOf(raw), raw: "search" };
     return { name: VIEW_KEYS.indexOf(raw) >= 0 ? raw : "home", arg: "", raw: raw };
+  }
+  /* #/search?q=검색어 — 주소창에 검색어를 남겨 링크로 공유할 수 있게 합니다. */
+  function searchQueryOf(raw) {
+    var m = /(?:^|&)q=([^&]*)/.exec(String(raw || "").split("?").slice(1).join("?") || "");
+    if (!m) return "";
+    var v = m[1].replace(/\+/g, " ");
+    try { return decodeURIComponent(v); } catch (e) { return v; }
   }
   function boardView(slug) {
     var map = { intro: "workshops", news: "news", interview: "interview", info: "info" };
@@ -194,7 +202,7 @@
      site_contents 의 header_logo_url / header_brand_text / header_menu_items 를 읽어 그립니다.
      값이 없으면 index.html 의 기본 마크·메뉴를 그대로 씁니다. */
   var VIEW_KEYS = (function () {
-    var base = ["home", "workshops", "news", "interview", "archive", "info", "map", "tasks", "page", "board", "post", "mypage"];
+    var base = ["home", "workshops", "news", "interview", "archive", "info", "map", "tasks", "page", "board", "post", "mypage", "search"];
     return base.filter(function (k) {
       if (k === "map" || k === "tasks" || k === "mypage") return feature(k);
       return true;
@@ -1306,6 +1314,7 @@
       if (foot) foot.innerHTML = "";
       if (hero) { hero.hidden = true; hero.removeAttribute("src"); }
       if (slot) slot.innerHTML = "";
+      paintShare(null);
       if (empty) empty.hidden = false;
       return;
     }
@@ -1371,10 +1380,225 @@
       foot.innerHTML = f.join("");
     }
 
+    paintShare(p);
+
     if (slot) {
       slot.innerHTML = "";
       cmt(slot, p.slug || String(p.id), p.title, p.image_url || "");
     }
+  }
+
+  /* ---------------- 통합 검색 (#/search?q=...) ----------------
+     발행된 글(제목·요약·본문·태그·게시판)과 공개 페이지를 한 번에 찾습니다.
+     주소에 검색어를 남겨(#/search?q=…) 결과 화면을 그대로 공유할 수 있습니다. */
+  var searchState = { q: "", scope: "all", docs: null };
+
+  function stripTags(s) {
+    return String(s == null ? "" : s).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  }
+
+  function searchDocs() {
+    /* 글 목록이 아직 안 왔을 때 빈 색인을 붙들고 있으면 검색이 계속 비어 보입니다. */
+    if (searchState.docs && searchState.docs.length) return searchState.docs;
+    var C = window.CRAFT_CMS, out = [];
+    var boards = cmsBoards();
+    function boardName(cat) {
+      for (var i = 0; i < boards.length; i++) {
+        var k = (window.CRAFT_CMS && window.CRAFT_CMS.boardKey) ? window.CRAFT_CMS.boardKey(boards[i]) : boards[i].slug;
+        if (k === cat) return boards[i].name || cat;
+      }
+      return cat || "";
+    }
+    ((C && C.publicPosts) ? C.publicPosts() : []).forEach(function (p) {
+      var m = p.meta || {};
+      var tags = [m.tag, m.person, m.role, m.kind, m.period].filter(Boolean);
+      out.push({
+        kind: "post", key: p.slug || String(p.id), href: "#/post/" + encodeURIComponent(p.slug || String(p.id)),
+        title: String(p.title || ""), summary: stripTags(p.summary || ""), body: stripTags(p.body || ""),
+        tags: tags, category: p.category || "", board: boardName(p.category),
+        date: String(p.published_at || p.created_at || "").slice(0, 10)
+      });
+    });
+    ((C && C.publicPages) ? C.publicPages() : []).forEach(function (g) {
+      out.push({
+        kind: "page", key: g.slug, href: "#/page/" + encodeURIComponent(g.slug || ""),
+        title: String(g.title || ""), summary: stripTags(g.subtitle || ""), body: stripTags(g.body || ""),
+        tags: [], category: "", board: "", date: String(g.updated_at || g.created_at || "").slice(0, 10)
+      });
+    });
+    searchState.docs = out;
+    return out;
+  }
+
+  /* 검색어(공백으로 나눈 낱말)가 모두 들어 있어야 결과에 넣고, 제목·태그에 맞을수록 위로 올립니다. */
+  function scoreDoc(doc, terms) {
+    var title = doc.title.toLowerCase(), sum = doc.summary.toLowerCase();
+    var body = doc.body.toLowerCase(), tags = doc.tags.join(" ").toLowerCase(), cat = (doc.board + " " + doc.category).toLowerCase();
+    var score = 0;
+    for (var i = 0; i < terms.length; i++) {
+      var t = terms[i], hit = 0;
+      if (title.indexOf(t) >= 0) hit += 10;
+      if (tags.indexOf(t) >= 0) hit += 6;
+      if (cat.indexOf(t) >= 0) hit += 4;
+      if (sum.indexOf(t) >= 0) hit += 3;
+      if (body.indexOf(t) >= 0) hit += 1;
+      if (!hit) return 0;
+      score += hit;
+    }
+    return score;
+  }
+
+  function highlight(text, terms) {
+    var out = esc(text);
+    terms.forEach(function (t) {
+      if (!t) return;
+      var re = new RegExp("(" + t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
+      out = out.replace(re, "<mark>$1</mark>");
+    });
+    return out;
+  }
+
+  function snippetOf(doc, terms) {
+    var src = doc.summary || doc.body || "";
+    var low = src.toLowerCase(), at = -1;
+    for (var i = 0; i < terms.length; i++) {
+      var k = low.indexOf(terms[i]);
+      if (k >= 0 && (at < 0 || k < at)) at = k;
+    }
+    if (!src) return "";
+    if (at < 0) at = 0;
+    var from = Math.max(0, at - 50), to = Math.min(src.length, at + 110);
+    return (from > 0 ? "…" : "") + src.slice(from, to).trim() + (to < src.length ? "…" : "");
+  }
+
+  function syncSearchScope() {
+    [].forEach.call(document.querySelectorAll("#search-filters [data-scope]"), function (b) {
+      b.setAttribute("aria-pressed", b.getAttribute("data-scope") === searchState.scope ? "true" : "false");
+    });
+  }
+
+  function renderSearch(q, focus) {
+    var input = $("#search-input"), box = $("#search-results"), empty = $("#search-empty"), count = $("#search-count");
+    searchState.q = String(q == null ? searchState.q : q).replace(/\s+/g, " ").trim();
+    if (input && input.value !== searchState.q) input.value = searchState.q;
+    if (focus && input) { try { input.focus(); } catch (e) { /* noop */ } }
+    syncSearchScope();
+    if (!box) return;
+    var terms = searchState.q.toLowerCase().split(" ").filter(Boolean);
+    if (!terms.length) {
+      box.innerHTML = "";
+      if (count) count.textContent = "";
+      if (empty) { empty.hidden = true; }
+      var hint = $("#search-hint");
+      if (hint) hint.hidden = false;
+      return;
+    }
+    var hint2 = $("#search-hint");
+    if (hint2) hint2.hidden = true;
+    var hits = searchDocs().map(function (d) { return { doc: d, score: scoreDoc(d, terms) }; })
+      .filter(function (h) { return h.score > 0 && (searchState.scope === "all" || h.doc.kind === searchState.scope); })
+      .sort(function (a, b) {
+        if (b.score !== a.score) return b.score - a.score;
+        return (a.doc.date || "") < (b.doc.date || "") ? 1 : -1;
+      });
+    var nPost = 0, nPage = 0;
+    hits.forEach(function (h) { if (h.doc.kind === "post") nPost++; else nPage++; });
+    if (count) {
+      count.textContent = isEn()
+        ? nPost + " post" + (nPost === 1 ? "" : "s") + " · " + nPage + " page" + (nPage === 1 ? "" : "s")
+        : "글 " + nPost + "건 · 페이지 " + nPage + "건";
+    }
+    if (!hits.length) {
+      box.innerHTML = "";
+      if (empty) {
+        empty.hidden = false;
+        empty.textContent = isEn()
+          ? "No results for “" + searchState.q + "”. Try another word."
+          : "‘" + searchState.q + "’에 맞는 글이 없습니다. 다른 낱말로 찾아보세요.";
+      }
+      return;
+    }
+    if (empty) empty.hidden = true;
+    box.innerHTML = hits.map(function (h) {
+      var d = h.doc;
+      var kind = d.kind === "page" ? T("search.scope.page") : T("search.scope.post");
+      var bits = [d.kind === "post" ? (d.board || d.category) : T("search.scope.page"), d.date].filter(Boolean);
+      var snip = snippetOf(d, terms);
+      return '<a class="search-hit" href="' + esc(d.href) + '" data-kind="' + d.kind + '">' +
+        '<span class="search-hit-kind">' + esc(kind) + "</span>" +
+        '<span class="search-hit-main">' +
+          "<strong>" + highlight(d.title || "(제목 없음)", terms) + "</strong>" +
+          '<span class="search-hit-meta">' + bits.map(esc).join('<i aria-hidden="true">·</i>') + "</span>" +
+          (snip ? '<span class="search-hit-snip">' + highlight(snip, terms) + "</span>" : "") +
+        "</span>" +
+        '<svg class="search-hit-go" width="15" height="15" aria-hidden="true"><use href="#i-arrow"/></svg>' +
+        "</a>";
+    }).join("");
+  }
+
+  function submitSearch(value) {
+    var q = String(value == null ? (($("#search-input") || {}).value || "") : value).trim();
+    var target = "#/search" + (q ? "?q=" + encodeURIComponent(q) : "");
+    if (location.hash === target) { renderSearch(q, true); return; }
+    location.hash = target;
+  }
+
+  function initSearch() {
+    var open = $("#search-open");
+    if (open) open.addEventListener("click", function () {
+      if (/^#\/search(\?|$)/.test(location.hash)) route(true);
+      else location.hash = "#/search";
+    });
+    var form = $("#search-form");
+    if (form) form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      submitSearch();
+    });
+    var input = $("#search-input");
+    var timer = 0;
+    if (input) input.addEventListener("input", function () {
+      clearTimeout(timer);
+      var v = input.value;
+      timer = setTimeout(function () { renderSearch(v, false); }, 130);
+    });
+    if (input) input.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") { input.value = ""; renderSearch("", false); input.blur(); }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        var first = $("#search-results .search-hit");
+        if (first && searchState.q) { location.hash = first.getAttribute("href"); }
+        else submitSearch();
+      }
+    });
+    var filters = $("#search-filters");
+    if (filters) filters.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-scope]");
+      if (!b) return;
+      e.preventDefault();
+      searchState.scope = b.getAttribute("data-scope") || "all";
+      renderSearch(searchState.q, false);
+    });
+  }
+
+  /* ---------------- 글 공유 (assets/share.js) ---------------- */
+  function shareUrlFor(p) {
+    var base = (location.origin && location.origin !== "null")
+      ? location.origin : String(CFG.siteUrl || "").replace(/\/+$/, "");
+    return base + "/#/post/" + encodeURIComponent((p && (p.slug || String(p.id))) || "");
+  }
+
+  function paintShare(p) {
+    var box = $("#post-share");
+    if (!box) return;
+    if (!p) { box.innerHTML = ""; box.hidden = true; return; }
+    var url = shareUrlFor(p);
+    box.innerHTML =
+      '<button type="button" class="share-btn" data-sbp-copy="' + esc(url) + '">' +
+        '<svg width="15" height="15" aria-hidden="true"><use href="#i-link"/></svg>' + esc(T("share.copy")) + "</button>" +
+      '<button type="button" class="share-btn primary" data-sbp-share data-share-url="' + esc(url) +
+        '" data-share-title="' + esc(p.title || "") + '">' +
+        '<svg width="15" height="15" aria-hidden="true"><use href="#i-share"/></svg>' + esc(T("share.share")) + "</button>";
+    box.hidden = false;
   }
 
   /* ---------------- 직접 만든 게시판 (#/board/<slug>) ---------------- */
@@ -1429,6 +1653,7 @@
     page: "페이지 — " + BRAND,
     board: "게시판 — " + BRAND,
     post: "글 — " + BRAND,
+    search: "통합 검색 — " + BRAND,
     mypage: "마이페이지 — " + BRAND
   };
   function route(scroll) {
@@ -1447,6 +1672,7 @@
     paintSelected();
     if (r.name === "page") renderPageView(r.arg);
     if (r.name === "post") renderPostView(r.arg);
+    if (r.name === "search") renderSearch(r.arg, r.raw === "search" && !r.arg);
     if (r.name === "mypage" && window.CRAFT_MYPAGE) window.CRAFT_MYPAGE.show();
     if (r.name === "tasks" && window.CRAFT_TASKS) window.CRAFT_TASKS.show();
     if (r.name === "board") {
@@ -1467,6 +1693,7 @@
       var pp = window.CRAFT_CMS && window.CRAFT_CMS.postFor && window.CRAFT_CMS.postFor(r.arg);
       if (pp && pp.title) title = pp.title + " — " + BRAND;
     }
+    if (r.name === "search" && r.arg) title = "‘" + r.arg + "’ 검색 — " + BRAND;
     document.title = (r.name === "home" && window.CRAFT_SEO && window.CRAFT_SEO.title)
       ? window.CRAFT_SEO.title
       : title;
@@ -1510,6 +1737,7 @@
   }
   applyFeatureFlags();
   renderHeader();
+  initSearch();
   fillSelects();
   renderRegions();
   renderBoard();
@@ -1536,6 +1764,7 @@
       if (r.name === "page") renderPageView(r.arg);
       if (r.name === "post") renderPostView(r.arg);
       if (r.name === "board") renderCustomBoard(r.arg);
+      if (r.name === "search") renderSearch(searchState.q, false);
       if (window.CRAFT_TASKS) window.CRAFT_TASKS.refresh();
     });
   }
@@ -1549,6 +1778,7 @@
 
   /* ---------------- 관리자 CMS(cms.js) 가 글·문구를 받아온 뒤 다시 그리기 ---------------- */
   function refreshAll() {
+    searchState.docs = null;
     recomputeCounts();
     renderHeader();
     renderHeroMeta();
@@ -1564,6 +1794,7 @@
     if (r.name === "page") renderPageView(r.arg);
     if (r.name === "post") renderPostView(r.arg);
     if (r.name === "board") renderCustomBoard(r.arg);
+    if (r.name === "search") renderSearch(searchState.q, false);
     if (r.name === "tasks" && window.CRAFT_TASKS) window.CRAFT_TASKS.refresh();
     if (r.name === "mypage" && window.CRAFT_MYPAGE) window.CRAFT_MYPAGE.refresh();
     renderBoardSwitch();
