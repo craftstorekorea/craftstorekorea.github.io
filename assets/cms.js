@@ -117,7 +117,7 @@
       slug: p.slug, title: p.title, desc: num(p.summary),
       tag: (p.meta && p.meta.tag) || p.category, region: num(p.region),
       source: num(p.source_name), date: num(p.published_at), url: num(p.source_url),
-      image: p.image_url || "", _id: p.id,
+      image: p.image_url || "", _id: p.id, body: p.body || "", format: p.body_format || "text",
       pinned: !!p.is_pinned, publish_at: p.publish_at || null, sort: p.sort_order || 0
     };
   }
@@ -127,6 +127,7 @@
       slug: p.slug, title: p.title, quote: num(p.summary), desc: num(p.body || p.summary),
       person: m.person || "공방", role: m.role || "", source: num(p.source_name),
       date: num(p.published_at), url: num(p.source_url), image: p.image_url || "", _id: p.id,
+      body: p.body || "", format: p.body_format || "text",
       pinned: !!p.is_pinned, publish_at: p.publish_at || null, sort: p.sort_order || 0
     };
   }
@@ -137,7 +138,7 @@
     return {
       slug: p.slug, title: p.title, org: num(p.source_name), period: m.period || "",
       due: due, kind: m.kind || "정보", desc: num(p.summary), url: num(p.source_url),
-      image: p.image_url || "", _id: p.id,
+      image: p.image_url || "", _id: p.id, body: p.body || "", format: p.body_format || "text",
       pinned: !!p.is_pinned, publish_at: p.publish_at || null, sort: p.sort_order || 0
     };
   }
@@ -703,7 +704,7 @@
   }
 
   /* ---------------- 댓글 드로어 ---------------- */
-  var drawer = null, state = { key: "", title: "", image: "", rows: [] };
+  var drawer = null, state = { key: "", title: "", image: "", rows: [], replyTo: null };
   var lastFocus = null;
 
   function buildDrawer() {
@@ -719,6 +720,10 @@
       '    <button type="button" class="cmt-close" id="cmt-close" aria-label="댓글 닫기">×</button>' +
       "  </header>" +
       '  <div class="cmt-body"><div class="cmt-list" id="cmt-list"></div></div>' +
+      '  <div class="cmt-reply-note" id="cmt-reply-note" hidden>' +
+      '    <span id="cmt-reply-to"></span>' +
+      '    <button type="button" class="cmt-reply-cancel" id="cmt-reply-cancel" aria-label="답글 취소">취소</button>' +
+      "  </div>" +
       '  <form class="cmt-form" id="cmt-form" hidden>' +
       '    <label class="sr-only" for="cmt-input">댓글 내용</label>' +
       '    <textarea id="cmt-input" maxlength="1000" rows="3" placeholder="서로에게 도움이 되는 말을 남겨 주세요. (최대 1000자)" data-i18n-ph="cmt.input.ph"></textarea>' +
@@ -767,6 +772,7 @@
       $("#cmt-guest-chars").textContent = e.target.value.length + "/1000";
     });
     $("#cmt-cap-refresh").addEventListener("click", function () { loadCaptcha(); });
+    $("#cmt-reply-cancel").addEventListener("click", function () { clearReply(); });
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && drawer && !$("#cmt-drawer").hidden) closeDrawer();
     });
@@ -789,6 +795,7 @@
     if (!drawer) buildDrawer();
     lastFocus = document.activeElement;
     state.key = key; state.title = title; state.image = image || "";
+    state.replyTo = null;
     $("#cmt-title").textContent = title || T("cmt.title");
     var hero = $("#cmt-hero");
     if (state.image) { hero.src = state.image; hero.hidden = false; } else { hero.hidden = true; hero.removeAttribute("src"); }
@@ -810,6 +817,7 @@
 
   function closeDrawer() {
     if (!drawer) return;
+    clearReply();
     $("#cmt-drawer").hidden = true;
     $("#cmt-overlay").hidden = true;
     document.body.classList.remove("cmt-lock");
@@ -829,6 +837,32 @@
     $("#cmt-guest").hidden = !guestOn;
     if (on) $("#cmt-who").textContent = T("cmt.as", { name: myName(user) });
     if (guestOn && !capState.id && !capState.loading) loadCaptcha();
+    paintReplyNote();
+  }
+
+  /* ---------------- 대댓글 — 답글 대상 표시 ---------------- */
+  function setReply(comment) {
+    if (!comment || !comment.id) return;
+    if (comment.parent_id) return;                 // 답글에는 다시 답글을 달지 않습니다
+    state.replyTo = { id: comment.id, name: comment.author_name || "댓글" };
+    paintReplyNote();
+    var target = $("#cmt-form").hidden ? $("#cmt-guest-input") : $("#cmt-input");
+    if (target) { target.focus(); }
+  }
+
+  function clearReply() {
+    state.replyTo = null;
+    paintReplyNote();
+  }
+
+  function paintReplyNote() {
+    var note = $("#cmt-reply-note");
+    if (!note) return;
+    var r = state.replyTo;
+    var visible = !!(r && !$("#cmt-drawer").hidden && !$("#cmt-form").hidden) ||
+                  !!(r && !$("#cmt-drawer").hidden && !$("#cmt-guest").hidden);
+    note.hidden = !visible;
+    if (r) $("#cmt-reply-to").textContent = (r.name || "댓글") + "님의 댓글에 답글을 남깁니다.";
   }
 
   /* ---------------- 비회원 캡차 ---------------- */
@@ -887,7 +921,8 @@
       headers: { apikey: KEY, Authorization: "Bearer " + KEY, "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify({
         p_challenge_id: cid, p_answer: answer, p_post_key: state.key,
-        p_author_name: name, p_content: text
+        p_author_name: name, p_content: text,
+        p_parent_id: state.replyTo ? state.replyTo.id : null
       })
     }).then(function (r) {
       if (!r.ok) return r.text().then(function (t) {
@@ -903,6 +938,7 @@
       $("#cmt-guest-chars").textContent = "0/1000";
       $("#cmt-cap-answer").value = "";
       msg.textContent = "댓글을 남겼습니다.";
+      clearReply();
       cmtCounts[state.key] = (cmtCounts[state.key] || 0) + 1;
       paintButtons();
       renderComments();
@@ -919,32 +955,54 @@
     }).then(function () { btn.disabled = false; });
   }
 
+  function commentItem(c, isReply) {
+    var user = me();
+    var mine = user && c.user_id === user.id;
+    return '<article class="cmt-item' + (isReply ? " cmt-reply" : "") + (mine ? " mine" : "") + '" data-id="' + esc(c.id) + '">' +
+      '<div class="cmt-item-head"><span class="cmt-avatar">' + esc(String(c.author_name || "?").charAt(0)) + "</span>" +
+      "<b>" + esc(c.author_name) + "</b>" +
+      (mine ? '<span class="cmt-me">' + esc(T("cmt.me")) + "</span>" : "") +
+      (c.is_guest ? '<span class="cmt-guest-badge">' + esc(T("cmt.guest.badge")) + "</span>" : "") +
+      '<time datetime="' + esc(c.created_at) + '">' + esc(fmtWhen(c.created_at)) + "</time></div>" +
+      '<p class="cmt-text">' + esc(c.content).replace(/\n/g, "<br>") + "</p>" +
+      '<div class="cmt-acts">' +
+        (isReply ? "" : '<button type="button" class="cmt-reply-btn" data-reply="' + esc(c.id) + '">' + esc(T("cmt.reply")) + "</button>") +
+        (mine ? '<button type="button" class="cmt-del" data-del="' + esc(c.id) + '">' + esc(T("cmt.delete")) + "</button>" : "") +
+      "</div></article>";
+  }
+
   function renderComments() {
     var list = $("#cmt-list");
+    if (!list) return;
     if (!state.rows.length) {
       list.innerHTML = '<div class="cmt-empty"><b>' + esc(T("cmt.empty.title")) + "</b><p>" + esc(T("cmt.empty.desc")) + "</p></div>";
       return;
     }
-    var user = me();
-    list.innerHTML = state.rows.map(function (c) {
-      var mine = user && c.user_id === user.id;
-      return '<article class="cmt-item' + (mine ? " mine" : "") + '">' +
-        '<div class="cmt-item-head"><span class="cmt-avatar">' + esc(String(c.author_name || "?").charAt(0)) + "</span>" +
-        "<b>" + esc(c.author_name) + "</b>" +
-        (mine ? '<span class="cmt-me">' + esc(T("cmt.me")) + "</span>" : "") +
-        (c.is_guest ? '<span class="cmt-guest-badge">' + esc(T("cmt.guest.badge")) + "</span>" : "") +
-        '<time datetime="' + esc(c.created_at) + '">' + esc(fmtWhen(c.created_at)) + "</time></div>" +
-        '<p class="cmt-text">' + esc(c.content).replace(/\n/g, "<br>") + "</p>" +
-        (mine ? '<button type="button" class="cmt-del" data-del="' + esc(c.id) + '">' + esc(T("cmt.delete")) + "</button>" : "") +
-        "</article>";
+    var byId = Object.create(null), replies = Object.create(null);
+    state.rows.forEach(function (c) { byId[c.id] = c; });
+    state.rows.forEach(function (c) {
+      if (c.parent_id && byId[c.parent_id]) {
+        (replies[c.parent_id] = replies[c.parent_id] || []).push(c);
+      }
+    });
+    var html = state.rows.filter(function (c) {
+      // 1단계 댓글 + (부모가 숨겨진) 고아 답글만 최상위로 그립니다.
+      return !c.parent_id || !byId[c.parent_id];
+    }).map(function (c) {
+      return commentItem(c, false) +
+        (replies[c.id] || []).map(function (r) { return commentItem(r, true); }).join("");
     }).join("");
+    list.innerHTML = html;
     $$("[data-del]", list).forEach(function (b) {
       b.addEventListener("click", function () { deleteComment(b.getAttribute("data-del")); });
+    });
+    $$("[data-reply]", list).forEach(function (b) {
+      b.addEventListener("click", function () { setReply(byId[b.getAttribute("data-reply")]); });
     });
   }
 
   function loadComments(key) {
-    var q = "comments?select=id,post_key,user_id,author_name,content,is_hidden,is_guest,created_at" +
+    var q = "comments?select=id,post_key,user_id,author_name,content,is_hidden,is_guest,parent_id,created_at" +
       "&post_key=eq." + encodeURIComponent(key) + "&order=created_at.asc&limit=500";
     return rest(q).then(function (rows) {
       if (state.key !== key) return;
@@ -974,7 +1032,8 @@
       },
       body: JSON.stringify({
         post_key: state.key, user_id: user.id,
-        author_name: myName(user), content: text
+        author_name: myName(user), content: text,
+        parent_id: state.replyTo ? state.replyTo.id : null
       })
     }).then(function (r) {
       if (!r.ok) return r.text().then(function (t) { throw new Error(t); });
@@ -984,6 +1043,7 @@
       if (row && state.rows.every(function (c) { return c.id !== row.id; })) state.rows.push(row);
       input.value = ""; $("#cmt-chars").textContent = "0/1000";
       msg.textContent = "댓글을 남겼습니다.";
+      clearReply();
       cmtCounts[state.key] = (cmtCounts[state.key] || 0) + 1;
       paintButtons();
       renderComments();
@@ -1015,6 +1075,11 @@
       $("#cmt-msg").textContent = "댓글을 삭제하지 못했습니다. 로그인 상태를 확인해 주세요.";
     });
   }
+
+  /* 화면(해시)을 옮기면 댓글 드로어를 닫습니다 — 다른 화면 위에 남지 않게. */
+  window.addEventListener("hashchange", function () {
+    if (drawer && !$("#cmt-drawer").hidden) closeDrawer();
+  });
 
   /* ---------------- 공지 닫기 ---------------- */
   function bindNotice() {
@@ -1099,6 +1164,15 @@
     pageList: function () { return customPages.slice(); },
     pageBySlug: function (slug) {
       for (var i = 0; i < customPages.length; i++) if (customPages[i].slug === slug) return customPages[i];
+      return null;
+    },
+    /* 글 상세(#/post/<slug|id>) — 발행된 글만 돌려줍니다 */
+    postFor: function (key) {
+      var k = String(key || "");
+      for (var i = 0; i < postsAll.length; i++) {
+        var p = postsAll[i];
+        if (p.slug === k || String(p.id) === k) return isPublicPost(p) ? p : null;
+      }
       return null;
     },
     policyFor: policyFor,

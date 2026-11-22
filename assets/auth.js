@@ -99,6 +99,7 @@
         esc(session.user.email || providerLabel()) + "</span></div>" +
       '<button type="button" role="menuitem" data-act="bookmarks">' + I.heartOn +
         '<span data-i18n="auth.menu.bookmarks"></span> <i>' + bookmarks.length + "</i></button>" +
+      '<a role="menuitem" href="#/mypage" data-act="mypage" data-i18n="auth.menu.mypage">마이페이지</a>' +
       '<a role="menuitem" href="#/tasks" data-act="tasks" data-i18n="auth.menu.tasks"></a>' +
       '<a role="menuitem" href="#/map" data-act="map" data-i18n="auth.menu.board"></a>' +
       '<button type="button" role="menuitem" data-act="signout" data-i18n="auth.menu.signout"></button>';
@@ -736,6 +737,7 @@
     user: function () { return session ? session.user : null; },
     token: sessionToken,
     profile: function () { return profile; },
+    reloadProfile: function () { return loadProfile(); },
     memberGrade: gradeOf,
     gradeName: gradeName,
     configured: CONFIGURED

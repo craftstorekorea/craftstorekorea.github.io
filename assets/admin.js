@@ -184,7 +184,7 @@
   function loadAll(force) {
     var stamp = $("#dash-stamp");
     if (stamp) stamp.textContent = "불러오는 중…";
-    Promise.all([loadMembers(), loadBookmarks(), loadSheet(), loadPostIndex(), loadGrade(), loadTasksAdmin()]).then(function () {
+    Promise.all([loadMembers(), loadBookmarks(), loadSheet(), loadPostIndex(), loadGrade(), loadTasksAdmin(), loadAdmins()]).then(function () {
       recount();
       renderMembers();
       renderPopular();
@@ -204,6 +204,90 @@
       .limit(1000).then(function (r) {
         if (!r.error) CMS.postIndex = r.data || [];
       });
+  }
+
+  /* ---------------- 하위 관리자 (public.admin_users) ---------------- */
+  var OWNER_EMAIL = "craftstore.kr@gmail.com";
+
+  function loadAdmins() {
+    if (!sb) return Promise.resolve();
+    return sb.from("admin_users").select("email,note,added_at").order("added_at").then(function (r) {
+      if (r.error) { cmsMsg("admin-msg", "관리자 목록을 불러오지 못했습니다: " + r.error.message, "err"); return; }
+      CMS.admins = r.data || [];
+      CMS.adminsLoaded = true;
+      renderAdmins();
+    });
+  }
+
+  function renderAdmins() {
+    var body = $("#admin-table tbody");
+    var tag = $("#admin-count");
+    if (tag) tag.textContent = CMS.admins.length + "명";
+    if (!body) return;
+    if (!CMS.admins.length) {
+      body.innerHTML = '<tr class="empty-row"><td colspan="4">관리자 목록을 불러오지 못했습니다.</td></tr>';
+      return;
+    }
+    body.innerHTML = CMS.admins.map(function (a) {
+      var owner = String(a.email || "").toLowerCase() === OWNER_EMAIL;
+      return "<tr" + (owner ? ' class="owner-row"' : "") + ">" +
+        '<td data-th="이메일">' + esc(a.email) +
+          (owner ? ' <span class="badge b-owner">소유자</span>' : "") + "</td>" +
+        '<td class="muted" data-th="메모">' + esc(a.note || "–") + "</td>" +
+        '<td class="muted" data-th="추가일">' + esc(fmtDate(a.added_at)) + "</td>" +
+        '<td class="row-actions">' +
+          (owner
+            ? '<span class="muted">뺄 수 없음</span>'
+            : '<button type="button" class="rowlink danger admin-remove" data-email="' + esc(a.email) + '">관리자에서 빼기</button>') +
+        "</td></tr>";
+    }).join("");
+    [].forEach.call(body.querySelectorAll(".admin-remove"), function (b) {
+      b.addEventListener("click", function () { removeAdmin(b.getAttribute("data-email")); });
+    });
+  }
+
+  function addAdmin() {
+    if (!sb) return;
+    var email = ($("#new-admin-email").value || "").trim().toLowerCase();
+    var note = ($("#new-admin-note").value || "").trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      cmsMsg("admin-msg", "관리자 이메일 형식을 확인해 주세요.", "err");
+      $("#new-admin-email").focus();
+      return;
+    }
+    if (CMS.admins.some(function (a) { return String(a.email).toLowerCase() === email; })) {
+      cmsMsg("admin-msg", "이미 등록된 관리자입니다: " + email, "err");
+      return;
+    }
+    var btn = $("#admin-add");
+    if (btn) btn.disabled = true;
+    cmsMsg("admin-msg", "추가하는 중…");
+    sb.from("admin_users").insert({ email: email, note: note || null }).then(function (r) {
+      if (btn) btn.disabled = false;
+      if (r.error) { cmsMsg("admin-msg", "추가하지 못했습니다: " + r.error.message, "err"); return; }
+      $("#new-admin-email").value = "";
+      $("#new-admin-note").value = "";
+      cmsMsg("admin-msg", "관리자를 추가했습니다: " + email + " — 이 계정으로 /admin 에 로그인할 수 있습니다.", "ok");
+      loadAdmins();
+    }).catch(function (e) {
+      if (btn) btn.disabled = false;
+      cmsMsg("admin-msg", "추가하지 못했습니다: " + ((e && e.message) || "알 수 없는 오류"), "err");
+    });
+  }
+
+  function removeAdmin(email) {
+    if (!sb || !email) return;
+    if (String(email).toLowerCase() === OWNER_EMAIL) {
+      cmsMsg("admin-msg", "운영자(소유자) 계정은 관리자 목록에서 뺄 수 없습니다.", "err");
+      return;
+    }
+    if (!window.confirm("‘" + email + "’ 계정을 관리자에서 뺄까요?\n이 계정으로는 더 이상 /admin 을 쓸 수 없습니다.")) return;
+    cmsMsg("admin-msg", "빼는 중…");
+    sb.from("admin_users").delete().eq("email", email).then(function (r) {
+      if (r.error) { cmsMsg("admin-msg", "빼지 못했습니다: " + r.error.message, "err"); return; }
+      cmsMsg("admin-msg", "관리자에서 뺐습니다: " + email, "ok");
+      loadAdmins();
+    });
   }
 
   function loadMembers() {
@@ -643,8 +727,12 @@
     pages: [], posts: [], comments: [], media: [], postIndex: [],
     customPages: [], boardRows: [], editingPage: null, editingBoard: null, pageImages: [], pageBlocks: [],
     loaded: { pages: false, posts: false, comments: false, brand: false, media: false, boards: false, grade: false, tasks: false },
-    editing: null, commentCounts: {}, brand: null
+    editing: null, commentCounts: {}, brand: null,
+    admins: [], adminsLoaded: false
   };
+
+  /* 본문 편집기(assets/editor.js) — 툴바·이미지 삽입·미리보기 */
+  var postEditor = null, pageEditor = null;
 
   /* 게시판 slug ↔ posts.category 값 (기본 4개는 한글 분류) */
   var CAT_ALIAS = { intro: "소개", news: "뉴스", interview: "인터뷰", info: "정보" };
@@ -678,6 +766,7 @@
     [].forEach.call(document.querySelectorAll("#state-dash .tabpanel"), function (p) {
       p.hidden = p.id !== "tab-" + name;
     });
+    if (name === "dash" && !CMS.adminsLoaded) loadAdmins();
     if (name === "pages") { if (!CMS.loaded.pages) loadPages(); loadPageManager(); loadFormSubs(); }
     if (name === "brand" && !CMS.loaded.brand) loadBrand();
     if (name === "brand") { loadGrade(); loadTheme(); }
@@ -1091,8 +1180,9 @@
     }).filter(function (p) {
       if (trashPosts ? !p.deleted_at : !!p.deleted_at) return false;
       if (cat && p.category !== cat) return false;
-      if (st === "pub" && !p.is_published) return false;
-      if (st === "hidden" && p.is_published) return false;
+      if (st === "pub" && (!p.is_published || p.status === "draft")) return false;
+      if (st === "draft" && p.status !== "draft") return false;
+      if (st === "hidden" && (p.is_published || p.status === "draft")) return false;
       if (!q) return true;
       return [p.title, p.source_name, p.region, p.slug, p.summary].join(" ").toLowerCase().indexOf(q) >= 0;
     });
@@ -1108,11 +1198,16 @@
       var n = CMS.commentCounts[p.slug] || 0;
       var no = noMap[p.slug || p.id];
       var sched = isFuture(p.publish_at);
+      var draft = p.status === "draft";
+      var stateBadge = draft
+        ? '<span class="badge b-wait">임시저장</span>'
+        : '<span class="badge ' + (p.is_published ? "b-ok" : "b-off") + '">' + (p.is_published ? "발행" : "숨김") + "</span>";
       var flags = (p.is_pinned ? '<span class="pin-flag" title="상단 고정">📌</span>' : "") +
-        (sched ? '<span class="badge b-wait" title="' + esc(String(p.publish_at).replace("T", " ").slice(0, 16)) + ' 공개">예약됨</span>' : "");
+        (sched ? '<span class="badge b-wait" title="' + esc(String(p.publish_at).replace("T", " ").slice(0, 16)) + ' 공개">예약됨</span>' : "") +
+        (p.body_format && p.body_format !== "text" ? '<span class="fmt-tag" title="본문 형식">' + esc(p.body_format === "html" ? "HTML" : "MD") + "</span>" : "");
       return "<tr>" +
         '<td class="num" data-th="No."><span class="post-no">No. ' + (no || "–") + "</span></td>" +
-        '<td data-th="상태"><span class="badge ' + (p.is_published ? "b-ok" : "b-off") + '">' + (p.is_published ? "발행" : "숨김") + "</span>" + flags + "</td>" +
+        '<td data-th="상태">' + stateBadge + flags + "</td>" +
         '<td data-th="분류">' + esc(boardNameFor(p.category)) + "</td>" +
         '<td class="ellip" data-th="제목" title="' + esc(p.title) + '">' + esc(p.title) + (p.image_url ? ' <span class="cms-img-dot" title="이미지 있음">IMG</span>' : "") + "</td>" +
         '<td class="muted" data-th="출처·지역">' + esc([p.source_name, p.region].filter(Boolean).join(" · ") || "–") + "</td>" +
@@ -1179,11 +1274,13 @@
     var m = p && p.meta ? p.meta : {};
     $("#post-modal-title").textContent = p ? "글 수정" : "새 글";
     setCategoryValue(p ? p.category : "뉴스");
-    $("#pf-state").value = p ? String(!!p.is_published) : "true";
+    $("#pf-state").value = p ? (p.status === "draft" ? "draft" : String(!!p.is_published)) : "true";
     $("#pf-title").value = p ? p.title : "";
     $("#pf-slug").value = p ? (p.slug || "") : "";
     $("#pf-summary").value = p ? (p.summary || "") : "";
     $("#pf-body").value = p ? (p.body || "") : "";
+    if ($("#pf-body_format")) $("#pf-body_format").value = (window.CRAFT_BODY ? window.CRAFT_BODY.normalize(p && p.body_format) : "text");
+    if (postEditor) postEditor.reset();
     $("#pf-region").value = p ? (p.region || "") : "";
     $("#pf-source_name").value = p ? (p.source_name || "") : "";
     $("#pf-source_url").value = p ? (p.source_url || "") : "";
@@ -1248,19 +1345,22 @@
     if (!title) { $("#pf-msg").textContent = "제목을 입력해 주세요."; $("#pf-title").focus(); return; }
     var prev = CMS.editing;
     var slug = ($("#pf-slug").value || "").trim() || (prev && prev.slug) || (catPrefix(cat) + "-" + Date.now().toString(36));
+    var stateVal = $("#pf-state").value;
     var body = {
       slug: slug,
       category: cat,
       title: title,
       summary: ($("#pf-summary").value || "").trim() || null,
       body: ($("#pf-body").value || "").trim() || null,
+      body_format: window.CRAFT_BODY ? window.CRAFT_BODY.normalize($("#pf-body_format") && $("#pf-body_format").value) : "text",
+      status: stateVal === "draft" ? "draft" : "published",
       region: ($("#pf-region").value || "").trim() || null,
       source_name: ($("#pf-source_name").value || "").trim() || null,
       source_url: ($("#pf-source_url").value || "").trim() || null,
       image_url: ($("#pf-image_url").value || "").trim() || null,
       deadline: $("#pf-deadline").value || null,
       published_at: $("#pf-published_at").value || null,
-      is_published: $("#pf-state").value === "true",
+      is_published: stateVal === "true",
       is_pinned: !!($("#pf-is_pinned") && $("#pf-is_pinned").checked),
       publish_at: toIso($("#pf-publish_at").value),
       sort_order: parseInt($("#pf-sort_order").value || "0", 10) || 0,
@@ -1561,6 +1661,8 @@
     $("#pg-title").value = p ? p.title : "";
     $("#pg-subtitle").value = p ? (p.subtitle || "") : "";
     $("#pg-body").value = p ? (p.body || "") : "";
+    if ($("#pg-body_format")) $("#pg-body_format").value = (window.CRAFT_BODY ? window.CRAFT_BODY.normalize(p && p.body_format) : "text");
+    if (pageEditor) pageEditor.reset();
     $("#pg-sort").value = p ? (p.sort_order || 0) : nextPageSort();
     $("#pg-published").checked = p ? !!p.is_published : true;
     $("#pg-url").value = "";
@@ -1652,6 +1754,7 @@
       title: title,
       subtitle: ($("#pg-subtitle").value || "").trim() || null,
       body: ($("#pg-body").value || "").trim() || null,
+      body_format: window.CRAFT_BODY ? window.CRAFT_BODY.normalize($("#pg-body_format") && $("#pg-body_format").value) : "text",
       images: CMS.pageImages.filter(function (im) { return im.url; }).map(function (im) {
         return { url: im.url, caption: (im.caption || "").trim() };
       }),
@@ -2032,10 +2135,10 @@
     document.body.classList.remove("cms-lock");
   }
 
-  var POST_RESTORE_FIELDS = ["slug", "category", "title", "summary", "body", "region", "source_name",
+  var POST_RESTORE_FIELDS = ["slug", "category", "title", "summary", "body", "body_format", "status", "region", "source_name",
     "source_url", "image_url", "deadline", "published_at", "is_published", "is_pinned", "publish_at",
     "sort_order", "meta"];
-  var PAGE_RESTORE_FIELDS = ["title", "subtitle", "body", "images", "blocks", "is_published", "sort_order"];
+  var PAGE_RESTORE_FIELDS = ["title", "subtitle", "body", "body_format", "images", "blocks", "is_published", "sort_order"];
 
   function pick(obj, fields) {
     var out = {};
@@ -2456,6 +2559,36 @@
 
     /* --- 테마 프리셋 --- */
     renderThemePicks();
+
+    /* --- 본문 편집기 (툴바·이미지 삽입·미리보기) --- */
+    if (window.CRAFT_EDITOR) {
+      postEditor = window.CRAFT_EDITOR.mount({
+        textarea: $("#pf-body"),
+        toolbar: $("#pf-ed-toolbar"),
+        format: $("#pf-body_format"),
+        preview: $("#pf-preview"),
+        previewToggle: $("#pf-preview-toggle"),
+        msg: $("#pf-ed-msg"),
+        upload: function (file) { return uploadSiteImage(file, "posts/inline"); }
+      });
+      pageEditor = window.CRAFT_EDITOR.mount({
+        textarea: $("#pg-body"),
+        toolbar: $("#pg-ed-toolbar"),
+        format: $("#pg-body_format"),
+        preview: $("#pg-preview"),
+        previewToggle: $("#pg-preview-toggle"),
+        msg: $("#pg-ed-msg"),
+        upload: function (file) { return uploadSiteImage(file, "pages/inline"); }
+      });
+    }
+
+    /* --- 하위 관리자 --- */
+    var adminAdd = $("#admin-add");
+    if (adminAdd) adminAdd.addEventListener("click", addAdmin);
+    var adminEmail = $("#new-admin-email");
+    if (adminEmail) adminEmail.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); addAdmin(); }
+    });
 
     /* --- 관리자 검색/필터 --- */
     var pq = $("#posts-q");

@@ -638,3 +638,42 @@ tr.is-hidden td{opacity:.62}
   #plugin-table td[data-th="JS 주소"],#plugin-table td[data-th="설치일"]{display:none}
   #plugin-table td[data-th="버전"]::before,#plugin-table td[data-th="출처"]::before{width:40px}
 }
+
+/* ---------- SBPress v1.2 · 본문 편집기 · 하위 관리자 ---------- */
+.ed-field{display:block}
+.ed-bar{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:6px;border:1px solid var(--line,#E6DCD1);border-bottom:0;border-radius:10px 10px 0 0;background:#F4EFE9}
+.ed-bar .ed-btn{min-width:32px;height:30px;padding:0 8px;border:1px solid transparent;border-radius:7px;background:transparent;font-size:.85rem;font-weight:700;color:#3E2F26;cursor:pointer;line-height:1}
+.ed-bar .ed-btn:hover{background:#fff;border-color:#D8C9BA}
+.ed-bar .ed-btn:active{background:#E7DCD1}
+.ed-sep{width:1px;height:18px;background:#D8C9BA;margin:0 4px}
+.ed-hint{font-size:.72rem;color:#7C6759;margin-left:2px}
+.ed-field textarea{border-radius:0 0 10px 10px;margin-top:0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9rem;line-height:1.6}
+.ed-prev{margin-top:10px;padding:14px 16px;border:1px dashed #D8C9BA;border-radius:10px;background:#FFFDFB;font-size:.92rem;line-height:1.75;color:#3E2F26;max-height:340px;overflow:auto}
+.ed-prev[hidden]{display:none}
+.ed-prev p{margin:0 0 10px}
+.ed-prev h1,.ed-prev h2,.ed-prev h3,.ed-prev h4{margin:16px 0 8px;line-height:1.35}
+.ed-prev ul,.ed-prev ol{margin:0 0 10px;padding-left:20px}
+.ed-prev blockquote{margin:0 0 10px;padding:8px 14px;border-left:3px solid #C86D44;background:#F8E9E0}
+.ed-prev pre{padding:12px;background:#2f2620;color:#F4EDE6;border-radius:8px;overflow:auto;font-size:.82rem}
+.ed-prev code{font-family:ui-monospace,Menlo,monospace;background:#F0EAE2;border-radius:5px;padding:1px 5px}
+.ed-prev pre code{background:none;padding:0;color:inherit}
+.ed-prev img{max-width:100%;border-radius:8px;margin:8px 0}
+.ed-prev a{color:#A8542F;text-decoration:underline}
+.ed-prev-empty{color:#7C6759;font-size:.84rem;margin:0}
+.ed-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px}
+.ed-format{display:inline-flex;align-items:center;gap:8px;font-size:.78rem;font-weight:700;color:#6E5C4F}
+.ed-format .admin-select{width:auto;min-width:130px}
+.ed-msg{font-size:.78rem;color:#7C8B6F;font-weight:700}
+
+.admin-add{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.admin-add .admin-input{flex:1;min-width:180px;max-width:320px}
+.badge.b-owner{background:#F8E9E0;color:#A8542F}
+.fmt-tag{display:inline-block;margin-left:4px;padding:1px 6px;border-radius:5px;background:#F0EAE2;color:#6E5C4F;font-size:.66rem;font-weight:800;letter-spacing:.02em;vertical-align:middle}
+tr.owner-row td{background:#FFFAF6}
+
+@media (max-width:720px){
+  .ed-bar{gap:3px}
+  .ed-hint{display:none}
+  .ed-foot{gap:8px}
+  .admin-add .admin-input{max-width:none;width:100%}
+}

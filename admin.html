@@ -168,6 +168,26 @@
         </div>
       </section>
 
+      <section class="panel panel-wide" id="p-admins">
+        <div class="panel-head">
+          <h2>관리자 관리</h2>
+          <span class="panel-tag" id="admin-count"></span>
+        </div>
+        <p class="panel-note">관리자 목록(<code>admin_users</code>)에 이메일을 넣으면 그 계정도 /admin 을 쓸 수 있습니다. 소유자 <code>craftstore.kr@gmail.com</code> 은 뺄 수 없고, 관리자는 최소 한 명이 남아야 합니다(서버가 막습니다).</p>
+        <p class="cms-toast" id="admin-msg" role="status" aria-live="polite"></p>
+        <div class="table-wrap">
+          <table class="admin-table" id="admin-table">
+            <thead><tr><th>이메일</th><th>메모</th><th>추가일</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="admin-add">
+          <input type="email" id="new-admin-email" class="admin-input" placeholder="new-admin@example.com" aria-label="새 관리자 이메일">
+          <input type="text" id="new-admin-note" class="admin-input" maxlength="60" placeholder="메모 (선택, 예: 편집 담당)" aria-label="새 관리자 메모">
+          <button type="button" class="btn btn-primary btn-sm" id="admin-add">관리자 추가</button>
+        </div>
+      </section>
+
       <section class="panel panel-wide" id="p-links">
         <div class="panel-head"><h2>관리 바로가기</h2></div>
         <ul class="quick" id="quick-links"></ul>
@@ -372,7 +392,8 @@
           <option value="">분류 전체</option><option>소개</option><option>뉴스</option><option>인터뷰</option><option>정보</option>
         </select>
         <select id="posts-state" class="admin-select" aria-label="상태 필터">
-          <option value="">상태 전체</option><option value="pub">발행</option><option value="hidden">숨김</option>
+          <option value="">상태 전체</option><option value="pub">발행</option>
+          <option value="draft">임시저장</option><option value="hidden">숨김</option>
         </select>
         <button type="button" class="btn btn-ghost btn-sm" id="posts-trash-toggle" aria-pressed="false">🗑 휴지통 보기</button>
         <span class="panel-tag" id="posts-count"></span>
@@ -576,13 +597,33 @@
             <select id="pf-category"><option>소개</option><option>뉴스</option><option>인터뷰</option><option>정보</option></select>
           </label>
           <label class="cms-field"><span>상태</span>
-            <select id="pf-state"><option value="true">발행</option><option value="false">숨김</option></select>
+            <select id="pf-state">
+              <option value="true">발행</option>
+              <option value="draft">임시저장</option>
+              <option value="false">숨김</option>
+            </select>
           </label>
         </div>
         <label class="cms-field"><span>제목 *</span><input id="pf-title" required maxlength="200"></label>
         <label class="cms-field"><span>슬러그 <em>주소·댓글 키 — 비우면 자동</em></span><input id="pf-slug" maxlength="80" placeholder="news-21"></label>
         <label class="cms-field"><span>요약 <em>뉴스·소개: 카드 설명 / 인터뷰: 인용문 / 정보: 한 줄 설명</em></span><textarea id="pf-summary" rows="2"></textarea></label>
-        <label class="cms-field"><span>본문 <em>인터뷰: 설명</em></span><textarea id="pf-body" rows="4"></textarea></label>
+        <div class="cms-field ed-field">
+          <span>본문 <em>인터뷰: 설명 — 아래 서식·이미지로 꾸밀 수 있습니다</em></span>
+          <div class="ed-bar" id="pf-ed-toolbar"></div>
+          <textarea id="pf-body" rows="8"></textarea>
+          <div class="ed-prev" id="pf-preview" hidden></div>
+          <div class="ed-foot">
+            <label class="ed-format">본문 형식
+              <select id="pf-body_format" class="admin-select">
+                <option value="text">일반 텍스트</option>
+                <option value="markdown">마크다운</option>
+                <option value="html">HTML</option>
+              </select>
+            </label>
+            <button type="button" class="btn btn-ghost btn-sm" id="pf-preview-toggle" aria-pressed="false">미리보기</button>
+            <span class="ed-msg" id="pf-ed-msg" role="status" aria-live="polite"></span>
+          </div>
+        </div>
         <div class="cms-grid2">
           <label class="cms-field"><span>지역</span><input id="pf-region" maxlength="40"></label>
           <label class="cms-field"><span>출처 이름 <em>정보: 기관</em></span><input id="pf-source_name" maxlength="80"></label>
@@ -648,7 +689,23 @@
         </div>
         <label class="cms-field"><span>제목 *</span><input id="pg-title" maxlength="120"></label>
         <label class="cms-field"><span>부제 <em>선택</em></span><input id="pg-subtitle" maxlength="200"></label>
-        <label class="cms-field"><span>본문 <em>줄바꿈 그대로 표시</em></span><textarea id="pg-body" rows="6"></textarea></label>
+        <div class="cms-field ed-field">
+          <span>본문 <em>서식·이미지로 꾸미거나 HTML·마크다운을 그대로 넣을 수 있습니다</em></span>
+          <div class="ed-bar" id="pg-ed-toolbar"></div>
+          <textarea id="pg-body" rows="8"></textarea>
+          <div class="ed-prev" id="pg-preview" hidden></div>
+          <div class="ed-foot">
+            <label class="ed-format">본문 형식
+              <select id="pg-body_format" class="admin-select">
+                <option value="text">일반 텍스트</option>
+                <option value="markdown">마크다운</option>
+                <option value="html">HTML</option>
+              </select>
+            </label>
+            <button type="button" class="btn btn-ghost btn-sm" id="pg-preview-toggle" aria-pressed="false">미리보기</button>
+            <span class="ed-msg" id="pg-ed-msg" role="status" aria-live="polite"></span>
+          </div>
+        </div>
         <div class="cms-field hm-editor-field">
           <span>hunmin 블록 <em>본문 위에 순서대로 조립 — 최신글·지도·구독/제보 폼·갤러리·텍스트</em></span>
           <div class="hm-editor" id="pg-blocks"></div>
@@ -745,6 +802,8 @@
 <script src="/assets/data.js"></script>
 <script src="/assets/archive.js"></script>
 <script src="/assets/hunmin.js"></script>
+<script src="/assets/body-format.js"></script>
+<script src="/assets/editor.js"></script>
 <script src="/assets/admin.js"></script>
 <script src="/assets/plugins.js"></script>
 </body>

@@ -435,6 +435,40 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
     </section>
   </div>
 
+  <!-- ============ 글 상세 (#/post/<slug|id>) ============ -->
+  <div class="view" id="view-post" role="tabpanel" hidden>
+    <section class="section">
+      <div class="wrap post-view">
+        <p class="eyebrow" id="post-eyebrow">게시판</p>
+        <h1 class="page-title" id="post-title"></h1>
+        <p class="post-meta" id="post-meta"></p>
+        <img id="post-img" class="post-hero" alt="" loading="lazy" hidden>
+        <div class="post-body" id="post-body"></div>
+        <div class="post-tags" id="post-tags"></div>
+        <div class="post-foot" id="post-foot"></div>
+        <div class="post-cmt" id="post-cmt"></div>
+        <p class="page-empty" id="post-empty" hidden>글을 찾을 수 없습니다. 주소를 확인해 주세요.</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ 마이페이지 (#/mypage) — 로그인 후에만 열립니다 ============ -->
+  <div class="view" id="view-mypage" role="tabpanel" hidden>
+    <section class="section">
+      <div class="wrap mypage-view">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">마이페이지 · My page</p>
+            <h2 id="mypage-title">내 정보와 활동</h2>
+            <p id="mypage-desc">닉네임·찜한 공방·내가 쓴 댓글을 한 자리에서 봅니다.</p>
+          </div>
+        </div>
+        <div id="mypage-gate"></div>
+        <div id="mypage-app" hidden></div>
+      </div>
+    </section>
+  </div>
+
 </main>
 
 <footer class="site-footer">
@@ -509,8 +543,11 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
 <script src="assets/korea-paths.js"></script>
 <script src="assets/cms.js"></script>
 <script src="assets/hunmin.js"></script>
+<script src="assets/body-format.js"></script>
+<script src="assets/editor.js"></script>
 <script src="assets/app.js"></script>
 <script src="assets/tasks.js"></script>
+<script src="assets/mypage.js"></script>
 <script src="assets/plugins.js"></script>
 
 <!-- 댓글 드로어 (assets/cms.js 가 채웁니다) -->

@@ -20,6 +20,8 @@ GitHub Pages로 배포합니다.
 | 지원·공모 | 마감일 기준 정렬, 분야 필터, D-day 자동 계산 |
 | 지도·게시판 | 시·도 SVG 지도 + 공개 시트 연동 검색·필터 게시판 |
 | 직접 만든 페이지 | `#/page/<slug>` — 제목·부제·본문·여러 이미지 + **hunmin 블록**(최신글·지도·구독/제보 폼·갤러리·텍스트)을 순서대로 조립 (관리자에서 생성) |
+| 글 상세 | `#/post/<slug>` — 글 제목·요약·본문(마크다운·HTML 안전 렌더)·태그·댓글. 게시판 카드의 **글 보기** 로 들어갑니다 |
+| 마이페이지 | `#/mypage` — 로그인한 회원의 닉네임(수정)·회원 등급·**내 찜 목록**(해제)·**내가 쓴 댓글**(글 링크). 헤더 사용자 메뉴에서 열립니다 |
 | 직접 만든 게시판 | `#/board/<slug>` — 게시판별 페이지당 글 수·댓글 정책 (관리자에서 생성) |
 | 업무 관리 | `#/tasks` — 로그인한 회원의 3칸 업무 보드(할 일·진행 중·완료). **로그아웃 상태에서는 메뉴에 나타나지 않고**, 주소로 들어가도 로그인 안내만 보입니다 |
 
@@ -47,10 +49,15 @@ assets/cms.js             Supabase 문구·글 불러오기, 댓글 버튼·드�
 assets/i18n.js            한국어/영어 사전과 KO|EN 스위치 (localStorage 'craft-lang')
 assets/tasks.js           업무 관리 화면 (#/tasks) — 로그인·등급 게이트, 보드 CRUD
 assets/hunmin.js          hunmin 블록 — 사이트 렌더(최신글·지도·폼·갤러리·텍스트) + 관리자 편집기
+assets/body-format.js     본문 형식(text·markdown·html) 변환 + 화이트리스트 정화 — 공개 사이트·관리자 미리보기 공용
+assets/editor.js          관리자 글·페이지 본문 툴바(굵게·기울임·제목·링크·목록·인용·이미지)·미리보기
+assets/mypage.js          마이페이지 (#/mypage) — 내 정보·착·내가 쓴 댓글
 assets/plugins.js         SBPress 플러그인 엔진 — 켜진 플러그인을 불러와 메뉴·카드·위젯·관리자 탭 훅을 겁니다
 assets/plugins/*.js       기본 플러그인 4종 (읽기 시간 배지·맨 위로·추천 공방·데이터 내보내기)
 plugins-market.json       플러그인 마켓 목록 (관리자에서 GitHub raw 주소로 바꿀 수 있습니다)
-sitemap.xml | rss.xml     검색엔진·구독용 피드 (../build_feeds.py 가 Supabase 공개 데이터로 생성)
+sitemap.xml | rss.xml     검색엔진·구독용 피드 (../build_static_seo.py 또는 ../build_feeds.py 가 생성)
+post/<slug>/index.html    글 정적 SEO 페이지 (../build_static_seo.py)
+p/<slug>/index.html       페이지 정적 SEO 페이지 (../build_static_seo.py)
 ```
 
 > **왜 폴더가 아니라 루트 `.html` 파일인가** — GitHub Pages는 `/admin` 요청에 같은 이름의 파일
@@ -66,6 +73,15 @@ sitemap.xml | rss.xml     검색엔진·구독용 피드 (../build_feeds.py 가 
 - `/admin` 탭: **페이지 텍스트·이미지**(문구 수정·이미지 업로드) · **헤더 · 푸터 · Head**(로고·브랜드 이름·메뉴 순서/숨김/외부링크 + 메뉴 한국어/영어 이름, 회원 등급 이름·업무 관리 최소 등급, 푸터 회사 정보·SNS, `<head>` 코드) ·
   **게시판 관리**(글 작성·수정·발행/숨김·삭제, 상단 고정(PIN)·예약 발행, 글 번호 `No. N`) · **업무 관리**(전체 업무 보기·상태 변경·삭제) ·
   **미디어 라이브러리**(`site-media` 전체 파일 목록·썸네일·URL 복사·삭제·업로드) · **댓글 관리**(숨김/공개·삭제). 이미지는 Storage `site-media` 버킷에 올라갑니다.
+- **게시판 글 편집기 — 리치 에디터·임시저장**: 본문 위 툴바(굵게·기울임·제목·링크·목록·인용·**이미지 삽입**)와 **미리보기**,
+  **본문 형식**(일반 텍스트·마크다운·HTML)이 있습니다. 이미지는 `site-media` 에 올라가고 본문에 바로 들어갑니다.
+  
+- **상태 — 발행 · 임시저장 · 숨김**: `임시저장` 글은 관리자만 보고 공개 사이트·피드에는 나오지 않습니다(RLS).
+  글 목록에 상태 배지와 `임시저장` 필터가 있고, 본문 형식이 있으면 `MD`/`HTML` 표시가 붙습니다.
+- **안전 렌더**: 공개 사이트는 마크다운을 HTML 로 바꾸고 화이트리스트로 걸러 냅니다(`<script>`·`onerror`·`javascript:`·`<iframe>` 제거).
+  글 상세는 `#/post/<slug>` 이고, 카드의 `글 보기` 로 들어갑니다.
+- **관리자 관리(하위 관리자)**: 대시보드 **관리자 관리** 에서 `admin_users` 이메일을 추가·삭제합니다.
+  소유자 `craftstore.kr@gmail.com` 은 뺄 수 없고, 관리자 0명도 서버가 막습니다.
 - **회원 등급**: 대시보드 회원 목록에 각 회원의 등급 배지와 1·2·3단계 선택상자가 있습니다. 등급을 바꾸면 Supabase에 바로 저장됩니다.
   회원은 스스로 등급을 올릴 수 없고(서버 트리거가 거부), 관리자만 바꿀 수 있습니다. 등급 이름(기본 일반회원·정회원·특별회원(VIP))은 헤더 · 푸터 · Head 탭에서 바꿉니다.
 - **업무 관리**: 로그인한 회원은 사이트 `#/tasks` 에서 업무를 추가하고 상태(할 일·진행 중·완료)·우선순위·마감일·담당을 관리합니다.
@@ -86,7 +102,8 @@ sitemap.xml | rss.xml     검색엔진·구독용 피드 (../build_feeds.py 가 
   (관리자 페이지 탭의 **hunmin 폼 접수** 에서 확인).
 - **휴지통 · 수정 이력**: 글·페이지의 `삭제` 는 휴지통(`deleted_at`)으로 옮기고, `🗑 휴지통 보기` 에서 복구·영구 삭제합니다.
   저장할 때마다 직전 상태가 `revisions` 에 남아 편집기의 **수정 이력 → 이 버전으로 복원** 으로 되돌릴 수 있습니다(관리자 전용).
-- **sitemap.xml · rss.xml**: 사이트 루트의 정적 파일. `cd .. && python3 build_feeds.py` 로 갱신하거나
+- **sitemap.xml · rss.xml**: 사이트 루트의 정적 파일. `cd .. && python3 build_static_seo.py` 로 정적 페이지와 함께 갱신하거나,
+  `python3 build_feeds.py` 로 피드만 만들어도 됩니다(둘 다 정적 주소 `/post/<slug>/`·`/p/<slug>/` 를 넣습니다).
   관리자 페이지 탭의 **검색엔진** 에서 미리보기·내려받기 합니다.
 - **직접 만든 페이지**: `/admin` → 페이지 텍스트·이미지 탭의 **직접 만든 페이지**에서 제목·부제·본문과
   여러 장의 이미지(설명 포함)를 만들고 순서를 바꾸거나 지웁니다. 헤더 · 푸터 · Head 탭의 메뉴에서
@@ -101,9 +118,12 @@ sitemap.xml | rss.xml     검색엔진·구독용 피드 (../build_feeds.py 가 
   응답에 정답 글자가 남지 않습니다. 확인·저장은 `submit_guest_comment()` RPC가 합니다.
 - 모든 글·공방 카드에 `💬 댓글` 버튼이 붙습니다. 읽기는 누구나, 쓰기·본인 삭제는 로그인 회원(또는 캡차를 통과한 비회원),
   숨김·삭제 관리는 관리자 — 판단은 전부 Supabase RLS와 RPC가 합니다.
-- 설정·검증 기록: `../supabase/07_cms.md` · `../supabase/08_grades_lang_tasks.md` · `../supabase/08_sbpress.md`, DB 파일 `../supabase/03_cms_comments.sql` · `../supabase/04_header_footer_head.sql` · `../supabase/05_cms_plus.sql` · `../supabase/06_pages_boards_captcha.sql` · `../supabase/07_grades_lang_tasks.sql` · `../supabase/08_themes_hunmin_trash_revisions.sql`,
-  테스트 `cd .. && CMS_TEST_MODE=user|admin|brand|plus|v2|v3|v3admin|v4|plugins python3 cms_test.py`,
-  서버 검증 `cd ../supabase && SUPABASE_MGMT_TOKEN=… python3 06_check.py` · `python3 07_check.py` · `python3 08_check.py`.
+- **대댓글(답글)**: 댓글의 `답글` 을 누르면 부모 댓글 아래에 들여쓰기로 달립니다(`comments.parent_id`).
+  회원과 비회원(캡차) 모두 쓸 수 있고 **한 단계**만 허용합니다(답글에 다시 답글 금지 — 서버 트리거가 거부).
+- 설정·검증 기록: `../supabase/07_cms.md` · `../supabase/08_grades_lang_tasks.md` · `../supabase/09_plugins_market.md` · `../supabase/10_v12_editor_community.md`, DB 파일 `../supabase/03_cms_comments.sql` · `../supabase/04_header_footer_head.sql` · `../supabase/05_cms_plus.sql` · `../supabase/06_pages_boards_captcha.sql` · `../supabase/07_grades_lang_tasks.sql` · `../supabase/08_themes_hunmin_trash_revisions.sql` · `../supabase/10_v12_editor_community.sql`,
+  테스트 `cd .. && CMS_TEST_MODE=user|admin|brand|plus|v2|v3|v3admin|v4|plugins|v6 python3 cms_test.py`,
+  정적 SEO `cd .. && python3 build_static_seo.py` (검사 `--check`, 비우기 `--clean`),
+  서버 검증 `cd ../supabase && SUPABASE_MGMT_TOKEN=… python3 06_check.py` · `07_check.py` · `08_check.py` · `09_check.py` · `10_check.py`.
 
 ## 플러그인 · 마켓
 

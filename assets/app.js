@@ -28,6 +28,7 @@
     return m ? m[2] + "-" + m[3] : "";
   }
   function normal(s) { return String(s || "").replace(/[\s()·\-_.]/g, "").toLowerCase(); }
+  function hasBody(it) { return !!(it && String(it.body || "").trim()); }
   function pinBadge(it) {
     return it && it.pinned ? '<span class="pin-badge" title="상단 고정">📌 고정</span>' : "";
   }
@@ -111,6 +112,7 @@
     var raw = hashRoute();
     if (/^page\//.test(raw)) return { name: "page", arg: decodeURIComponent(raw.slice(5)), raw: raw };
     if (/^board\//.test(raw)) return { name: "board", arg: decodeURIComponent(raw.slice(6)), raw: raw };
+    if (/^post\//.test(raw)) return { name: "post", arg: decodeURIComponent(raw.slice(5)), raw: raw };
     return { name: VIEW_KEYS.indexOf(raw) >= 0 ? raw : "home", arg: "", raw: raw };
   }
   function boardView(slug) {
@@ -163,7 +165,7 @@
   /* ---------------- 헤더 (로고 · 브랜드 · 메뉴) ----------------
      site_contents 의 header_logo_url / header_brand_text / header_menu_items 를 읽어 그립니다.
      값이 없으면 index.html 의 기본 마크·메뉴를 그대로 씁니다. */
-  var VIEW_KEYS = ["home", "workshops", "news", "interview", "archive", "info", "map", "tasks", "page", "board"];
+  var VIEW_KEYS = ["home", "workshops", "news", "interview", "archive", "info", "map", "tasks", "page", "board", "post", "mypage"];
   var DEFAULT_MARK =
     '<svg viewBox="0 0 32 32" fill="none"><path d="M8 22c0-4.5 3.4-5.6 8-5.6s8-1.2 8-5.4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="8" cy="22" r="2.4" fill="#C86D44"/></svg>';
 
@@ -407,6 +409,7 @@
       (it.region ? '<span class="chip region">' + esc(it.region) + "</span>" : "") + "</div></div>" +
       '<div class="news-side"><span class="src">' + esc(it.source) + "</span><span>" + shortDate(it.date) + "</span>" +
       '<span data-cmt></span>' +
+      (hasBody(it) ? '<a class="read" href="#/post/' + encodeURIComponent(it.slug) + '">글 보기</a>' : "") +
       '<a class="ext" href="' + esc(it.url) + '" target="_blank" rel="noopener">원문 <svg width="12" height="12" aria-hidden="true"><use href="#i-ext"/></svg></a></div>';
     cmt(row, it.slug, it.title, it.image);
     return row;
@@ -468,6 +471,7 @@
         '<div class="iv-who"><span class="iv-avatar">' + esc(who) + "</span>" +
         "<span><b>" + esc(it.person) + "</b><span>" + esc(it.role) + " · " + esc(it.source) + " " + shortDate(it.date) + "</span></span>" +
         '<a href="' + esc(it.url) + '" target="_blank" rel="noopener">인터뷰 읽기 <svg width="12" height="12" aria-hidden="true"><use href="#i-ext"/></svg></a></div>' +
+        (hasBody(it) ? '<p class="iv-read"><a href="#/post/' + encodeURIComponent(it.slug) + '">본문 보기 →</a></p>' : "") +
         '<div class="cmt-slot" data-cmt></div>';
       cmt(card, it.slug, it.title, it.image);
       ivg.appendChild(card);
@@ -1207,8 +1211,15 @@
       gal.appendChild(fig);
     });
     var body = $("#page-body");
-    body.textContent = page.body || "";
-    body.hidden = !page.body;
+    if (body) {
+      var pfr = (page.body_format || "text");
+      if (window.CRAFT_BODY && String(page.body || "").trim()) {
+        body.innerHTML = window.CRAFT_BODY.render(page.body, pfr);
+      } else {
+        body.textContent = page.body || "";
+      }
+      body.hidden = !String(page.body || "").trim();
+    }
 
     /* hunmin 블록 — 순서대로 제목·부제 아래에 조립합니다. */
     var blockBox = $("#page-blocks");
@@ -1227,6 +1238,98 @@
         // 블록이 있으면 본문은 블록 아래에 이어서 보여 줍니다.
         body.classList.add("page-body-after");
       }
+    }
+  }
+
+  /* ---------------- 글 상세 (#/post/<slug|id>) ---------------- */
+  function renderPostView(key) {
+    var C = window.CRAFT_CMS;
+    var p = (C && C.postFor) ? C.postFor(key) : null;
+    var empty = $("#post-empty");
+    var bodyBox = $("#post-body");
+    var hero = $("#post-img");
+    var meta = $("#post-meta");
+    var tags = $("#post-tags");
+    var foot = $("#post-foot");
+    var slot = $("#post-cmt");
+
+    if (!p) {
+      $("#post-eyebrow").textContent = "게시판";
+      $("#post-title").textContent = "글을 찾을 수 없습니다";
+      if (meta) meta.textContent = "";
+      if (bodyBox) { bodyBox.innerHTML = ""; bodyBox.hidden = true; }
+      if (tags) tags.innerHTML = "";
+      if (foot) foot.innerHTML = "";
+      if (hero) { hero.hidden = true; hero.removeAttribute("src"); }
+      if (slot) slot.innerHTML = "";
+      if (empty) empty.hidden = false;
+      return;
+    }
+    if (empty) empty.hidden = true;
+
+    var board = null, boardName = "";
+    var list = cmsBoards();
+    for (var i = 0; i < list.length; i++) {
+      var bk = (window.CRAFT_CMS && window.CRAFT_CMS.boardKey) ? window.CRAFT_CMS.boardKey(list[i]) : list[i].slug;
+      if (bk === p.category) { boardName = list[i].name; board = list[i]; }
+    }
+    $("#post-eyebrow").textContent = "게시판" + (boardName ? " · " + boardName : "");
+    $("#post-title").textContent = p.title || "";
+
+    if (meta) {
+      var bits = [];
+      if (p.source_name) bits.push(esc(p.source_name));
+      if (p.author_name) bits.push(esc(p.author_name));
+      if (p.region) bits.push(esc(p.region));
+      if (p.published_at) bits.push(esc(String(p.published_at).slice(0, 10)));
+      if (p.is_pinned) bits.push("📌 고정");
+      meta.innerHTML = bits.length ? bits.join('<i aria-hidden="true">·</i>') : "";
+    }
+
+    if (hero) {
+      if (p.image_url) { hero.src = p.image_url; hero.alt = p.title || ""; hero.hidden = false; }
+      else { hero.hidden = true; hero.removeAttribute("src"); }
+    }
+
+    if (bodyBox) {
+      var html = "";
+      if (String(p.body || "").trim()) {
+        html = (window.CRAFT_BODY)
+          ? window.CRAFT_BODY.render(p.body, p.body_format)
+          : esc(p.body).replace(/\n/g, "<br>");
+      } else if (String(p.summary || "").trim()) {
+        html = "<p>" + esc(p.summary) + "</p>";
+      }
+      bodyBox.innerHTML = html;
+      bodyBox.hidden = !html;
+      bodyBox.className = "post-body fmt-" + ((window.CRAFT_BODY ? window.CRAFT_BODY.normalize(p.body_format) : "text"));
+    }
+
+    if (tags) {
+      var t = [];
+      if (p.meta && p.meta.tag) t.push('<span class="chip">' + esc(p.meta.tag) + "</span>");
+      if (boardName) t.push('<span class="chip">' + esc(boardName) + "</span>");
+      else if (p.category) t.push('<span class="chip">' + esc(p.category) + "</span>");
+      if (p.deadline) t.push('<span class="chip region">마감 ' + esc(String(p.deadline).slice(0, 10)) + "</span>");
+      tags.innerHTML = t.join("");
+    }
+
+    if (foot) {
+      var f = [];
+      if (p.source_url) f.push('<a class="ext" href="' + esc(p.source_url) + '" target="_blank" rel="noopener">원문 보기 <svg width="12" height="12" aria-hidden="true"><use href="#i-ext"/></svg></a>');
+      f.push('<a class="link-more" href="#/board/' + encodeURIComponent((function () {
+        for (var j = 0; j < list.length; j++) {
+          var k2 = (window.CRAFT_CMS && window.CRAFT_CMS.boardKey) ? window.CRAFT_CMS.boardKey(list[j]) : list[j].slug;
+          if (k2 === p.category) return list[j].slug;
+        }
+        return "news";
+      })()) + '">게시판 목록 <svg width="14" height="14" aria-hidden="true"><use href="#i-arrow"/></svg></a>');
+      foot.innerHTML = f.join("");
+    }
+
+    if (slot) {
+      slot.innerHTML = "";
+      cmt(slot, p.slug || String(p.id), p.title, p.image_url || "");
     }
   }
 
@@ -1269,7 +1372,7 @@
   }
 
   /* ---------------- routing ---------------- */
-  var VIEWS = ["home", "workshops", "news", "interview", "archive", "info", "map", "tasks", "page", "board"];
+  var VIEWS = ["home", "workshops", "news", "interview", "archive", "info", "map", "tasks", "page", "board", "post", "mypage"];
   var TITLES = {
     home: "전국공방 — 우리 동네 공방의 이번 주 소식",
     workshops: "공방 소개 — 전국공방",
@@ -1280,7 +1383,9 @@
     map: "전국 공방 지도 & 등록 게시판 — 전국공방",
     tasks: "업무 관리 — 전국공방",
     page: "페이지 — 전국공방",
-    board: "게시판 — 전국공방"
+    board: "게시판 — 전국공방",
+    post: "글 — 전국공방",
+    mypage: "마이페이지 — 전국공방"
   };
   function route(scroll) {
     var r = parseRoute();
@@ -1297,6 +1402,8 @@
     });
     paintSelected();
     if (r.name === "page") renderPageView(r.arg);
+    if (r.name === "post") renderPostView(r.arg);
+    if (r.name === "mypage" && window.CRAFT_MYPAGE) window.CRAFT_MYPAGE.show();
     if (r.name === "tasks" && window.CRAFT_TASKS) window.CRAFT_TASKS.show();
     if (r.name === "board") {
       if (r.arg !== lastBoardArg) { pagerState.board = 1; lastBoardArg = r.arg; }
@@ -1311,6 +1418,10 @@
     if (r.name === "board") {
       var b = boardBySlug(r.arg);
       if (b && b.name) title = b.name + " — 전국공방";
+    }
+    if (r.name === "post") {
+      var pp = window.CRAFT_CMS && window.CRAFT_CMS.postFor && window.CRAFT_CMS.postFor(r.arg);
+      if (pp && pp.title) title = pp.title + " — 전국공방";
     }
     document.title = (r.name === "home" && window.CRAFT_SEO && window.CRAFT_SEO.title)
       ? window.CRAFT_SEO.title
@@ -1356,6 +1467,7 @@
       renderBoardSwitch();
       var r = parseRoute();
       if (r.name === "page") renderPageView(r.arg);
+      if (r.name === "post") renderPostView(r.arg);
       if (r.name === "board") renderCustomBoard(r.arg);
       if (window.CRAFT_TASKS) window.CRAFT_TASKS.refresh();
     });
@@ -1383,8 +1495,10 @@
     renderBoard();
     var r = parseRoute();
     if (r.name === "page") renderPageView(r.arg);
+    if (r.name === "post") renderPostView(r.arg);
     if (r.name === "board") renderCustomBoard(r.arg);
     if (r.name === "tasks" && window.CRAFT_TASKS) window.CRAFT_TASKS.refresh();
+    if (r.name === "mypage" && window.CRAFT_MYPAGE) window.CRAFT_MYPAGE.refresh();
     renderBoardSwitch();
     if (window.CRAFT_CMS) window.CRAFT_CMS.recount();
   }
