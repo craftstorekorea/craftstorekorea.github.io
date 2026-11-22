@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- CSP: SBPress v1.3 보안 — build_static_seo.py --csp 로 갱신 -->
+<!-- CSP: SBPress v2.0 — build_static_seo.py --csp 로 갱신 (사이트마다 Supabase 주소가 다릅니다) -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' https://haaikrynfrrwcpyuvrrr.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://cdn.jsdelivr.net http://127.0.0.1:* http://localhost:*; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https: http:; connect-src 'self' https://haaikrynfrrwcpyuvrrr.supabase.co wss://haaikrynfrrwcpyuvrrr.supabase.co https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://cdn.jsdelivr.net https://raw.githubusercontent.com https://docs.google.com http://127.0.0.1:* http://localhost:*; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; media-src 'self' https: blob:; form-action 'self'">
 <title>관리자 · 전국공방</title>
 <meta name="robots" content="noindex,nofollow">
@@ -21,11 +21,11 @@
 
 <header class="admin-header">
   <div class="admin-header-in">
-    <a class="logo" href="/" aria-label="전국공방 홈으로">
+    <a class="logo" href="/" aria-label="전국공방 홈으로" data-sbp-aria-home>
       <span class="logo-mark" aria-hidden="true">
         <svg viewBox="0 0 32 32" fill="none"><path d="M8 22c0-4.5 3.4-5.6 8-5.6s8-1.2 8-5.4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="8" cy="22" r="2.4" fill="#C86D44"/></svg>
       </span>
-      <span>전국공방<small>관리자</small></span>
+      <span data-sbp-brand>전국공방<small>관리자</small></span>
     </a>
     <div class="admin-head-right">
       <span class="admin-badge">ADMIN</span>
@@ -175,7 +175,7 @@
           <h2>관리자 관리</h2>
           <span class="panel-tag" id="admin-count"></span>
         </div>
-        <p class="panel-note">관리자 목록(<code>admin_users</code>)에 이메일을 넣으면 그 계정도 /admin 을 쓸 수 있습니다. 소유자 <code>craftstore.kr@gmail.com</code> 은 뺄 수 없고, 관리자는 최소 한 명이 남아야 합니다(서버가 막습니다).</p>
+        <p class="panel-note">관리자 목록(<code>admin_users</code>)에 이메일을 넣으면 그 계정도 /admin 을 쓸 수 있습니다. 소유자 <code data-sbp-email="owner">craftstore.kr@gmail.com</code> 은 뺄 수 없고, 관리자는 최소 한 명이 남아야 합니다(서버가 막습니다).</p>
         <p class="cms-toast" id="admin-msg" role="status" aria-live="polite"></p>
         <div class="table-wrap">
           <table class="admin-table" id="admin-table">
@@ -818,11 +818,12 @@
 
 <footer class="admin-footer">
   <div class="admin-footer-in">
-    <span>© 2026 전국공방 · 관리자</span>
+    <span>© 2026 <span data-sbp-brand>전국공방</span> · 관리자</span>
     <span><a href="/privacy">개인정보처리방침</a> · <a href="/terms">이용약관</a></span>
   </div>
 </footer>
 
+<script src="/assets/config.js"></script>
 <script src="/assets/supabase.js"></script>
 <script src="/assets/auth-config.js"></script>
 <script src="/assets/data.js"></script>

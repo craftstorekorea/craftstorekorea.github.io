@@ -29,6 +29,32 @@ GitHub Pages로 배포합니다.
 게시판 설정의 **페이지당 글 수**만큼 보여 주고, 하단에 `이전 1 2 3 … 다음` 페이지 번호를 붙입니다.
 `No. N` 번호는 페이지가 바뀌어도 이어집니다(2쪽 첫 글 = `No. 11`).
 
+## 설정 파일 (SBPress v2.0)
+
+사이트마다 다른 값은 **`sbpress.config.json` 한 파일**에 모여 있습니다. `assets/config.js` 가 다른 스크립트보다 먼저
+이 파일을 읽어 `window.SBPRESS_CONFIG` 로 내주고, `auth-config.js`·`app.js`·`admin.js`·`cms.js`·`i18n.js`·`hunmin.js`·`plugins.js`
+등이 그 값을 씁니다.
+
+| 키 | 쓰이는 곳 |
+|---|---|
+| `siteName` · `siteTitle` · `tagline` · `description` | 문서 제목·OG·브랜드·기본 문구 |
+| `siteUrl` | sitemap·rss·공유 주소(끝 `/` 없이) |
+| `supabase.url` · `supabase.anonKey` | 로그인·DB (공개 키만, 보호는 RLS) |
+| `ga4Id` | GA4 — **비우면 스크립트를 넣지 않습니다** |
+| `providers` | 로그인 모달에 보일 수단(google·kakao·naver·email) |
+| `defaultTheme` · `defaultLang` | 첫 화면 테마·언어(관리자 DB 값이 있으면 그 값 우선) |
+| `features` | `map`·`tasks`·`mypage`·`plugins`·`comments`·`sheets` — false 면 탭·화면·요청 모두 끔 |
+| `sheets` | 게시판 gviz 시트 ID·구독자 시트·등록 폼·뉴스레터 주소. `null` 이면 시트 화면 숨김 |
+| `ownerEmail` | 관리자 화면 표시용(실제 권한은 DB `admin_users`) |
+| `links` | 관리자 대시보드에 더할 바로가기 |
+
+정적 페이지 생성기(`../build_static_seo.py`·`../build_feeds.py`)도 이 파일에서 Supabase 주소·사이트 주소·이름을 읽고,
+CSP(`CSP_SITE`)를 그 Supabase 주소로 계산합니다. 주소를 바꾸면 `python3 ../build_static_seo.py --csp` 로
+고정 페이지 CSP 를 다시 맞추세요.
+
+> 같은 엔진을 다른 사이트로 복사할 때는 `craftstore_site/sbpress-template/`(범용 템플릿)과
+> 그 안의 `init_sbpress.py` 를 씁니다. 설정·SQL·CSP·시작용 피드를 한 번에 만들어 줍니다.
+
 ## 파일
 
 ```
@@ -121,7 +147,7 @@ p/<slug>/index.html       페이지 정적 SEO 페이지 (../build_static_seo.py
 - **대댓글(답글)**: 댓글의 `답글` 을 누르면 부모 댓글 아래에 들여쓰기로 달립니다(`comments.parent_id`).
   회원과 비회원(캡차) 모두 쓸 수 있고 **한 단계**만 허용합니다(답글에 다시 답글 금지 — 서버 트리거가 거부).
 - 설정·검증 기록: `../supabase/07_cms.md` · `../supabase/08_grades_lang_tasks.md` · `../supabase/09_plugins_market.md` · `../supabase/10_v12_editor_community.md`, DB 파일 `../supabase/03_cms_comments.sql` · `../supabase/04_header_footer_head.sql` · `../supabase/05_cms_plus.sql` · `../supabase/06_pages_boards_captcha.sql` · `../supabase/07_grades_lang_tasks.sql` · `../supabase/08_themes_hunmin_trash_revisions.sql` · `../supabase/10_v12_editor_community.sql`,
-  테스트 `cd .. && CMS_TEST_MODE=user|admin|brand|plus|v2|v3|v3admin|v4|plugins|v6 python3 cms_test.py`,
+  테스트 `cd .. && CMS_TEST_MODE=user|admin|brand|plus|v2|v3|v3admin|v4|plugins|v6|v7|v8 python3 cms_test.py`,
   정적 SEO `cd .. && python3 build_static_seo.py` (검사 `--check`, 비우기 `--clean`),
   서버 검증 `cd ../supabase && SUPABASE_MGMT_TOKEN=… python3 06_check.py` · `07_check.py` · `08_check.py` · `09_check.py` · `10_check.py`.
 

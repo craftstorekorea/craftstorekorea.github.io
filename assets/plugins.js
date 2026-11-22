@@ -525,6 +525,7 @@
   window.SBPress = SBPress;
 
   function boot() {
+    if (window.SBP && window.SBP.feature && !window.SBP.feature("plugins")) return;
     state.adminPage = isAdminPage();
     try { observeCards(); } catch (e) { /* noop */ }
     mountAdminTabs();

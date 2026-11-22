@@ -9,7 +9,7 @@
     id: "scroll-top",
     name: "맨 위로 버튼",
     version: "1.0.0",
-    author: "전국공방",
+    author: (window.SBP && window.SBP.brandName ? window.SBP.brandName() : "SBPress"),
     description: "긴 페이지·게시판에서 오른쪽 아래 '맨 위로' 버튼을 띄웁니다.",
     setup: function (ctx) {
       ctx.addCss([

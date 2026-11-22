@@ -244,6 +244,10 @@
   }
 
   function show() {
+    if (window.SBP && window.SBP.feature && !window.SBP.feature("mypage")) {
+      location.hash = "#/home";
+      return;
+    }
     renderGate();
     if (!user()) { render(); return; }
     var app = $("#mypage-app");

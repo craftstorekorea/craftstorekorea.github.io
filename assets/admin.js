@@ -10,9 +10,23 @@
   "use strict";
 
   var CFG = window.CRAFT_SUPABASE || {};
+  var SC = window.SBPRESS_CONFIG || {};
+  var SBP = window.SBP || null;
+  function feature(name) {
+    if (SBP && SBP.feature) return SBP.feature(name);
+    return !SC.features || SC.features[name] !== false;
+  }
+  function brandName() { return (SBP && SBP.brandName) ? SBP.brandName() : (SC.siteName || "SBPress"); }
+  var SH = (feature("sheets") && SC.sheets) || {};
   var CONFIGURED = !!(CFG.url && CFG.anonKey);
-  var SHEET_ID = "1OhA6nOWiBpbrQ01QcAJIoq_RT4iNk3JsgL6rKk8IAyY";
-  var SHEET_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/edit";
+  var SHEET_ID = SH.boardId || "";
+  var SHEET_URL = SH.boardUrl || (SHEET_ID ? "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/edit" : "");
+  var SHEET_LABEL = SH.label || "등록·제보 DB";
+  var PROJECT_REF = (function () {
+    var m = /^https?:\/\/([a-z0-9-]+)\.supabase\.co/i.exec(CFG.url || "");
+    return m ? m[1] : "";
+  })();
+  var GA_ID = (SC.ga4Id || "");
   var WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
   var sb = null;
@@ -106,7 +120,7 @@
       setWho(session.user && session.user.email ? session.user.email : "", true);
     } else {
       $("#gate-title").textContent = "관리자 권한이 필요합니다";
-      $("#gate-desc").textContent = "전국공방 운영자 계정으로 로그인하면 회원·찜·등록 현황을 볼 수 있습니다.";
+      $("#gate-desc").textContent = brandName() + " 운영자 계정으로 로그인하면 회원·찜·등록 현황을 볼 수 있습니다.";
       account.hidden = true;
       $("#google-btn-label").textContent = "구글로 로그인";
       setWho("", false);
@@ -207,7 +221,7 @@
   }
 
   /* ---------------- 하위 관리자 (public.admin_users) ---------------- */
-  var OWNER_EMAIL = "craftstore.kr@gmail.com";
+  var OWNER_EMAIL = (SC.ownerEmail || "").trim();
 
   function loadAdmins() {
     if (!sb) return Promise.resolve();
@@ -438,8 +452,14 @@
 
   function loadSheet() {
     var note = $("#sheet-note");
+    if (!feature("sheets") || !SHEET_ID) {
+      var panel = $("#p-sheet");
+      if (panel) panel.hidden = true;
+      sheetRows = [];
+      return Promise.resolve();
+    }
     if (!window.fetch) { sheetRows = []; return Promise.resolve(); }
-    if (note) note.textContent = "전국공방_등록_및_게시판DB · 불러오는 중…";
+    if (note) note.textContent = SHEET_LABEL + " · 불러오는 중…";
     var url = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&_=" + Date.now();
     return fetch(url, { cache: "no-store" })
       .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
@@ -609,7 +629,7 @@
     var blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
     var a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "전국공방_회원목록_" + todayKST() + ".csv";
+    a.download = brandName() + "_회원목록_" + todayKST() + ".csv";
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
   }
@@ -650,7 +670,7 @@
     var body = $("#sheet-table tbody"), note = $("#sheet-note");
     if (sheetError) {
       body.innerHTML = '<tr class="empty-row"><td colspan="8">시트에 연결하지 못했습니다(' + esc(sheetError) + '). <a class="rowlink" href="' + SHEET_URL + '" target="_blank" rel="noopener">시트에서 직접 보기</a></td></tr>';
-      if (note) note.textContent = "전국공방_등록_및_게시판DB · 실시간 조회 실패";
+      if (note) note.textContent = SHEET_LABEL + " · 실시간 조회 실패";
       return;
     }
     var q = ($("#sheet-q").value || "").trim().toLowerCase();
@@ -663,7 +683,7 @@
     });
     if (note) {
       var ok = sheetRows.filter(function (r) { return r.status === "승인"; }).length;
-      note.innerHTML = "전국공방_등록_및_게시판DB · 전체 " + num(sheetRows.length) + "건 (승인 " + num(ok) +
+      note.innerHTML = SHEET_LABEL + " · 전체 " + num(sheetRows.length) + "건 (승인 " + num(ok) +
         " · 대기 " + num(sheetRows.length - ok) + ") · 행을 누르면 시트에서 바로 엽니다";
     }
     if (!rows.length) {
@@ -738,7 +758,7 @@
       summary: r.desc || null,
       body: r.address ? "주소: " + r.address : (r.desc || null),
       region: r.region || null,
-      source_name: "전국공방 등록 게시판",
+      source_name: brandName() + " 등록 게시판",
       source_url: r.url || null,
       image_url: null,
       published_at: todayKST(),
@@ -798,17 +818,17 @@
 
   /* ---------------- 바로가기 ---------------- */
   function renderQuickLinks() {
-    var links = [
-      { t: "Google Analytics 4", s: "방문·유입 통계 (G-L7820HKGET)", h: "https://analytics.google.com/analytics/web/" },
-      { t: "Supabase 대시보드", s: "haaikrynfrrwcpyuvrrr · DB·Auth", h: "https://supabase.com/dashboard/project/haaikrynfrrwcpyuvrrr" },
-      { t: "Supabase 회원(Auth Users)", s: "가입자 확인·계정 삭제", h: "https://supabase.com/dashboard/project/haaikrynfrrwcpyuvrrr/auth/users" },
-      { t: "전국공방_등록_및_게시판DB", s: "공방 등록·제보 승인 처리", h: SHEET_URL },
-      { t: "전국공방_뉴스레터_구독자DB", s: "구독자 명단(비공개)", h: "https://docs.google.com/spreadsheets/d/1YHYIK76FVPGFXZle2mR2geV4_G3IDhD12U6H8mBA8PY/edit" },
-      { t: "Google Cloud Console", s: "OAuth 클라이언트·키 관리", h: "https://console.cloud.google.com/apis/credentials?project=craftstore-kr" },
-      { t: "Google Sites (전국공방)", s: "sites.google.com/view/craftstore-kr", h: "https://sites.google.com/view/craftstore-kr" },
-      { t: "공방 등록 신청서", s: "응답자 링크", h: "https://docs.google.com/forms/d/e/1FAIpQLSfsAqB6xnd8iNofTPrmpF6XKYlWrb_vMhYaYuEvMup3IS2oiw/viewform" },
-      { t: "GitHub 저장소", s: "craftstorekorea.github.io", h: "https://github.com/craftstorekorea/craftstorekorea.github.io" }
-    ];
+    var links = [];
+    if (GA_ID) links.push({ t: "Google Analytics 4", s: "방문·유입 통계 (" + GA_ID + ")", h: "https://analytics.google.com/analytics/web/" });
+    if (PROJECT_REF) {
+      links.push({ t: "Supabase 대시보드", s: PROJECT_REF + " · DB·Auth", h: "https://supabase.com/dashboard/project/" + PROJECT_REF });
+      links.push({ t: "Supabase 회원(Auth Users)", s: "가입자 확인·계정 삭제", h: "https://supabase.com/dashboard/project/" + PROJECT_REF + "/auth/users" });
+    }
+    if (SHEET_URL) links.push({ t: SHEET_LABEL, s: "공방 등록·제보 승인 처리", h: SHEET_URL });
+    if (SH.subscribersUrl) links.push({ t: SH.subscribersLabel || "뉴스레터_구독자DB", s: "구독자 명단(비공개)", h: SH.subscribersUrl });
+    (Array.isArray(SC.links) ? SC.links : []).forEach(function (l) {
+      if (l && l.h && l.t) links.push({ t: l.t, s: l.s || "", h: l.h });
+    });
     $("#quick-links").innerHTML = links.map(function (l) {
       return '<li><a href="' + esc(l.h) + '" target="_blank" rel="noopener"><span>' + esc(l.t) +
         "<small>" + esc(l.s) + '</small></span><span class="qext">열기 ↗</span></a></li>';
@@ -2274,7 +2294,7 @@
   }
 
   /* ---------------- sitemap.xml · rss.xml ---------------- */
-  var FEED_BASE = "https://craftstorekorea.github.io";
+  var FEED_BASE = String(SC.siteUrl || (location.origin && location.origin !== "null" ? location.origin : "")).replace(/\/+$/, "");
 
   function xesc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
@@ -2307,7 +2327,7 @@
         return true;
       });
       return {
-        title: c.seo_title || "전국공방 — 우리 동네 공방의 이번 주 소식",
+        title: c.seo_title || SC.siteTitle || (brandName() + " — 새 소식"),
         description: c.seo_description || "전국 방방곡곡 공방의 이번 주 소식",
         boards: (res[1].data || []).filter(function (b) { return b.is_active !== false; }),
         pages: res[2].data || [],
@@ -3442,6 +3462,27 @@
   function start() {
     if (booted) return;
     booted = true;
+
+    /* 기능 스위치 — sbpress.config.json features */
+    [
+      ["tasks", "tasks"], ["comments", "comments"], ["plugins", "plugins"]
+    ].forEach(function (pair) {
+      if (feature(pair[0])) return;
+      [].forEach.call(document.querySelectorAll('[data-tab="' + pair[1] + '"]'), function (b) { b.hidden = true; });
+      var view = document.getElementById("tab-" + pair[1]);
+      if (view) view.hidden = true;
+    });
+    if (!feature("sheets")) {
+      var sheetPanel = $("#p-sheet");
+      if (sheetPanel) sheetPanel.hidden = true;
+    } else {
+      var sheetOpen = $("#sheet-open");
+      if (sheetOpen && SHEET_URL) sheetOpen.href = SHEET_URL;
+      var sheetNote = $("#sheet-note");
+      if (sheetNote) sheetNote.textContent = SHEET_LABEL + " · 구글 시트 실시간 조회";
+      var sheetHref = $("#sheet-open");
+      if (sheetHref && !SHEET_URL) sheetHref.hidden = true;
+    }
 
     if (CONFIGURED && window.supabase && window.supabase.createClient) {
       sb = window.supabase.createClient(CFG.url, CFG.anonKey);

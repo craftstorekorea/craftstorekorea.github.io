@@ -10,7 +10,7 @@
     id: "admin-json-export",
     name: "데이터 내보내기",
     version: "1.0.0",
-    author: "전국공방",
+    author: (window.SBP && window.SBP.brandName ? window.SBP.brandName() : "SBPress"),
     description: "관리자 화면에 게시글·페이지를 JSON으로 내려받는 탭을 추가합니다.",
     setup: function (ctx) {
       var CFG = window.CRAFT_SUPABASE || {};
@@ -40,7 +40,7 @@
       }
 
       function save(name, rows) {
-        var payload = { site: "전국공방", exported_at: new Date().toISOString(), table: name, count: rows.length, rows: rows };
+        var payload = { site: (window.SBP && window.SBP.brandName ? window.SBP.brandName() : "SBPress"), exported_at: new Date().toISOString(), table: name, count: rows.length, rows: rows };
         var blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
         var a = document.createElement("a");
         a.href = URL.createObjectURL(blob);

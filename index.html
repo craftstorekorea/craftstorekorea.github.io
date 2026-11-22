@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- CSP: SBPress v1.3 보안 — build_static_seo.py --csp 로 갱신 -->
+<!-- CSP: SBPress v2.0 — build_static_seo.py --csp 로 갱신 (사이트마다 Supabase 주소가 다릅니다) -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' https://haaikrynfrrwcpyuvrrr.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://cdn.jsdelivr.net http://127.0.0.1:* http://localhost:*; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https: http:; connect-src 'self' https://haaikrynfrrwcpyuvrrr.supabase.co wss://haaikrynfrrwcpyuvrrr.supabase.co https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://cdn.jsdelivr.net https://raw.githubusercontent.com https://docs.google.com http://127.0.0.1:* http://localhost:*; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; media-src 'self' https: blob:; form-action 'self'">
 <title>전국공방 — 우리 동네 공방의 이번 주 소식</title>
 <meta name="description" content="전국 방방곡곡 공방의 이번 주 소식을 소개·뉴스·인터뷰·정보 네 코너로 정리했습니다. 등록된 공방은 지도와 게시판에서 지역·분야로 찾아보세요.">
@@ -23,12 +23,7 @@
 <link rel="stylesheet" href="assets/styles.css">
 <link rel="alternate" type="application/rss+xml" title="전국공방 새 소식 (RSS)" href="/rss.xml">
 <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml">
-<!-- GA4: 전국공방 (Google Sites + GitHub Pages) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-L7820HKGET"></script>
-<script>
-window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
-gtag('js',new Date());gtag('config','G-L7820HKGET');
-</script>
+<!-- GA4 는 sbpress.config.json 의 ga4Id 로 assets/config.js 가 넣습니다 -->
 </head>
 <body data-theme="magazine">
 <a class="skip" href="#main">본문으로 바로가기</a>
@@ -55,7 +50,7 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
       <span class="logo-mark" id="header-logo-mark" aria-hidden="true">
         <svg viewBox="0 0 32 32" fill="none"><path d="M8 22c0-4.5 3.4-5.6 8-5.6s8-1.2 8-5.4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="8" cy="22" r="2.4" fill="#C86D44"/></svg>
       </span>
-      <span class="logo-text" id="header-brand">전국공방<small>우리동네공방</small></span>
+      <span class="logo-text" id="header-brand" data-sbp-brand>전국공방<small data-sbp-tagline>우리동네공방</small></span>
     </a>
     <nav class="tabs" id="tabs" role="tablist" aria-label="주요 메뉴">
       <button class="tab" role="tab" data-view="home" aria-selected="true">홈</button>
@@ -483,7 +478,7 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
           <span class="logo-mark" aria-hidden="true">
             <svg viewBox="0 0 32 32" fill="none"><path d="M8 22c0-4.5 3.4-5.6 8-5.6s8-1.2 8-5.4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="8" cy="22" r="2.4" fill="#fff"/></svg>
           </span>
-          <span>전국공방<small>우리동네공방</small></span>
+          <span data-sbp-brand>전국공방<small data-sbp-tagline>우리동네공방</small></span>
         </a>
         <p data-cms="footer.desc">전국 공방의 소식을 모아 매주 금요일 전합니다. 등록된 공방 정보는 공개 게시판으로 열려 있습니다.</p>
         <ul class="foot-sns" id="foot-sns" hidden aria-label="SNS"></ul>
@@ -536,6 +531,7 @@ gtag('js',new Date());gtag('config','G-L7820HKGET');
   </div>
 </noscript>
 
+<script src="assets/config.js"></script>
 <script src="assets/supabase.js"></script>
 <script src="assets/auth-config.js"></script>
 <script src="assets/i18n.js"></script>

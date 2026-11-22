@@ -8,10 +8,16 @@
   "use strict";
 
   var CFG = window.CRAFT_SUPABASE || {};
+  var SC = window.SBPRESS_CONFIG || {};
+  var SBP = window.SBP || null;
+  function feature(name) {
+    if (SBP && SBP.feature) return SBP.feature(name);
+    return !SC.features || SC.features[name] !== false;
+  }
   var CONFIGURED = !!(CFG.url && CFG.anonKey);
   var SITE = (location.origin && location.origin !== "null")
     ? location.origin + location.pathname
-    : "https://craftstorekorea.github.io/";
+    : ((SC.siteUrl || "") + "/");
 
   var sb = null;
   var session = null;
@@ -99,9 +105,9 @@
         esc(session.user.email || providerLabel()) + "</span></div>" +
       '<button type="button" role="menuitem" data-act="bookmarks">' + I.heartOn +
         '<span data-i18n="auth.menu.bookmarks"></span> <i>' + bookmarks.length + "</i></button>" +
-      '<a role="menuitem" href="#/mypage" data-act="mypage" data-i18n="auth.menu.mypage">마이페이지</a>' +
-      '<a role="menuitem" href="#/tasks" data-act="tasks" data-i18n="auth.menu.tasks"></a>' +
-      '<a role="menuitem" href="#/map" data-act="map" data-i18n="auth.menu.board"></a>' +
+      '<a role="menuitem" href="#/mypage" data-act="mypage" data-i18n="auth.menu.mypage"' + (feature("mypage") ? "" : " hidden") + '>마이페이지</a>' +
+      '<a role="menuitem" href="#/tasks" data-act="tasks" data-i18n="auth.menu.tasks"' + (feature("tasks") ? "" : " hidden") + '></a>' +
+      '<a role="menuitem" href="#/map" data-act="map" data-i18n="auth.menu.board"' + (feature("map") ? "" : " hidden") + '></a>' +
       '<button type="button" role="menuitem" data-act="signout" data-i18n="auth.menu.signout"></button>';
     if (I18N) I18N.apply(menu);
 
@@ -176,7 +182,7 @@
       '<div class="auth-backdrop" data-close="1"></div>' +
       '<div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">' +
         '<button type="button" class="auth-x" aria-label="close" data-close="1">' + I.close + "</button>" +
-        '<p class="eyebrow auth-eyebrow" data-i18n="auth.eyebrow">우리동네공방 회원</p>' +
+        '<p class="eyebrow auth-eyebrow" data-i18n="auth.eyebrow">회원</p>' +
         '<h2 id="auth-title">로그인</h2>' +
         '<p class="auth-sub"></p>' +
         '<div class="auth-socials">' +

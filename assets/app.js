@@ -3,6 +3,14 @@
   "use strict";
 
   var S = window.SITE;
+  var CFG = window.SBPRESS_CONFIG || {};
+  var SBP = window.SBP || null;
+  var BRAND = SBP && SBP.brandName ? SBP.brandName() : (CFG.siteName || "SBPress");
+  var TAGLINE = SBP && SBP.tagline ? SBP.tagline() : (CFG.tagline || "");
+  function feature(name) {
+    if (SBP && SBP.feature) return SBP.feature(name);
+    return !CFG.features || CFG.features[name] !== false;
+  }
   var $ = function (sel, root) { return (root || document).querySelector(sel); };
   var NS = "http://www.w3.org/2000/svg";
   var TODAY = new Date();
@@ -26,6 +34,13 @@
   function shortDate(iso) {
     var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || "");
     return m ? m[2] + "-" + m[3] : "";
+  }
+  function weekLabel(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || "");
+    if (!m) return "";
+    var nth = Math.ceil(Number(m[3]) / 7);
+    var names = ["첫", "둘", "셋", "넷", "다섯"];
+    return m[1] + "년 " + Number(m[2]) + "월 " + (names[nth - 1] || nth) + "째 주";
   }
   function normal(s) { return String(s || "").replace(/[\s()·\-_.]/g, "").toLowerCase(); }
   function hasBody(it) { return !!(it && String(it.body || "").trim()); }
@@ -121,21 +136,34 @@
   }
 
   /* ---------------- static links ---------------- */
-  var L = S.links;
+  var L = S.links || {};
   var linkMap = {
     "register-link": L.register, "register-link-2": L.register, "foot-form": L.register,
     "cta-newsletter": L.newsletter,
     "foot-newsletter": L.newsletter, "foot-insta": L.instagram,
     "foot-sites": L.sites, "foot-sheet": L.sheet, "sheet-link": L.sheet
   };
+  var sheetOn = feature("sheets") && !!(SBP && SBP.sheetId ? SBP.sheetId() : (L.sheetId || ""));
   Object.keys(linkMap).forEach(function (id) {
     var n = document.getElementById(id);
-    if (n) n.href = linkMap[id];
+    if (!n) return;
+    if (linkMap[id]) n.href = linkMap[id];
+    else if (/^(sheet-link|foot-sheet)$/.test(id)) n.hidden = true;
   });
+  if (!sheetOn) {
+    ["sheet-link", "foot-sheet"].forEach(function (id) {
+      var n = document.getElementById(id);
+      if (n) n.hidden = true;
+    });
+    var sheetNote = $(".ws-note");
+    if (sheetNote) sheetNote.hidden = true;
+  }
   var ARC = window.ARCHIVE;
   ["arc-doc", "arc-home-doc"].forEach(function (id) {
     var n = document.getElementById(id);
-    if (n && ARC) n.href = ARC.docUrl;
+    if (!n) return;
+    if (ARC && ARC.docUrl) n.href = ARC.docUrl;
+    else n.hidden = true;
   });
 
   /* ---------------- counts ---------------- */
@@ -165,7 +193,13 @@
   /* ---------------- 헤더 (로고 · 브랜드 · 메뉴) ----------------
      site_contents 의 header_logo_url / header_brand_text / header_menu_items 를 읽어 그립니다.
      값이 없으면 index.html 의 기본 마크·메뉴를 그대로 씁니다. */
-  var VIEW_KEYS = ["home", "workshops", "news", "interview", "archive", "info", "map", "tasks", "page", "board", "post", "mypage"];
+  var VIEW_KEYS = (function () {
+    var base = ["home", "workshops", "news", "interview", "archive", "info", "map", "tasks", "page", "board", "post", "mypage"];
+    return base.filter(function (k) {
+      if (k === "map" || k === "tasks" || k === "mypage") return feature(k);
+      return true;
+    });
+  })();
   var DEFAULT_MARK =
     '<svg viewBox="0 0 32 32" fill="none"><path d="M8 22c0-4.5 3.4-5.6 8-5.6s8-1.2 8-5.4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="8" cy="22" r="2.4" fill="#C86D44"/></svg>';
 
@@ -205,7 +239,9 @@
       if (it.visible === false) return "";
       var target = String(it.target || "").trim();
       var view = target.replace(/^#\/?/, "").replace(/\/$/, "") || "home";
-      if (view === "tasks" && !on) return "";          // 로그아웃 상태에서는 업무 관리 메뉴를 숨김
+      if (view === "tasks" && (!on || !feature("tasks"))) return "";   // 로그아웃 상태·기능 끔이면 숨김
+      if (view === "map" && !feature("map")) return "";
+      if (view === "mypage" && !feature("mypage")) return "";
       return tabHtml(it);
     }).join("");
     if (tabs.innerHTML !== html) tabs.innerHTML = html;
@@ -255,10 +291,10 @@
   function renderHeader() {
     var brandRow = cmsRow("header_brand_text");
     var brandBox = $("#header-brand");
-    var brandName = "전국공방";
+    var brandName = BRAND;
     if (brandBox && brandRow && brandRow.value != null && String(brandRow.value).trim() !== "") {
       var lines = String(brandRow.value).replace(/\r/g, "").split("\n");
-      brandName = (lines[0] || "").trim() || "전국공방";
+      brandName = (lines[0] || "").trim() || BRAND;
       var sub = (lines[1] || "").trim();
       brandBox.innerHTML = esc(brandName) + (sub ? "<small>" + esc(sub) + "</small>" : "");
     }
@@ -294,9 +330,9 @@
       "<span>매주 금요일 오전</span>"
     ].join("");
   }
-  $("#hero-week").textContent = "우리동네공방 · 2026년 11월 넷째 주";
-  $("#hero-lede").textContent =
-    "이번 주 전국 공방 소식 " + total + "건을 소개·뉴스·인터뷰·정보 네 코너로 정리했습니다. 등록된 공방은 지도와 게시판에서 지역과 분야로 찾아보세요.";
+  $("#hero-week").textContent = (TAGLINE || BRAND) + (weekLabel(S.weekTo) ? " · " + weekLabel(S.weekTo) : "");
+  $("#hero-lede").textContent = CFG.description ||
+    ("이번 주 소식 " + total + "건을 소개·뉴스·인터뷰·정보 네 코너로 정리했습니다.");
   renderHeroMeta();
 
   /* keywords */
@@ -1096,9 +1132,17 @@
   }
 
   function loadSheet() {
+    var box = $("#sheet-status");
+    if (!sheetOn) {
+      if (box) box.hidden = true;
+      var note = $(".ws-note");
+      if (note) note.hidden = true;
+      return;
+    }
     if (!window.fetch) { setStatus("off", "브라우저가 시트 연동을 지원하지 않아 저장된 목록을 표시합니다."); return; }
     setStatus("", "등록 게시판을 불러오는 중…");
-    var url = "https://docs.google.com/spreadsheets/d/" + L.sheetId + "/gviz/tq?tqx=out:json";
+    var url = "https://docs.google.com/spreadsheets/d/" +
+      ((SBP && SBP.sheetId && SBP.sheetId()) || L.sheetId) + "/gviz/tq?tqx=out:json";
     fetch(url, { cache: "no-store" })
       .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
       .then(function (t) { return parseGviz(t); })
@@ -1196,7 +1240,7 @@
       return;
     }
     if (empty) empty.hidden = true;
-    $("#page-eyebrow").textContent = "전국공방 · 페이지";
+    $("#page-eyebrow").textContent = BRAND + " · 페이지";
     $("#page-title").textContent = page.title || "";
     var sub = $("#page-sub");
     sub.textContent = page.subtitle || "";
@@ -1372,20 +1416,20 @@
   }
 
   /* ---------------- routing ---------------- */
-  var VIEWS = ["home", "workshops", "news", "interview", "archive", "info", "map", "tasks", "page", "board", "post", "mypage"];
+  var VIEWS = VIEW_KEYS.slice();
   var TITLES = {
-    home: "전국공방 — 우리 동네 공방의 이번 주 소식",
-    workshops: "공방 소개 — 전국공방",
-    news: "공방 뉴스 — 전국공방",
-    interview: "작가 인터뷰 — 전국공방",
-    archive: "아카이브 (2024–2026) 151건 — 전국공방",
-    info: "지원·공모 정보 — 전국공방",
-    map: "전국 공방 지도 & 등록 게시판 — 전국공방",
-    tasks: "업무 관리 — 전국공방",
-    page: "페이지 — 전국공방",
-    board: "게시판 — 전국공방",
-    post: "글 — 전국공방",
-    mypage: "마이페이지 — 전국공방"
+    home: CFG.siteTitle || (BRAND + " — 새 소식"),
+    workshops: "공방 소개 — " + BRAND,
+    news: "공방 뉴스 — " + BRAND,
+    interview: "작가 인터뷰 — " + BRAND,
+    archive: "아카이브 (2024–2026) " + (window.ARCHIVE ? window.ARCHIVE.total : 0) + "건 — " + BRAND,
+    info: "지원·공모 정보 — " + BRAND,
+    map: "전국 공방 지도 & 등록 게시판 — " + BRAND,
+    tasks: "업무 관리 — " + BRAND,
+    page: "페이지 — " + BRAND,
+    board: "게시판 — " + BRAND,
+    post: "글 — " + BRAND,
+    mypage: "마이페이지 — " + BRAND
   };
   function route(scroll) {
     var r = parseRoute();
@@ -1413,15 +1457,15 @@
     var title = TITLES[r.name] || TITLES.home;
     if (r.name === "page") {
       var pg = window.CRAFT_CMS && window.CRAFT_CMS.pageBySlug && window.CRAFT_CMS.pageBySlug(r.arg);
-      if (pg && pg.title) title = pg.title + " — 전국공방";
+      if (pg && pg.title) title = pg.title + " — " + BRAND;
     }
     if (r.name === "board") {
       var b = boardBySlug(r.arg);
-      if (b && b.name) title = b.name + " — 전국공방";
+      if (b && b.name) title = b.name + " — " + BRAND;
     }
     if (r.name === "post") {
       var pp = window.CRAFT_CMS && window.CRAFT_CMS.postFor && window.CRAFT_CMS.postFor(r.arg);
-      if (pp && pp.title) title = pp.title + " — 전국공방";
+      if (pp && pp.title) title = pp.title + " — " + BRAND;
     }
     document.title = (r.name === "home" && window.CRAFT_SEO && window.CRAFT_SEO.title)
       ? window.CRAFT_SEO.title
@@ -1442,6 +1486,29 @@
   });
 
   /* ---------------- init ---------------- */
+  function applyFeatureFlags() {
+    function offView(view) {
+      [].forEach.call(document.querySelectorAll('#tabs .tab[data-view="' + view + '"],[data-goto="' + view + '"],a[href="#/' + view + '"]'), function (n) {
+        n.hidden = true;
+      });
+      var v = document.getElementById("view-" + view);
+      if (v) v.hidden = true;
+    }
+    if (!feature("map")) offView("map");
+    if (!feature("tasks")) offView("tasks");
+    if (!feature("mypage")) offView("mypage");
+    if (!feature("sheets")) {
+      ["sheet-link", "foot-sheet"].forEach(function (id) {
+        var n = document.getElementById(id);
+        if (n) n.hidden = true;
+      });
+      var note = $(".ws-note");
+      if (note) note.hidden = true;
+      var status = $("#sheet-status");
+      if (status) status.hidden = true;
+    }
+  }
+  applyFeatureFlags();
   renderHeader();
   fillSelects();
   renderRegions();

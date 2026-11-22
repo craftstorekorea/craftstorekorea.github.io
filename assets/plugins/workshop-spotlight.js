@@ -10,7 +10,7 @@
     id: "workshop-spotlight",
     name: "추천 공방 스포트라이트",
     version: "1.0.0",
-    author: "전국공방",
+    author: (window.SBP && window.SBP.brandName ? window.SBP.brandName() : "SBPress"),
     description: "홈 맨 위에 이번 주 추천 공방과 마감 임박 공모·체험을 모아 보여 줍니다.",
     setup: function (ctx) {
       ctx.addCss([

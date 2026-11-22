@@ -9,6 +9,13 @@
   "use strict";
 
   var CFG = window.CRAFT_SUPABASE || {};
+  var SC = window.SBPRESS_CONFIG || {};
+  var SBP = window.SBP || null;
+  function feature(name) {
+    if (SBP && SBP.feature) return SBP.feature(name);
+    return !SC.features || SC.features[name] !== false;
+  }
+  function brandName() { return (SBP && SBP.brandName) ? SBP.brandName() : (SC.siteName || "SBPress"); }
   var API = CFG.url || "";
   var KEY = CFG.anonKey || "";
   var S = window.SITE;
@@ -206,7 +213,8 @@
   }
 
   /* ---------------- sitemap.xml · rss.xml (관리자 미리보기/다운로드) ---------------- */
-  var FEED_BASE = "https://craftstorekorea.github.io";
+  var FEED_BASE = (SC.siteUrl || "").replace(/\/+$/, "") ||
+    ((location.origin && location.origin !== "null") ? location.origin : "");
   function xml(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" }[c];
@@ -230,8 +238,8 @@
     });
     return {
       base: FEED_BASE,
-      title: cval("seo_title") || "전국공방 — 우리 동네 공방의 이번 주 소식",
-      description: cval("seo_description") || "전국 방방곡곡 공방의 이번 주 소식",
+      title: cval("seo_title") || SC.siteTitle || (brandName() + " — 새 소식"),
+      description: cval("seo_description") || SC.description || "",
       latest: latest || new Date().toISOString().slice(0, 10),
       boards: active.map(function (b) {
         var last = "";
@@ -442,7 +450,7 @@
   var THEMES = { magazine: 1, craft: 1, org: 1 };
   function applyPreset() {
     var v = cval("theme.preset");
-    if (!THEMES[v]) v = "magazine";
+    if (!THEMES[v]) v = THEMES[SC.defaultTheme] ? SC.defaultTheme : "magazine";
     document.body.setAttribute("data-theme", v);
     window.CRAFT_THEME = v;
     return v;
@@ -664,6 +672,7 @@
 
   /* ---------------- 댓글 개수 ---------------- */
   function loadCounts() {
+    if (!feature("comments")) return Promise.resolve();
     return rest("comments?select=post_key&limit=5000").then(function (rows) {
       cmtCounts = Object.create(null);
       rows.forEach(function (r) { cmtCounts[r.post_key] = (cmtCounts[r.post_key] || 0) + 1; });
@@ -684,6 +693,7 @@
   /* ---------------- 댓글 버튼 붙이기 (app.js 가 호출) ---------------- */
   function attach(node, key, title, image) {
     if (!node || !key) return;
+    if (!feature("comments")) return;
     var slot = node.querySelector("[data-cmt]");
     var btn = document.createElement("button");
     btn.type = "button";
@@ -750,7 +760,7 @@
       "  </form>" +
       '  <div class="cmt-off" id="cmt-off" hidden data-i18n="cmt.off">이 게시판은 댓글이 비활성화되어 있습니다.</div>' +
       '  <div class="cmt-login" id="cmt-login" hidden>' +
-      "    <p data-i18n=\"cmt.login.need\">댓글을 쓰려면 로그인이 필요합니다. 전국공방 회원은 누구나 남길 수 있어요.</p>" +
+      "    <p data-i18n=\"cmt.login.need\">댓글을 쓰려면 로그인이 필요합니다. 회원은 누구나 남길 수 있어요.</p>" +
       '    <button type="button" class="btn btn-primary btn-sm" id="cmt-login-btn" data-i18n="cmt.login.btn">로그인하고 댓글 쓰기</button>' +
       "  </div>" +
       "</aside>";

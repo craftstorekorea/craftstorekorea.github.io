@@ -10,12 +10,17 @@
 
   var KEY = "craft-lang";
   var SUPPORTED = ["ko", "en"];
+  var SC = window.SBPRESS_CONFIG || {};
+  function defaultLang() {
+    var v = String(SC.defaultLang || "ko").toLowerCase();
+    return SUPPORTED.indexOf(v) >= 0 ? v : "ko";
+  }
 
   function readLang() {
     try {
       var v = String(localStorage.getItem(KEY) || "").toLowerCase();
-      return SUPPORTED.indexOf(v) >= 0 ? v : "ko";
-    } catch (e) { return "ko"; }
+      return SUPPORTED.indexOf(v) >= 0 ? v : defaultLang();
+    } catch (e) { return defaultLang(); }
   }
 
   var lang = readLang();
@@ -62,7 +67,7 @@
       "cmt.guest.captcha": "그림에 보이는 글자 5자",
       "cmt.guest.refresh": "다른 글자",
       "cmt.guest.captcha.loading": "보안 문자를 불러오는 중…",
-      "cmt.login.need": "댓글을 쓰려면 로그인이 필요합니다. 전국공방 회원은 누구나 남길 수 있어요.",
+      "cmt.login.need": "댓글을 쓰려면 로그인이 필요합니다. {site} 회원은 누구나 남길 수 있어요.",
       "cmt.login.btn": "로그인하고 댓글 쓰기",
       "cmt.off": "이 게시판은 댓글이 비활성화되어 있습니다.",
       "cmt.empty.title": "아직 댓글이 없습니다.",
@@ -75,7 +80,7 @@
       "cmt.guest.badge": "비회원",
       "cmt.confirm.del": "이 댓글을 삭제할까요? 삭제하면 되돌릴 수 없습니다.",
 
-      "auth.eyebrow": "우리동네공방 회원",
+      "auth.eyebrow": "{tagline} 회원",
       "auth.signin.title": "로그인",
       "auth.signup.title": "회원가입",
       "auth.reset.title": "새 비밀번호 설정",
@@ -99,7 +104,7 @@
       "auth.toggle.signin": "처음이신가요? <b>회원가입</b>",
       "auth.toggle.signup": "이미 회원이신가요? <b>로그인</b>",
       "auth.forgot": "비밀번호를 잊으셨나요?",
-      "auth.terms": "가입하면 전국공방의 이용 안내에 동의하는 것으로 봅니다. 이메일은 로그인과 공지 전달에만 씁니다.",
+      "auth.terms": "가입하면 {site}의 이용 안내에 동의하는 것으로 봅니다. 이메일은 로그인과 공지 전달에만 씁니다.",
       "auth.menu.bookmarks": "관심 공방",
       "auth.menu.mypage": "마이페이지",
       "auth.menu.board": "공방 게시판",
@@ -307,9 +312,13 @@
   };
 
   function fill(text, vars) {
-    if (!vars) return text;
+    var all = {
+      site: (window.SBP && window.SBP.brandName) ? window.SBP.brandName() : (SC.siteName || ""),
+      tagline: (window.SBP && window.SBP.tagline) ? (window.SBP.tagline() || window.SBP.brandName()) : (SC.tagline || SC.siteName || "")
+    };
+    if (vars) for (var k in vars) if (Object.prototype.hasOwnProperty.call(vars, k)) all[k] = vars[k];
     return String(text).replace(/\{(\w+)\}/g, function (m, k) {
-      return vars[k] != null ? String(vars[k]) : m;
+      return all[k] != null ? String(all[k]) : m;
     });
   }
 

@@ -16,6 +16,11 @@
 
   var NS = "http://www.w3.org/2000/svg";
 
+  var SBP = window.SBP || null;
+  var SC = window.SBPRESS_CONFIG || {};
+  function brandName() { return (SBP && SBP.brandName) ? SBP.brandName() : (SC.siteName || "사이트"); }
+  function tagline() { return (SBP && SBP.tagline) ? (SBP.tagline() || SBP.brandName()) : (SC.tagline || SC.siteName || "사이트"); }
+
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
@@ -63,7 +68,7 @@
       type: "form", label: "구독/제보 폼", badge: "form", icon: "mail",
       desc: "뉴스레터 구독 또는 공방 등록·제보를 받습니다.",
       defaults: {
-        type: "form", kind: "newsletter", title: "우리동네공방 뉴스레터",
+        type: "form", kind: "newsletter", title: tagline() + " 뉴스레터",
         desc_text: "매주 금요일, 이번 주 공방 소식을 메일로 보내 드립니다.",
         button: "구독하기"
       }
@@ -242,7 +247,7 @@
         '<label class="hm-field"><span>소개 <em>선택</em></span><textarea name="desc" rows="3" maxlength="1200" placeholder="공방 소개와 운영 프로그램을 적어 주세요."></textarea></label>';
     sec.innerHTML = '<div class="hm-form-card"><div class="hm-form-copy">' +
       '<p class="hm-eyebrow">hunmin · ' + (isNews ? "뉴스레터 구독" : "공방 등록·제보") + "</p>" +
-      "<h2>" + esc(b.title || (isNews ? "우리동네공방 뉴스레터" : "공방을 등록해 주세요")) + "</h2>" +
+      "<h2>" + esc(b.title || (isNews ? tagline() + " 뉴스레터" : "공방을 등록해 주세요")) + "</h2>" +
       (b.desc_text ? "<p>" + esc(b.desc_text) + "</p>" : "") +
       '</div><form class="hm-form-body" novalidate>' + fields +
       '<button type="submit" class="btn btn-primary">' + esc(button) + "</button>" +

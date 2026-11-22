@@ -9,7 +9,7 @@
     id: "reading-time",
     name: "읽기 시간 배지",
     version: "1.0.0",
-    author: "전국공방",
+    author: (window.SBP && window.SBP.brandName ? window.SBP.brandName() : "SBPress"),
     description: "카드에 예상 읽기 시간과 글자 수를 붙여, 긴 글을 고르기 쉽게 합니다.",
     setup: function (ctx) {
       ctx.addCss([

@@ -503,6 +503,7 @@
 
   function boot() {
     if (state.booted) return;
+    if (window.SBP && window.SBP.feature && !window.SBP.feature("tasks")) return;
     state.booted = true;
     build();
     if (window.CRAFT_AUTH && window.CRAFT_AUTH.onChange) {
