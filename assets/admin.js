@@ -888,6 +888,8 @@
     [].forEach.call(document.querySelectorAll("#state-dash .tabpanel"), function (p) {
       p.hidden = p.id !== "tab-" + name;
     });
+    /* v8.0 — 통합 허브 · 복제 마법사 (assets/hub.js) */
+    if (name === "hub" && window.CRAFT_HUB) window.CRAFT_HUB.load();
     if (name === "dash" && !CMS.adminsLoaded) loadAdmins();
     if (name === "dash") { loadAudit(); loadStats(); loadBudget(); loadTraffic(); loadDbUsage(); }
     if (name === "pages") { if (!CMS.loaded.pages) loadPages(); loadPageManager(); }
@@ -902,7 +904,12 @@
     if (name === "inbox") loadInbox();
     if (name === "reserve") loadReservations();
     if (name === "backup") loadBackupCounts();
-    if (name === "settings") { loadSettings(); if (window.CRAFT_WEBHOOKS) window.CRAFT_WEBHOOKS.load(); }
+    if (name === "settings") {
+      loadSettings();
+      if (window.CRAFT_WEBHOOKS) window.CRAFT_WEBHOOKS.load();
+      /* v8.0 — 도메인 연결 도우미 */
+      if (window.CRAFT_HUB) window.CRAFT_HUB.loadDomain();
+    }
     if (name === "plugins") loadPlugins();
     try { window.scrollTo({ top: 0, behavior: "auto" }); } catch (e) { /* noop */ }
   }

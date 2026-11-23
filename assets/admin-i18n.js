@@ -1005,7 +1005,96 @@
   "기존 글 아래에 덧붙입니다.": "Added below the existing text.",
   "AI 보조 설정": "AI assist settings",
   "외부 AI API 는 무료가 아닙니다": "External AI APIs are not free",
-  "기본값은 사용 안 함입니다.": "The default is Off."
+  "기본값은 사용 안 함입니다.": "The default is Off.",
+  "통합 허브": "Site hub",
+  "여러 SBPress 사이트의 최근 배포·저장소·DB 크기와 미처리 결재·예약을 한 화면에서 봅니다.": "Recent deploys, repo and DB size, and pending approvals and reservations for every SBPress site.",
+  "사이트 추가": "Add site",
+  "public.sites · site_members — 관리자만 읽고 씁니다(RLS).": "public.sites · site_members — admins only (RLS).",
+  "사이트 표가 아직 없습니다.": "The site table is not installed yet.",
+  "을 실행하면 이 화면이 켜집니다. 지금은 이 사이트만 보여 줍니다.": "to enable this screen. For now only this site is shown.",
+  "허브에 등록된 사이트가 없어 지금 사이트 하나만 표시합니다. 아래 ‘사이트 추가’로 첫 사이트를 등록하세요.": "No site is registered in the hub, so only the current site is shown. Use “Add site” below to register the first one.",
+  "사이트 추가 · 편집": "Add · edit site",
+  "새 사이트": "New site",
+  "사이트 키": "Site key",
+  "영문 소문자·숫자·하이픈": "lowercase letters, digits, hyphens",
+  "GitHub 저장소": "GitHub repository",
+  "Supabase 프로젝트": "Supabase project",
+  "GA4 측정 ID": "GA4 measurement ID",
+  "운영": "Active",
+  "일시정지": "Paused",
+  "보관": "Archived",
+  "새 사이트로": "Clear form",
+  "이 사이트 지금 값 불러오기": "Load current values",
+  "원클릭 복제 마법사": "One-click clone wizard",
+  "10분 안에 새 사이트": "A new site in 10 minutes",
+  "이름·도메인·포인트 색·게시판을 정하면 ① 설정 파일 ② 실행 명령 ③ 복제 후 체크리스트를 만들어 줍니다.": "Set the name, domain, accent colour and boards to get ① a config file ② run commands ③ a post-clone checklist.",
+  "새 사이트 이름": "New site name",
+  "도메인": "Domain",
+  "비우면 GitHub Pages 주소": "blank for the GitHub Pages URL",
+  "게시판 구성": "Board layout",
+  "이름:페이지당 글 수": "name:posts per page",
+  "설정 만들기": "Build config",
+  "sbpress.config.json 내려받기": "Download sbpress.config.json",
+  "명령 복사": "Copy commands",
+  "① 설정 파일": "① Config file",
+  "② 실행 명령": "② Run commands",
+  "③ 복제 후 체크리스트": "③ Post-clone checklist",
+  "도메인 연결 도우미": "Domain connect helper",
+  "도메인을 입력하세요": "Enter a domain",
+  "쓰려는 도메인을 넣으면 Cloudflare DNS 레코드(@ A 4개 · www CNAME)와 CNAME 파일, GitHub Pages · Supabase Auth · Google OAuth · sbpress.config.json 설정 목록을 만들어 줍니다.": "Enter the domain you want: Cloudflare DNS records (four @ A records · www CNAME), the CNAME file, and the GitHub Pages · Supabase Auth · Google OAuth · sbpress.config.json settings checklist are generated for you.",
+  "쓰려는 도메인을 넣으면 Cloudflare DNS 레코드(@ A 4개 · www CNAME)와 CNAME 파일, GitHub Pages · Supabase Auth · Google OAuth ·": "Enter the domain you want: Cloudflare DNS records (four @ A records · www CNAME), the CNAME file, and the GitHub Pages · Supabase Auth · Google OAuth ·",
+  "예: example.com": "e.g. example.com",
+  "설정 목록을 만들어 줍니다.": "settings checklist are generated for you.",
+  "www CNAME 대상": "target of the www CNAME",
+  "레코드 만들기": "Build records",
+  "DNS 전체 복사": "Copy all DNS",
+  "CNAME 파일 내려받기": "Download CNAME file",
+  "Cloudflare 열기 ↗": "Open Cloudflare ↗",
+  "값": "Value",
+  "프록시": "Proxy",
+  "연결 체크리스트": "Connect checklist",
+  "Cloudflare 레코드는 API 토큰 없이 대신 만들 수 없습니다. 아래 BIND 값을 Cloudflare DNS → Import records 에 붙여 넣거나 레코드를 하나씩 추가하세요.": "Cloudflare records cannot be created for you without an API token. Paste the BIND values below into Cloudflare DNS → Import records, or add the records one by one.",
+  "BIND 값 복사": "Copy BIND values",
+  "관리자로 로그인해야 통합 허브를 볼 수 있습니다.": "Sign in as an admin to see the site hub.",
+  "사이트 목록을 읽지 못했습니다: ": "Could not read the site list: ",
+  "지금 보고 있는 사이트입니다.": "this is the current site",
+  "지금 값": "live",
+  "편집": "Edit",
+  "관리자 열기": "Open admin",
+  "최근 배포": "Last deploy",
+  "저장소": "Repo",
+  "미처리 결재": "Pending approvals",
+  "미처리 예약": "Pending reservations",
+  "사이트를 저장했습니다.": "Site saved.",
+  "사이트 키를 영문 소문자·숫자·하이픈으로 적어 주세요(41자 이내).": "Use lowercase letters, digits and hyphens for the site key (up to 41 characters).",
+  "사이트 표가 아직 없습니다. supabase/20_v80_multisite_hub.sql 을 먼저 실행해 주세요.": "The site table is not installed yet. Run supabase/20_v80_multisite_hub.sql first.",
+  "이 사이트의 지금 값을 저장했습니다.": "Saved the current values of this site.",
+  "지금 값을 읽지 못했습니다: ": "Could not read the current values: ",
+  "새 사이트 이름을 적어 주세요.": "Enter the new site name.",
+  "게시판 구성을 ‘이름:페이지당 글 수’로 적어 주세요.": "Write the board layout as name:posts per page.",
+  "설정·명령·체크리스트를 만들었습니다. 설정 파일을 내려받아 옮긴 뒤 명령을 실행하세요.": "Config, commands and checklist are ready. Download the config file, move it, then run the commands.",
+  "(도메인 없음 — GitHub Pages 주소로 시작)": "(no domain — start with the GitHub Pages URL)",
+  "복사하지 못했습니다 — 직접 선택해 복사해 주세요.": "Could not copy — select the text and copy it yourself.",
+  "설정 파일을 내려받았습니다.": "Config file downloaded.",
+  "도메인을 적고 ‘레코드 만들기’를 누르세요.": "Enter a domain and press Build records.",
+  "CNAME 파일을 내려받았습니다.": "CNAME file downloaded.",
+  "도메인을 먼저 입력해 주세요.": "Enter a domain first.",
+  "도메인 모양을 확인해 주세요(예: example.com).": "Check the domain format (e.g. example.com).",
+  "Cloudflare 열기": "Open Cloudflare",
+  "TTL": "TTL",
+  "DNS only": "DNS only",
+  "복사": "Copy",
+  "GitHub Pages → Custom domain": "GitHub Pages → Custom domain",
+  "GitHub Pages → Enforce HTTPS": "GitHub Pages → Enforce HTTPS",
+  "Enforce HTTPS 켜기": "Turn on Enforce HTTPS",
+  "Supabase → Authentication → Site URL": "Supabase → Authentication → Site URL",
+  "Supabase → Redirect URLs": "Supabase → Redirect URLs",
+  "Google Cloud OAuth → 승인된 자바스크립트 원본": "Google Cloud OAuth → Authorised JavaScript origins",
+  "Google Cloud OAuth → 승인된 리디렉션 URI": "Google Cloud OAuth → Authorised redirect URIs",
+  "sbpress.config.json → siteUrl": "sbpress.config.json → siteUrl",
+  "GA4 측정 ID 만들기 → sbpress.config.json ga4Id": "Create a GA4 measurement ID → sbpress.config.json ga4Id",
+  "관리자 등록 — public.admin_users 에 소유자 이메일": "Register the admin — owner email in public.admin_users",
+  "첫 글 발행 — /admin → 게시판 관리": "Publish the first post — /admin → Posts"
 };
   var RULES = ([
   [
@@ -1595,6 +1684,46 @@
   [
     "^삭제할까요\\?$",
     "Delete?"
+  ],
+  [
+    "^(\\d+)분 전$",
+    "\\1 min ago"
+  ],
+  [
+    "^(\\d+)시간 전$",
+    "\\1 h ago"
+  ],
+  [
+    "^(\\d+)일 전$",
+    "\\1 d ago"
+  ],
+  [
+    "^지금 보고 있는 사이트입니다\\.$",
+    "this is the current site"
+  ],
+  [
+    "^레코드 (\\d+)개 · 체크리스트 (\\d+)단계$",
+    "\\1 records · \\2 checklist steps"
+  ],
+  [
+    "^이 사이트의 지금 값을 저장했습니다\\. \\((.+)\\)$",
+    "Saved the current values of this site (\\1)."
+  ],
+  [
+    "^DNS \\(Cloudflare\\) — @ A 4개 · www CNAME (.+)$",
+    "DNS (Cloudflare) — 4 @ A records · www CNAME \\1"
+  ],
+  [
+    "^@ A (.+) \\/ www CNAME (.+)$",
+    "@ A \\1 / www CNAME \\2"
+  ],
+  [
+    "^사이트 목록을 읽지 못했습니다: (.+)$",
+    "Could not read the site list: \\1"
+  ],
+  [
+    "^지금 값을 읽지 못했습니다: (.+)$",
+    "Could not read the current values: \\1"
   ]
 ]).map(function (r) {
     /* 파이썬 쪽 규칙은 \1 로 그룹을 가리킵니다 — JS replace 는 $1 을 씁니다. */
