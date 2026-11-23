@@ -1,7 +1,7 @@
 {
   "version": "3.0",
-  "generatedAt": "2026-11-23T09:57:37+09:00",
-  "commit": "beedd90",
+  "generatedAt": "2026-11-23T11:10:47+09:00",
+  "commit": "1bbc805",
   "limits": {
     "repoBytes": 1073741824,
     "repoLabel": "1 GB",
@@ -9,12 +9,12 @@
     "budgetLabel": "40 MB"
   },
   "usage": {
-    "totalBytes": 8234029,
-    "treeBytes": 3906605,
-    "gitBytes": 4327424,
-    "files": 133,
-    "percent": 0.767,
-    "budgetPercent": 9.31
+    "totalBytes": 8579326,
+    "treeBytes": 3981566,
+    "gitBytes": 4597760,
+    "files": 134,
+    "percent": 0.799,
+    "budgetPercent": 9.49
   },
   "parts": {
     "post": {
@@ -26,8 +26,8 @@
       "bytes": 0
     },
     "assets": {
-      "files": 43,
-      "bytes": 1950949
+      "files": 44,
+      "bytes": 2019938
     },
     "embeds": {
       "files": 9,
@@ -56,16 +56,16 @@
     "avgBytes": 2959
   },
   "capacity": {
-    "postsToBudget": 12854,
-    "postsToLimit": 360090,
+    "postsToBudget": 12829,
+    "postsToLimit": 359973,
     "at1000PostsBytes": 2959000
   },
   "git": {
-    "commits": 53,
-    "looseBytes": 3440640,
+    "commits": 54,
+    "looseBytes": 3710976,
     "packBytes": 886784,
-    "head": "beedd90",
-    "date": "2026-11-23T08:52:22+09:00"
+    "head": "1bbc805",
+    "date": "2026-11-23T10:04:58+09:00"
   },
   "gate": {
     "ok": true,

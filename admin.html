@@ -95,6 +95,7 @@
       <button class="admin-tab" role="tab" type="button" data-tab="subscribers" aria-selected="false">구독자 · 뉴스레터</button>
       <button class="admin-tab" role="tab" type="button" data-tab="inbox" aria-selected="false">폼 접수함 <span class="tab-n" id="tab-inbox-count"></span></button>
       <button class="admin-tab" role="tab" type="button" data-tab="reserve" aria-selected="false">예약 · 설문 <span class="tab-n" id="tab-rsv-count"></span></button>
+      <button class="admin-tab" role="tab" type="button" data-tab="esign" aria-selected="false">서명 · 동의서</button>
       <button class="admin-tab" role="tab" type="button" data-tab="backup" aria-selected="false">백업 · 복원</button>
       <button class="admin-tab" role="tab" type="button" data-tab="settings" aria-selected="false">설정 · 연동</button>
       <button class="admin-tab" role="tab" type="button" data-tab="plugins" aria-selected="false">플러그인 · 마켓</button>
@@ -1099,6 +1100,94 @@
       </section>
     </div>
 
+    <!-- ============ 서명 · 동의서 (v9.0) ============ -->
+    <div class="tabpanel" id="tab-esign" role="tabpanel" hidden>
+      <div class="dash-head">
+        <div>
+          <h1>서명 · 동의서</h1>
+          <p class="dash-sub">동의서를 만들고 전용 링크를 보내면, 서명자는 로그인 없이 동의 항목을 체크하고 손글씨로 서명합니다.</p>
+        </div>
+        <div class="dash-actions">
+          <button type="button" class="btn btn-ghost btn-sm" id="esg-reload">새로고침</button>
+        </div>
+      </div>
+      <p class="panel-note" id="esg-note">public.esign_docs · esign_signatures — 관리자만 읽고 씁니다(RLS). 서명 기록은 추가만 됩니다.</p>
+      <p class="cms-hint" id="esg-missing" hidden>서명 표가 아직 없습니다. <code>supabase/21_v90_esign.sql</code> 을 실행하면 이 화면이 켜집니다.</p>
+      <p class="cms-toast" id="esg-msg" role="status" aria-live="polite" hidden></p>
+
+      <section class="panel panel-wide" id="p-esg-new">
+        <div class="panel-head">
+          <h2>서명 요청 만들기</h2>
+          <span class="panel-tag">로그인 없이 서명</span>
+        </div>
+        <p class="cms-hint">만들면 서명자에게 보낼 전용 링크가 한 번 표시됩니다. 링크를 아는 사람은 로그인 없이 서명할 수 있습니다.</p>
+        <div class="cms-grid2">
+          <label class="cms-field"><span>제목 <em>필수</em></span><input id="esg-f-title" type="text" maxlength="120" placeholder="예: 개인정보 수집·이용 동의서"></label>
+          <label class="cms-field"><span>서명자 이름 <em>필수</em></span><input id="esg-f-signer" type="text" maxlength="80" placeholder="예: 홍길동"></label>
+          <label class="cms-field"><span>서명자 이메일 <em>선택</em></span><input id="esg-f-email" type="email" maxlength="120" placeholder="name@example.com"></label>
+          <label class="cms-field"><span>만료일 <em>선택 · 비우면 계속 열림</em></span><input id="esg-f-expires" type="date"></label>
+        </div>
+        <label class="cms-field"><span>동의서 본문 <em>필수</em></span><textarea id="esg-f-body" rows="6" maxlength="8000" placeholder="동의 내용을 적어 주세요. 줄바꿈은 그대로 인쇄본에 들어갑니다."></textarea></label>
+        <div class="esg-checks-head">
+          <span>동의 항목 <em>필수 항목은 모두 체크해야 서명됩니다</em></span>
+          <button type="button" class="btn btn-ghost btn-sm" id="esg-addcheck">동의 항목 추가</button>
+        </div>
+        <div class="esg-checks" id="esg-checks"></div>
+        <div class="panel-tools">
+          <button type="button" class="btn btn-primary btn-sm" id="esg-create">요청 만들기</button>
+        </div>
+        <div class="esg-link" id="esg-link" hidden>
+          <p class="sub-h">서명 링크</p>
+          <div class="esg-link-row">
+            <input id="esg-link-url" type="text" readonly aria-label="서명 링크">
+            <button type="button" class="btn btn-primary btn-sm" id="esg-link-copy">링크 복사</button>
+          </div>
+          <p class="cms-hint">원문 SHA-256: <code id="esg-link-hash"></code></p>
+          <p class="cms-hint">링크는 요청을 만들 때만 보입니다. 다시 필요하면 새 요청을 만들어 주세요.</p>
+        </div>
+      </section>
+
+      <section class="panel panel-wide" id="p-esg-list">
+        <div class="panel-head">
+          <h2>요청 목록</h2>
+          <span class="dash-stamp" id="esg-count"></span>
+        </div>
+        <div class="esg-filters" id="esg-filters" role="group" aria-label="상태 필터">
+          <button type="button" class="esg-filter on" data-esg-filter="all" aria-pressed="true">전체</button>
+          <button type="button" class="esg-filter" data-esg-filter="pending" aria-pressed="false">대기</button>
+          <button type="button" class="esg-filter" data-esg-filter="signed" aria-pressed="false">서명완료</button>
+          <button type="button" class="esg-filter" data-esg-filter="expired" aria-pressed="false">만료</button>
+          <button type="button" class="esg-filter" data-esg-filter="canceled" aria-pressed="false">취소</button>
+        </div>
+        <table class="admin-table esg-table" id="esg-table">
+          <thead><tr><th>제목</th><th>서명자</th><th>상태</th><th>만료일</th><th>요청일</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section class="panel panel-wide" id="p-esg-detail" hidden>
+        <div class="panel-head">
+          <h2 id="esg-d-title">요청 상세</h2>
+          <div class="panel-tools">
+            <button type="button" class="btn btn-ghost btn-sm" id="esg-d-copy">링크 복사</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="esg-d-print">인쇄 / PDF</button>
+            <button type="button" class="btn btn-ghost btn-sm danger" id="esg-d-cancel">요청 취소</button>
+          </div>
+        </div>
+        <p class="esg-d-meta" id="esg-d-meta"></p>
+        <p class="cms-hint" id="esg-d-tag"></p>
+        <div class="esg-body" id="esg-d-body"></div>
+        <p class="sub-h">동의 항목</p>
+        <ul class="esg-d-checks" id="esg-d-checks"></ul>
+        <div class="esg-d-sig">
+          <p class="sub-h">서명 이미지</p>
+          <img id="esg-d-sig" alt="서명 이미지" hidden>
+          <p class="esg-d-sigmeta" id="esg-d-sigmeta"></p>
+        </div>
+        <p class="cms-hint">원문 SHA-256: <code id="esg-d-hash"></code></p>
+      </section>
+    </div>
+
     <!-- ============ 백업 · 복원 (v2.1) ============ -->
     <div class="tabpanel" id="tab-backup" role="tabpanel" hidden>
       <div class="dash-head">
@@ -1765,6 +1854,7 @@
 <script src="/assets/admin.js"></script>
 <script src="/assets/webhooks.js"></script>
 <script src="/assets/hub.js"></script>
+<script src="/assets/esign.js"></script>
 <script src="/assets/ai-assist.js"></script>
 <script src="/assets/admin-i18n.js"></script>
 <script src="/assets/plugins.js"></script>

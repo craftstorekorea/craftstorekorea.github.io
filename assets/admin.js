@@ -890,6 +890,8 @@
     });
     /* v8.0 — 통합 허브 · 복제 마법사 (assets/hub.js) */
     if (name === "hub" && window.CRAFT_HUB) window.CRAFT_HUB.load();
+    /* v9.0 — 서명 · 동의서 (assets/esign.js) */
+    if (name === "esign" && window.CRAFT_ESIGN) window.CRAFT_ESIGN.loadAdmin();
     if (name === "dash" && !CMS.adminsLoaded) loadAdmins();
     if (name === "dash") { loadAudit(); loadStats(); loadBudget(); loadTraffic(); loadDbUsage(); }
     if (name === "pages") { if (!CMS.loaded.pages) loadPages(); loadPageManager(); }

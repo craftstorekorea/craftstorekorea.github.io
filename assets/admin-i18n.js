@@ -1094,7 +1094,91 @@
   "sbpress.config.json → siteUrl": "sbpress.config.json → siteUrl",
   "GA4 측정 ID 만들기 → sbpress.config.json ga4Id": "Create a GA4 measurement ID → sbpress.config.json ga4Id",
   "관리자 등록 — public.admin_users 에 소유자 이메일": "Register the admin — owner email in public.admin_users",
-  "첫 글 발행 — /admin → 게시판 관리": "Publish the first post — /admin → Posts"
+  "첫 글 발행 — /admin → 게시판 관리": "Publish the first post — /admin → Posts",
+  "서명 · 동의서": "Sign · consent",
+  "동의서를 만들고 전용 링크를 보내면, 서명자는 로그인 없이 동의 항목을 체크하고 손글씨로 서명합니다.": "Create a consent form and send its private link — the signer ticks the consent items and signs by hand, without signing in.",
+  "public.esign_docs · esign_signatures — 관리자만 읽고 씁니다(RLS). 서명 기록은 추가만 됩니다.": "public.esign_docs · esign_signatures — admins only (RLS). Signature records can only be appended.",
+  "서명 표가 아직 없습니다.": "The signature tables are not installed yet.",
+  "서명 요청 만들기": "Create a signature request",
+  "로그인 없이 서명": "Sign without an account",
+  "만들면 서명자에게 보낼 전용 링크가 한 번 표시됩니다. 링크를 아는 사람은 로그인 없이 서명할 수 있습니다.": "On creation a private link for the signer is shown once. Anyone with the link can sign without signing in.",
+  "서명자 이름": "Signer name",
+  "서명자 이메일": "Signer email",
+  "필수": "required",
+  "선택 · 비우면 계속 열림": "optional · blank keeps it open",
+  "예: 개인정보 수집·이용 동의서": "e.g. Consent to collection and use of personal data",
+  "예: 홍길동": "e.g. Jane Doe",
+  "만료일": "Expires",
+  "동의서 본문": "Consent text",
+  "동의 내용을 적어 주세요. 줄바꿈은 그대로 인쇄본에 들어갑니다.": "Write the consent text. Line breaks are kept in the printed copy.",
+  "동의 항목": "Consent items",
+  "필수 항목은 모두 체크해야 서명됩니다": "every required item must be ticked before signing",
+  "동의 항목 추가": "Add consent item",
+  "예: 개인정보 수집·이용에 동의합니다": "e.g. I agree to the collection and use of my personal data",
+  "요청 만들기": "Create request",
+  "서명 링크": "Signature link",
+  "링크 복사": "Copy link",
+  "원문 SHA-256:": "Document SHA-256:",
+  "링크는 요청을 만들 때만 보입니다. 다시 필요하면 새 요청을 만들어 주세요.": "The link is shown only when the request is created. Create a new request if you need it again.",
+  "요청 목록": "Requests",
+  "서명완료": "Signed",
+  "만료": "Expired",
+  "요청일": "Requested",
+  "요청 상세": "Request detail",
+  "인쇄 / PDF": "Print / PDF",
+  "요청 취소": "Cancel request",
+  "서명 이미지": "Signature image",
+  "관리자로 로그인해야 서명 요청을 관리할 수 있습니다.": "Sign in as an admin to manage signature requests.",
+  "서명 요청을 읽지 못했습니다:": "Could not read the signature requests:",
+  "서명 표가 아직 없습니다. supabase/21_v90_esign.sql 을 실행하면 이 화면이 켜집니다.": "The signature tables are not installed yet. Run supabase/21_v90_esign.sql to enable this screen.",
+  "아직 만든 서명 요청이 없습니다. 위에서 첫 요청을 만들어 보세요.": "No signature request yet. Create the first one above.",
+  "목록에서 요청을 하나 고르세요.": "Choose a request from the list.",
+  "제목을 적어 주세요.": "Enter a title.",
+  "동의서 본문을 적어 주세요.": "Enter the consent text.",
+  "필수 동의 항목을 하나 이상 적어 주세요.": "Add at least one consent item.",
+  "서명자 이름을 적어 주세요.": "Enter the signer's name.",
+  "서명자 이메일 주소를 확인해 주세요.": "Check the signer's email address.",
+  "서명 요청을 만들었습니다. 아래 링크를 서명자에게 보내세요.": "Signature request created. Send the link below to the signer.",
+  "링크를 복사했습니다.": "Link copied.",
+  "복사하지 못했습니다 — 링크를 직접 선택해 복사해 주세요.": "Could not copy — please select the link and copy it yourself.",
+  "이 서명 요청을 취소할까요? 링크는 더 이상 열리지 않습니다.": "Cancel this signature request? The link will no longer open.",
+  "요청을 취소했습니다.": "Request canceled.",
+  "서명 기록을 읽지 못했습니다:": "Could not read the signature record:",
+  "아직 서명하지 않았습니다.": "Not signed yet.",
+  "서명자": "Signer",
+  "만료 없음": "No expiry",
+  "저장하지 못했습니다:": "Could not save:",
+  "이 상태의 요청이 없습니다.": "No request has this status.",
+  "아직 전자서명을 준비 중입니다. 관리자가 서명 표를 만들면 이 화면이 열립니다.": "E-signature is being prepared. This screen opens once the admin installs the signature tables.",
+  "서명하는 사람의 이름": "Name of the signer",
+  "손글씨 서명": "Handwritten signature",
+  "마우스나 손가락으로 서명해 주세요.": "Sign with your mouse or finger.",
+  "서명 제출": "Submit signature",
+  "서명을 보내는 중…": "Sending your signature…",
+  "서명 패드": "Signature pad",
+  "서명이 완료되었습니다": "Signature complete",
+  "이 화면을 인쇄하거나 PDF 로 저장해 두세요. 원문 해시와 서명 시각이 함께 남습니다.": "Print this screen or save it as a PDF. The document hash and signing time are kept with it.",
+  "이 링크는 이미 서명이 끝났습니다. 같은 링크로 다시 서명할 수 없습니다.": "This link has already been signed and cannot be signed again.",
+  "인쇄 / PDF 저장": "Print / save PDF",
+  "원문 SHA-256": "Document SHA-256",
+  "원문 해시": "Document hash",
+  "서명 시각": "Signed at",
+  "서명": "Signature",
+  "이 문서는 SBPress 전자서명으로 작성되었습니다. 원문 해시가 서명 시점의 문서와 같으면 위변조가 없습니다.": "This document was signed with SBPress e-signature. If the document hash matches the signed version, it has not been altered.",
+  "서명 링크가 올바르지 않습니다. 보낸 사람에게 새 링크를 요청해 주세요.": "This signature link is not valid. Please ask the sender for a new link.",
+  "서명 기한이 지났습니다. 보낸 사람에게 새 링크를 요청해 주세요.": "This signature request has expired. Please ask the sender for a new link.",
+  "이 서명 요청은 취소되었습니다.": "This signature request was canceled.",
+  "필수 동의 항목을 모두 체크해 주세요.": "Please tick every required consent item.",
+  "이름을 입력해 주세요.": "Please enter your name.",
+  "서명 패드에 서명해 주세요.": "Please sign on the pad.",
+  "서명을 마치지 못했습니다. 잠시 후 다시 시도해 주세요.": "We could not complete your signature. Please try again shortly.",
+  "이미 서명이 끝난 문서입니다.": "This document is already signed.",
+  "서명 기한이 지났습니다.": "This signature request has expired.",
+  "취소된 요청입니다.": "This request was canceled.",
+  "서명 링크가 올바르지 않습니다.": "The signature link is not valid.",
+  "서명 요청을 확인하는 중…": "Checking the signature request…",
+  "전자서명 · 동의서": "E-signature · consent",
+  "전자서명": "E-signature"
 };
   var RULES = ([
   [
@@ -1724,6 +1808,34 @@
   [
     "^지금 값을 읽지 못했습니다: (.+)$",
     "Could not read the current values: \\1"
+  ],
+  [
+    "^요청 (\\d+)건$",
+    "\\1 requests"
+  ],
+  [
+    "^요청일 (.+)$",
+    "Requested \\1"
+  ],
+  [
+    "^만료일 (.+)$",
+    "Expires \\1"
+  ],
+  [
+    "^서명 시각 (.+)$",
+    "Signed at \\1"
+  ],
+  [
+    "^서명 요청을 읽지 못했습니다: (.+)$",
+    "Could not read the signature requests: \\1"
+  ],
+  [
+    "^서명 기록을 읽지 못했습니다: (.+)$",
+    "Could not read the signature record: \\1"
+  ],
+  [
+    "^(\\d+)개 항목$",
+    "\\1 items"
   ]
 ]).map(function (r) {
     /* 파이썬 쪽 규칙은 \1 로 그룹을 가리킵니다 — JS replace 는 $1 을 씁니다. */

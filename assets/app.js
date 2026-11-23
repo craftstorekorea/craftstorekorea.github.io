@@ -248,7 +248,7 @@
      site_contents 의 header_logo_url / header_brand_text / header_menu_items 를 읽어 그립니다.
      값이 없으면 index.html 의 기본 마크·메뉴를 그대로 씁니다. */
   var VIEW_KEYS = (function () {
-    var base = ["home", "workshops", "news", "interview", "archive", "info", "map", "tasks", "approvals", "reserve", "lookup", "page", "board", "post", "mypage", "search", "offline"];
+    var base = ["home", "workshops", "news", "interview", "archive", "info", "map", "tasks", "approvals", "reserve", "lookup", "sign", "page", "board", "post", "mypage", "search", "offline"];
     return base.filter(function (k) {
       if (k === "map" || k === "tasks" || k === "approvals" || k === "mypage" || k === "reserve" || k === "lookup") return feature(k);
       return true;
@@ -1868,6 +1868,7 @@
     page: ["assets/hunmin.js", "assets/korea-paths.js"],
     reserve: ["assets/reserve.js"],
     lookup: ["assets/reserve.js"],
+    sign: ["assets/esign.js"],
     offline: []
   };
   var lazyState = {};
@@ -1904,7 +1905,8 @@
     search: "통합 검색 — " + BRAND,
     mypage: "마이페이지 — " + BRAND,
     reserve: "예약 · 신청 — " + BRAND,
-    lookup: "접수 조회 — " + BRAND
+    lookup: "접수 조회 — " + BRAND,
+    sign: "전자서명 · 동의서 — " + BRAND
   };
   function route(scroll) {
     var r = parseRoute();
@@ -1930,6 +1932,7 @@
     if (r.name === "offline") renderOfflineView(r.arg);
     if (r.name === "reserve" && window.CRAFT_RESERVE) window.CRAFT_RESERVE.showReserve();
     if (r.name === "lookup" && window.CRAFT_RESERVE) window.CRAFT_RESERVE.showLookup();
+    if (r.name === "sign" && window.CRAFT_ESIGN) window.CRAFT_ESIGN.showSign();
     if (r.name === "board") {
       if (r.arg !== lastBoardArg) { pagerState.board = 1; lastBoardArg = r.arg; }
       renderCustomBoard(r.arg);
