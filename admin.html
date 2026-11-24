@@ -1417,7 +1417,7 @@
       <div class="dash-head">
         <div>
           <h1>플러그인 · 마켓</h1>
-          <p class="dash-sub">사이트·관리자에 기능을 더하는 브라우저 JS 플러그인을 설치하고 켜고 끕니다. 켜진 플러그인만 방문자의 브라우저에 내려갑니다.</p>
+          <p class="dash-sub">사이트·관리자에 기능을 더하는 브라우저 JS 플러그인을 설치하고 켜고 끕니다. 켜진 플러그인만 방문자의 브라우저에 내려가며, 설치 전에 요청 권한을 확인하고 SRI 무결성(sha256-…)으로 파일이 바뀌지 않았는지 검사합니다.</p>
         </div>
         <div class="dash-actions">
           <span class="dash-stamp" id="plugins-stamp"></span>
@@ -1431,7 +1431,7 @@
         <div class="mgr-head">
           <div>
             <h2>설치된 플러그인</h2>
-            <p class="cms-hint">토글을 끄면 사이트에서 빠집니다(방문자가 새로고침할 때). <b>기본</b>은 사이트에 함께 배포되는 플러그인, <b>마켓</b>은 마켓 목록에서 설치, <b>직접</b>은 외부 URL로 설치한 플러그인입니다.</p>
+            <p class="cms-hint">토글을 끄면 사이트에서 빠집니다(방문자가 새로고침할 때). <b>기본</b>은 사이트에 함께 배포되는 플러그인, <b>마켓</b>은 마켓 목록에서 설치, <b>직접</b>은 외부 URL로 설치한 플러그인입니다. 무결성·권한 동의 배지를 누르면 자세한 값을 볼 수 있고, 「무결성 다시 검사」로 파일을 다시 해시해 확인합니다.</p>
           </div>
         </div>
         <div class="table-wrap">
@@ -1462,7 +1462,7 @@
         <div class="mgr-head">
           <div>
             <h2>플러그인 마켓 · 구독</h2>
-            <p class="cms-hint">공식 마켓 주소에서 <code>plugins.json</code> 목록을 불러옵니다. 아래 「구독 마켓 관리」에서 <b>다른 마켓</b>(https:// 또는 / 경로)을 더하면 여러 마켓의 플러그인을 한 목록으로 모아 보여 줍니다. 구독 목록은 Supabase <code>plugin_markets</code> 에 저장되며(25_v104 SQL), 실행 전에는 이 브라우저에만 기억합니다.</p>
+            <p class="cms-hint">공식 마켓 주소에서 <code>plugins.json</code> 목록을 불러옵니다. 아래 「구독 마켓 관리」에서 <b>다른 마켓</b>(https:// 또는 / 경로)을 더하면 여러 마켓의 플러그인을 한 목록으로 모아 보여 줍니다. 구독 목록은 Supabase <code>plugin_markets</code> 에 저장되며(25_v104 SQL), 실행 전에는 이 브라우저에만 기억합니다. 플러그인의 무결성(sha256-…)과 권한 동의는 26_v105 SQL 을 실행하면 서버(audit_logs)에 남습니다.</p>
           </div>
         </div>
         <div class="plug-market-bar">

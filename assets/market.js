@@ -1,6 +1,10 @@
-/* ===== SBPress v10.3 · 플러그인 마켓 탐색기 (assets/market.js) =====
+/* ===== SBPress v10.5 · 플러그인 마켓 탐색기 (assets/market.js) =====
    관리자(/admin · 플러그인 · 마켓)와 공개 화면(#/market)이 함께 쓰는 마켓 화면입니다.
 
+   · v10.5 권한 동의 · 무결성 — 설치·업데이트 전에 「권한을 확인해 주세요」 모달로
+     요청 권한(위험도·영역 설명)·SRI 무결성(sha256-… 유무)·샌드박스 모드를 보여 주고,
+     동의한 권한만 설치/업데이트에 넘깁니다. 카드·상세에 「SHA-256 검증됨」·「권한 N개 동의」·
+     「무결성 오류 차단」 배지와 「무결성 다시 검사」 버튼을 둡니다.
    · v10.3 버전 비교 — 설치된 버전과 마켓 최신 버전을 숫자 세 칸(1.2.0)으로 비교해
      「업데이트 가능 (vX → vY)」 배지 · 상단 「업데이트 가능 N개 · 전체 업데이트」 바 ·
      상세 모달의 「업데이트」 · 「이전 버전으로 되돌리기(롤백)」 확인 UI 를 그립니다.
@@ -174,7 +178,61 @@
       marketBadUrl: "마켓 주소는 https:// 또는 사이트 안 경로(/)여야 합니다.",
       marketBadSchema: "마켓 JSON 에서 플러그인 목록(plugins)을 찾지 못했습니다: ",
       marketDupNote: "다른 마켓과 ID가 겹치는 플러그인 {n}개는 앞선 마켓(공식 우선) 것을 씁니다.",
-      pluginBadge: "플러그인 블록"
+      pluginBadge: "플러그인 블록",
+      /* v10.5 — 권한 동의 · SHA-256 무결성 · 샌드박스 */
+      trustTitle: "보안 · 무결성",
+      integrity: "무결성",
+      integrityOk: "SHA-256 검증됨",
+      integrityOkShort: "SHA-256",
+      integrityNone: "무결성 값 없음",
+      integrityBad: "무결성 오류 차단",
+      integrityUnchecked: "무결성 확인 못함",
+      integrityChecking: "무결성 확인 중…",
+      integrityRecheck: "무결성 다시 검사",
+      integrityRechecking: "다시 검사하는 중…",
+      integrityRechecked: "무결성을 다시 검사했습니다 — 파일이 그대로입니다.",
+      integrityMismatch: "무결성 검사에 실패했습니다 — 파일이 바뀌었을 수 있어 실행·설치를 막았습니다.",
+      integrityBlocked: "무결성 오류가 있어 설치할 수 없습니다. 「무결성 다시 검사」로 확인해 주세요.",
+      integrityNeedSql: "Supabase 에 supabase/26_v105_plugin_security.sql 을 실행하면 무결성·권한 동의가 서버에 저장됩니다. 지금은 이 브라우저에만 기억합니다.",
+      integrityHint: "마켓 JSON 의 sha256-… 값과 내려받은 파일 바이트를 브라우저에서 다시 해시해 비교합니다.",
+      consentTitle: "권한을 확인해 주세요",
+      consentTitleNew: "새 권한을 확인해 주세요",
+      consentTitleUpdate: "권한을 확인하고 업데이트",
+      consentLead: "‘{name}’ 플러그인이 아래 권한을 요청합니다. 동의한 권한 밖의 기능(훅)은 실행되지 않습니다.",
+      consentLeadNew: "‘{name}’ 의 새 버전이 아래 권한을 더 요청합니다. 동의해야 업데이트할 수 있습니다.",
+      consentLeadNone: "‘{name}’ 은 특별한 권한을 요청하지 않습니다. 무결성만 확인하고 설치합니다.",
+      consentAgree: "동의하고 설치",
+      consentAgreeUpdate: "동의하고 업데이트",
+      consentCancel: "취소",
+      consentPerms: "요청 권한 {n}개",
+      consentPermsOne: "요청 권한 {n}개",
+      consentNewPerms: "새 권한 {n}개",
+      consentNewPermsOne: "새 권한 {n}개",
+      consentRisk: "위험도",
+      consentNew: "새 권한",
+      consentIntegrity: "무결성(SHA-256)",
+      consentIntegrityNone: "값 없음 — 코드 검사만 합니다.",
+      consentSandbox: "샌드박스",
+      consentSandboxStrict: "엄격 — 선언·동의한 권한만 실행",
+      consentSandboxStandard: "표준 — 선언한 권한만 실행",
+      consentNote: "동의 기록과 무결성은 audit_logs(plugin_consent · plugin_integrity)에 남습니다.",
+      consentDone: "권한에 동의하고 설치했습니다.",
+      consentDoneUpdate: "권한에 동의하고 업데이트했습니다.",
+      consentNeedSql: "Supabase 에 supabase/26_v105_plugin_security.sql 을 실행하면 동의 기록이 서버에 남습니다. 지금은 설치본에만 적었습니다.",
+      grantedTag: "권한 {n}개 동의",
+      grantedTagOne: "권한 {n}개 동의",
+      grantedNone: "권한 동의 기록 없음",
+      riskHigh: "높음",
+      riskMid: "보통",
+      riskLow: "낮음",
+      areaRead: "읽기",
+      areaUi: "화면",
+      areaAdmin: "관리자",
+      areaCss: "스타일",
+      areaNav: "메뉴",
+      areaOther: "기타",
+      installedIntegrity: "설치본 무결성",
+      sandboxMode: "샌드박스 모드"
     },
     en: {
       eyebrow: "PLUGIN MARKET",
@@ -323,7 +381,61 @@
       marketBadUrl: "A market address must start with https:// or be a site path (/).",
       marketBadSchema: "No plugin list (plugins) found in the market JSON: ",
       marketDupNote: "{n} plugins share an ID with another market; the earlier market (official first) is used.",
-      pluginBadge: "Plugin block"
+      pluginBadge: "Plugin block",
+      /* v10.5 — permission consent · SHA-256 integrity · sandbox */
+      trustTitle: "Security · integrity",
+      integrity: "Integrity",
+      integrityOk: "SHA-256 verified",
+      integrityOkShort: "SHA-256",
+      integrityNone: "No integrity value",
+      integrityBad: "Blocked — integrity error",
+      integrityUnchecked: "Integrity not checked",
+      integrityChecking: "Checking integrity…",
+      integrityRecheck: "Check integrity again",
+      integrityRechecking: "Checking again…",
+      integrityRechecked: "Integrity checked again — the file is unchanged.",
+      integrityMismatch: "The integrity check failed — the file may have changed, so it was not run or installed.",
+      integrityBlocked: "This plugin cannot be installed until the integrity check passes. Use “Check integrity again”.",
+      integrityNeedSql: "Run supabase/26_v105_plugin_security.sql in Supabase to store integrity and consent on the server. For now they are remembered in this browser only.",
+      integrityHint: "Re-hashes the downloaded file bytes in the browser and compares them with the sha256-… value in the market JSON.",
+      consentTitle: "Review the permissions",
+      consentTitleNew: "Review the new permissions",
+      consentTitleUpdate: "Review permissions and update",
+      consentLead: "“{name}” asks for the permissions below. Hooks outside the permissions you agree to are not run.",
+      consentLeadNew: "The new version of “{name}” asks for the additional permissions below. Agree to continue the update.",
+      consentLeadNone: "“{name}” asks for no special permissions. Only its integrity is checked before installing.",
+      consentAgree: "Agree and install",
+      consentAgreeUpdate: "Agree and update",
+      consentCancel: "Cancel",
+      consentPerms: "{n} permissions requested",
+      consentPermsOne: "{n} permission requested",
+      consentNewPerms: "{n} new permissions",
+      consentNewPermsOne: "{n} new permission",
+      consentRisk: "Risk",
+      consentNew: "New",
+      consentIntegrity: "Integrity (SHA-256)",
+      consentIntegrityNone: "No value — code scan only.",
+      consentSandbox: "Sandbox",
+      consentSandboxStrict: "Strict — only declared, agreed permissions run",
+      consentSandboxStandard: "Standard — only declared permissions run",
+      consentNote: "Consent and integrity are recorded in audit_logs (plugin_consent · plugin_integrity).",
+      consentDone: "Agreed to the permissions and installed.",
+      consentDoneUpdate: "Agreed to the permissions and updated.",
+      consentNeedSql: "Run supabase/26_v105_plugin_security.sql in Supabase to record consent on the server. For now it was written to the installed row only.",
+      grantedTag: "{n} permissions agreed",
+      grantedTagOne: "{n} permission agreed",
+      grantedNone: "No consent recorded",
+      riskHigh: "High",
+      riskMid: "Medium",
+      riskLow: "Low",
+      areaRead: "Reading",
+      areaUi: "Interface",
+      areaAdmin: "Admin",
+      areaCss: "Styles",
+      areaNav: "Menu",
+      areaOther: "Other",
+      installedIntegrity: "Installed integrity",
+      sandboxMode: "Sandbox mode"
     }
   };
 
@@ -599,7 +711,9 @@
         marketUrl: marketUrl || "",
         marketId: (meta && meta.id) || "",
         marketName: (meta && meta.name) || "",
-        marketOfficial: !!(meta && meta.official)
+        marketOfficial: !!(meta && meta.official),
+        integrity: String(item.integrity || (item.sri || "") || ""),
+        sandbox_mode: (String(item.sandbox_mode || "") === "standard") ? "standard" : "strict"
       });
     });
     /* 카테고리 목록에 없는 분류도 빠뜨리지 않습니다. */
@@ -683,6 +797,184 @@
     var p = PERM[perm];
     if (!p) return tr(lang, "unknownPerm");
     return lang === "en" ? p.en : p.ko;
+  }
+
+  /* ---------------- v10.5 — 권한 위험도 · 무결성 상태 ----------------
+     위험도: 관리자·쓰기 권한은 높음, 화면·메뉴는 보통, 읽기·스타일은 낮음.
+     무결성: 마켓 JSON 의 integrity 와 내려받은 바이트를 다시 해시해 비교합니다. */
+  function permRisk(p) {
+    var s = String(p || "");
+    if (s.indexOf("read:admin") === 0 || s.indexOf("ui:admin") === 0
+        || s.indexOf("write:") === 0 || s.indexOf("data:write") === 0) return 3;
+    if (s.indexOf("ui:") === 0 || s.indexOf("nav:") === 0) return 2;
+    return 1;
+  }
+
+  function permArea(inst, p) {
+    var s = String(p || "");
+    var key = s.indexOf("read:") === 0 ? "areaRead"
+      : s.indexOf("css:") === 0 ? "areaCss"
+      : s.indexOf("nav:") === 0 ? "areaNav"
+      : s.indexOf("ui:") === 0 ? "areaUi"
+      : s.indexOf("admin") >= 0 ? "areaAdmin" : "areaOther";
+    return tr(inst.lang, key);
+  }
+
+  function riskLabel(inst, n) {
+    return tr(inst.lang, n >= 3 ? "riskHigh" : n === 2 ? "riskMid" : "riskLow");
+  }
+
+  /* 플러그인 엔진이 매긴 설치본 상태(무결성·동의 권한·막힌 훅). */
+  function engineStatus(inst, id) {
+    try {
+      if (window.SBPress && window.SBPress.status) {
+        var st = window.SBPress.status();
+        for (var i = 0; i < (st.plugins || []).length; i++) {
+          if (st.plugins[i] && st.plugins[i].id === id) return st.plugins[i];
+        }
+      }
+    } catch (e) { /* noop */ }
+    return null;
+  }
+
+  /* 마켓이 직접 검사한 상태(inst.verify) + 엔진 상태. state: idle · checking · ok · bad · none · unchecked */
+  function verifyOf(inst, p) {
+    var st = engineStatus(inst, p.id);
+    if (st && st.integrity && st.integrity.state === "bad") return { state: "bad", source: "engine" };
+    var v = (inst.verify || {})[p.id];
+    if (v && v.state) return v;
+    if (st && st.integrity && st.integrity.state === "ok") return { state: "ok", source: "engine" };
+    if (!p.integrity) return { state: "none", source: "market" };
+    return { state: "idle", source: "market" };
+  }
+
+  function integrityBadge(inst, p, short) {
+    var lang = inst.lang;
+    var v = verifyOf(inst, p);
+    var state = v.state || "idle";
+    var title = tr(lang, "integrityHint");
+    if (state === "bad") {
+      return '<span class="mkt-sri is-bad" data-mkt-sri="' + esc(p.id) + '" title="' +
+        esc(tr(lang, "integrityMismatch")) + '">' + esc(tr(lang, "integrityBad")) + "</span>";
+    }
+    if (state === "ok") {
+      return '<span class="mkt-sri is-ok" data-mkt-sri="' + esc(p.id) + '" title="' +
+        esc((p.integrity || "") + " · " + title) + '">' + esc(short ? tr(lang, "integrityOkShort") : tr(lang, "integrityOk")) + "</span>";
+    }
+    if (state === "checking") {
+      return '<span class="mkt-sri is-busy" data-mkt-sri="' + esc(p.id) + '">' + esc(tr(lang, "integrityChecking")) + "</span>";
+    }
+    if (state === "unchecked") {
+      return '<span class="mkt-sri is-warn" data-mkt-sri="' + esc(p.id) + '" title="' + esc(title) + '">' +
+        esc(tr(lang, "integrityUnchecked")) + "</span>";
+    }
+    if (state === "none") {
+      if (short) return "";
+      return '<span class="mkt-sri is-none" data-mkt-sri="' + esc(p.id) + '" title="' + esc(title) + '">' +
+        esc(tr(lang, "integrityNone")) + "</span>";
+    }
+    return short ? "" : '<span class="mkt-sri is-idle" data-mkt-sri="' + esc(p.id) + '">' + esc(tr(lang, "integrity")) + "</span>";
+  }
+
+  function grantedOf(inst, p) {
+    var row = installedRow(inst, p.id);
+    var list = (row && Array.isArray(row.granted_permissions)) ? row.granted_permissions : [];
+    if (!list.length) {
+      var st = engineStatus(inst, p.id);
+      if (st && Array.isArray(st.granted_permissions)) list = st.granted_permissions;
+    }
+    return list;
+  }
+
+  function grantedBadge(inst, p) {
+    if (!installedRow(inst, p.id)) return "";
+    var list = grantedOf(inst, p);
+    if (!list.length) {
+      return '<span class="mkt-consent-badge is-none" data-mkt-grant="' + esc(p.id) + '" title="' +
+        esc(tr(inst.lang, "grantedNone")) + '">' + esc(tr(inst.lang, "grantedNone")) + "</span>";
+    }
+    return '<span class="mkt-consent-badge" data-mkt-grant="' + esc(p.id) + '" title="' +
+      esc(list.join(", ")) + '">' + esc(tr(inst.lang, "grantedTag", { n: list.length })) + "</span>";
+  }
+
+  /* 한 플러그인의 무결성을 다시 검사합니다. 결과를 inst.verify 에 남기고 다시 그립니다. */
+  function verifyOne(inst, p) {
+    if (!p || !p.integrity) {
+      inst.verify[p.id] = { state: "none", checkedAt: new Date().toISOString() };
+      return Promise.resolve(inst.verify[p.id]);
+    }
+    var cur = inst.verify[p.id];
+    if (cur && cur.state === "checking") return Promise.resolve(cur);
+    var S = window.SBPress;
+    if (!S || typeof S.verifyIntegrity !== "function") {
+      inst.verify[p.id] = { state: "unchecked", reason: "no-engine", checkedAt: new Date().toISOString() };
+      return Promise.resolve(inst.verify[p.id]);
+    }
+    inst.verify[p.id] = { state: "checking" };
+    return S.verifyIntegrity(p.script_url, p.integrity).then(function (v) {
+      var rec = (v && v.checked)
+        ? { state: (v.ok ? "ok" : "bad"), computed: v.computed || "", expected: v.expected || p.integrity,
+            checkedAt: new Date().toISOString(), reason: v.mismatch ? "mismatch" : "" }
+        : { state: "unchecked", checkedAt: new Date().toISOString(), reason: (v && v.reason) || "unknown" };
+      inst.verify[p.id] = rec;
+      return rec;
+    }).catch(function (e) {
+      inst.verify[p.id] = { state: "unchecked", reason: (e && e.message) || "error", checkedAt: new Date().toISOString() };
+      return inst.verify[p.id];
+    });
+  }
+
+  /* 아직 검사하지 않은 플러그인을 천천히(2개씩) 검사하고 화면을 다시 그립니다. */
+  function scheduleVerify(inst) {
+    var queue = (inst.data && inst.data.plugins || []).filter(function (p) {
+      if (!p.integrity) return false;
+      var v = verifyOf(inst, p);
+      return v.state === "idle";
+    }).slice(0, 12);
+    if (!queue.length) return;
+    var i = 0;
+    inst.verifyRun = (inst.verifyRun || 0) + 1;
+    var run = inst.verifyRun;
+    function step() {
+      if (run !== inst.verifyRun) return;              // 더 새 데이터로 다시 그렸으면 멈춥니다
+      if (i >= queue.length) { try { render(inst); } catch (e) { /* noop */ } return; }
+      var a = queue[i++], b = queue[i++];
+      var jobs = [verifyOne(inst, a)];
+      if (b) jobs.push(verifyOne(inst, b));
+      Promise.all(jobs).then(step, step);
+    }
+    setTimeout(step, 220);
+  }
+
+  /* 설치·업데이트에 필요한 동의 — 새 권한·동의 기록 없음·업데이트를 가려냅니다. */
+  function newPermsFor(inst, p, mode) {
+    var row = installedRow(inst, p.id);
+    var all = Array.isArray(p.permissions) ? p.permissions : [];
+    if (mode !== "update" || !row) return all.slice();
+    var man = (row.manifest && Array.isArray(row.manifest.permissions)) ? row.manifest.permissions : [];
+    var granted = Array.isArray(row.granted_permissions) ? row.granted_permissions : [];
+    /* 매니페스트에 없던 권한이 진짜 '새 권한'입니다. 동의 기록이 있는 설치본이면
+       동의하지 않은 권한도 새 권한으로 봅니다. */
+    return all.filter(function (x) {
+      if (man.indexOf(x) < 0) return true;
+      return granted.length > 0 && granted.indexOf(x) < 0;
+    });
+  }
+
+  function consentNeeded(inst, p, mode) {
+    var v = verifyOf(inst, p);
+    if (v.state === "bad") return { ok: false, reason: "integrity" };
+    var perms = Array.isArray(p.permissions) ? p.permissions : [];
+    var row = installedRow(inst, p.id);
+    if (mode === "update") {
+      /* 새 권한이 생긴 업데이트만 모달로 확인합니다. 권한이 그대로면 조용히 진행하되,
+         무결성·동의 기록은 함께 남깁니다(자동 동의 = 지금 매니페스트에 적힌 권한). */
+      var fresh = newPermsFor(inst, p, "update");
+      if (fresh.length) return { ok: false, reason: "new-permissions", perms: fresh };
+      return { ok: true, auto: perms.length ? { granted: perms, integrity: p.integrity || "",
+                                                mode: p.sandbox_mode || "strict", auto: true } : null };
+    }
+    return { ok: false, reason: perms.length ? "install" : "install-none", perms: perms };
   }
 
   function installedRow(inst, id) {
@@ -800,7 +1092,9 @@
         esc(tr(lang, "detail")) + "</button>";
     }
     if (!installed) {
-      return '<button type="button" class="btn btn-primary btn-sm" data-mplug-install="' + esc(p.id) + '"' + attrs + ">" +
+      var bad = verifyOf(inst, p).state === "bad";
+      return '<button type="button" class="btn btn-primary btn-sm"' + (bad ? " disabled" : "") +
+        ' title="' + esc(bad ? tr(lang, "integrityBlocked") : "") + '" data-mplug-install="' + esc(p.id) + '"' + attrs + ">" +
         esc(tr(lang, "install")) + "</button>";
     }
     var html = '<button type="button" class="btn btn-ghost btn-sm" data-mplug-toggle="' + esc(p.id) + '"' + attrs + ">" +
@@ -842,6 +1136,8 @@
         esc(p.marketOfficial ? tr(lang, "marketOfficialName") : p.marketName) + "</span>"
       : "";
     var upd = row ? updBadge(inst, p, false) : "";
+    var sri = integrityBadge(inst, p, true);
+    var grant = grantedBadge(inst, p);
     var shot = p.screenshots[0] || null;
     var thumb = shot
       ? '<img src="' + esc(shotUrl(inst, shot)) + '" alt="' + esc(lang === "en" ? (shot.alt_en || shot.alt || tr(lang, "screenshotAlt", { name: d.name })) : (shot.alt || tr(lang, "screenshotAlt", { name: d.name }))) + '" width="720" height="405" loading="lazy" decoding="async">'
@@ -852,13 +1148,13 @@
     }).join("");
     return '<article class="plug-card mkt-card" data-market-id="' + esc(p.id) + '" data-mkt-card="' + esc(p.id) + '">' +
       '<div class="mkt-thumb">' + thumb + "</div>" +
-      "<h3>" + esc(d.name) + " " + badge + (upd ? " " + upd : "") + " " + src + "</h3>" +
+      "<h3>" + esc(d.name) + " " + badge + (upd ? " " + upd : "") + " " + src + (sri ? " " + sri : "") + "</h3>" +
       '<p class="plug-desc">' + esc(d.desc) + "</p>" +
       '<div class="plug-meta mkt-meta">' +
         '<span class="plug-tag ver">v' + esc(p.version) + "</span>" +
         (d.author ? '<span class="mkt-author">' + esc(d.author) + "</span>" : "") +
         (d.category ? '<span class="plug-tag cat">' + esc(d.category) + "</span>" : "") +
-        tags +
+        tags + (grant ? " " + grant : "") +
       "</div>" +
       '<div class="plug-actions mkt-actions">' + actionButtons(inst, p, "card") + "</div>" +
       "</article>";
@@ -909,6 +1205,8 @@
       }
       var go = e.target.closest ? e.target.closest("[data-mkt-rb-go]") : null;
       if (go) { doRollback(MODAL.inst, go.getAttribute("data-mkt-rb-go"), go); return; }
+      var rc = e.target.closest ? e.target.closest("[data-mkt-recheck]") : null;
+      if (rc) { recheckIntegrity(MODAL.inst, rc.getAttribute("data-mkt-recheck"), rc); return; }
     });
     document.addEventListener("keydown", function (e) {
       if (!MODAL.el || MODAL.el.hidden) return;
@@ -968,6 +1266,26 @@
           return "<li><code>" + esc(x) + "</code><span>" + esc(permText(x, lang)) + "</span></li>";
         }).join("") + "</ul>"
       : '<p class="mkt-note">' + esc(tr(lang, "noPermissions")) + "</p>";
+    /* v10.5 — 무결성 · 권한 동의 · 샌드박스 */
+    var grantedList = grantedOf(inst, p);
+    var trustSec = '<section class="mkt-sec mkt-trust" id="mkt-trust"><h3>' + esc(tr(lang, "trustTitle")) + "</h3>" +
+      '<dl class="mkt-facts">' +
+        "<div><dt>" + esc(tr(lang, "consentIntegrity")) + "</dt><dd>" +
+          integrityBadge(inst, p, false) + " " +
+          (p.integrity ? '<code class="mkt-sri-code">' + esc(p.integrity.length > 30 ? p.integrity.slice(0, 30) + "…" : p.integrity) + "</code>" : "") +
+        "</dd></div>" +
+        "<div><dt>" + esc(tr(lang, "permissions")) + "</dt><dd>" + grantedBadge(inst, p) + " " +
+          (grantedList.length ? grantedList.map(function (x) { return '<i class="plug-tag">' + esc(x) + "</i>"; }).join(" ") : "") +
+        "</dd></div>" +
+        "<div><dt>" + esc(tr(lang, "sandboxMode")) + "</dt><dd>" +
+          esc(p.sandbox_mode === "standard" ? tr(lang, "consentSandboxStandard") : tr(lang, "consentSandboxStrict")) + "</dd></div>" +
+      "</dl>" +
+      '<p class="mkt-note">' + esc(tr(lang, "integrityHint")) + "</p>" +
+      (inst.mode === "admin"
+        ? '<div class="mkt-trust-actions"><button type="button" class="btn btn-ghost btn-sm" data-mkt-recheck="' + esc(p.id) + '">' +
+          esc(tr(lang, "integrityRecheck")) + "</button></div>"
+        : "") +
+      "</section>";
     var log = p.changelog.length
       ? '<ol class="mkt-log">' + p.changelog.map(function (c) {
           return "<li>" + (c.version ? "<b>v" + esc(c.version) + "</b>" : "") +
@@ -1020,6 +1338,7 @@
       shots +
       (d.desc ? '<p class="mkt-desc-full">' + esc(d.desc) + "</p>" : "") +
       facts +
+      trustSec +
       updSec +
       rbSec +
       '<section class="mkt-sec"><h3>' + esc(tr(lang, "permissions")) + "</h3>" + perms + "</section>" +
@@ -1133,6 +1452,26 @@
   function runAction(inst, name, id, btn, inModal) {
     var fn = inst[name];
     if (typeof fn !== "function") return;
+    if (name === "onInstall" || name === "onUpdate") {
+      var p = byId(inst, id);
+      var mode = name === "onUpdate" ? "update" : "install";
+      var need = p ? consentNeeded(inst, p, mode) : { ok: true };
+      if (!need.ok) {
+        if (need.reason === "integrity") { flash(inst, tr(inst.lang, "integrityBlocked"), "err"); return; }
+        openConsent(inst, p, mode, need.perms || (p ? p.permissions : []), function (info) {
+          runActionNow(inst, name, id, btn, inModal, info);
+        });
+        return;
+      }
+      runActionNow(inst, name, id, btn, inModal, need.auto || null);
+      return;
+    }
+    runActionNow(inst, name, id, btn, inModal, null);
+  }
+
+  function runActionNow(inst, name, id, btn, inModal, consent) {
+    var fn = inst[name];
+    if (typeof fn !== "function") return;
     var lang = inst.lang;
     if (btn && btn.tagName === "BUTTON") {
       btn.disabled = true;
@@ -1152,7 +1491,16 @@
       if (err) flash(inst, tr(lang, "updateFailed") + err, "err");
       else flash(inst, tr(lang, "updatedDone", { v: v }), "ok");
     };
-    try { fn(id, btn, after); } catch (e) { after(e && e.message ? e.message : String(e)); }
+    try { fn(id, btn, after, consent); } catch (e) { after(e && e.message ? e.message : String(e)); }
+    /* 동의·설치 뒤에는 무결성·권한 배지를 새로 그립니다. */
+    if (consent) {
+      setTimeout(function () {
+        try {
+          if (inst.data) { paintTools(inst); render(inst); }
+          if (MODAL.el && !MODAL.el.hidden && MODAL.id === id) openDetail(inst, id, true);
+        } catch (e) { /* noop */ }
+      }, 420);
+    }
     /* 콜백이 화면을 다시 그리면 버튼도 새로 만들어집니다. 상세 모달이 열려 있으면 함께 갱신합니다. */
     if (inModal) {
       [80, 700, 1500].forEach(function (ms) {
@@ -1161,6 +1509,141 @@
         }, ms);
       });
     }
+  }
+
+  /* ---------------- v10.5 — 권한 동의 모달 ---------------- */
+  var CNS = { el: null, inst: null, id: "", mode: "install", perms: [], next: null, lastFocus: null };
+
+  function ensureConsentModal() {
+    if (CNS.el && document.body.contains(CNS.el)) return CNS.el;
+    var el = document.createElement("div");
+    el.className = "mkt-modal mkt-consent";
+    el.id = "mkt-consent";
+    el.hidden = true;
+    el.innerHTML =
+      '<div class="mkt-modal-backdrop" data-mkt-consent-cancel="1"></div>' +
+      '<div class="mkt-modal-card mkt-consent-card" role="dialog" aria-modal="true" aria-labelledby="mkt-consent-title">' +
+        '<header class="mkt-modal-head">' +
+          '<h2 id="mkt-consent-title"></h2>' +
+          '<button type="button" class="mkt-modal-x" data-mkt-consent-cancel="1" aria-label="">×</button>' +
+        "</header>" +
+        '<div class="mkt-modal-body" id="mkt-consent-body"></div>' +
+        '<footer class="mkt-modal-foot" id="mkt-consent-foot"></footer>' +
+      "</div>";
+    document.body.appendChild(el);
+    el.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-mkt-consent-cancel]")) { closeConsent(); return; }
+      var go = e.target.closest ? e.target.closest("[data-mkt-consent-go]") : null;
+      if (!go) return;
+      var inst = CNS.inst, next = CNS.next, p = CNS.inst && byId(CNS.inst, CNS.id);
+      var info = {
+        granted: (CNS.perms || []).slice(),
+        integrity: (p && p.integrity) || "",
+        mode: (p && p.sandbox_mode) || "strict",
+        accepted: true
+      };
+      if (inst) {
+        inst.consented = inst.consented || {};
+        inst.consented[CNS.id] = { at: new Date().toISOString(), granted: info.granted };
+      }
+      closeConsent();
+      if (typeof next === "function") { try { next(info); } catch (e) { /* noop */ } }
+    });
+    document.addEventListener("keydown", function (e) {
+      if (!CNS.el || CNS.el.hidden) return;
+      if (e.key === "Escape") { e.preventDefault(); closeConsent(); }
+    });
+    CNS.el = el;
+    return el;
+  }
+
+  function consentPermRow(inst, perm, isNew) {
+    var risk = permRisk(perm);
+    return '<li class="mkt-perm' + (risk >= 3 ? " is-high" : "") + (isNew ? " is-new" : "") + '">' +
+      '<span class="mkt-risk r' + risk + '">' + esc(riskLabel(inst, risk)) + "</span>" +
+      '<code>' + esc(perm) + "</code>" +
+      '<span class="mkt-perm-desc">' + esc(permText(perm, inst.lang)) + "</span>" +
+      '<span class="mkt-perm-area">' + esc(permArea(inst, perm)) + "</span>" +
+      (isNew ? '<em class="mkt-new">' + esc(tr(inst.lang, "consentNew")) + "</em>" : "") +
+      "</li>";
+  }
+
+  function openConsent(inst, p, mode, perms, next) {
+    if (!p || inst.mode !== "admin") return;
+    var el = ensureConsentModal();
+    var lang = inst.lang;
+    CNS.inst = inst; CNS.id = p.id; CNS.mode = mode; CNS.perms = (perms || []).slice(0, 12); CNS.next = next;
+    CNS.lastFocus = document.activeElement;
+    var d = disp(inst, p);
+    var isUpdate = mode === "update";
+    var fresh = (mode === "update") ? newPermsFor(inst, p, "update") : [];
+    var title = !CNS.perms.length
+      ? tr(lang, isUpdate ? "consentTitleUpdate" : "consentTitle")
+      : (isUpdate && fresh.length ? tr(lang, "consentTitleNew") : tr(lang, isUpdate ? "consentTitleUpdate" : "consentTitle"));
+    el.querySelector("#mkt-consent-title").textContent = title;
+    el.querySelector(".mkt-modal-x").setAttribute("aria-label", tr(lang, "consentCancel"));
+    var lead = !CNS.perms.length
+      ? tr(lang, "consentLeadNone", { name: d.name })
+      : (isUpdate && fresh.length ? tr(lang, "consentLeadNew", { name: d.name }) : tr(lang, "consentLead", { name: d.name }));
+    var v = verifyOf(inst, p);
+    var integrityText = p.integrity
+      ? '<code>' + esc(p.integrity.length > 26 ? p.integrity.slice(0, 26) + "…" : p.integrity) + "</code> " + integrityBadge(inst, p, false)
+      : '<span class="mkt-note">' + esc(tr(lang, "consentIntegrityNone")) + "</span>";
+    var modeText = (p.sandbox_mode === "standard") ? tr(lang, "consentSandboxStandard") : tr(lang, "consentSandboxStrict");
+    el.querySelector("#mkt-consent-body").innerHTML =
+      '<p class="mkt-consent-lead">' + esc(lead) + "</p>" +
+      '<section class="mkt-consent-sec">' +
+        '<h3>' + esc(CNS.perms.length ? tr(lang, isUpdate && fresh.length ? "consentNewPerms" : (CNS.perms.length === 1 ? "consentPermsOne" : "consentPerms"), { n: CNS.perms.length })
+                                      : tr(lang, "consentNoPerms")) + "</h3>" +
+        (CNS.perms.length ? '<ul class="mkt-perm-list">' + CNS.perms.map(function (x) {
+          return consentPermRow(inst, x, fresh.indexOf(x) >= 0);
+        }).join("") + "</ul>" : "") +
+      "</section>" +
+      '<dl class="mkt-facts mkt-consent-facts">' +
+        "<div><dt>" + esc(tr(lang, "consentIntegrity")) + "</dt><dd>" + integrityText + "</dd></div>" +
+        "<div><dt>" + esc(tr(lang, "consentSandbox")) + "</dt><dd>" + esc(modeText) + "</dd></div>" +
+      "</dl>" +
+      '<p class="mkt-note mkt-consent-note">' + esc(tr(lang, "consentNote")) + "</p>" +
+      (v.state === "bad" ? '<p class="mkt-note mkt-err">' + esc(tr(lang, "integrityMismatch")) + "</p>" : "");
+    el.querySelector("#mkt-consent-foot").innerHTML =
+      '<span class="mkt-foot-id muted">' + esc(p.id) + "</span>" +
+      '<button type="button" class="btn btn-ghost btn-sm" data-mkt-consent-cancel="1">' + esc(tr(lang, "consentCancel")) + "</button>" +
+      '<button type="button" class="btn btn-primary btn-sm" data-mkt-consent-go="' + esc(p.id) + '"' +
+        (v.state === "bad" ? " disabled" : "") + ">" +
+        esc(tr(lang, isUpdate ? "consentAgreeUpdate" : "consentAgree")) + "</button>";
+    el.hidden = false;
+    document.documentElement.classList.add("mkt-modal-open");
+    try { el.querySelector("[data-mkt-consent-go]").focus(); } catch (e) { /* noop */ }
+  }
+
+  function closeConsent() {
+    if (!CNS.el) return;
+    CNS.el.hidden = true;
+    CNS.el.querySelector("#mkt-consent-body").innerHTML = "";
+    CNS.el.querySelector("#mkt-consent-foot").innerHTML = "";
+    CNS.inst = null; CNS.id = ""; CNS.next = null; CNS.perms = [];
+    document.documentElement.classList.remove("mkt-modal-open");
+    try { if (CNS.lastFocus && CNS.lastFocus.focus) CNS.lastFocus.focus(); } catch (e) { /* noop */ }
+  }
+
+  /* 「무결성 다시 검사」 — 다시 해시해 보고, 관리자 화면에 결과를 남깁니다. */
+  function recheckIntegrity(inst, id, btn) {
+    var p = byId(inst, id);
+    if (!p) return;
+    var lang = inst.lang;
+    if (btn) { btn.disabled = true; btn.textContent = tr(lang, "integrityRechecking"); }
+    delete inst.verify[p.id];
+    verifyOne(inst, p).then(function (rec) {
+      if (btn) { btn.disabled = false; btn.textContent = tr(lang, "integrityRecheck"); }
+      var state = (rec && rec.state) || "unchecked";
+      flash(inst, state === "ok" ? tr(lang, "integrityRechecked")
+        : (state === "bad" ? tr(lang, "integrityMismatch") : tr(lang, "integrityUnchecked")), state === "ok" ? "ok" : "err");
+      if (typeof inst.onRecheck === "function") {
+        try { inst.onRecheck(id, rec || {}, function () { /* 안내는 위 flash 로 충분 */ }); } catch (e) { /* noop */ }
+      }
+      if (inst.data) { try { render(inst); } catch (e) { /* noop */ } }
+      if (MODAL.el && !MODAL.el.hidden && MODAL.id === id) openDetail(inst, id, true);
+    });
   }
 
   /* ---------------- 설정 모달 (v10.2) ---------------- */
@@ -1646,6 +2129,7 @@
     var empty = inst.tools ? inst.tools.querySelector(".mkt-empty") : null;
     if (empty) empty.hidden = list.length > 0;
     setBusy(inst, false);
+    try { scheduleVerify(inst); } catch (e) { /* noop */ }
   }
 
   function needMessage(inst, text, retry) {
@@ -1719,6 +2203,8 @@
       prev.onMarketToggle = opts.onMarketToggle || prev.onMarketToggle;
       prev.onMarketSync = opts.onMarketSync || prev.onMarketSync;
       prev.onMarketRemove = opts.onMarketRemove || prev.onMarketRemove;
+      prev.onRecheck = opts.onRecheck || prev.onRecheck;
+      prev.onConsent = opts.onConsent || prev.onConsent;
       if (Array.isArray(opts.markets)) {
         prev.markets = opts.markets;
         prev.marketCount = opts.markets.length;
@@ -1755,6 +2241,11 @@
       onMarketToggle: opts.onMarketToggle || null,
       onMarketSync: opts.onMarketSync || null,
       onMarketRemove: opts.onMarketRemove || null,
+      onRecheck: opts.onRecheck || null,
+      onConsent: opts.onConsent || null,
+      verify: {},
+      verifyRun: 0,
+      consented: {},
       markets: Array.isArray(opts.markets) ? opts.markets : null,
       marketCount: Array.isArray(opts.markets) ? opts.markets.length : 0,
       marketFlash: null,
@@ -1797,6 +2288,8 @@
         }
         var opener = e.target.closest ? e.target.closest("[data-mkt-open]") : null;
         if (opener) { openDetail(inst2, opener.getAttribute("data-mkt-open")); return; }
+        var rc = e.target.closest ? e.target.closest("[data-mkt-recheck]") : null;
+        if (rc) { recheckIntegrity(inst2, rc.getAttribute("data-mkt-recheck"), rc); return; }
         var card = e.target.closest ? e.target.closest(".mkt-card") : null;
         if (card) openDetail(inst2, card.getAttribute("data-market-id"));
       });

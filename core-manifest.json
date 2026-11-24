@@ -1,8 +1,8 @@
 {
   "name": "SBPress",
   "kind": "core-manifest",
-  "version": "10.4",
-  "generatedAt": "2026-11-25T01:24:35+09:00",
+  "version": "10.5",
+  "generatedAt": "2026-11-25T02:14:50+09:00",
   "generator": "craftstore_site/sync_template.py --manifest",
   "engine": {
     "html": {
@@ -11,7 +11,7 @@
         "strategy": "structural"
       },
       "admin.html": {
-        "sha256": "49b84c251fccbf00bd0115bbc0728bce0046dbf5e9de15f38a878a436a6fc051",
+        "sha256": "0e92dade6e12c4131c42c4fff49fc8ef54079e42357047bfb30d28fd647ed87a",
         "strategy": "structural"
       },
       "admin/index.html": {
@@ -33,11 +33,11 @@
         "strategy": "copy"
       },
       "assets/admin.js": {
-        "sha256": "6d37a3a627aefa8106eeec5c6e070950a373b308c79ce6be07c48ed9b9447a74",
+        "sha256": "64ee55368f796397a2162b6eae9bed17bcc0bfe11a293afa8b516c9e6d4f2d90",
         "strategy": "copy"
       },
       "assets/admin-i18n.js": {
-        "sha256": "f180fef82501f307b8dcd01fa3c61c00a5ae41a33970abf72ead3d52a324230c",
+        "sha256": "2e3eb9ac136e8fd12363c5ec02d8f56d82119ebed87472f8df8e34e0005014e7",
         "strategy": "copy"
       },
       "assets/archive.js": {
@@ -85,7 +85,7 @@
         "strategy": "copy"
       },
       "assets/plugins.js": {
-        "sha256": "284c0cc1556d2f624d07e67a01346674f2e6b3ec7570d2b42bfabca68494f7c5",
+        "sha256": "bce31ee3153530f762e3984fa4d7663d82a47ba333a0f6725d0a44710fd5c5aa",
         "strategy": "copy"
       },
       "assets/share.js": {
@@ -137,39 +137,39 @@
         "strategy": "copy"
       },
       "sw.js": {
-        "sha256": "656abaa73ff6d29ab77955159081eac74f84c4d55551ab805709f07bee1b6557",
+        "sha256": "4d4219f723f46eb1aec7fd8877592f757dff0ec7c6437574fb59b0b54d76b25c",
         "strategy": "copy"
       },
       "assets/plugins/admin-json-export.js": {
-        "sha256": "d29bca586c9d76177279b9c3eb1cbef2de92224ec98ba50d1bf5e65f6f89fb21",
+        "sha256": "e0b3f58bd68fb6a32e742877307521f2b725f84f072d3f3958a8c336f8e3fcb2",
         "strategy": "copy"
       },
       "assets/plugins/reading-time.js": {
-        "sha256": "dc4db33b76ee4362bfaf673f68884b121350ef86d97ca796f81fdb64b82fd384",
+        "sha256": "7aa91f5c2442ddf165d790f735ad723732a072345dcf6f6223289bccf32dd4eb",
         "strategy": "copy"
       },
       "assets/plugins/scroll-top.js": {
-        "sha256": "6957eca86c9071d0ddef1a377c0f379faf8d7f7621ed30515678a382c4778ddd",
+        "sha256": "3d2bde8c69bc907a9b3aa2615b3ba527e938008dab963f9193760c7bec30d49a",
         "strategy": "copy"
       },
       "assets/plugins/workshop-spotlight.js": {
-        "sha256": "29c0f80e3f4c882ea799e6b3b769db0197b9e714b4ad13d0ad152be6cb1e6f15",
+        "sha256": "9e58524ae2dd27da955e4d9437d4fe4d7fafa225a0677318a4d0f98ee155930c",
         "strategy": "copy"
       },
       "assets/plugins/print-friendly.js": {
-        "sha256": "0846a77646b81d0c5c89b4adcdb8528825c72ea82be4cec4a0756f4956ebb519",
+        "sha256": "8cfa584db6444564ebf53af1aae455a15e411a815a41270edad846870b4bcd1c",
         "strategy": "copy"
       },
       "assets/plugins/quick-search.js": {
-        "sha256": "aea4a2f47c4d1db671624de888f709afc621eb033d1449cb0d3de123287c6964",
+        "sha256": "21e4902e94c284284e67a64d70dfacb44f567f25c8695c16012c5c801842afa0",
         "strategy": "copy"
       },
       "assets/plugins/faq-accordion.js": {
-        "sha256": "0188dbfd249cade096a02d0002022257979d36736f53fb5513dcc56e98cd6af7",
+        "sha256": "f4eff7a24f9a1763d46cb4566d523c594d1b0c29b47d2c694247b63b4ea29317",
         "strategy": "copy"
       },
       "assets/market.js": {
-        "sha256": "1f02ae5410e8556049e0a7fa1d36e36a3e9fa9fa39608aaeaf7ff0e096c666d7",
+        "sha256": "19d029e13bdd2dca00c39f2aed37cc3f5c2fcd49e70add0e86664cc6aa0d6650",
         "strategy": "copy"
       },
       "assets/work-pro.js": {
@@ -183,7 +183,7 @@
         "strategy": "copy"
       },
       "assets/admin.css": {
-        "sha256": "35b6e7e0c77d2b4321f0ea5181462834aaf73f828be28fc0220620665a3a57a9",
+        "sha256": "8a5a4a20791225f20635594105066db3e3ab2ecdfaae6d5730ad1a960f392fa2",
         "strategy": "copy"
       },
       "assets/static-post.css": {
@@ -191,7 +191,7 @@
         "strategy": "copy"
       },
       "assets/market.css": {
-        "sha256": "6b892f88c684041ebcb9f44e6f565d5f855910faa58e7271e13a0bec7ad4321c",
+        "sha256": "7da6ce7d525ef349362f37cdb0f5f24964d27e9b7de901d038755892266e33e5",
         "strategy": "copy"
       },
       "assets/work-pro.css": {
@@ -265,7 +265,7 @@
         "strategy": "copy"
       },
       "scripts/measure_traffic.py": {
-        "sha256": "62a78bb92f24e7ed801ad673ea923d61e5dd1e724cfdf76313c759758a9a91bf",
+        "sha256": "dcbed7579a2356ff238e5f5a745ce9583ef4433af0ca540f4fcee0b77b517907",
         "strategy": "copy"
       },
       "scripts/clone_site.py": {

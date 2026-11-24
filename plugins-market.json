@@ -2,8 +2,8 @@
   "name": "전국공방 플러그인 마켓",
   "manifest": 1,
   "schema": 2,
-  "sbpress": "10.4",
-  "description": "SBPress 사이트·관리자에 기능을 더하는 브라우저 JS 플러그인 목록입니다. 관리자 > 플러그인 · 마켓에서 한 번에 설치하고 켜고 끌 수 있습니다.",
+  "sbpress": "10.5",
+  "description": "SBPress 사이트·관리자에 기능을 더하는 브라우저 JS 플러그인 목록입니다. 관리자 > 플러그인 · 마켓에서 한 번에 설치하고 켜고 끌 수 있으며, 설치 전에 요청 권한을 확인하고 SRI 무결성(sha256-…)으로 파일이 바뀌지 않았는지 검사합니다.",
   "homepage": "https://craftstorekorea.github.io/",
   "updated": "2026-11-25",
   "categories": [
@@ -38,14 +38,14 @@
       "id": "reading-time",
       "name": "읽기 시간 배지",
       "name_en": "Reading time badge",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "description": "글·공방 카드에「약 N분 · N자」배지를 붙여, 긴 글을 고르기 쉽게 합니다.",
       "description_en": "Adds an “about N min · N chars” badge to post and workshop cards so longer pieces are easier to choose.",
       "author": "전국공방",
       "author_en": "Craft Store Korea",
       "category": "content",
       "order": 1,
-      "updated": "2026-11-24",
+      "updated": "2026-11-25",
       "min_sbpress_version": "1.0",
       "script_url": "/assets/plugins/reading-time.js",
       "source": "builtin",
@@ -65,6 +65,12 @@
         }
       ],
       "changelog": [
+        {
+          "version": "1.2.1",
+          "date": "2026-11-25",
+          "notes": "권한 동의·무결성(v10.5) — 매니페스트에 실제로 쓰는 훅과 권한을 모두 선언하고(css:inject 포함), 마켓 JSON 에 SRI 무결성(sha256-…)을 적었습니다. 설치·업데이트 때 엔진이 파일 바이트를 다시 해시해 비교하고, 다르면 실행을 막습니다.",
+          "notes_en": "Permission consent & integrity (v10.5) — the manifest now declares every hook and permission the plugin uses (including css:inject), and the market JSON carries an SRI hash (sha256-…). On install and update the engine re-hashes the file bytes and blocks a mismatch."
+        },
         {
           "version": "1.2.0",
           "date": "2026-11-24",
@@ -87,14 +93,16 @@
       "manifest": {
         "v": 1,
         "name": "읽기 시간 배지",
-        "version": "1.2.0",
+        "version": "1.2.1",
         "author": "전국공방",
         "hooks": [
           "card",
+          "css",
           "settings"
         ],
         "permissions": [
-          "read:card-text"
+          "read:card-text",
+          "css:inject"
         ]
       },
       "settings_schema": [
@@ -128,20 +136,22 @@
           "help_ko": "끄면 ‘약 N분’만 보여 줍니다.",
           "help_en": "Turn off to show only “about N min”."
         }
-      ]
+      ],
+      "sandbox_mode": "strict",
+      "integrity": "sha256-eqkfXCRC3fFl15D3Na1yNzKgcjRdz29iIyibzPMt1Os="
     },
     {
       "id": "scroll-top",
       "name": "맨 위로 버튼",
       "name_en": "Back to top button",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "description": "오른쪽 아래에 '맨 위로' 버튼을 띄웁니다. 400px 이상 스크롤하면 나타납니다.",
       "description_en": "Shows a “Back to top” button at the bottom right once the page is scrolled 400 px.",
       "author": "전국공방",
       "author_en": "Craft Store Korea",
       "category": "navigation",
       "order": 2,
-      "updated": "2026-11-24",
+      "updated": "2026-11-25",
       "min_sbpress_version": "1.0",
       "script_url": "/assets/plugins/scroll-top.js",
       "source": "builtin",
@@ -162,6 +172,12 @@
       ],
       "changelog": [
         {
+          "version": "1.1.1",
+          "date": "2026-11-25",
+          "notes": "권한 동의·무결성(v10.5) — 매니페스트에 실제로 쓰는 훅과 권한을 모두 선언하고(css:inject 포함), 마켓 JSON 에 SRI 무결성(sha256-…)을 적었습니다. 설치·업데이트 때 엔진이 파일 바이트를 다시 해시해 비교하고, 다르면 실행을 막습니다.",
+          "notes_en": "Permission consent & integrity (v10.5) — the manifest now declares every hook and permission the plugin uses (including css:inject), and the market JSON carries an SRI hash (sha256-…). On install and update the engine re-hashes the file bytes and blocks a mismatch."
+        },
+        {
           "version": "1.1.0",
           "date": "2026-11-24",
           "notes": "설정 UI(v10.2) — 버튼이 나타나는 스크롤 위치와 왼쪽/오른쪽 위치를 설정에서 고를 수 있습니다.",
@@ -177,14 +193,16 @@
       "manifest": {
         "v": 1,
         "name": "맨 위로 버튼",
-        "version": "1.1.0",
+        "version": "1.1.1",
         "author": "전국공방",
         "hooks": [
           "widget",
+          "css",
           "settings"
         ],
         "permissions": [
-          "ui:floating"
+          "ui:floating",
+          "css:inject"
         ]
       },
       "settings_schema": [
@@ -221,20 +239,22 @@
           "help_ko": "화면에서 버튼이 놓일 쪽입니다.",
           "help_en": "Which corner the button sits in."
         }
-      ]
+      ],
+      "sandbox_mode": "strict",
+      "integrity": "sha256-PSvejGm8kHqbOqJhWzulJ+k4AI2rlj+Rk3YMe+ww1Jo="
     },
     {
       "id": "workshop-spotlight",
       "name": "추천 공방 스포트라이트",
       "name_en": "Workshop spotlight",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "description": "홈 맨 위에 이번 주 추천 공방과 마감 임박 공모·체험을 모은 배너를 보여 줍니다.",
       "description_en": "Adds a banner at the top of home with this week’s featured workshop and grants or classes closing soon.",
       "author": "전국공방",
       "author_en": "Craft Store Korea",
       "category": "widget",
       "order": 3,
-      "updated": "2026-11-24",
+      "updated": "2026-11-25",
       "min_sbpress_version": "1.0",
       "script_url": "/assets/plugins/workshop-spotlight.js",
       "source": "builtin",
@@ -255,6 +275,12 @@
       ],
       "changelog": [
         {
+          "version": "1.1.1",
+          "date": "2026-11-25",
+          "notes": "권한 동의·무결성(v10.5) — 매니페스트에 실제로 쓰는 훅과 권한을 모두 선언하고(css:inject 포함), 마켓 JSON 에 SRI 무결성(sha256-…)을 적었습니다. 설치·업데이트 때 엔진이 파일 바이트를 다시 해시해 비교하고, 다르면 실행을 막습니다.",
+          "notes_en": "Permission consent & integrity (v10.5) — the manifest now declares every hook and permission the plugin uses (including css:inject), and the market JSON carries an SRI hash (sha256-…). On install and update the engine re-hashes the file bytes and blocks a mismatch."
+        },
+        {
           "version": "1.1.0",
           "date": "2026-11-24",
           "notes": "설정 UI(v10.2) — 배너에 보여 줄 개수와 배너 제목을 설정에서 바꿀 수 있습니다.",
@@ -270,15 +296,17 @@
       "manifest": {
         "v": 1,
         "name": "추천 공방 스포트라이트",
-        "version": "1.1.0",
+        "version": "1.1.1",
         "author": "전국공방",
         "hooks": [
           "widget",
+          "css",
           "settings"
         ],
         "permissions": [
           "read:posts",
-          "ui:home-top"
+          "ui:home-top",
+          "css:inject"
         ]
       },
       "settings_schema": [
@@ -306,20 +334,22 @@
           "help_ko": "비우면 기본 제목을 씁니다.",
           "help_en": "Leave empty to use the default heading."
         }
-      ]
+      ],
+      "sandbox_mode": "strict",
+      "integrity": "sha256-nlhSSuLdJ9qVXk2UN9T+TX+voiWgZ3MYpND5juFVkww="
     },
     {
       "id": "admin-json-export",
       "name": "데이터 내보내기",
       "name_en": "Data export",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "description": "관리자 화면에 게시글·페이지를 JSON으로 내려받는 탭을 추가합니다.",
       "description_en": "Adds an admin tab that downloads posts and pages as JSON.",
       "author": "전국공방",
       "author_en": "Craft Store Korea",
       "category": "admin",
       "order": 4,
-      "updated": "2026-11-22",
+      "updated": "2026-11-25",
       "min_sbpress_version": "1.0",
       "script_url": "/assets/plugins/admin-json-export.js",
       "source": "builtin",
@@ -340,6 +370,12 @@
       ],
       "changelog": [
         {
+          "version": "1.0.1",
+          "date": "2026-11-25",
+          "notes": "권한 동의·무결성(v10.5) — 매니페스트에 실제로 쓰는 훅과 권한을 모두 선언하고(css:inject 포함), 마켓 JSON 에 SRI 무결성(sha256-…)을 적었습니다. 설치·업데이트 때 엔진이 파일 바이트를 다시 해시해 비교하고, 다르면 실행을 막습니다.",
+          "notes_en": "Permission consent & integrity (v10.5) — the manifest now declares every hook and permission the plugin uses (including css:inject), and the market JSON carries an SRI hash (sha256-…). On install and update the engine re-hashes the file bytes and blocks a mismatch."
+        },
+        {
           "version": "1.0.0",
           "date": "2026-11-22",
           "notes": "처음 선보였습니다. 글·페이지 목록을 JSON 한 파일로 내려받습니다.",
@@ -349,28 +385,34 @@
       "manifest": {
         "v": 1,
         "name": "데이터 내보내기",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "author": "전국공방",
         "hooks": [
-          "admin-tab"
+          "admin-tab",
+          "menu",
+          "css"
         ],
         "permissions": [
-          "read:admin-lists"
+          "read:admin-lists",
+          "nav:menu",
+          "css:inject"
         ]
-      }
+      },
+      "sandbox_mode": "strict",
+      "integrity": "sha256-4LP1i9aPtqMudCh3MHUh8rcl+E8HLT85WKjDNvjj/LI="
     },
     {
       "id": "print-friendly",
       "name": "인쇄용 스타일",
       "name_en": "Print-friendly styles",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "description": "글을 인쇄하거나 PDF로 저장할 때 메뉴·버튼을 숨기고 본문만 또렷하게 남깁니다.",
       "description_en": "Hides menus and buttons when a post is printed or saved as PDF, leaving a clean body.",
       "author": "전국공방",
       "author_en": "Craft Store Korea",
       "category": "accessibility",
       "order": 5,
-      "updated": "2026-11-24",
+      "updated": "2026-11-25",
       "min_sbpress_version": "1.0",
       "script_url": "/assets/plugins/print-friendly.js",
       "source": "builtin",
@@ -391,6 +433,12 @@
       ],
       "changelog": [
         {
+          "version": "1.1.1",
+          "date": "2026-11-25",
+          "notes": "권한 동의·무결성(v10.5) — 매니페스트에 실제로 쓰는 훅과 권한을 모두 선언하고(css:inject 포함), 마켓 JSON 에 SRI 무결성(sha256-…)을 적었습니다. 설치·업데이트 때 엔진이 파일 바이트를 다시 해시해 비교하고, 다르면 실행을 막습니다.",
+          "notes_en": "Permission consent & integrity (v10.5) — the manifest now declares every hook and permission the plugin uses (including css:inject), and the market JSON carries an SRI hash (sha256-…). On install and update the engine re-hashes the file bytes and blocks a mismatch."
+        },
+        {
           "version": "1.1.0",
           "date": "2026-11-24",
           "notes": "설정 UI(v10.2) — 머리글·메뉴 숨김 여부와 본문 글자 크기를 설정에서 고를 수 있습니다.",
@@ -406,7 +454,7 @@
       "manifest": {
         "v": 1,
         "name": "인쇄용 스타일",
-        "version": "1.1.0",
+        "version": "1.1.1",
         "author": "전국공방",
         "hooks": [
           "css",
@@ -438,20 +486,22 @@
           "help_ko": "인쇄할 때 본문 글자 크기입니다.",
           "help_en": "Body text size when printing."
         }
-      ]
+      ],
+      "sandbox_mode": "strict",
+      "integrity": "sha256-jPpYTbZERWTr9TrxquRVoV5BGoFaQScO2thGhwtLzRw="
     },
     {
       "id": "quick-search",
       "name": "통합 검색 바로가기",
       "name_en": "Search shortcut",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "description": "헤더 메뉴에 ‘통합 검색’을 더해, 어느 화면에서든 글·페이지를 바로 찾게 합니다.",
       "description_en": "Adds “Search” to the header menu so posts and pages are one click away from any screen.",
       "author": "전국공방",
       "author_en": "Craft Store Korea",
       "category": "navigation",
       "order": 6,
-      "updated": "2026-11-24",
+      "updated": "2026-11-25",
       "min_sbpress_version": "2.0",
       "script_url": "/assets/plugins/quick-search.js",
       "source": "builtin",
@@ -472,6 +522,12 @@
       ],
       "changelog": [
         {
+          "version": "1.0.1",
+          "date": "2026-11-25",
+          "notes": "권한 동의·무결성(v10.5) — 매니페스트에 실제로 쓰는 훅과 권한을 모두 선언하고(css:inject 포함), 마켓 JSON 에 SRI 무결성(sha256-…)을 적었습니다. 설치·업데이트 때 엔진이 파일 바이트를 다시 해시해 비교하고, 다르면 실행을 막습니다.",
+          "notes_en": "Permission consent & integrity (v10.5) — the manifest now declares every hook and permission the plugin uses (including css:inject), and the market JSON carries an SRI hash (sha256-…). On install and update the engine re-hashes the file bytes and blocks a mismatch."
+        },
+        {
           "version": "1.0.0",
           "date": "2026-11-24",
           "notes": "처음 선보였습니다. 헤더 메뉴에 통합 검색(#/search)을 더합니다.",
@@ -481,21 +537,25 @@
       "manifest": {
         "v": 1,
         "name": "통합 검색 바로가기",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "author": "전국공방",
         "hooks": [
-          "menu"
+          "menu",
+          "css"
         ],
         "permissions": [
-          "nav:menu"
+          "nav:menu",
+          "css:inject"
         ]
-      }
+      },
+      "sandbox_mode": "strict",
+      "integrity": "sha256-IeSQLpTChChOZ6ZNcN+stE9WfyXIaVwWASxcgBhCr6A="
     },
     {
       "id": "faq-accordion",
       "name": "FAQ 아코디언",
       "name_en": "FAQ accordion",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "description": "hunmin 페이지에 ‘자주 묻는 질문’ 아코디언 블록을 더합니다. 질문과 답을 한 줄씩 적으면 접었다 펼 수 있는 목록이 됩니다.",
       "description_en": "Adds a “Frequently asked questions” accordion block to hunmin pages. Write one question and answer per line and visitors can expand each one.",
       "author": "전국공방",
@@ -525,6 +585,12 @@
       ],
       "changelog": [
         {
+          "version": "1.1.0",
+          "date": "2026-11-25",
+          "notes": "권한 동의·무결성(v10.5) — 매니페스트에 실제로 쓰는 훅과 권한을 모두 선언하고(css:inject 포함), 마켓 JSON 에 SRI 무결성(sha256-…)을 적었습니다. 설치·업데이트 때 엔진이 파일 바이트를 다시 해시해 비교하고, 다르면 실행을 막습니다.",
+          "notes_en": "Permission consent & integrity (v10.5) — the manifest now declares every hook and permission the plugin uses (including css:inject), and the market JSON carries an SRI hash (sha256-…). On install and update the engine re-hashes the file bytes and blocks a mismatch."
+        },
+        {
           "version": "1.0.0",
           "date": "2026-11-25",
           "notes": "처음 선보였습니다. addBlock 훅으로 hunmin 팔레트에 ‘FAQ 아코디언’ 블록을 더하고, 질문 | 답 을 <details> 아코디언으로 그립니다.",
@@ -534,15 +600,17 @@
       "manifest": {
         "v": 1,
         "name": "FAQ 아코디언",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "author": "전국공방",
         "hooks": [
           "block",
-          "settings"
+          "settings",
+          "css"
         ],
         "permissions": [
           "ui:block",
-          "read:block-data"
+          "read:block-data",
+          "css:inject"
         ]
       },
       "settings_schema": [
@@ -564,7 +632,9 @@
           "help_ko": "끄면 번호 없이 질문만 보여 줍니다.",
           "help_en": "Turn off to show questions without numbers."
         }
-      ]
+      ],
+      "sandbox_mode": "strict",
+      "integrity": "sha256-9O/3ok+aF2PUbLRWbVI8WU0bDCm0fSxpQke2O06ikxc="
     }
   ]
 }

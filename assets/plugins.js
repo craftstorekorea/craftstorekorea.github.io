@@ -5,6 +5,8 @@
    버전: 관리자 화면의 원클릭 업데이트 · 이전 버전 롤백 (v10.3, supabase/24_v103)
    블록: ctx.addBlock({id, name_ko, fields, defaultData, render}) → hunmin 블록 (v10.4)
    마켓: 관리자의 구독 마켓 여러 곳을 합쳐 보여 줍니다 (v10.4, supabase/25_v104)
+   무결성: 행의 integrity(sha256-…)로 받은 파일 바이트를 다시 해시해 비교하고, 다르면 실행을 막습니다 (v10.5)
+   샌드박스: 매니페스트에 선언·동의된 권한 밖의 훅 호출을 막고 state.notices 에 남깁니다 (v10.5, supabase/26_v105)
    목록: public.plugins_public 뷰(예전 DB 는 public.plugins) · 의존: auth-config.js */
 (function () {
   "use strict";
@@ -35,7 +37,14 @@
     admin: null,              // null=모름, true/false
     adminChecked: false,
     failed: {},               // id → 이유 (오류로 격리된 플러그인 — 자동 비활성)
-    manifests: {}             // id → manifest v1
+    manifests: {},            // id → manifest v1
+    /* v10.5 — SRI 무결성 · 권한 동의 · 샌드박스 */
+    integrity: {},            // id → {state:'ok'|'bad'|'none'|'unchecked', expected, computed, checkedAt, reason}
+    grants: {},               // id → [권한] (관리자가 동의한 granted_permissions)
+    consentAt: {},            // id → 동의 시각
+    modes: {},                // id → 'strict' | 'standard'
+    blockedHooks: {},         // id → [{hook, permission, when, why}] — 권한 밖이라 건너뛴 훅
+    security: { checked: 0, bad: 0, blocked: 0 }
   };
 
   function recordError(plugin, message) {
@@ -87,6 +96,94 @@
     return { ok: reasons.length === 0, reasons: reasons };
   }
 
+  /* ---------------- v10.5 — SRI 무결성 (SHA-256) ----------------
+     integrity 는 SRI 형식(sha256-<base64>)이며, 공백으로 여러 값을 적을 수 있습니다.
+     받은 파일 바이트를 crypto.subtle.digest('SHA-256') 으로 다시 해시해 하나라도 맞으면 통과입니다. */
+  var SRI_ONE = /^sha256-[A-Za-z0-9+/=]{43,44}$/;
+
+  function sriOk(v) {
+    var s = String(v == null ? "" : v).trim();
+    if (!s) return false;
+    var parts = s.split(/\s+/);
+    for (var i = 0; i < parts.length; i++) if (SRI_ONE.test(parts[i])) return true;
+    return false;
+  }
+
+  function sriTokens(v) {
+    return String(v == null ? "" : v).split(/\s+/).filter(function (x) { return SRI_ONE.test(x); }).slice(0, 4);
+  }
+
+  function bytesToBase64(bytes) {
+    var s = "";
+    for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+    try { return btoa(s); } catch (e) { return ""; }
+  }
+
+  function bytesToText(buf) {
+    try {
+      if (window.TextDecoder) return new TextDecoder("utf-8").decode(buf);
+    } catch (e) { /* 아래로 */ }
+    var view = new Uint8Array(buf), out = "";
+    for (var i = 0; i < view.length; i += 8192) {
+      out += String.fromCharCode.apply(null, view.subarray(i, i + 8192));
+    }
+    return out;
+  }
+
+  /* 바이트 → sha256-<base64>. crypto.subtle 이 없는 환경(구형·비보안 출처)이면 null. */
+  function sha256Base64(buf) {
+    var subtle = (window.crypto && window.crypto.subtle) || null;
+    if (!subtle || typeof subtle.digest !== "function") return Promise.resolve(null);
+    try {
+      return subtle.digest("SHA-256", buf).then(function (d) {
+        var b = bytesToBase64(new Uint8Array(d));
+        return b ? ("sha256-" + b) : null;
+      }).catch(function () { return null; });
+    } catch (e) { return Promise.resolve(null); }
+  }
+
+  function integrityStateText(id) {
+    var x = state.integrity[id];
+    if (!x) return "";
+    return x.state || "";
+  }
+
+  /* 파일을 한 번 받아 바이트 해시(SRI)와 위험 코드 검사를 함께 합니다.
+     받지 못하면(CORS·404) 검사 없이 통과시키되 unchecked 로 남깁니다 — CSP·격리가 2차 방어입니다. */
+  function loadCheck(url, integrity) {
+    var expected = String(integrity == null ? "" : integrity).trim();
+    return new Promise(function (resolve) {
+      var done = false, timer = null;
+      function settle(v) { if (done) return; done = true; if (timer) clearTimeout(timer); resolve(v); }
+      try {
+        timer = setTimeout(function () { settle({ ok: true, unchecked: true, checked: false }); }, 6000);
+        fetch(url, { cache: "no-store", credentials: "omit" }).then(function (r) {
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          return r.arrayBuffer();
+        }).then(function (buf) {
+          var scan = scanSource(bytesToText(buf));
+          if (!expected || !sriOk(expected)) {
+            settle({ ok: scan.ok, reasons: scan.reasons, checked: false, unchecked: true });
+            return null;
+          }
+          return sha256Base64(buf).then(function (computed) {
+            if (!computed) {
+              settle({ ok: scan.ok, reasons: scan.reasons, checked: false, unchecked: true,
+                       reason: "subtle-unavailable" });
+              return;
+            }
+            var want = sriTokens(expected);
+            var good = want.indexOf(computed) >= 0;
+            settle({ ok: scan.ok && good, reasons: scan.reasons, checked: true, computed: computed,
+                     expected: expected, mismatch: !good });
+          });
+        }).catch(function () {
+          settle({ ok: true, unchecked: true, checked: false, reason: "unreachable" });
+        });
+      } catch (e) { settle({ ok: true, unchecked: true, checked: false, reason: "error" }); }
+    });
+  }
+
   /* 못 받으면(CORS) 검사 없이 통과 — CSP·격리가 막아 줍니다. */
   function scanRemote(url) {
     return new Promise(function (resolve) {
@@ -104,6 +201,67 @@
         }).catch(function () { settle({ ok: true, unchecked: true }); });
       } catch (e) { settle({ ok: true, unchecked: true }); }
     });
+  }
+
+  /* ---------------- v10.5 — 권한 기반 샌드박스 (ctx 가드) ----------------
+     훅마다 필요한 권한의 앞자리를 정해 두고, 매니페스트가 그 권한을 선언했는지 봅니다.
+     · 매니페스트가 권한을 하나도 선언하지 않은 예전 설치본은 그대로 동작합니다(호환).
+     · 관리자가 동의한 목록(granted_permissions)이 있으면 그 안에 있는지도 봅니다.
+     · sandbox_mode='standard' 는 막지 않고 알림만 남깁니다. 기본은 'strict'(막음). */
+  var HOOK_NEED = {
+    card: ["read:"],
+    widget: ["ui:"],
+    menu: ["nav:"],
+    "admin-tab": ["read:admin", "ui:admin"],
+    css: ["css:"],
+    block: ["ui:block", "ui:"]
+  };
+
+  function permMatches(list, needs) {
+    for (var i = 0; i < list.length; i++) {
+      var p = String(list[i] || "");
+      for (var j = 0; j < needs.length; j++) {
+        if (p === needs[j] || p.indexOf(needs[j]) === 0) return p;
+      }
+    }
+    return "";
+  }
+
+  function hookAllowed(id, hook) {
+    var man = state.manifests[id];
+    var declared = (man && Array.isArray(man.permissions)) ? man.permissions : [];
+    if (!declared.length) return true;                     // 선언 없는 예전 설치본 — 호환
+    var needs = HOOK_NEED[hook];
+    if (!needs) return true;
+    /* v10.5 이전에 설치한 행(동의 기록 없음)은 선언만 봅니다 — 사이트가 갑자기 바뀌지 않게. */
+    var granted = state.grants[id];
+    var consented = !!state.consentAt[id] || !!(granted && granted.length);
+    if (!consented) {
+      if (state.modes[id] === "standard") {
+        recordNotice(id, "권한 동의 기록이 없어 ‘" + hook + "’ 훅을 선언만 보고 실행했습니다.");
+      }
+      return true;
+    }
+    var hit = permMatches(declared, needs);
+    if (!hit) {
+      blockHook(id, hook, needs.join(" 또는 "), "선언되지 않은 권한");
+      return false;
+    }
+    if (granted && granted.length && state.modes[id] !== "standard") {
+      if (!permMatches(granted, needs)) {
+        blockHook(id, hook, hit, "동의하지 않은 권한");
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function blockHook(id, hook, permission, why) {
+    var rec = { hook: hook, permission: permission, why: why, when: new Date().toISOString() };
+    (state.blockedHooks[id] = state.blockedHooks[id] || []).push(rec);
+    state.security.blocked += 1;
+    recordNotice(id, "권한 밖의 ‘" + hook + "’ 훅을 건너뛰었습니다 — " + why + "(" + permission +
+      "). 관리자 > 플러그인 · 마켓에서 요청 권한을 확인하세요.");
   }
 
   /* manifest v1 — 없으면 정의에서 채웁니다. */
@@ -247,6 +405,7 @@
         return n;
       },
       addMenuItem: function (item) {
+        if (!hookAllowed(id, "menu")) return;
         if (!item || typeof item !== "object") return;
         var key = String(item.id || item.href || "").trim();
         if (!key) return;
@@ -263,6 +422,7 @@
         renderMenu();
       },
       decorateCard: function (fn) {
+        if (!hookAllowed(id, "card")) return;
         if (typeof fn !== "function") return;
         state.cardFns.push({ plugin: id, fn: fn });
         resetCards();
@@ -270,6 +430,7 @@
         observeCards();
       },
       addWidget: function (zone, fn) {
+        if (!hookAllowed(id, "widget")) return;
         if (typeof fn !== "function") return;
         var z = String(zone || "").trim();
         if (!z) return;
@@ -279,6 +440,7 @@
         paintZones();
       },
       addAdminTab: function (tab) {
+        if (!hookAllowed(id, "admin-tab")) return;
         if (!tab || !tab.render) return;
         var tid = String(tab.id || "").trim();
         if (!tid) return;
@@ -287,13 +449,17 @@
         mountAdminTabs();
       },
       addCss: function (text) {
+        if (!hookAllowed(id, "css")) return;
         var css = String(text || "").replace(/<\/?style/gi, "");   // </style> 로 페이지를 깨뜨리지 못하게
         if (!css.trim()) return;
         (state.css[id] = state.css[id] || []).push(css);
         injectCss(id);
       },
-      /* v10.4 — hunmin 커스텀 블록을 등록합니다. */
-      addBlock: function (def) { return addBlock(id, def); },
+      /* v10.4 — hunmin 커스텀 블록을 등록합니다. (v10.5 — 권한 밖이면 등록하지 않습니다) */
+      addBlock: function (def) {
+        if (!hookAllowed(id, "block")) return "";
+        return addBlock(id, def);
+      },
       /* 이 플러그인의 블록 종류 키(페이지에 저장되는 type)를 돌려줍니다. */
       blockType: function (blockId) { return "sbp:" + id + ":" + String(blockId || ""); }
     };
@@ -661,15 +827,27 @@
     }).then(function (rows) { return Array.isArray(rows) ? rows : []; });
   }
 
-  /* v10.2 — 뷰(plugins_public)를 먼저, 없는 예전 DB 는 표를 읽습니다. */
+  /* v10.2 — 뷰(plugins_public)를 먼저, 없는 예전 DB 는 표를 읽습니다.
+     v10.5 — integrity·동의 권한·샌드박스 칸을 먼저 청하고, 없으면(26_v105 미실행) 그 칸만 빼고 다시 읽습니다. */
+  var COLS_V105 = "id,name,version,script_url,source,settings,settings_schema,integrity,granted_permissions,consent_at,sandbox_mode";
+  var COLS_V102 = "id,name,version,script_url,source,settings,settings_schema";
+  var COLS_OLD = "id,name,version,script_url,source,settings";
+
+  function noticeNoV105() {
+    recordNotice("engine", "무결성·권한 동의 칸이 없어 코드 검사만 합니다(26_v105_plugin_security.sql 미실행).");
+  }
+
   function enabledRows() {
     if (!CFG.url || !CFG.anonKey) return Promise.resolve([]);
-    return fetchRows("plugins_public", "id,name,version,script_url,source,settings,settings_schema")
-      .then(function (rows) { return rows; })
-      .catch(function () {
+    return fetchRows("plugins_public", COLS_V105).catch(function () {
+      return fetchRows("plugins_public", COLS_V102).then(function (rows) {
+        noticeNoV105();
+        return rows;
+      }).catch(function () {
         recordNotice("engine", "plugins_public 뷰가 없어 public.plugins 를 읽습니다(23_v102_plugin_settings.sql 미실행).");
-        return fetchRows("plugins", "id,name,version,script_url,source,settings");
+        return fetchRows("plugins", COLS_V105).catch(function () { return fetchRows("plugins", COLS_OLD); });
       });
+    });
   }
 
   function loadOne(row) {
@@ -691,7 +869,30 @@
         return;
       }
       var src = absUrl(safe, location.origin + "/");
-      scanRemote(src).then(function (scan) {
+      var expected = String(row.integrity == null ? "" : row.integrity).trim();
+      loadCheck(src, expected).then(function (scan) {
+        if (scan && scan.checked) {
+          state.security.checked += 1;
+          state.integrity[row.id] = {
+            state: scan.mismatch ? "bad" : (scan.ok ? "ok" : "bad"),
+            expected: scan.expected || expected, computed: scan.computed || "",
+            checkedAt: new Date().toISOString(), reason: scan.mismatch ? "mismatch" : ""
+          };
+        } else {
+          state.integrity[row.id] = { state: "unchecked", expected: expected, computed: "",
+            checkedAt: new Date().toISOString(), reason: (scan && scan.reason) || "" };
+          if (expected) {
+            recordNotice(row.id, "무결성 값을 확인할 수 없어(파일을 읽지 못함·브라우저 제한) 코드 검사만 했습니다.");
+          }
+        }
+        if (scan && scan.checked && scan.mismatch) {
+          state.security.bad += 1;
+          state.skipped[row.id] = "integrity";
+          fail(row.id, "무결성 검사에 실패해 실행하지 않았습니다 — 파일이 바뀌었을 수 있습니다: " + src);
+          paintSecurityAlert();
+          resolve();
+          return;
+        }
         if (scan && scan.ok === false) {
           state.skipped[row.id] = "unsafe-code";
           fail(row.id, "위험한 코드가 들어 있어 실행하지 않았습니다: " + (scan.reasons || []).join(", "));
@@ -733,7 +934,13 @@
     state.loadedOnce = false;
     state.skipped = {};
     return enabledRows().then(function (rows) {
-      rows.forEach(function (r) { state.rows[r.id] = r; });
+      rows.forEach(function (r) {
+        state.rows[r.id] = r;
+        /* v10.5 — 동의한 권한·샌드박스 모드를 적어 둡니다. */
+        state.grants[r.id] = Array.isArray(r.granted_permissions) ? r.granted_permissions.slice(0, 12) : [];
+        state.consentAt[r.id] = r.consent_at || null;
+        state.modes[r.id] = (String(r.sandbox_mode || "") === "standard") ? "standard" : "strict";
+      });
       state.rows._order = rows;
       /* 이미 실행 중인 플러그인은 새 설정으로 다시 그립니다. */
       rows.forEach(function (r) {
@@ -741,7 +948,12 @@
       });
       var i = 0;
       function step() {
-        if (i >= rows.length) { state.loading = false; state.loadedOnce = true; return; }
+        if (i >= rows.length) {
+          state.loading = false;
+          state.loadedOnce = true;
+          try { paintSecurityAlert(); } catch (e) { /* noop */ }
+          return;
+        }
         var row = rows[i++];
         loadOne(row).then(step, step);
       }
@@ -763,6 +975,11 @@
         settings: mergedSettings(r.id),
         disabled: state.failed[r.id] || null,
         skipped: state.skipped[r.id] || null,
+        integrity: state.integrity[r.id] || null,
+        granted_permissions: (state.grants[r.id] || []).slice(),
+        consent_at: state.consentAt[r.id] || null,
+        sandbox_mode: state.modes[r.id] || "strict",
+        blocked_hooks: (state.blockedHooks[r.id] || []).slice(),
         errors: state.errors.filter(function (e) { return e.plugin === r.id; })
       });
     });
@@ -773,20 +990,71 @@
       disabled: Object.keys(state.failed).map(function (id) { return { id: id, reason: state.failed[id] }; }),
       adminPage: state.adminPage,
       admin: state.admin,
+      security: {
+        checked: state.security.checked,
+        bad: state.security.bad,
+        blocked: state.security.blocked,
+        integrity: JSON.parse(JSON.stringify(state.integrity)),
+        blockedHooks: JSON.parse(JSON.stringify(state.blockedHooks))
+      },
       blocks: blockList().map(function (b) {
         return { type: b.type, id: b.id, plugin: b.plugin, name: b.name_ko, fields: b.fields.length };
       })
     };
   }
 
+  /* ---------------- v10.5 — 관리자 경고 표시 ----------------
+     무결성 실패나 권한 밖 훅 호출이 있으면 /admin 대시보드 맨 위에 한 줄 배너를 그립니다.
+     관리자 화면이 아니거나 그릴 자리가 없으면 아무 것도 하지 않습니다(공개 사이트 = 조용). */
+  function paintSecurityAlert() {
+    if (!state.adminPage) return;
+    var dash = document.getElementById("state-dash");
+    if (!dash) return;
+    var bad = [], hooks = [];
+    Object.keys(state.integrity).forEach(function (id) {
+      if (state.integrity[id] && state.integrity[id].state === "bad") bad.push(id);
+    });
+    Object.keys(state.blockedHooks).forEach(function (id) {
+      (state.blockedHooks[id] || []).forEach(function (b) { hooks.push(id + " · " + b.hook); });
+    });
+    var box = document.getElementById("sbp-integrity-alert");
+    if (!bad.length && !hooks.length) {
+      if (box && box.parentNode) box.parentNode.removeChild(box);
+      return;
+    }
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "sbp-integrity-alert";
+      box.className = "sbp-security-alert";
+      box.setAttribute("role", "alert");
+      box.setAttribute("data-sbp-security", "1");
+      var first = dash.querySelector(".tabpanel") || dash.firstChild;
+      if (first && first.parentNode) first.parentNode.insertBefore(box, first);
+      else dash.appendChild(box);
+    }
+    var html = "";
+    if (bad.length) {
+      html += '<p class="sbp-security-line"><b>무결성 오류로 막은 플러그인 ' + bad.length + '개</b> ' +
+        '<span class="muted">' + esc(bad.join(", ")) + "</span> " +
+        "<span>파일이 바뀌었을 수 있어 실행하지 않았습니다. 관리자 &gt; 플러그인 · 마켓에서 무결성 다시 검사로 확인하세요.</span></p>";
+    }
+    if (hooks.length) {
+      html += '<p class="sbp-security-line"><b>권한 밖에서 부른 훅 ' + hooks.length + '건</b> ' +
+        '<span class="muted">' + esc(hooks.slice(0, 6).join(", ")) + (hooks.length > 6 ? " …" : "") + "</span> " +
+        "<span>그 기능만 건너뛰었습니다(페이지는 그대로).</span></p>";
+    }
+    box.innerHTML = html;
+  }
+
   /* ---------------- 공개 API ---------------- */
   var SBPress = {
     __engine: true,
-    version: "10.4.0",          // SBPress 엔진(사이트) 버전 — v10.2 부터 같은 번호를 씁니다.
+    version: "10.5.0",          // SBPress 엔진(사이트) 버전 — v10.2 부터 같은 번호를 씁니다.
     api: 2,                     // 플러그인이 기대는 엔진 API 판
     settingsApi: 1,             // getSettings · onSettingsChange · applySettings 가 있는 판
     versionsApi: 1,             // v10.3 — 원클릭 업데이트 · 버전 비교 · 롤백이 있는 판
     blocksApi: 1,               // v10.4 — addBlock · getBlocks · getBlock 이 있는 판
+    securityApi: 1,             // v10.5 — SRI 무결성 · 권한 동의 · 샌드박스가 있는 판
     getBlocks: function () { return blockList().slice(); },
     getBlock: function (type) { return state.blocks[String(type || "")] || null; },
     hasBlock: function (type) { return !!state.blocks[String(type || "")]; },
@@ -815,6 +1083,49 @@
     scanSource: scanSource,
     scanRemote: scanRemote,
     manifestOf: manifestOf,
+    /* v10.5 — SRI 무결성 · 권한 기반 샌드박스 */
+    sha256Base64: sha256Base64,
+    sriOk: sriOk,
+    verifyIntegrity: function (url, integrity) {
+      var src = absUrl(safeScriptUrl(url) || url, location.origin + "/");
+      return loadCheck(src, integrity).then(function (v) {
+        return {
+          ok: (v && v.checked) ? (!!v.ok && !v.mismatch) : true,
+          checked: !!(v && v.checked),
+          mismatch: !!(v && v.mismatch),
+          computed: (v && v.computed) || "",
+          expected: (v && v.expected) || String(integrity || ""),
+          reason: (v && v.reason) || ""
+        };
+      });
+    },
+    /* 설치된 플러그인 하나를 다시 검사합니다. 결과는 status() 와 관리자 경고에 반영됩니다. */
+    recheckIntegrity: function (id, cb) {
+      var pid = String(id || "");
+      var row = state.rows[pid];
+      if (!row) {
+        if (cb) cb("플러그인을 찾지 못했습니다: " + pid, null);
+        return Promise.resolve(null);
+      }
+      var src = absUrl(safeScriptUrl(row.script_url) || "", location.origin + "/");
+      return loadCheck(src, row.integrity).then(function (v) {
+        var rec = {
+          state: (v && v.checked) ? (v.mismatch ? "bad" : (v.ok ? "ok" : "bad")) : "unchecked",
+          expected: String(row.integrity || ""), computed: (v && v.computed) || "",
+          checkedAt: new Date().toISOString(), reason: (v && v.reason) || ""
+        };
+        state.integrity[pid] = rec;
+        if (rec.state === "bad" && !state.failed[pid]) state.security.bad += 1;
+        paintSecurityAlert();
+        if (cb) cb(null, rec);
+        return rec;
+      });
+    },
+    integrityState: function (id) { return state.integrity[String(id || "")] || null; },
+    securityState: function () { return status().security; },
+    hookAllowed: hookAllowed,
+    hookPermission: function (hook) { return (HOOK_NEED[String(hook || "")] || []).slice(); },
+    paintSecurityAlert: paintSecurityAlert,
     hooks: function () { return HOOKS.slice(); },
     renderMenu: renderMenu,
     applyCards: function () { resetCards(); applyCards(); },
@@ -840,6 +1151,7 @@
     renderMenu();
     paintZones();
     applyCards();
+    try { paintSecurityAlert(); } catch (e) { /* noop */ }
     load();
     /* 늦게 그려지는 카드도 훑습니다. */
     window.addEventListener("hashchange", function () { setTimeout(function () { applyCards(); paintZones(); }, 120); });

@@ -1494,9 +1494,57 @@
   "공식 마켓 주소를 저장했습니다: ": "Saved the official market address: ",
   "여러 마켓의 plugins.json 을 모아 한 목록으로 보여줍니다. 주소는 https:// 또는 사이트 안 경로(/)만 됩니다. 공식 마켓은 끄거나 지울 수 없습니다.": "Collects the plugins.json of several markets into one list. Addresses must start with https:// or be a site path (/). The official market cannot be turned off or deleted.",
   "플러그인 블록": "Plugin block",
+  "플러그인의 무결성(sha256-…)과 권한 동의는 26_v105 SQL 을 실행하면 서버(audit_logs)에 남습니다.": "The integrity (sha256-…) and permission consent of plugins are recorded on the server (audit_logs) once the 26_v105 SQL is run.",
+  "무결성·권한 동의 배지를 누르면 자세한 값을 볼 수 있고, 「무결성 다시 검사」로 파일을 다시 해시해 확인합니다.": "Press an integrity or consent badge to see the stored values, and “Check integrity again” re-hashes the file.",
+  "설치 전에 요청 권한을 확인하고 SRI 무결성(sha256-…)으로 파일이 바뀌지 않았는지 검사합니다.": "Before installing, you review the requested permissions; an SRI hash (sha256-…) checks whether the file changed.",
   "이 블록의 플러그인이 꺼져 있거나 설치되지 않았습니다. 블록 내용은 그대로 남아 있습니다.": "The plugin for this block is off or not installed. The block content is kept as it is.",
   "이 블록의 플러그인이 꺼져 있거나 설치되지 않았습니다. 블록 내용은 그대로 남아 있으며, 플러그인을 다시 켜면 나타납니다.": "The plugin for this block is off or not installed. The content is kept and appears again once the plugin is back on.",
-  "이 블록은 바꿀 값이 없습니다.": "This block has no values to change."
+  "이 블록은 바꿀 값이 없습니다.": "This block has no values to change.",
+  "무결성 다시 검사": "Check integrity again",
+  "무결성": "Integrity",
+  "SHA-256 검증": "SHA-256 verified",
+  "무결성 없음": "No integrity value",
+  "동의 기록 없음": "No consent recorded",
+  "샌드박스 엄격": "Sandbox strict",
+  "샌드박스 표준": "Sandbox standard",
+  "샌드박스 모드": "Sandbox mode",
+  "권한 동의": "Permission consent",
+  "요청 권한": "Requested permissions",
+  "위험도": "Risk",
+  "위험도 높음": "High risk",
+  "위험도 보통": "Medium risk",
+  "위험도 낮음": "Low risk",
+  "새 권한": "New permission",
+  "권한을 확인해 주세요": "Review the permissions",
+  "동의하고 설치": "Agree and install",
+  "동의하고 업데이트": "Agree and update",
+  "무결성(SHA-256)": "Integrity (SHA-256)",
+  "무결성 검사를 통과했습니다.": "The integrity check passed.",
+  "무결성 검사에 실패했습니다 — 파일이 바뀌었을 수 있습니다.": "The integrity check failed — the file may have changed.",
+  "무결성을 확인할 수 없습니다(파일을 읽지 못함·브라우저 제한).": "Integrity could not be checked (the file could not be read, or the browser restricted it).",
+  "26_v105 SQL 을 실행하면 권한 동의가 서버에 저장됩니다.": "Run the 26_v105 SQL to store permission consent on the server.",
+  "26_v105 SQL 을 실행하면 검사 결과가 서버에 남습니다.": "Run the 26_v105 SQL to record the check result on the server.",
+  "플러그인 엔진을 불러오지 못해 검사하지 못했습니다. 새로고침해 주세요.": "Could not check because the plugin engine did not load. Refresh the page.",
+  "무결성을 검사하지 못했습니다: ": "Could not check the integrity: ",
+  "동의 기록: ": "Consent record: ",
+  "무결성 오류로 막은 플러그인 ": "Plugins blocked by an integrity error ",
+  "권한 밖에서 부른 훅 ": "Hooks called outside the granted permissions ",
+  "그 기능만 건너뛰었습니다(페이지는 그대로).": "Only that feature was skipped; the page is unchanged.",
+  "파일이 바뀌었을 수 있어 실행하지 않았습니다. 관리자 > 플러그인 · 마켓에서 「무결성 다시 검사」로 확인하세요.": "The file may have changed, so it was not run. Check it with “Check integrity again” in Admin > Plugins · market.",
+  "무결성 값 없음": "No integrity value",
+  "값 없음 — 코드 검사만 합니다.": "No value — only the code is scanned.",
+  "엄격 — 선언·동의한 권한만 실행": "Strict — only declared, agreed permissions run",
+  "표준 — 선언한 권한만 실행": "Standard — only declared permissions run",
+  "동의 기록과 무결성은 audit_logs(plugin_consent · plugin_integrity)에 남습니다.": "Consent and integrity are recorded in audit_logs (plugin_consent · plugin_integrity).",
+  "요청 권한을 확인하세요.": "review the requested permissions.",
+  "권한 밖의": "outside the permissions,",
+  "훅을 건너뛰었습니다": "hooks were skipped",
+  "동의한 권한 밖의 기능(훅)은 실행되지 않습니다.": "Hooks outside the permissions you agree to are not run.",
+  "공식 마켓 주소에서": "From the official market address",
+  "구독 목록은 Supabase": "The subscription list is stored in Supabase",
+  "실행 전에는 이 브라우저에만 기억합니다.": "Before that it is remembered in this browser only.",
+  "사이트·관리자에 기능을 더하는 브라우저 JS 플러그인을 설치하고 켜고 끕니다. 설치 전에 요청 권한을 확인하고 SRI 무결성(sha256-…)으로 파일이 바뀌지 않았는지 검사합니다.": "Install, turn on and off browser JS plugins that add features to the site and admin. Before installing, review the requested permissions; an SRI hash (sha256-…) checks whether the file changed.",
+  "권한 동의 · 무결성": "Permission consent · integrity"
 };
   var RULES = ([
   [
@@ -2278,6 +2326,46 @@
   [
     "^마지막 동기화 (\\d{4}-\\d{2}-\\d{2})$",
     "Last synced \\1"
+  ],
+  [
+    "^권한 (\\d+)개 동의$",
+    "\\1 permissions agreed"
+  ],
+  [
+    "^요청 권한 (\\d+)개$",
+    "\\1 permissions requested"
+  ],
+  [
+    "^새 권한 (\\d+)개$",
+    "\\1 new permissions"
+  ],
+  [
+    "^무결성 오류로 막은 플러그인 (\\d+)개$",
+    "Plugins blocked by an integrity error: \\1"
+  ],
+  [
+    "^권한 밖에서 부른 훅 (\\d+)건$",
+    "Hooks called outside the granted permissions: \\1"
+  ],
+  [
+    "^권한 (\\d+)개 동의 · 플러그인 ",
+    "\\1 permissions agreed · plugins "
+  ],
+  [
+    "^파일이 바뀌었을 수 있어 실행하지 않았습니다\\. 관리자 > 플러그인 · 마켓에서 「무결성 다시 검사」로 확인하세요\\.$",
+    "The file may have changed, so it was not run. Check it with “Check integrity again” in Admin > Plugins · market."
+  ],
+  [
+    "^그 기능만 건너뛰었습니다\\(페이지는 그대로\\)\\.$",
+    "Only that feature was skipped; the page is unchanged."
+  ],
+  [
+    "^‘(.+?)’ 플러그인을 설치하고 켰습니다\\. 사이트를 새로고침해 확인하세요\\.$",
+    "Installed and turned on “\\1”. Reload the site to check."
+  ],
+  [
+    "^‘(.+?)’ 플러그인을 설치하고 켰습니다\\. 사이트를 새로고침해 확인하세요\\. (.+)$",
+    "Installed and turned on “\\1”. Reload the site to check. \\2"
   ]
 ]).map(function (r) {
     /* 파이썬 쪽 규칙은 \1 로 그룹을 가리킵니다 — JS replace 는 $1 을 씁니다. */

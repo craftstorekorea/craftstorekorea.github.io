@@ -1,4 +1,4 @@
-/* SBPress 플러그인 · 추천 공방 스포트라이트 (workshop-spotlight)  v1.1.0
+/* SBPress 플러그인 · 추천 공방 스포트라이트 (workshop-spotlight)  v1.1.1
    홈 맨 위(home-top 존)에 '추천 공방 + 마감 임박' 하이라이트 배너를 띄웁니다.
    설정(v10.2): limit(보여 줄 마감·공방 수) · heading(배너 제목)
    (addWidget 훅) — data.js 의 info(마감일)·workshops 를 쓰고, 지도에 실시간으로
@@ -10,7 +10,9 @@
   window.SBPress.registerPlugin({
     id: "workshop-spotlight",
     name: "추천 공방 스포트라이트",
-    version: "1.1.0",
+    version: "1.1.1",
+    manifest: { v: 1, hooks: ["widget", "css", "settings"],
+      permissions: ["read:posts", "ui:home-top", "css:inject"] },
     author: (window.SBP && window.SBP.brandName ? window.SBP.brandName() : "SBPress"),
     description: "홈 맨 위에 이번 주 추천 공방과 마감 임박 공모·체험을 모아 보여 줍니다.",
     settings: { limit: 2, heading: "" },

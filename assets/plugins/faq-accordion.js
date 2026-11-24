@@ -1,4 +1,4 @@
-/* SBPress 플러그인 · FAQ 아코디언 (faq-accordion)  v1.0.0
+/* SBPress 플러그인 · FAQ 아코디언 (faq-accordion)  v1.1.0
    hunmin 커스텀 블록(addBlock 훅)의 첫 기본 플러그인입니다. (v10.4)
    블록: sbp:faq-accordion:faq — 질문 | 답 을 한 줄씩 적으면 <details> 아코디언으로 그립니다.
    설정(v10.2): accent_color(강조색) · show_numbers(번호 표시)
@@ -33,11 +33,12 @@
     id: "faq-accordion",
     name: "FAQ 아코디언",
     name_en: "FAQ accordion",
-    version: "1.0.0",
+    version: "1.1.0",
     author: (window.SBP && window.SBP.brandName ? window.SBP.brandName() : "SBPress"),
     description: "hunmin 블록으로 자주 묻는 질문 아카디언을 페이지에 놓습니다.",
     settings: { accent_color: "", show_numbers: true },
-    manifest: { v: 1, hooks: ["block", "settings"], permissions: ["ui:block", "read:block-data"] },
+    manifest: { v: 1, hooks: ["block", "settings", "css"],
+      permissions: ["ui:block", "read:block-data", "css:inject"] },
     settings_schema: [
       {
         key: "accent_color", type: "color",

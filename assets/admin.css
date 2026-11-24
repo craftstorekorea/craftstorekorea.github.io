@@ -1066,3 +1066,42 @@ tr.owner-row td{background:#FFFAF6}
 #plug-market .mkt-card h3{font-size:.95rem}
 #plug-market .mkt-actions .rowlink{font-size:.74rem}
 #plug-market ~ .plug-empty{margin-top:12px}
+
+/* ---- v10.5 권한 동의 · 무결성: 관리자 경고 배너 · 설치 목록 배지 ---- */
+.sbp-security-alert{margin:0 0 14px;padding:11px 14px;border:1px solid #EFC3B1;border-radius:12px;
+  background:#FDF4EF;color:#8A3F1F;font-size:.82rem;line-height:1.65}
+.sbp-security-alert .sbp-security-line{margin:0}
+.sbp-security-alert .sbp-security-line + .sbp-security-line{margin-top:4px}
+.sbp-security-alert b{color:#9C3A16}
+.plug-tag.sri{background:#EAF2E6;color:#3F6B36}
+.plug-tag.sri-bad{background:#FBE3DA;color:#9C3A16}
+.plug-tag.consent{background:#EEF3F8;color:#2F5A78}
+.plug-tag.consent-none{background:#FFF3DC;color:#8A6316}
+.plug-recheck{white-space:nowrap}
+@media (max-width:640px){
+  .admin-table td.plug-act{display:flex;flex-wrap:wrap;gap:6px 10px}
+  .admin-table td.plug-act::before{flex:1 1 100%}
+  .plug-act .rowlink{white-space:normal}
+  .plug-manifest .plug-tag{white-space:normal}
+  .plug-recheck{white-space:normal}
+}
+@media (max-width:640px){
+  .admin-table td.plug-main,.admin-table td .plug-manifest{overflow-wrap:anywhere}
+  .admin-table td .plug-src{white-space:normal;word-break:break-all}
+  .plug-manifest{flex-wrap:wrap}
+  .plug-tag{max-width:100%}
+}
+@media (max-width:640px){
+  #plugin-table{width:100%;max-width:100%;table-layout:fixed}
+}
+/* v10.5 — 설치 목록의 칸이 눌리지 않게: 출처·설치일은 줄바꿈 없이, JS 주소는 말줄임 */
+#plugin-table td:nth-child(4),#plugin-table td:nth-child(6){white-space:nowrap}
+#plugin-table td .plug-src{display:inline-block;max-width:210px;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;vertical-align:bottom}
+.plug-actions .btn[disabled],.mkt-card .btn[disabled],.plug-card .btn[disabled]{opacity:.5;cursor:not-allowed}
+#plugin-table .plug-badge,#plugin-table .plug-tag{white-space:nowrap}
+@media (max-width:640px){
+  #plugin-table .plug-badge,#plugin-table .plug-tag{white-space:normal}
+}
+#plugin-table .plug-switch em{white-space:nowrap}
+#plugin-table .plug-badge,#plugin-table .plug-tag,#plugin-table .plug-switch em{width:max-content;max-width:100%}

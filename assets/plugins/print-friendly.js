@@ -1,4 +1,4 @@
-/* SBPress 플러그인 · 인쇄용 스타일 (print-friendly)  v1.1.0
+/* SBPress 플러그인 · 인쇄용 스타일 (print-friendly)  v1.1.1
    글을 인쇄하거나 PDF로 저장할 때 머리글·메뉴·버튼·댓글을 숨기고 본문만 남깁니다. (addCss 훅)
    설정(v10.2): hide_chrome(머리글/바닥글 숨김) · font_size_px(본문 글자 크기)
    화면 모습은 그대로이고 @media print 에서만 적용됩니다. */
@@ -32,12 +32,12 @@
   window.SBPress.registerPlugin({
     id: "print-friendly",
     name: "인쇄용 스타일",
-    version: "1.1.0",
+    version: "1.1.1",
     author: (window.SBP && window.SBP.brandName ? window.SBP.brandName() : "SBPress"),
     description: "인쇄·PDF 저장 때 메뉴와 버튼을 숨기고 본문만 또렷하게 남깁니다.",
     settings: { hide_chrome: true, font_size_px: 16 },
     manifest: {
-      v: 1, name: "인쇄용 스타일", version: "1.1.0",
+      v: 1, name: "인쇄용 스타일", version: "1.1.1",
       author: (window.SBP && window.SBP.brandName ? window.SBP.brandName() : "SBPress"),
       hooks: ["css"], permissions: ["css:inject"]
     },

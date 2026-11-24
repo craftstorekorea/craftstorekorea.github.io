@@ -4639,6 +4639,121 @@
   var plugMarket = { base: "", list: [] };
   var plugMarkets = [];                 // v10.4 — 구독 마켓 행
   var plugMarketUrl = "/plugins-market.json";
+  var plugV105Missing = false;          // v10.5 — 26_v105 SQL 을 실행하지 않은 DB
+
+  /* ---------- v10.5 — 권한 동의 · SHA-256 무결성 ---------- */
+  var V105_COLUMNS = ["integrity", "granted_permissions", "consent_at", "sandbox_mode"];
+
+  function v105ColumnsMissing(err) {
+    var code = String((err && err.code) || "");
+    var msg = String((err && err.message) || "");
+    return (code === "42703" || code === "PGRST204")
+      && /integrity|granted_permissions|consent_at|sandbox_mode/i.test(msg);
+  }
+
+  function stripKeys(obj, keys) {
+    var out = {};
+    Object.keys(obj || {}).forEach(function (k) { if (keys.indexOf(k) < 0) out[k] = obj[k]; });
+    return out;
+  }
+
+  /* 동의·무결성을 설치 행에 적을 때 쓰는 칸만 골라냅니다. */
+  function consentPayload(consent, item) {
+    var out = {};
+    if (!consent) return out;
+    if (Array.isArray(consent.granted)) out.granted_permissions = consent.granted.slice(0, 12);
+    var integ = String((consent && consent.integrity) || (item && item.integrity) || "").trim();
+    if (/^sha256-[A-Za-z0-9+/=]{43,44}$/.test(integ)) out.integrity = integ;
+    out.consent_at = new Date().toISOString();
+    out.sandbox_mode = String((consent && consent.mode) || "strict") === "standard" ? "standard" : "strict";
+    return out;
+  }
+
+  /* RPC plugin_consent — 동의·무결성을 audit_logs(plugin_consent · plugin_integrity) 까지 남깁니다.
+     함수가 없는 DB 면 표에만 적고, 그 열도 없으면 안내만 합니다(설치는 그대로). */
+  function recordConsent(id, consent, item, cb) {
+    var done = typeof cb === "function" ? cb : function () {};
+    if (!consent) { done(""); return; }
+    var payload = consentPayload(consent, item);
+    function writeRow(reason) {
+      if (!sb) { done("Supabase 연결이 없습니다."); return; }
+      if (!Object.keys(payload).length) { done(""); return; }
+      sb.from("plugins").update(payload).eq("id", id).then(function (r) {
+        if (r.error) {
+          if (v105ColumnsMissing(r.error)) {
+            plugV105Missing = true;
+            done("26_v105 SQL 을 실행하면 권한 동의가 서버에 저장됩니다.");
+            return;
+          }
+          done("권한 동의를 저장하지 못했습니다: " + r.error.message);
+          return;
+        }
+        done(reason || "");
+      });
+    }
+    if (!sb) { done("Supabase 연결이 없습니다."); return; }
+    if (typeof sb.rpc !== "function") { writeRow(); return; }
+    sb.rpc("plugin_consent", {
+      p_id: id,
+      p_permissions: payload.granted_permissions || [],
+      p_integrity: payload.integrity || null,
+      p_mode: payload.sandbox_mode || "strict"
+    }).then(function (r) {
+      if (!r.error) { done(""); return; }
+      if (isMissingFn(r.error) || v105ColumnsMissing(r.error)) { writeRow(); return; }
+      if (String(r.error.code) === "42501") { done("관리자 권한으로 로그인했는지 확인해 주세요."); return; }
+      done("권한 동의를 기록하지 못했습니다: " + r.error.message);
+    }, function (err) {
+      writeRow((err && err.message) || "");
+    });
+  }
+
+  /* 「무결성 다시 검사」 — 파일을 다시 해시해 결과를 남깁니다(market.js 가 결과를 넘겨 줍니다). */
+  function recheckPlugin(id, rec, cb) {
+    var done = typeof cb === "function" ? cb : function () {};
+    var p = plugById(id), item = marketItem(id);
+    var got = rec || {};
+    var state = String(got.state || "");
+    var computed = String(got.computed || "");
+    var expected = String(got.expected || (item && item.integrity) || (p && p.integrity) || "");
+    var ok = state === "ok";
+    var text = ok ? "무결성 검사를 통과했습니다."
+      : state === "bad" ? "무결성 검사에 실패했습니다 — 파일이 바뀌었을 수 있습니다."
+      : "무결성을 확인할 수 없습니다(파일을 읽지 못함·브라우저 제한).";
+    function after(msg, res) {
+      if (p) {
+        if (ok && computed && !p.integrity) p.integrity = computed;
+        if (got.checkedAt) p.integrity_checked_at = got.checkedAt;
+      }
+      try { reloadEngine(); } catch (e) { /* noop */ }
+      loadPlugins(false);
+      plugMsg(text + (msg ? " " + msg : ""), ok ? "ok" : "err");
+      done(ok ? "" : text, res || null);
+    }
+    if (!sb) { done("Supabase 연결이 없습니다."); return; }
+    var value = computed || expected;
+    if (typeof sb.rpc !== "function") {
+      if (ok && computed && p && !p.integrity) {
+        sb.from("plugins").update({ integrity: computed }).eq("id", id).then(function () { after(""); });
+      } else after("");
+      return;
+    }
+    sb.rpc("plugin_integrity_check", { p_id: id, p_integrity: value || null, p_ok: ok }).then(function (r) {
+      if (!r.error) { after(""); return; }
+      if (isMissingFn(r.error) || v105ColumnsMissing(r.error)) {
+        if (ok && computed && p && !p.integrity) {
+          sb.from("plugins").update({ integrity: computed }).eq("id", id).then(function (r2) {
+            after(r2 && r2.error && v105ColumnsMissing(r2.error)
+              ? "26_v105 SQL 을 실행하면 검사 결과가 서버에 남습니다." : "");
+          });
+          return;
+        }
+        after("26_v105 SQL 을 실행하면 검사 결과가 서버에 남습니다.");
+        return;
+      }
+      after("검사 결과를 저장하지 못했습니다: " + r.error.message);
+    }, function (err) { after((err && err.message) || ""); });
+  }
 
   function plugMsg(text, kind) { cmsMsg("plugins-msg", text, kind); }
 
@@ -4737,6 +4852,17 @@
       var pinned = !!p.pinned_version;
       var schema = pluginSchema(p);
       var prevVer = p.previous_version || (pluginHistory(p)[0] && pluginHistory(p)[0].version) || "";
+      /* v10.5 — 무결성·권한 동의 배지 */
+      var integ = String(p.integrity || "");
+      var granted = Array.isArray(p.granted_permissions) ? p.granted_permissions : [];
+      var sandboxed = String(p.sandbox_mode || "") === "standard" ? "표준" : "엄격";
+      var secLine = '<div class="plug-manifest">' +
+        (integ ? '<i class="plug-tag sri" title="' + esc(integ) + '">SHA-256 검증</i>'
+               : '<i class="plug-tag sri-bad" title="마켓 JSON 의 integrity 값이 없어 해시 검사를 하지 않습니다.">무결성 없음</i>') +
+        (granted.length ? '<i class="plug-tag consent" title="' + esc(granted.join(", ")) + '">권한 ' + granted.length + "개 동의</i>"
+                        : '<i class="plug-tag consent-none" title="권한 동의 기록이 없는 예전 설치본입니다. 업데이트하면 동의를 받습니다.">동의 기록 없음</i>') +
+        '<i class="plug-tag" title="선언·동의한 권한 밖의 훅 호출을 막는 방식">샌드박스 ' + esc(sandboxed) + "</i>" +
+      "</div>";
       return "<tr data-id=\"" + esc(p.id) + "\">" +
         '<td data-th="상태"><label class="plug-switch"><input type="checkbox" data-plug-toggle="' + esc(p.id) + '"' +
           (p.enabled ? " checked" : "") + ' aria-label="' + esc(p.name) + ' 켜기"><span class="plug-slider"></span><em>' +
@@ -4747,7 +4873,8 @@
           ((hooks.length || perms.length)
             ? '<div class="plug-manifest">' + hooks.map(function (h) { return '<i class="plug-tag">hook · ' + esc(h) + "</i>"; }).join("") +
               perms.map(function (x) { return '<i class="plug-tag perm">' + esc(x) + "</i>"; }).join("") + "</div>"
-            : "") + "</td>" +
+            : "") +
+          secLine + "</td>" +
         '<td data-th="버전" class="muted"><span class="plug-ver">' + esc(p.version || "1.0.0") + "</span>" +
           (pinned ? ' <span class="plug-tag" title="고정된 버전 — 마켓 새 버전이 와도 바꾸지 않습니다.">고정 ' + esc(p.pinned_version) + "</span>" : "") +
           (newer && !pinned ? ' <span class="plug-tag upd" data-plug-updbadge="' + esc(p.id) + '" title="설치된 버전과 마켓 최신 버전">' +
@@ -4763,6 +4890,7 @@
         '<td class="plug-act">' +
           (schema.length ? '<button type="button" class="rowlink plug-set" data-plug-settings="' + esc(p.id) + '">설정</button> ' : "") +
           (prevVer ? '<button type="button" class="rowlink plug-roll" data-plug-rollback="' + esc(p.id) + '">이전 버전으로 되돌리기</button> ' : "") +
+          '<button type="button" class="rowlink plug-recheck" data-plug-recheck="' + esc(p.id) + '">무결성 다시 검사</button> ' +
           '<button type="button" class="rowlink plug-pin" data-plug-pin="' + esc(p.id) + '" aria-pressed="' + (pinned ? "true" : "false") + '">' +
             (pinned ? "고정 해제" : "버전 고정") + "</button> " +
           '<button type="button" class="rowlink plug-del" data-id="' + esc(p.id) + '">삭제</button></td>' +
@@ -4789,12 +4917,32 @@
     [].forEach.call(body.querySelectorAll("[data-plug-settings]"), function (b) {
       b.addEventListener("click", function () { openPluginSettings(b.getAttribute("data-plug-settings")); });
     });
+    [].forEach.call(body.querySelectorAll("[data-plug-recheck]"), function (b) {
+      b.addEventListener("click", function () { runPluginRecheck(b.getAttribute("data-plug-recheck"), b); });
+    });
     renderMarket();
   }
 
   /* ---------- v10.2 플러그인 설정 — 저장된 값·스키마 ----------
      스키마는 DB(settings_schema)에 있고, 예전에 설치한 행은 마켓 목록(plugins-market.json)의
      스키마를 씁니다. 화면은 그 스키마로 입력 폼을 자동으로 그립니다(assets/market.js). */
+  /* 설치 목록의 「무결성 다시 검사」 — 엔진이 다시 해시하고, 결과를 서버에 남깁니다. */
+  function runPluginRecheck(id, btn) {
+    var p = plugById(id);
+    if (!p) return;
+    if (btn) { btn.disabled = true; }
+    function finish() { if (btn) { btn.disabled = false; } }
+    if (!window.SBPress || typeof window.SBPress.recheckIntegrity !== "function") {
+      finish();
+      plugMsg("플러그인 엔진을 불러오지 못해 검사하지 못했습니다. 새로고침해 주세요.", "err");
+      return;
+    }
+    window.SBPress.recheckIntegrity(id, function (err, rec) {
+      if (err) { finish(); plugMsg("무결성을 검사하지 못했습니다: " + err, "err"); return; }
+      recheckPlugin(id, rec, function () { finish(); });
+    });
+  }
+
   function pluginSchema(p) {
     if (p && Array.isArray(p.settings_schema) && p.settings_schema.length) return p.settings_schema;
     var item = marketItem(p ? p.id : "");
@@ -4899,7 +5047,7 @@
      · ① 24_v103 SQL 의 plugin_update_from_market RPC — 지금 버전을 스냅샷에 보관합니다.
      · ② 함수가 없는 예전 DB 면 표를 직접 갱신하며 이력(version_history)을 화면에서 만듭니다.
      · ③ previous_*·version_history 열도 없는 DB 면 그 열만 빼고 갱신합니다(보관 없이, 롤백 불가). */
-  function updatePlugin(id, btn, cb) {
+  function updatePlugin(id, btn, cb, consent) {
     var p = plugById(id), item = marketItem(id);
     var done = function (err, res) { if (typeof cb === "function") cb(err || null, res || null); };
     if (!p || !item) { done("플러그인을 찾지 못했습니다: " + id); return; }
@@ -4934,6 +5082,9 @@
         author: item.author || p.author || null,
         settings_schema: settingsSchemaPayload(item)
       };
+      /* v10.5 — 동의한 권한·무결성·샌드박스를 함께 적습니다. */
+      var secPatch = consentPayload(consent, item);
+      Object.keys(secPatch).forEach(function (k) { patch[k] = secPatch[k]; });
       var before = String(p.version || "");
       function settle(res, noHistory) {
         if (btn) { btn.disabled = false; btn.textContent = "업데이트"; }
@@ -4944,6 +5095,17 @@
           p.manifest = patch.manifest;
           if (res && res.previous_version) p.previous_version = res.previous_version;
           if (res && Array.isArray(res.version_history)) p.version_history = res.version_history;
+          if (consent) {
+            if (Array.isArray(consent.granted)) p.granted_permissions = consent.granted.slice(0, 12);
+            if (patch.integrity) p.integrity = patch.integrity;
+            if (patch.consent_at) p.consent_at = patch.consent_at;
+            if (patch.sandbox_mode) p.sandbox_mode = patch.sandbox_mode;
+          }
+        }
+        if (consent) {
+          recordConsent(id, consent, item, function (msg) {
+            if (msg) plugMsg("동의 기록: " + msg, "err");
+          });
         }
         reloadEngine();
         loadPlugins(false);
@@ -4973,14 +5135,38 @@
             settle({ version: target, previous_version: before, version_history: hist }, false);
             return;
           }
-          if (!versionColumnsMissing(r.error)) { fail(r.error); return; }
-          /* ③ 버전 열이 아예 없는 DB — 보관 없이 업데이트만 합니다. */
-          sb.from("plugins").update(patch).eq("id", id).then(function (r2) {
-            if (r2.error) { fail(r2.error); return; }
-            p.previous_version = null;
-            p.version_history = [];
-            settle({ version: target }, true);
-          });
+          if (versionColumnsMissing(r.error)) {
+            /* ③ 버전 열이 아예 없는 DB — 보관 없이 업데이트만 합니다. */
+            sb.from("plugins").update(stripKeys(patch, V105_COLUMNS)).eq("id", id).then(function (r2) {
+              if (r2.error) { fail(r2.error); return; }
+              p.previous_version = null;
+              p.version_history = [];
+              settle({ version: target }, true);
+            });
+            return;
+          }
+          /* v10.5 — 무결성·동의 열이 없는 DB 면 그 네 칸만 빼고 업데이트합니다. */
+          if (v105ColumnsMissing(r.error)) {
+            plugV105Missing = true;
+            sb.from("plugins").update(stripKeys(full, V105_COLUMNS)).eq("id", id).then(function (r3) {
+              if (r3.error) {
+                if (versionColumnsMissing(r3.error)) {
+                  sb.from("plugins").update(stripKeys(patch, V105_COLUMNS)).eq("id", id).then(function (r4) {
+                    if (r4.error) { fail(r4.error); return; }
+                    p.previous_version = null;
+                    p.version_history = [];
+                    settle({ version: target }, true);
+                  });
+                  return;
+                }
+                fail(r3.error);
+                return;
+              }
+              settle({ version: target, previous_version: before, version_history: hist }, false);
+            });
+            return;
+          }
+          fail(r.error);
         });
       }
       var rpc = (typeof sb.rpc === "function")
@@ -5132,13 +5318,18 @@
 
   function manifestPayload(item) {
     var m = (item && item.manifest && typeof item.manifest === "object") ? item.manifest : {};
+    /* v10.5 — 마켓 화면이 넘긴 항목은 normalize 를 거쳐 hooks·permissions 가 위층에 있습니다.
+       (예전에는 item.manifest 만 보아 업데이트 때 권한이 빈 배열로 덮였습니다.) */
+    var hooks = Array.isArray(m.hooks) ? m.hooks : (Array.isArray(item && item.hooks) ? item.hooks : []);
+    var perms = Array.isArray(m.permissions) ? m.permissions
+      : (Array.isArray(item && item.permissions) ? item.permissions : []);
     return {
       v: 1,
-      name: item.name || item.id || "",
-      version: item.version || "1.0.0",
-      author: item.author || "",
-      hooks: Array.isArray(m.hooks) ? m.hooks.slice(0, 12) : [],
-      permissions: Array.isArray(m.permissions) ? m.permissions.slice(0, 12) : []
+      name: (item && (item.name || item.id)) || "",
+      version: (item && item.version) || "1.0.0",
+      author: (item && item.author) || "",
+      hooks: hooks.slice(0, 12),
+      permissions: perms.slice(0, 12)
     };
   }
 
@@ -5202,6 +5393,11 @@
         var p2 = {};
         Object.keys(payload).forEach(function (k) { if (k !== "market_id") p2[k] = payload[k]; });
         return savePluginRow(p2);
+      }
+      /* v10.5 — 무결성·권한 동의 열이 없는 DB(26_v105 미실행)면 그 네 칸만 빼고 다시 시도합니다. */
+      if (v105ColumnsMissing(r.error) && V105_COLUMNS.some(function (k) { return k in payload; })) {
+        plugV105Missing = true;
+        return savePluginRow(stripKeys(payload, V105_COLUMNS));
       }
       if ((code === "42703" || code === "PGRST204" || /settings_schema/i.test(msg)) && "settings_schema" in payload) {
         var slim = {};
@@ -5594,11 +5790,12 @@
         sbpress: meta.sbpress || "",
         name: meta.name || "",
         installed: plugById,
-        onInstall: function (id, btn) { installFromMarket(id, btn); },
+        onInstall: function (id, btn, cb, consent) { installFromMarket(id, btn, consent); },
         onToggle: function (id) { var p = plugById(id); setPluginEnabled(id, !(p && p.enabled)); },
-        onUpdate: function (id, btn, cb) { updatePlugin(id, btn, cb); },
+        onUpdate: function (id, btn, cb, consent) { updatePlugin(id, btn, cb, consent); },
         onUpdateAll: function (ids, cb) { updateAllPlugins(ids, cb); },
         onRollback: function (id, cb) { rollbackPlugin(id, cb); },
+        onRecheck: function (id, rec, cb) { recheckPlugin(id, rec, cb); },
         onRefresh: function () { loadPlugins(false); },
         onRemove: function (id) { deletePlugin(id); },
         onSaveSettings: function (id, values, cb) { savePluginSettings(id, values, cb); },
@@ -5652,7 +5849,7 @@
     try { if (window.SBP_MARKET) window.SBP_MARKET.setMarketMessage(text, kind); } catch (e) { /* noop */ }
   }
 
-  function installFromMarket(id, btn) {
+  function installFromMarket(id, btn, consent) {
     var item = null;
     (plugMarket.list || []).forEach(function (p) { if (p.id === id) item = p; });
     if (!item) return;
@@ -5672,13 +5869,20 @@
       };
       /* v10.4 — 어느 구독 마켓에서 설치했는지 남깁니다(공식 마켓이면 비웁니다). */
       if (item.marketId && !item.marketOfficial) payload.market_id = item.marketId;
+      /* v10.5 — 관리자가 동의한 권한·무결성·샌드박스 모드를 함께 적습니다. */
+      var extra = consentPayload(consent, item);
+      Object.keys(extra).forEach(function (k) { payload[k] = extra[k]; });
       savePluginRow(payload).then(function (r) {
         if (btn) { btn.disabled = false; btn.textContent = "설치 및 켜기"; }
         if (r && r.error) {
           plugMsg("설치하지 못했습니다: " + r.error.message, "err");
           return;
         }
-        plugMsg("‘" + (item.name || item.id) + "’ 플러그인을 설치하고 켰습니다. 사이트를 새로고침해 확인하세요.", "ok");
+        var doneMsg = "‘" + (item.name || item.id) + "’ 플러그인을 설치하고 켰습니다. 사이트를 새로고침해 확인하세요.";
+        plugMsg(doneMsg, "ok");
+        recordConsent(id, consent, item, function (msg) {
+          if (msg) plugMsg(doneMsg + " " + msg, "ok");
+        });
         reloadEngine();
         loadPlugins(false);
       });

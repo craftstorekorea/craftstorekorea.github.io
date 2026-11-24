@@ -274,6 +274,32 @@ scripts/build_static_seo.py | build_feeds.py | check_repo_budget.py | measure_tr
   정적 SEO `cd .. && python3 build_static_seo.py` (검사 `--check`, 비우기 `--clean`),
   서버 검증 `cd ../supabase && SUPABASE_MGMT_TOKEN=… python3 06_check.py` · `07_check.py` · `08_check.py` · `09_check.py` · `10_check.py`.
 
+## v10.5 기능 (플러그인 마켓 5단계 — 권한 동의 · SRI 무결성 · 샌드박스)
+
+- **권한 동의 모달** — 마켓 카드의 「설치 및 켜기」나 업데이트를 누르면, 그 전에
+  **「권한을 확인해 주세요」** 모달이 뜹니다. 요청 권한을 **위험도(높음·보통·낮음) · 영역(읽기·화면·메뉴·스타일·관리자) · 설명**으로
+  보여 주고, **무결성(SHA-256) 값**과 **샌드박스 모드**를 함께 적습니다. 「동의하고 설치」를 눌러야 설치·업데이트가 진행되고,
+  동의한 권한은 `plugins.granted_permissions` 에 적힙니다. 새 버전이 **권한을 더 요청할 때만** 업데이트 동의를 다시 받습니다.
+- **SRI 무결성 검증** — `plugins-market.json` 의 모든 내장 플러그인에 실제 파일 바이트로 계산한
+  `integrity: "sha256-…"` 가 들어 있습니다. 설치하면 `plugins.integrity` 로 옮겨 적고, 엔진(`assets/plugins.js`)이
+  스크립트를 불러오기 전에 `crypto.subtle.digest('SHA-256', …)` 로 **다시 해시해 비교**합니다.
+  값이 다르면 **즉시 실행을 막고**(`state.failed` 격리) 관리자 화면에 **경고 배너**를 띄웁니다.
+  카드·설치 목록·상세 모달의 **「SHA-256 검증됨」 · 「권한 N개 동의」 · 「무결성 오류 차단」** 배지와
+  **「무결성 다시 검사」** 버튼으로 언제든 확인할 수 있습니다.
+- **권한 기반 샌드박스 (`ctx` 가드)** — 훅마다 필요한 권한의 앞자리를 정해 두고(`card→read:` · `widget→ui:` ·
+  `menu→nav:` · `admin-tab→read:admin` · `css→css:` · `block→ui:block`), 매니페스트에 **선언·동의한 권한 밖의 훅 호출을 막고**
+  `state.notices` 에 이유를 남깁니다. 페이지는 그대로 그려지고 그 기능만 빠집니다.
+  동의 기록이 없는 **예전 설치본**은 선언만 보고 그대로 동작합니다(업데이트하면 동의를 받습니다).
+  `sandbox_mode='standard'` 는 막지 않고 기록만 합니다.
+- **DB** `supabase/26_v105_plugin_security.sql` — `public.plugins` 에 `integrity`(sha256 형식 CHECK) ·
+  `granted_permissions`(jsonb, ≤12) · `consent_at` · `sandbox_mode`(strict/standard CHECK)를 멱등 추가하고,
+  **관리자 전용 RPC** `plugin_consent` · `plugin_integrity_check` 가 동의·무결성을 `audit_logs`(`plugin_consent` ·
+  `plugin_integrity`)에 남깁니다. 공개 뷰 `plugins_public` 도 네 칸을 보이도록 다시 만듭니다.
+- **SQL 미실행 폴백** — 26_v105 를 실행하지 않아도 무결성·동의 칸만 빼고 설치·업데이트하며, 화면이 실행을 안내합니다
+  (콘솔·CSP 오류 0).
+- **첫 화면** — **256,946 B**(300KB 예산의 83.6% · v5.1 369,190 B 대비 **30.4% 감소**).
+- 테스트 `cd .. && CMS_TEST_MODE=v105 python3 cms_test.py` (v105 144개 + 회귀 v104·v103·v102·v101·v100·v90·v80·v70·v60).
+
 ## v10.4 기능 (플러그인 마켓 4단계 — 멀티 마켓 구독 · hunmin 커스텀 블록)
 
 - **구독 마켓 관리** — `/admin → 플러그인 · 마켓` 의 **「구독 마켓 관리」** 패널에서 공식 마켓 말고도

@@ -10,13 +10,13 @@
   window.SBPress.registerPlugin({
     id: "quick-search",
     name: "통합 검색 바로가기",
-    version: "1.0.0",
+    version: "1.0.1",
     author: (window.SBP && window.SBP.brandName ? window.SBP.brandName() : "SBPress"),
     description: "헤더 메뉴에 통합 검색을 더해 어느 화면에서든 글·페이지를 바로 찾게 합니다.",
     manifest: {
-      v: 1, name: "통합 검색 바로가기", version: "1.0.0",
+      v: 1, name: "통합 검색 바로가기", version: "1.0.1",
       author: (window.SBP && window.SBP.brandName ? window.SBP.brandName() : "SBPress"),
-      hooks: ["menu"], permissions: ["nav:menu"]
+      hooks: ["menu", "css"], permissions: ["nav:menu", "css:inject"]
     },
     setup: function (ctx) {
       ctx.addCss([

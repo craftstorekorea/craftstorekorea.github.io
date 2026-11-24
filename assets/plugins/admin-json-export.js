@@ -9,7 +9,9 @@
   window.SBPress.registerPlugin({
     id: "admin-json-export",
     name: "데이터 내보내기",
-    version: "1.0.0",
+    version: "1.0.1",
+    manifest: { v: 1, hooks: ["admin-tab", "menu", "css"],
+      permissions: ["read:admin-lists", "nav:menu", "css:inject"] },
     author: (window.SBP && window.SBP.brandName ? window.SBP.brandName() : "SBPress"),
     description: "관리자 화면에 게시글·페이지를 JSON으로 내려받는 탭을 추가합니다.",
     setup: function (ctx) {

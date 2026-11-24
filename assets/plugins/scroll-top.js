@@ -1,4 +1,4 @@
-/* SBPress 플러그인 · 맨 위로 버튼 (scroll-top)  v1.1.0
+/* SBPress 플러그인 · 맨 위로 버튼 (scroll-top)  v1.1.1
    오른쪽 아래에 떠 있는 '맨 위로' 버튼을 붙입니다. (addWidget 'floating' + CSS)
    설정(v10.2): threshold_px(나타나는 스크롤 위치) · position(왼쪽/오른쪽 아래)
    누르면 부드럽게 맨 위로 올라갑니다. */
@@ -34,7 +34,8 @@
   window.SBPress.registerPlugin({
     id: "scroll-top",
     name: "맨 위로 버튼",
-    version: "1.1.0",
+    version: "1.1.1",
+    manifest: { v: 1, hooks: ["widget", "css", "settings"], permissions: ["ui:floating", "css:inject"] },
     author: (window.SBP && window.SBP.brandName ? window.SBP.brandName() : "SBPress"),
     description: "긴 페이지·게시판에서 오른쪽 아래 '맨 위로' 버튼을 띄웁니다.",
     settings: { threshold_px: 400, position: "right" },

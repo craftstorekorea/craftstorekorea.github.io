@@ -1,4 +1,4 @@
-/* SBPress 플러그인 · 읽기 시간 배지 (reading-time)  v1.2.0
+/* SBPress 플러그인 · 읽기 시간 배지 (reading-time)  v1.2.1
    글·공방 카드에「약 N분 · N자」배지를 붙입니다. (decorateCard 훅)
    설정(v10.2): chars_per_min(분당 글자 수) · badge_color(배지 강조색) · show_char_count(글자 수 표시)
    카드 글자 수를 분당 글자 수로 나눠 예상 읽기 시간을 계산합니다. */
@@ -9,7 +9,8 @@
   window.SBPress.registerPlugin({
     id: "reading-time",
     name: "읽기 시간 배지",
-    version: "1.2.0",
+    version: "1.2.1",
+    manifest: { v: 1, hooks: ["card", "css", "settings"], permissions: ["read:card-text", "css:inject"] },
     author: (window.SBP && window.SBP.brandName ? window.SBP.brandName() : "SBPress"),
     description: "카드에 예상 읽기 시간과 글자 수를 붙여, 긴 글을 고르기 쉽게 합니다.",
     settings: { chars_per_min: 500, badge_color: "", show_char_count: true },
