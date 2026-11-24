@@ -1473,7 +1473,30 @@
   "고정을 풀고 다시 시도해 주세요.": "Unpin it and try again.",
   "플러그인 마켓을 먼저 불러와야 이전 버전으로 되돌릴 수 있습니다.": "Load the plugin market first to roll back.",
   "업데이트하지 못했습니다: ": "Could not update: ",
-  "되돌리지 못했습니다: ": "Could not roll back: "
+  "되돌리지 못했습니다: ": "Could not roll back: ",
+  "플러그인 마켓 · 구독": "Plugin market · subscriptions",
+  "구독 마켓 관리": "Subscribed markets",
+  "모든 마켓": "All markets",
+  "공식": "Official",
+  "마켓 이름": "Market name",
+  "마켓 JSON 주소": "Market JSON address",
+  "마켓 추가": "Add market",
+  "확인하는 중…": "Checking…",
+  "동기화": "Sync",
+  "동기화 중…": "Syncing…",
+  "마켓 다시 읽기": "Read markets again",
+  "공식 마켓 주소 저장": "Save the official market address",
+  "공식 마켓은 삭제할 수 없습니다.": "The official market cannot be deleted.",
+  "공식 마켓은 끌 수 없습니다.": "The official market cannot be turned off.",
+  "공식 마켓은 바꿀 수 없습니다.": "The official market cannot be changed.",
+  "이미 구독한 마켓 주소입니다: ": "That market address is already subscribed: ",
+  "마켓 주소는 https:// 또는 사이트 안 경로(/)여야 합니다.": "A market address must start with https:// or be a site path (/).",
+  "공식 마켓 주소를 저장했습니다: ": "Saved the official market address: ",
+  "여러 마켓의 plugins.json 을 모아 한 목록으로 보여줍니다. 주소는 https:// 또는 사이트 안 경로(/)만 됩니다. 공식 마켓은 끄거나 지울 수 없습니다.": "Collects the plugins.json of several markets into one list. Addresses must start with https:// or be a site path (/). The official market cannot be turned off or deleted.",
+  "플러그인 블록": "Plugin block",
+  "이 블록의 플러그인이 꺼져 있거나 설치되지 않았습니다. 블록 내용은 그대로 남아 있습니다.": "The plugin for this block is off or not installed. The block content is kept as it is.",
+  "이 블록의 플러그인이 꺼져 있거나 설치되지 않았습니다. 블록 내용은 그대로 남아 있으며, 플러그인을 다시 켜면 나타납니다.": "The plugin for this block is off or not installed. The content is kept and appears again once the plugin is back on.",
+  "이 블록은 바꿀 값이 없습니다.": "This block has no values to change."
 };
   var RULES = ([
   [
@@ -2215,6 +2238,46 @@
   [
     "^‘(.+?)’ 은 v(.+?) 으로 고정되어 있습니다\\. 고정을 풀고 다시 시도해 주세요\\.$",
     "“\\1” is pinned to v\\2. Unpin it and try again."
+  ],
+  [
+    "^마켓을 추가했습니다: (.+?)( \\(이 브라우저에만 기억\\))?$",
+    "Added the market: \\1"
+  ],
+  [
+    "^마켓을 삭제했습니다: (.+)$",
+    "Deleted the market: \\1"
+  ],
+  [
+    "^‘(.+?)’ 마켓을 켰습니다\\.$",
+    "Turned on the “\\1” market."
+  ],
+  [
+    "^‘(.+?)’ 마켓을 껐습니다\\.$",
+    "Turned off the “\\1” market."
+  ],
+  [
+    "^‘(.+?)’ 마켓을 동기화했습니다 · 플러그인 (\\d+)개$",
+    "Synced “\\1” · \\2 plugins"
+  ],
+  [
+    "^‘(.+?)’ 마켓을 읽지 못했습니다: (.+)$",
+    "Could not read the “\\1” market: \\2"
+  ],
+  [
+    "^마켓 (\\d+)곳 · 이 브라우저에만 기억.*$",
+    "\\1 markets · remembered in this browser only — run 25_v104 SQL to store them"
+  ],
+  [
+    "^마켓 (\\d+)곳 · 켜짐 (\\d+)곳$",
+    "\\1 markets · \\2 on"
+  ],
+  [
+    "^플러그인 (\\d+)개$",
+    "\\1 plugins"
+  ],
+  [
+    "^마지막 동기화 (\\d{4}-\\d{2}-\\d{2})$",
+    "Last synced \\1"
   ]
 ]).map(function (r) {
     /* 파이썬 쪽 규칙은 \1 로 그룹을 가리킵니다 — JS replace 는 $1 을 씁니다. */

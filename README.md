@@ -274,6 +274,32 @@ scripts/build_static_seo.py | build_feeds.py | check_repo_budget.py | measure_tr
   정적 SEO `cd .. && python3 build_static_seo.py` (검사 `--check`, 비우기 `--clean`),
   서버 검증 `cd ../supabase && SUPABASE_MGMT_TOKEN=… python3 06_check.py` · `07_check.py` · `08_check.py` · `09_check.py` · `10_check.py`.
 
+## v10.4 기능 (플러그인 마켓 4단계 — 멀티 마켓 구독 · hunmin 커스텀 블록)
+
+- **구독 마켓 관리** — `/admin → 플러그인 · 마켓` 의 **「구독 마켓 관리」** 패널에서 공식 마켓 말고도
+  다른 마켓의 `plugins.json` 주소(`https://` 또는 `/`)를 더하고, 켜고 끄고, 다시 동기화·삭제합니다.
+  공식 마켓은 끄거나 지울 수 없습니다(서버 트리거·화면 모두). 여러 마켓의 플러그인은 **한 목록**으로 합쳐지고,
+  카드에 **출처 마켓 배지**, 상단에 **마켓별 필터 칩**이 붙습니다. 같은 ID가 겹치면 공식 마켓 것을 씁니다.
+- **DB** `supabase/25_v104_multimarket_blocks.sql` — `public.plugin_markets`(id·name·url·enabled·is_official·
+  last_synced_at·plugin_count·last_error)를 만들고 공식 마켓(`/plugins-market.json`)을 시드하며,
+  `public.plugins` 에 `market_id`(어느 마켓에서 설치했는지, 마켓을 지우면 null)를 멱등 추가합니다.
+  RLS: 공개는 켜진 마켓만 읽고, 추가·수정·삭제는 관리자만. 공식 마켓 보호 트리거가 삭제·끄기를 막습니다.
+- **SQL 미실행 폴백** — `plugin_markets` 표가 없으면 공식 마켓 + **브라우저 localStorage** 로 마켓을 기억하고,
+  화면이 25_v104 실행을 안내합니다. 콘솔·CSP 오류 없이 동작합니다.
+- **hunmin 커스텀 블록 훅 (`ctx.addBlock`)** — 플러그인이 `setup(ctx)` 에서
+  `ctx.addBlock({id, name_ko, name_en, category, fields, defaultData, render(data, ctx)})` 로 블록을 등록하면
+  `hunmin` 팔레트에 **「플러그인」 배지**가 붙은 블록으로 나타납니다. `fields`(text·textarea·number·boolean·select·color)
+  로 편집 폼이 자동으로 그려지고, 공개 페이지에서는 플러그인의 `render` 가 그립니다.
+  `SBPress.getBlocks()` · `getBlock(type)` · `hasBlock(type)` 로 조회합니다(블록 type 은 `sbp:<플러그인>:<블록>`).
+- **안전한 폴백** — 플러그인을 끄거나 지워도 그 블록의 저장값은 페이지에 남고, 공개 화면은 그 블록만 조용히 빼며
+  나머지 블록·페이지는 그대로 그려집니다. 편집기 미리보기에는 “플러그인이 꺼져 있습니다” 안내가 보입니다.
+  플러그인이 늦게 로드되면 `sbpress:blocks` 이벤트로 팔레트·페이지를 다시 그립니다.
+- **기본 블록 플러그인** — `faq-accordion`(FAQ 아코디언, `/assets/plugins/faq-accordion.js`)이
+  `addBlock` 훅으로 `질문 | 답` 을 `<details>` 아코디언으로 그립니다(자바스크립트 없이, CSP 안전).
+  마켓 미리보기 SVG 와 설정(강조색·번호 표시)도 함께 들어 있습니다.
+- **첫 화면** — **252,971 B**(300KB 예산의 82.3% · v5.1 대비 **31.5% 감소**).
+- 테스트 `cd .. && CMS_TEST_MODE=v104 python3 cms_test.py` (v104 151개 + 회귀 v103·v102·v101·v100·v90·v80·v70·v60).
+
 ## v10.3 기능 (플러그인 마켓 3단계 — 원클릭 업데이트 · 버전 비교 · 롤백)
 
 - **버전 비교** — 설치된 버전과 마켓 최신 버전을 숫자 세 칸(`1.2.0 > 1.1.0`)으로 견줍니다.
@@ -356,6 +382,21 @@ SBPress.registerPlugin({
     ctx.addAdminTab({ id: "x", label: "탭 이름", render: function (box, ctx) { /* … */ } });
     ctx.addCss(".x{color:red}");
     ctx.onSettingsChange(function (next) { /* 관리자가 설정을 저장하면 즉시 다시 그리기 */ });
+    /* v10.4 — hunmin 커스텀 블록 */
+    ctx.addBlock({
+      id: "faq", name_ko: "FAQ 아코디언", name_en: "FAQ accordion", category: "content",
+      fields: [
+        { key: "title", type: "text", label_ko: "제목", default: "자주 묻는 질문", maxlength: 80 },
+        { key: "items", type: "textarea", label_ko: "질문과 답", default: "질문 | 답" },
+        { key: "open_first", type: "boolean", label_ko: "첫 질문 펼치기", default: true }
+      ],
+      defaultData: { title: "자주 묻는 질문", items: "질문 | 답", open_first: true },
+      render: function (data, blockCtx) {          // HTMLElement(또는 글자)를 돌려줍니다
+        var sec = document.createElement("section");
+        sec.textContent = data.title;
+        return sec;
+      }
+    });
   }
 });
 ```
@@ -367,6 +408,10 @@ SBPress.registerPlugin({
   `23_v102_plugin_settings.sql` 을 실행하기 전 DB 에서는 예전처럼 `public.plugins` 를 읽습니다.
 - `SBPress.status()` — 실행한 플러그인·오류·건너뛴 이유·지금 적용된 설정을 돌려줍니다.
   하나가 실패해도 사이트는 멈추지 않습니다.
+- **커스텀 블록(v10.4)** — `ctx.addBlock(def)` 은 hunmin 팔레트에 블록을 더하고, 저장되는 type 은
+  `sbp:<플러그인 id>:<블록 id>` 입니다. `fields` 로 편집 폼이 자동으로 그려지고(최대 16칸),
+  `SBPress.getBlocks()` · `getBlock(type)` · `hasBlock(type)` 으로 조회합니다. 플러그인이 꺼져 있어도
+  그 블록의 저장값은 지우지 않고, 공개 화면은 그 블록만 건너뜁니다. `manifest.hooks` 에 `block` 을 넣으세요.
 
 ### 플러그인 설정 (v10.2)
 

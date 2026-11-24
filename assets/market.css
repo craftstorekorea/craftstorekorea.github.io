@@ -192,3 +192,43 @@ html.mkt-modal-open{overflow:hidden}
   .mkt-hist li time{margin-left:0}
   .mkt-rb-actions .btn{flex:1 1 auto}
 }
+
+/* ============================================================================
+   v10.4 — 멀티 마켓 구독 · 출처 배지
+   「구독 마켓 관리」 패널 · 마켓별 필터 · 카드의 출처 배지
+   ============================================================================ */
+.mkt-markets{margin:0 0 14px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;
+  background:var(--card,#fff);box-shadow:0 10px 24px -22px rgba(62,47,38,.45)}
+.mkt-markets-head h3{margin:0 0 4px;font-size:.92rem;font-weight:900;letter-spacing:-.01em;color:var(--ink)}
+.mkt-markets-note{margin:0;font-size:.76rem;line-height:1.65;color:var(--ink-3)}
+.mkt-market-empty{margin:8px 0;font-size:.82rem;color:var(--ink-3)}
+.mkt-market-list{list-style:none;margin:10px 0 4px;padding:0;display:grid;gap:8px}
+.mkt-market{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;justify-content:space-between;
+  padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg-2,#FAF7F3)}
+.mkt-market.is-official{border-color:#CFE0C4;background:#F5F9F1}
+.mkt-market.is-off{opacity:.66}
+.mkt-market-main{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 260px}
+.mkt-market-name{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:.88rem;font-weight:900;color:var(--ink)}
+.mkt-official{display:inline-flex;align-items:center;padding:1px 7px;border-radius:999px;background:#EAF2E6;color:#3F6B36;
+  border:1px solid #CFE0C4;font-size:.64rem;font-weight:900;letter-spacing:.02em}
+.mkt-off{display:inline-flex;align-items:center;padding:1px 7px;border-radius:999px;background:#F2EEEA;color:#8A7A6D;
+  font-size:.64rem;font-weight:900}
+.mkt-market-url{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.7rem;color:var(--ink-3);word-break:break-all}
+.mkt-market-meta{font-size:.74rem;color:var(--ink-3)}
+.mkt-market-actions{display:flex;flex-wrap:wrap;gap:6px}
+.mkt-market-actions .btn[disabled]{opacity:.55;cursor:not-allowed}
+.mkt-market-add{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.mkt-market-add .admin-input{flex:1 1 170px;min-width:0;padding:7px 9px;font-size:.8rem}
+.mkt-market-msg{margin:8px 0 0;font-size:.78rem;font-weight:800;color:var(--ink-3);min-height:1.1em}
+.mkt-market-msg.ok{color:#3F6B36}
+.mkt-market-msg.err{color:#A8542F}
+.mkt-src{display:inline-flex;align-items:center;padding:1px 8px;border-radius:999px;background:#F2EEEA;color:#6E5C4F;
+  border:1px solid var(--line-2,#E6DCD1);font-size:.66rem;font-weight:900;letter-spacing:.01em;white-space:nowrap;vertical-align:middle}
+.mkt-src.is-official{background:#EAF2E6;color:#3F6B36;border-color:#CFE0C4}
+.mkt-chips[data-group="market"] .mkt-chip.on{background:#F8E9E0;border-color:#E7C3AF;color:#A8542F}
+@media (max-width:640px){
+  .mkt-markets{padding:12px}
+  .mkt-market-actions{width:100%}
+  .mkt-market-actions .btn{flex:1 1 auto}
+  .mkt-market-add .admin-input,.mkt-market-add .btn{flex:1 1 100%}
+}

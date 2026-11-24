@@ -530,6 +530,18 @@ tr.is-hidden td{opacity:.62}
   transition:border-color .15s,color .15s,background .15s;
 }
 .hm-add-btn:hover{border-color:var(--accent);color:var(--accent-d);background:#FFFBF8;border-style:solid}
+/* v10.4 — 플러그인이 addBlock 으로 더한 커스텀 블록 */
+.hm-add-btn.is-plugin{border-style:solid;border-color:#E7C3AF;background:#FFF9F5}
+.hm-plugin-badge{display:inline-flex;align-items:center;padding:1px 6px;border-radius:999px;
+  background:#F8E9E0;color:#A8542F;border:1px solid #E7C3AF;font-size:.62rem;font-weight:900;letter-spacing:.02em;line-height:1.6}
+.hm-field.hm-check{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:10px}
+.hm-field.hm-check>span{margin:0}
+.hm-field.hm-check input[type="checkbox"]{justify-self:start;width:18px;height:18px;accent-color:var(--accent)}
+.hm-field.hm-check .hm-help{grid-column:1/-1}
+.hm-block-card.is-missing{border-style:dashed;border-color:#D9C3B4;background:#FBF7F3}
+.hm-missing-note{margin:0;padding:10px 12px;border-radius:9px;background:#FFF6F0;border:1px solid #E7C3AF;
+  color:#8A4B2A;font-size:.8rem;font-weight:700;line-height:1.65}
+.hm-block.hm-block-missing{padding:12px 14px;border:1px dashed #D9C3B4;border-radius:12px;background:#FBF7F3}
 .hm-empty-editor{
   font-size:.82rem;color:var(--ink-3);line-height:1.7;padding:14px;border:1px dashed var(--line-2);
   border-radius:10px;background:var(--bg-2);

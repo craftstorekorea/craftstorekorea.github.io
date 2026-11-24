@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 405" width="720" height="405" role="img" aria-label="FAQ 아코디언 블록">
+<title>FAQ 아코디언 블록</title>
+<rect width="720" height="405" fill="#F7F5F2"/>
+<rect x="0" y="0" width="720" height="44" fill="#FFFDFB"/>
+<line x1="0" y1="44.5" x2="720" y2="44.5" stroke="#E6DCD1"/>
+<circle cx="30" cy="22" r="8" fill="#3E2F26"/>
+<rect x="46" y="16" width="86" height="11" rx="5.5" fill="#3E2F26"/>
+<rect x="530" y="17" width="44" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="584" y="17" width="44" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="638" y="17" width="44" height="9" rx="4.5" fill="#E6DCD1"/>
+<text x="40" y="84" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="15" font-weight="800" fill="#3E2F26">자주 묻는 질문</text>
+<rect x="40" y="100" width="640" height="56" rx="12" fill="#FFFDFB" stroke="#C86D44"/>
+<text x="58" y="133" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="12" font-weight="900" fill="#C86D44">Q1</text>
+<text x="88" y="133" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="12" font-weight="800" fill="#3E2F26">예약은 어떻게 하나요?</text>
+<text x="640" y="134" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="16" font-weight="900" fill="#C86D44">-</text>
+<text x="58" y="152" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11" fill="#5B4C42">홈의 예약 메뉴에서 날짜와 시간을 고르면 접수번호가 발급됩니다.</text>
+<rect x="40" y="164" width="640" height="44" rx="12" fill="#FFFDFB" stroke="#E6DCD1"/>
+<text x="58" y="191" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="12" font-weight="900" fill="#9A8474">Q2</text>
+<text x="88" y="191" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="12" font-weight="800" fill="#3E2F26">공방에 직접 가도 되나요?</text>
+<text x="640" y="192" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="16" font-weight="900" fill="#9A8474">+</text>
+<rect x="40" y="216" width="640" height="44" rx="12" fill="#FFFDFB" stroke="#E6DCD1"/>
+<text x="58" y="243" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="12" font-weight="900" fill="#9A8474">Q3</text>
+<text x="88" y="243" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="12" font-weight="800" fill="#3E2F26">재료비가 따로 있나요?</text>
+<text x="640" y="244" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="16" font-weight="900" fill="#9A8474">+</text>
+<rect x="40" y="278" width="128" height="24" rx="12" fill="#F8E9E0" stroke="#C86D44"/>
+<text x="104" y="294" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11" font-weight="800" fill="#A8542F" text-anchor="middle">플러그인 블록</text>
+<text x="40" y="379" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="13" font-weight="800" fill="#3E2F26">FAQ 아코디언</text>
+<text x="40" y="395" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11" fill="#8A7565">hunmin 팔레트에서 골라 페이지에 놓습니다.</text>
+</svg>

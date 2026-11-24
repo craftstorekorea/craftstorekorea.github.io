@@ -138,7 +138,43 @@
       enabledNote: "꺼진 플러그인은 켜야 사이트에 적용됩니다.",
       fieldCheck: "값을 다시 확인해 주세요: ",
       on: "켜짐",
-      off: "꺼짐"
+      off: "꺼짐",
+      /* v10.4 — 멀티 마켓 구독 · 커스텀 블록 */
+      fMarket: "마켓",
+      allMarkets: "모든 마켓",
+      srcOfficial: "공식",
+      srcMarket: "구독",
+      marketOfficialName: "공식 마켓",
+      srcBadge: "{name}",
+      marketPanel: "구독 마켓 관리",
+      marketPanelNote: "여러 마켓의 plugins.json 을 모아 한 목록으로 보여줍니다. 주소는 https:// 또는 사이트 안 경로(/)만 됩니다. 공식 마켓은 끄거나 지울 수 없습니다.",
+      marketAddName: "마켓 이름",
+      marketAddUrl: "마켓 JSON 주소",
+      marketAdd: "마켓 추가",
+      marketAddBusy: "확인하는 중…",
+      marketOfficial: "공식",
+      marketToggleOn: "끄기",
+      marketToggleOff: "켜기",
+      marketSync: "동기화",
+      marketSyncBusy: "동기화 중…",
+      marketRemove: "삭제",
+      marketRemoveConfirm: "‘{name}’ 마켓을 삭제할까요? 설치한 플러그인은 그대로 남습니다.",
+      marketCannotRemoveOfficial: "공식 마켓은 삭제할 수 없습니다.",
+      marketCannotToggleOfficial: "공식 마켓은 끌 수 없습니다.",
+      marketCount: "플러그인 {n}개",
+      marketSyncAt: "마지막 동기화 {t}",
+      marketNever: "아직 동기화하지 않음",
+      marketError: "읽지 못함: ",
+      marketEmpty: "구독한 마켓이 없습니다.",
+      marketAdded: "마켓을 추가했습니다: {name}",
+      marketRemoved: "마켓을 삭제했습니다: {name}",
+      marketToggled: "‘{name}’ 마켓을 {state}습니다.",
+      marketSynced: "‘{name}’ 마켓을 동기화했습니다 · 플러그인 {n}개",
+      marketNeedSql: "Supabase 에 supabase/25_v104_multimarket_blocks.sql 을 실행하면 구독 마켓이 서버에 저장됩니다. 지금은 이 브라우저에만 기억합니다.",
+      marketBadUrl: "마켓 주소는 https:// 또는 사이트 안 경로(/)여야 합니다.",
+      marketBadSchema: "마켓 JSON 에서 플러그인 목록(plugins)을 찾지 못했습니다: ",
+      marketDupNote: "다른 마켓과 ID가 겹치는 플러그인 {n}개는 앞선 마켓(공식 우선) 것을 씁니다.",
+      pluginBadge: "플러그인 블록"
     },
     en: {
       eyebrow: "PLUGIN MARKET",
@@ -251,7 +287,43 @@
       enabledNote: "A plugin that is off is applied to the site only after you turn it on.",
       fieldCheck: "Check this value again: ",
       on: "On",
-      off: "Off"
+      off: "Off",
+      /* v10.4 — subscribed markets · custom blocks */
+      fMarket: "Market",
+      allMarkets: "All markets",
+      srcOfficial: "Official",
+      srcMarket: "Subscribed",
+      marketOfficialName: "Official market",
+      srcBadge: "{name}",
+      marketPanel: "Subscribed markets",
+      marketPanelNote: "Collects the plugins.json of several markets into one list. Addresses must start with https:// or be a site path (/). The official market cannot be turned off or deleted.",
+      marketAddName: "Market name",
+      marketAddUrl: "Market JSON address",
+      marketAdd: "Add market",
+      marketAddBusy: "Checking…",
+      marketOfficial: "Official",
+      marketToggleOn: "Turn off",
+      marketToggleOff: "Turn on",
+      marketSync: "Sync",
+      marketSyncBusy: "Syncing…",
+      marketRemove: "Delete",
+      marketRemoveConfirm: "Delete the “{name}” market? Plugins already installed stay.",
+      marketCannotRemoveOfficial: "The official market cannot be deleted.",
+      marketCannotToggleOfficial: "The official market cannot be turned off.",
+      marketCount: "{n} plugins",
+      marketSyncAt: "Last synced {t}",
+      marketNever: "Not synced yet",
+      marketError: "Could not read: ",
+      marketEmpty: "No markets subscribed.",
+      marketAdded: "Added the market: {name}",
+      marketRemoved: "Deleted the market: {name}",
+      marketToggled: "“{name}” market turned {state}.",
+      marketSynced: "Synced “{name}” · {n} plugins",
+      marketNeedSql: "Run supabase/25_v104_multimarket_blocks.sql in Supabase to store subscribed markets on the server. For now they are remembered in this browser only.",
+      marketBadUrl: "A market address must start with https:// or be a site path (/).",
+      marketBadSchema: "No plugin list (plugins) found in the market JSON: ",
+      marketDupNote: "{n} plugins share an ID with another market; the earlier market (official first) is used.",
+      pluginBadge: "Plugin block"
     }
   };
 
@@ -455,12 +527,13 @@
     };
   }
 
-  function normalize(data, marketUrl) {
+  function normalize(data, marketUrl, meta) {
     var isArr = Array.isArray(data);
     var list = isArr ? data : (data && Array.isArray(data.plugins) ? data.plugins : []);
     var out = {
       name: (!isArr && data && data.name) || "SBPress",
       sbpress: (!isArr && data && String(data.sbpress || "")) || "",
+      market: meta || null,
       categories: [],
       plugins: []
     };
@@ -521,7 +594,10 @@
         changelog: log,
         hooks: hooks,
         permissions: perms,
-        marketUrl: marketUrl || ""
+        marketUrl: marketUrl || "",
+        marketId: (meta && meta.id) || "",
+        marketName: (meta && meta.name) || "",
+        marketOfficial: !!(meta && meta.official)
       });
     });
     /* 카테고리 목록에 없는 분류도 빠뜨리지 않습니다. */
@@ -536,8 +612,42 @@
     return out;
   }
 
-  function catLabel(inst, id) {
-    var lang = inst.lang;
+  /* v10.4 — 여러 구독 마켓의 플러그인을 한 목록으로 합칩니다.
+     같은 ID가 여러 마켓에 있으면 공식 마켓을 먼저 보고, 그다음 준 순서대로 첫 것을 남깁니다.
+     (설치·업데이트는 플러그인 ID 로 하므로, 중복을 두 번 보여 주지 않는 것이 안전합니다.) */
+  function mergeMarkets(sources) {
+    var list = (sources || []).slice();
+    list.sort(function (a, b) {
+      if (!!b.official !== !!a.official) return b.official ? 1 : -1;
+      return 0;
+    });
+    var seen = {}, out = [], dup = 0, cats = [], catSeen = {};
+    list.forEach(function (s) {
+      ((s.data && s.data.plugins) || []).forEach(function (p) {
+        if (!p || !p.id) return;
+        if (seen[p.id]) { dup += 1; return; }
+        seen[p.id] = 1;
+        out.push(p);
+      });
+      ((s.data && s.data.categories) || []).forEach(function (c) {
+        if (!c || catSeen[c.id]) return;
+        catSeen[c.id] = 1;
+        cats.push(c);
+      });
+    });
+    return { plugins: out, categories: cats, duplicates: dup, sources: (sources || []) };
+  }
+
+  function marketLabel(inst, id) {
+    var hit = null;
+    (inst.markets || []).forEach(function (m) { if (m.id === id) hit = m; });
+    if (hit) return hit.is_official ? tr(inst.lang, "marketOfficialName") : hit.name;
+    var p = null;
+    (inst.data && inst.data.plugins || []).forEach(function (x) { if (x.marketId === id) p = x; });
+    return p ? (p.marketName || id) : id;
+  }
+
+  function catLabel(inst, id) {    var lang = inst.lang;
     var hit = null;
     (inst.data.categories || []).forEach(function (c) { if (c.id === id) hit = c; });
     if (!hit) return id;
@@ -600,6 +710,7 @@
     if (st.cat && p.category !== st.cat) return false;
     if (st.hook && p.hooks.indexOf(st.hook) < 0) return false;
     if (st.tag && p.tags.indexOf(st.tag) < 0) return false;
+    if (st.market && p.marketId !== st.market) return false;
     var q = String(st.q || "").trim().toLowerCase();
     if (!q) return true;
     var d = disp(inst, p);
@@ -630,17 +741,18 @@
   }
 
   function facetValues(inst) {
-    var cats = [], hooks = [], tags = [];
+    var cats = [], hooks = [], tags = [], markets = [];
     (inst.data.plugins || []).forEach(function (p) {
       if (p.category && cats.indexOf(p.category) < 0) cats.push(p.category);
       p.hooks.forEach(function (h) { if (hooks.indexOf(h) < 0) hooks.push(h); });
       p.tags.forEach(function (t) { if (tags.indexOf(t) < 0) tags.push(t); });
+      if (p.marketId && markets.indexOf(p.marketId) < 0) markets.push(p.marketId);
     });
     hooks.sort(function (a, b) {
       var ia = HOOK_ORDER.indexOf(a), ib = HOOK_ORDER.indexOf(b);
       return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
     });
-    return { cats: cats, hooks: hooks, tags: tags };
+    return { cats: cats, hooks: hooks, tags: tags, markets: markets };
   }
 
   /* ---------------- 화면 조각 ---------------- */
@@ -648,10 +760,10 @@
     var lang = inst.lang;
     var html = '<span class="mkt-chip-label">' + esc(labelText) + "</span>" +
       '<button type="button" class="mkt-chip' + (current ? "" : " on") + '" data-mkt-' + group + '="" ' +
-      'aria-pressed="' + (current ? "false" : "true") + '">' + esc(tr(lang, "all")) + "</button>";
+      'aria-pressed="' + (current ? "false" : "true") + '">' + esc(tr(lang, group === "market" ? "allMarkets" : "all")) + "</button>";
     values.forEach(function (v) {
       var label = group === "category" ? catLabel(inst, v)
-        : (group === "hook" ? hookLabel(v, lang) : tagLabel(inst, v));
+        : (group === "hook" ? hookLabel(v, lang) : (group === "market" ? marketLabel(inst, v) : tagLabel(inst, v)));
       var on = current === v;
       html += '<button type="button" class="mkt-chip' + (on ? " on" : "") + '" data-mkt-' + group + '="' +
         esc(v) + '" aria-pressed="' + (on ? "true" : "false") + '">' + esc(label) + "</button>";
@@ -722,6 +834,11 @@
     var badge = row
       ? '<span class="plug-badge ' + (on ? "b-on" : "b-off") + '">' + esc(tr(lang, on ? "installedOn" : "installedOff")) + "</span>"
       : "";
+    /* v10.4 — 어느 구독 마켓에서 온 플러그인인지 보여 줍니다. */
+    var src = (p.marketName && (inst.marketCount || 0) > 1)
+      ? '<span class="mkt-src' + (p.marketOfficial ? " is-official" : "") + '" data-mkt-card-src="' + esc(p.marketId) + '" title="' + esc(tr(lang, "srcBadge", { name: p.marketName })) + '">' +
+        esc(p.marketOfficial ? tr(lang, "marketOfficialName") : p.marketName) + "</span>"
+      : "";
     var upd = row ? updBadge(inst, p, false) : "";
     var shot = p.screenshots[0] || null;
     var thumb = shot
@@ -733,7 +850,7 @@
     }).join("");
     return '<article class="plug-card mkt-card" data-market-id="' + esc(p.id) + '" data-mkt-card="' + esc(p.id) + '">' +
       '<div class="mkt-thumb">' + thumb + "</div>" +
-      "<h3>" + esc(d.name) + " " + badge + (upd ? " " + upd : "") + "</h3>" +
+      "<h3>" + esc(d.name) + " " + badge + (upd ? " " + upd : "") + " " + src + "</h3>" +
       '<p class="plug-desc">' + esc(d.desc) + "</p>" +
       '<div class="plug-meta mkt-meta">' +
         '<span class="plug-tag ver">v' + esc(p.version) + "</span>" +
@@ -1317,12 +1434,64 @@
     inst.tools.setAttribute("aria-busy", on ? "true" : "false");
   }
 
+  /* ---------------- v10.4 — 구독 마켓 패널 ---------------- */
+  function marketMsg(inst, text, kind) {
+    inst.marketFlash = { text: text || "", kind: kind || "" };
+    var box = inst.tools && inst.tools.querySelector("#mkt-market-msg");
+    if (box) {
+      box.textContent = text || "";
+      box.className = "mkt-market-msg" + (kind ? " " + kind : "");
+    }
+  }
+
+  function marketPanelHtml(inst) {
+    var lang = inst.lang;
+    var rows = inst.markets || [];
+    if (!rows.length) return '<div class="mkt-markets" id="mkt-markets"><p class="mkt-market-empty">' + esc(tr(lang, "marketEmpty")) + "</p></div>";
+    var items = rows.map(function (m) {
+      var bits = [];
+      if (m.plugin_count != null) bits.push(tr(lang, "marketCount", { n: m.plugin_count }));
+      if (m.last_synced_at) bits.push(tr(lang, "marketSyncAt", { t: dateText(m.last_synced_at) }));
+      else bits.push(tr(lang, "marketNever"));
+      if (m.error) bits.push(tr(lang, "marketError") + m.error);
+      var off = m.is_official ? " disabled" : "";
+      return '<li class="mkt-market' + (m.enabled === false ? " is-off" : "") + (m.is_official ? " is-official" : "") + '" data-mkt-market-row="' + esc(m.id) + '">' +
+        '<div class="mkt-market-main"><span class="mkt-market-name">' + esc(m.is_official ? tr(lang, "marketOfficialName") : m.name) +
+          (m.is_official ? ' <span class="mkt-official">' + esc(tr(lang, "marketOfficial")) + "</span>" : "") +
+          (m.enabled === false ? ' <span class="mkt-off">' + esc(tr(lang, "off")) + "</span>" : "") + "</span>" +
+          '<code class="mkt-market-url">' + esc(m.url) + "</code>" +
+          '<span class="mkt-market-meta">' + esc(bits.join(" · ")) + "</span></div>" +
+        '<div class="mkt-market-actions">' +
+          '<button type="button" class="btn btn-ghost btn-sm" data-mkt-market-toggle="' + esc(m.id) + '"' + off +
+            (m.is_official ? ' title="' + esc(tr(lang, "marketCannotToggleOfficial")) + '"' : "") + ">" +
+            esc(tr(lang, m.enabled === false ? "marketToggleOff" : "marketToggleOn")) + "</button>" +
+          '<button type="button" class="btn btn-ghost btn-sm" data-mkt-market-sync="' + esc(m.id) + '">' + esc(tr(lang, "marketSync")) + "</button>" +
+          '<button type="button" class="btn btn-ghost btn-sm danger" data-mkt-market-remove="' + esc(m.id) + '"' + off +
+            (m.is_official ? ' title="' + esc(tr(lang, "marketCannotRemoveOfficial")) + '"' : "") + ">" +
+            esc(tr(lang, "marketRemove")) + "</button>" +
+        "</div></li>";
+    }).join("");
+    var fl = inst.marketFlash || {};
+    return '<section class="mkt-markets" id="mkt-markets" aria-labelledby="mkt-markets-title">' +
+      '<div class="mkt-markets-head"><h3 id="mkt-markets-title">' + esc(tr(lang, "marketPanel")) + "</h3>" +
+        '<p class="mkt-markets-note">' + esc(tr(lang, "marketPanelNote")) + "</p></div>" +
+      '<ul class="mkt-market-list">' + items + "</ul>" +
+      '<div class="mkt-market-add">' +
+        '<input class="admin-input mkt-market-name-input" id="mkt-market-name" maxlength="80" placeholder="' + esc(tr(lang, "marketAddName")) + '" aria-label="' + esc(tr(lang, "marketAddName")) + '">' +
+        '<input class="admin-input mkt-market-url-input" id="mkt-market-url" maxlength="500" spellcheck="false" placeholder="' + esc(tr(lang, "marketAddUrl")) + '" aria-label="' + esc(tr(lang, "marketAddUrl")) + '">' +
+        '<button type="button" class="btn btn-primary btn-sm" data-mkt-market-add="1">' + esc(tr(lang, "marketAdd")) + "</button>" +
+      "</div>" +
+      '<p class="mkt-market-msg' + (fl.kind ? " " + esc(fl.kind) : "") + '" id="mkt-market-msg" role="status" aria-live="polite">' + esc(fl.text || "") + "</p>" +
+      "</section>";
+  }
+
   function paintTools(inst) {
     var host = inst.tools;
     if (!host) return;
     var lang = inst.lang;
     var q = inst.state.q;
     host.innerHTML =
+      (inst.mode === "admin" && inst.markets ? marketPanelHtml(inst) : "") +
       (inst.mode === "admin" ? updBarHtml(inst) : "") +
       '<div class="mkt-bar">' +
         '<label class="mkt-search"><span class="sr-only">' + esc(tr(lang, "searchAria")) + "</span>" +
@@ -1336,6 +1505,9 @@
           "</select></label>" +
       "</div>" +
       '<div class="mkt-chipset">' +
+        ((facetValues(inst).markets.length > 1)
+          ? '<div class="mkt-chips" data-group="market">' + chipRow(inst, "market", tr(lang, "fMarket"), facetValues(inst).markets, inst.state.market) + "</div>"
+          : "") +
         '<div class="mkt-chips" data-group="category">' + chipRow(inst, "category", tr(lang, "fCategory"), facetValues(inst).cats, inst.state.cat) + "</div>" +
         '<div class="mkt-chips" data-group="hook">' + chipRow(inst, "hook", tr(lang, "fHook"), facetValues(inst).hooks, inst.state.hook) + "</div>" +
         '<div class="mkt-chips" data-group="tag">' + chipRow(inst, "tag", tr(lang, "fTag"), facetValues(inst).tags, inst.state.tag) + "</div>" +
@@ -1368,13 +1540,70 @@
       host.addEventListener("click", function (e) {
         var inst2 = host.__mktInst;
         if (!inst2) return;
-        var chip = e.target.closest ? e.target.closest("[data-mkt-category],[data-mkt-hook],[data-mkt-tag]") : null;
+        var chip = e.target.closest ? e.target.closest("[data-mkt-category],[data-mkt-hook],[data-mkt-tag],[data-mkt-market]") : null;
         if (!chip) return;
         if (chip.hasAttribute("data-mkt-category")) inst2.state.cat = chip.getAttribute("data-mkt-category");
         else if (chip.hasAttribute("data-mkt-hook")) inst2.state.hook = chip.getAttribute("data-mkt-hook");
+        else if (chip.hasAttribute("data-mkt-market")) inst2.state.market = chip.getAttribute("data-mkt-market");
         else inst2.state.tag = chip.getAttribute("data-mkt-tag");
         paintTools(inst2);
         render(inst2);
+      });
+    }
+    /* v10.4 — 구독 마켓 추가·켜기/끄기·동기화·삭제 버튼도 한 번만 위임합니다. */
+    if (!host.getAttribute("data-mkt-markets-bound")) {
+      host.setAttribute("data-mkt-markets-bound", "1");
+      host.addEventListener("click", function (e) {
+        var inst2 = host.__mktInst;
+        if (!inst2 || !e.target.closest) return;
+        var t = e.target.closest("[data-mkt-market-add],[data-mkt-market-toggle],[data-mkt-market-sync],[data-mkt-market-remove]");
+        if (!t) return;
+        if (t.hasAttribute("data-mkt-market-add")) {
+          var nameEl = host.querySelector("#mkt-market-name");
+          var urlEl = host.querySelector("#mkt-market-url");
+          var name = (nameEl && nameEl.value || "").trim().slice(0, 80);
+          var url = (urlEl && urlEl.value || "").trim().slice(0, 500);
+          if (!url) { if (urlEl) urlEl.focus(); return; }
+          if (!/^https:\/\//i.test(url) && url.charAt(0) !== "/") {
+            marketMsg(inst2, tr(inst2.lang, "marketBadUrl"), "err");
+            return;
+          }
+          if (typeof inst2.onMarketAdd === "function") {
+            t.disabled = true;
+            var old = t.textContent;
+            t.textContent = tr(inst2.lang, "marketAddBusy");
+            inst2.onMarketAdd(name, url, function (err, msg) {
+              t.disabled = false;
+              t.textContent = old;
+              if (err) { marketMsg(inst2, err, "err"); return; }
+              if (nameEl) nameEl.value = "";
+              if (urlEl) urlEl.value = "";
+              marketMsg(inst2, msg || tr(inst2.lang, "marketAdded", { name: name || url }), "ok");
+            });
+          }
+          return;
+        }
+        var id = t.getAttribute("data-mkt-market-toggle") || t.getAttribute("data-mkt-market-sync") || t.getAttribute("data-mkt-market-remove");
+        if (!id) return;
+        if (t.hasAttribute("data-mkt-market-toggle")) {
+          if (typeof inst2.onMarketToggle === "function") inst2.onMarketToggle(id, t);
+          return;
+        }
+        if (t.hasAttribute("data-mkt-market-sync")) {
+          if (typeof inst2.onMarketSync === "function") {
+            var prev = t.textContent;
+            t.disabled = true;
+            t.textContent = tr(inst2.lang, "marketSyncBusy");
+            inst2.onMarketSync(id, function (err, msg) {
+              t.disabled = false;
+              t.textContent = prev;
+              if (err) marketMsg(inst2, err, "err");
+              else if (msg) marketMsg(inst2, msg, "ok");
+            });
+          }
+          return;
+        }
+        if (typeof inst2.onMarketRemove === "function") inst2.onMarketRemove(id, t);
       });
     }
   }
@@ -1452,6 +1681,18 @@
       });
   }
 
+  /* mount 에 넘어온 목록이 이미 normalize 를 거친 것인지 — 관리자 화면은 마켓을 합친 뒤 넘깁니다. */
+  function dataFrom(opts, url) {
+    var items = opts.items || [];
+    var pre = items.length > 0 && (items[0].marketUrl !== undefined || items[0].marketId !== undefined);
+    if (pre) {
+      return { name: opts.name || "SBPress", sbpress: opts.sbpress || "", market: null,
+               categories: (opts.categories || []).slice(), plugins: items.slice() };
+    }
+    return normalize({ name: opts.name || "SBPress", sbpress: opts.sbpress || "",
+      categories: opts.categories || [], plugins: items }, url);
+  }
+
   function mount(opts) {
     opts = opts || {};
     var root = opts.root;
@@ -1472,13 +1713,20 @@
       prev.onRefresh = opts.onRefresh || prev.onRefresh;
       prev.onRemove = opts.onRemove || prev.onRemove;
       prev.onSaveSettings = opts.onSaveSettings || prev.onSaveSettings;
+      prev.onMarketAdd = opts.onMarketAdd || prev.onMarketAdd;
+      prev.onMarketToggle = opts.onMarketToggle || prev.onMarketToggle;
+      prev.onMarketSync = opts.onMarketSync || prev.onMarketSync;
+      prev.onMarketRemove = opts.onMarketRemove || prev.onMarketRemove;
+      if (Array.isArray(opts.markets)) {
+        prev.markets = opts.markets;
+        prev.marketCount = opts.markets.length;
+      }
       if (opts.tools) prev.tools = opts.tools;
       prev.tools.__mktInst = prev;
       if (opts.page) { prev.page = opts.page; paintHeader(prev, prev.page); }
       if (Array.isArray(opts.items)) {
-        prev.data = normalize({ name: opts.name || "SBPress", sbpress: opts.sbpress || "",
-          categories: opts.categories || [], plugins: opts.items }, prev.url);
-        if (!prev.data.plugins.length) needMessage(prev, tr(prev.lang, "emptyMarket"), false);
+        prev.data = dataFrom(opts, prev.url);
+        if (!prev.data.plugins.length && !(prev.markets && prev.markets.length)) needMessage(prev, tr(prev.lang, "emptyMarket"), false);
         else { paintTools(prev); render(prev); }
       }
       return prev;
@@ -1501,12 +1749,21 @@
       onRefresh: opts.onRefresh || null,
       onRemove: opts.onRemove || null,
       onSaveSettings: opts.onSaveSettings || null,
+      onMarketAdd: opts.onMarketAdd || null,
+      onMarketToggle: opts.onMarketToggle || null,
+      onMarketSync: opts.onMarketSync || null,
+      onMarketRemove: opts.onMarketRemove || null,
+      markets: Array.isArray(opts.markets) ? opts.markets : null,
+      marketCount: Array.isArray(opts.markets) ? opts.markets.length : 0,
+      marketFlash: null,
+      duplicates: Number(opts.duplicates || 0) || 0,
       data: null,
       meta: null,
       state: (root.__mktState && root.__mktState.url === (opts.url || "/plugins-market.json"))
         ? root.__mktState
-        : { q: "", cat: "", hook: "", tag: "", sort: "recommend", url: opts.url || "/plugins-market.json" }
+        : { q: "", cat: "", hook: "", tag: "", market: "", sort: "recommend", url: opts.url || "/plugins-market.json" }
     };
+    if (inst.state.market === undefined) inst.state.market = "";
     root.__mktState = inst.state;
     root.__sbpMarket = inst;
     root.classList.add("mkt-grid");
@@ -1514,8 +1771,8 @@
     if (opts.page) paintHeader(inst, opts.page);
     INSTANCES.push(inst);
     if (Array.isArray(opts.items)) {
-      inst.data = normalize({ name: opts.name || "SBPress", sbpress: opts.sbpress || "", categories: opts.categories || [], plugins: opts.items }, inst.url);
-      if (!inst.data.plugins.length) needMessage(inst, tr(inst.lang, "emptyMarket"), false);
+      inst.data = dataFrom(opts, inst.url);
+      if (!inst.data.plugins.length && !(inst.markets && inst.markets.length)) needMessage(inst, tr(inst.lang, "emptyMarket"), false);
       else { paintTools(inst); render(inst); }
     } else {
       load(inst);
@@ -1634,11 +1891,12 @@
   }
 
   window.SBP_MARKET = {
-    __v: 10,
-    version: "1.0.0",
+    __v: 104,
+    version: "10.4.0",
     mount: mount,
     update: update,
     normalize: normalize,
+    mergeMarkets: mergeMarkets,
     openDetail: openDetail,
     /* 화면 밖(시험·다른 스크립트)에서 아이디로 상세를 엽니다. */
     openDetailById: function (id) {
@@ -1666,8 +1924,38 @@
       var p = byId(inst, id);
       return p ? updInfo(inst, p) : null;
     },
-    currentLang: currentLang
+    currentLang: currentLang,
+    /* v10.4 — 구독 마켓 목록·합친 플러그인 목록을 새로 그립니다(관리자 화면). */
+    refreshMarkets: function (markets, items, categories, duplicates) {
+      var inst = adminInst();
+      if (!inst) return false;
+      if (Array.isArray(markets)) { inst.markets = markets; inst.marketCount = markets.length; }
+      inst.duplicates = Number(duplicates || 0) || 0;
+      if (Array.isArray(items)) {
+        inst.data = dataFrom({ name: (inst.meta && inst.meta.name) || "SBPress",
+          sbpress: (inst.meta && inst.meta.sbpress) || "",
+          categories: categories || [], items: items }, inst.url);
+      }
+      paintTools(inst);
+      render(inst);
+      return true;
+    },
+    setMarketMessage: function (text, kind) {
+      var inst = adminInst();
+      if (!inst) return false;
+      marketMsg(inst, text, kind);
+      return true;
+    },
+    marketRows: function () {
+      var inst = adminInst();
+      return inst ? (inst.markets || []) : [];
+    }
   };
+
+  function adminInst() {
+    var box = document.getElementById("plug-market");
+    return (box && box.__sbpMarket) || null;
+  }
 
   window.CRAFT_MARKET = {
     show: showPublic,

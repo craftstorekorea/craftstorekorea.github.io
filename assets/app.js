@@ -1341,7 +1341,8 @@
       blockBox.hidden = true;
       var usesPageImages = ((window.CRAFT_HUNMIN && window.CRAFT_HUNMIN.parseBlocks)
         ? window.CRAFT_HUNMIN.parseBlocks(page.blocks)
-        : (page.blocks || [])).some(function (b) {
+        : (Array.isArray(page.blocks) ? page.blocks
+          : (page.blocks && Array.isArray(page.blocks.items) ? page.blocks.items : []))).some(function (b) {
         return b && b.type === "gallery" && (!b.props || b.props.source !== "own");
       });
       gal.hidden = usesPageImages && gal.children.length > 0;

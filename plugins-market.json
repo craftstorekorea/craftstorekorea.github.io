@@ -2,10 +2,10 @@
   "name": "전국공방 플러그인 마켓",
   "manifest": 1,
   "schema": 2,
-  "sbpress": "10.3",
+  "sbpress": "10.4",
   "description": "SBPress 사이트·관리자에 기능을 더하는 브라우저 JS 플러그인 목록입니다. 관리자 > 플러그인 · 마켓에서 한 번에 설치하고 켜고 끌 수 있습니다.",
   "homepage": "https://craftstorekorea.github.io/",
-  "updated": "2026-11-24",
+  "updated": "2026-11-25",
   "categories": [
     {
       "id": "content",
@@ -490,6 +490,81 @@
           "nav:menu"
         ]
       }
+    },
+    {
+      "id": "faq-accordion",
+      "name": "FAQ 아코디언",
+      "name_en": "FAQ accordion",
+      "version": "1.0.0",
+      "description": "hunmin 페이지에 ‘자주 묻는 질문’ 아코디언 블록을 더합니다. 질문과 답을 한 줄씩 적으면 접었다 펼 수 있는 목록이 됩니다.",
+      "description_en": "Adds a “Frequently asked questions” accordion block to hunmin pages. Write one question and answer per line and visitors can expand each one.",
+      "author": "전국공방",
+      "author_en": "Craft Store Korea",
+      "category": "content",
+      "order": 7,
+      "updated": "2026-11-25",
+      "min_sbpress_version": "10.4",
+      "script_url": "/assets/plugins/faq-accordion.js",
+      "source": "builtin",
+      "tags": [
+        "hunmin 블록",
+        "아코디언",
+        "FAQ"
+      ],
+      "tags_en": [
+        "hunmin block",
+        "Accordion",
+        "FAQ"
+      ],
+      "screenshots": [
+        {
+          "src": "assets/market-shots/faq-accordion-1.svg",
+          "alt": "페이지에 놓인 FAQ 아코디언 블록 — 첫 질문이 펼쳐진 모습",
+          "alt_en": "An FAQ accordion block on a page, with the first question open"
+        }
+      ],
+      "changelog": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-25",
+          "notes": "처음 선보였습니다. addBlock 훅으로 hunmin 팔레트에 ‘FAQ 아코디언’ 블록을 더하고, 질문 | 답 을 <details> 아코디언으로 그립니다.",
+          "notes_en": "First release. Uses the addBlock hook to add an “FAQ accordion” block to the hunmin palette, drawing each question and answer as a <details> accordion."
+        }
+      ],
+      "manifest": {
+        "v": 1,
+        "name": "FAQ 아코디언",
+        "version": "1.0.0",
+        "author": "전국공방",
+        "hooks": [
+          "block",
+          "settings"
+        ],
+        "permissions": [
+          "ui:block",
+          "read:block-data"
+        ]
+      },
+      "settings_schema": [
+        {
+          "key": "accent_color",
+          "type": "color",
+          "label_ko": "강조색",
+          "label_en": "Accent color",
+          "default": "",
+          "help_ko": "질문 번호와 펼친 질문의 색입니다. 비우면 사이트 테마 색을 씁니다(#RRGGBB).",
+          "help_en": "Color of question numbers and the opened question. Leave empty for the site theme color (#RRGGBB)."
+        },
+        {
+          "key": "show_numbers",
+          "type": "boolean",
+          "label_ko": "질문 번호 표시",
+          "label_en": "Show question numbers",
+          "default": true,
+          "help_ko": "끄면 번호 없이 질문만 보여 줍니다.",
+          "help_en": "Turn off to show questions without numbers."
+        }
+      ]
     }
   ]
 }

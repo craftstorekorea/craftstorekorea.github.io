@@ -4637,6 +4637,7 @@
   var PLUG_SRC = { builtin: "기본", market: "마켓", custom: "직접" };
   var plugRows = [];
   var plugMarket = { base: "", list: [] };
+  var plugMarkets = [];                 // v10.4 — 구독 마켓 행
   var plugMarketUrl = "/plugins-market.json";
 
   function plugMsg(text, kind) { cmsMsg("plugins-msg", text, kind); }
@@ -5195,6 +5196,13 @@
       if (code === "23505" || /duplicate key|already exists/i.test(msg)) {
         return sb.from("plugins").update(payload).eq("id", payload.id);
       }
+      /* v10.4 — market_id 열이 없는 DB(25_v104 미실행)면 그 열만 빼고 다시 시도합니다. */
+      var noMarket = (code === "42703" || code === "PGRST204") && /market_id/i.test(msg) && "market_id" in payload;
+      if (noMarket) {
+        var p2 = {};
+        Object.keys(payload).forEach(function (k) { if (k !== "market_id") p2[k] = payload[k]; });
+        return savePluginRow(p2);
+      }
       if ((code === "42703" || code === "PGRST204" || /settings_schema/i.test(msg)) && "settings_schema" in payload) {
         var slim = {};
         Object.keys(payload).forEach(function (k) { if (k !== "settings_schema") slim[k] = payload[k]; });
@@ -5282,20 +5290,250 @@
     if (!box) return Promise.resolve();
     box.innerHTML = '<p class="plug-empty">마켓 목록을 불러오는 중…</p>';
     var msg = $("#plug-market-msg");
-    return fetch(plugMarketUrl, { cache: "no-store" }).then(function (r) {
+    return loadMarketRows().then(function (rows) {
+      plugMarkets = rows;
+      if (msg) {
+        msg.textContent = plugMarketRowsMissing
+          ? "마켓 " + rows.length + "곳 · 이 브라우저에만 기억 — Supabase 에 supabase/25_v104_multimarket_blocks.sql 을 실행하면 서버에 저장됩니다"
+          : "마켓 " + rows.length + "곳 · 켜짐 " + rows.filter(function (r) { return r.enabled !== false; }).length + "곳";
+      }
+      return Promise.all(rows.map(fetchMarketJson));
+    }).then(function () {
+      var merged = mergeMarketList();
+      plugMarket = { base: marketAbs(plugMarketUrl), list: merged.plugins, meta: merged.meta,
+                     markets: plugMarkets, duplicates: merged.duplicates };
+      renderPlugins();
+      renderMarket();
+    }).catch(function (e) {
+      plugMarket = { base: marketAbs(plugMarketUrl), list: [], meta: {}, markets: plugMarkets, duplicates: 0 };
+      box.innerHTML = '<p class="plug-empty">마켓 목록을 불러오지 못했습니다: ' + esc(e && e.message ? e.message : e) + "</p>";
+      if (msg) msg.textContent = "주소를 확인해 주세요: " + plugMarketUrl;
+    });
+  }
+
+  /* ---------- v10.4 — 구독 마켓 (public.plugin_markets) ----------
+     25_v104 SQL 을 실행하지 않은 DB 에서는 표가 없으므로(42P01)
+     site_contents 의 기본 주소 + 브라우저 localStorage 만으로 동작합니다. */
+  var plugMarketRowsMissing = false;
+  var MARKET_LS = "sbpress-plugin-markets";
+  var PLUG_MARKET_DEFAULT = { id: "official", name: "공식 마켓", url: "/plugins-market.json",
+                              enabled: true, is_official: true };
+
+  function marketUrlOk(u) {
+    var s = String(u || "").trim();
+    return /^https:\/\//i.test(s) || (s.charAt(0) === "/" && s.charAt(1) !== "/");
+  }
+
+  function localMarkets() {
+    try {
+      var raw = JSON.parse(localStorage.getItem(MARKET_LS) || "[]");
+      if (!Array.isArray(raw)) return [];
+      return raw.filter(function (r) { return r && typeof r === "object" && marketUrlOk(r.url); })
+        .map(function (r) {
+          return { id: String(r.id || "").slice(0, 60), name: String(r.name || r.url).slice(0, 80),
+                   url: String(r.url).slice(0, 500), enabled: r.enabled !== false, is_official: false };
+        }).filter(function (r) { return /^[a-z0-9][a-z0-9._-]{0,59}$/.test(r.id); });
+    } catch (e) { return []; }
+  }
+
+  function saveLocalMarkets(rows) {
+    try {
+      localStorage.setItem(MARKET_LS, JSON.stringify((rows || []).filter(function (r) { return !r.is_official; })
+        .map(function (r) { return { id: r.id, name: r.name, url: r.url, enabled: r.enabled !== false }; })));
+    } catch (e) { /* 저장소 차단 — 이 화면에만 적용 */ }
+  }
+
+  function tableMissing(err) {
+    var code = String((err && err.code) || "");
+    var msg = String((err && err.message) || "");
+    return code === "42P01" || code === "PGRST205" || /plugin_markets/i.test(msg) && /does not exist|not find/i.test(msg);
+  }
+
+  function loadMarketRows() {
+    plugMarketRowsMissing = false;
+    if (!sb) return Promise.resolve([Object.assign({}, PLUG_MARKET_DEFAULT, { url: plugMarketUrl })]);
+    return sb.from("plugin_markets").select("*").then(function (r) {
+      if (r.error && tableMissing(r.error)) {
+        plugMarketRowsMissing = true;
+        var rows = [Object.assign({}, PLUG_MARKET_DEFAULT, { url: plugMarketUrl })];
+        return rows.concat(localMarkets());
+      }
+      if (r.error) throw new Error(r.error.message || "plugin_markets");
+      var rows = (r.data || []).map(function (m) {
+        return { id: m.id, name: m.name, url: m.url, enabled: m.enabled !== false,
+                 is_official: !!m.is_official, plugin_count: m.plugin_count,
+                 last_synced_at: m.last_synced_at, last_error: m.last_error };
+      });
+      if (!rows.some(function (x) { return x.is_official; })) {
+        rows.unshift(Object.assign({}, PLUG_MARKET_DEFAULT, { url: plugMarketUrl }));
+      }
+      /* 기본 마켓 주소 입력값과 공식 마켓 주소를 맞춥니다. */
+      rows.forEach(function (m) {
+        if (m.is_official && plugMarketUrl && m.url !== plugMarketUrl) m.url = plugMarketUrl;
+      });
+      return rows;
+    });
+  }
+
+  function fetchMarketJson(row) {
+    row._data = null;
+    row._error = "";
+    if (row.enabled === false) return Promise.resolve(row);
+    if (!marketUrlOk(row.url)) { row._error = "주소는 https:// 또는 / 만 됩니다"; return Promise.resolve(row); }
+    return fetch(row.url, { cache: "no-store" }).then(function (r) {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     }).then(function (data) {
-      var list = Array.isArray(data) ? data : (data && Array.isArray(data.plugins) ? data.plugins : []);
-      plugMarket = { base: marketAbs(plugMarketUrl), list: list, meta: (data && typeof data === "object" && !Array.isArray(data)) ? data : {} };
-      if (msg) msg.textContent = "마켓 목록 " + list.length + "개 · " + plugMarket.base;
-      /* v10.3 — 마켓 목록을 받은 뒤 표도 다시 그려 「업데이트 가능」 배지를 붙입니다. */
-      renderPlugins();
+      var list = Array.isArray(data) ? data : (data && Array.isArray(data.plugins) ? data.plugins : null);
+      if (!list) { row._error = "plugins 목록이 없습니다"; return row; }
+      row._data = window.SBP_MARKET
+        ? window.SBP_MARKET.normalize(data, row.url, { id: row.id, name: row.name, official: !!row.is_official })
+        : null;
+      if (row._data) row._data.categories = row._data.categories || [];
+      row.plugin_count = list.length;
+      row.last_synced_at = new Date().toISOString();
+      row.last_error = null;
+      saveMarketMeta(row);
+      return row;
     }).catch(function (e) {
-      plugMarket = { base: marketAbs(plugMarketUrl), list: [], meta: {} };
-      box.innerHTML = '<p class="plug-empty">마켓 목록을 불러오지 못했습니다: ' + esc(e.message) + "</p>";
-      if (msg) msg.textContent = "주소를 확인해 주세요: " + plugMarketUrl;
+      row._error = e && e.message ? e.message : String(e);
+      row.last_error = row._error;
+      saveMarketMeta(row);
+      return row;
     });
+  }
+
+  function saveMarketMeta(row) {
+    if (plugMarketRowsMissing || !sb || row._local || !row.id) return;
+    sb.from("plugin_markets").update({
+      plugin_count: row.plugin_count == null ? null : row.plugin_count,
+      last_synced_at: row.last_synced_at || null,
+      last_error: row.last_error || null
+    }).eq("id", row.id).then(function () { /* 실패해도 화면은 그대로 */ });
+  }
+
+  function mergeMarketList() {
+    var UI = window.SBP_MARKET;
+    var sources = plugMarkets.filter(function (m) { return m.enabled !== false; }).map(function (m) {
+      return { id: m.id, name: m.name, url: m.url, official: !!m.is_official, data: m._data, error: m._error };
+    });
+    var merged = UI && UI.mergeMarkets ? UI.mergeMarkets(sources)
+      : { plugins: [], categories: [], duplicates: 0 };
+    return {
+      plugins: merged.plugins || [],
+      duplicates: merged.duplicates || 0,
+      meta: { name: "SBPress", sbpress: siteSbpress(), categories: merged.categories || [] }
+    };
+  }
+
+  /* 마켓 JSON 의 sbpress(엔진 호환 판) — 공식 마켓 것을 먼저 씁니다. */
+  function siteSbpress() {
+    var v = "";
+    plugMarkets.forEach(function (m) {
+      if (v || !m._data) return;
+      if (m.is_official) v = String(m._data.sbpress || "");
+    });
+    if (!v) {
+      plugMarkets.forEach(function (m) {
+        if (!v && m._data) v = String(m._data.sbpress || "");
+      });
+    }
+    return v;
+  }
+
+  function marketIdNew() {
+    return "mk" + Date.now().toString(36);
+  }
+
+  function addMarket(name, url, cb) {
+    var done = cb || function () {};
+    if (!marketUrlOk(url)) { done("마켓 주소는 https:// 또는 사이트 안 경로(/)여야 합니다."); return; }
+    if (plugMarkets.some(function (m) { return m.url.toLowerCase() === url.toLowerCase(); })) {
+      done("이미 구독한 마켓 주소입니다: " + url); return;
+    }
+    var row = { id: marketIdNew(), name: (name || url).slice(0, 80), url: url.slice(0, 500),
+                enabled: true, is_official: false, _local: true };
+    fetch(row.url, { cache: "no-store" }).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }).then(function (data) {
+      var list = Array.isArray(data) ? data : (data && Array.isArray(data.plugins) ? data.plugins : null);
+      if (!list) throw new Error("plugins 목록이 없습니다");
+      row._data = window.SBP_MARKET
+        ? window.SBP_MARKET.normalize(data, row.url, { id: row.id, name: row.name, official: false }) : null;
+      row.plugin_count = list.length;
+      row.last_synced_at = new Date().toISOString();
+      if (plugMarketRowsMissing || !sb) { finish(); return; }
+      sb.from("plugin_markets").insert({ id: row.id, name: row.name, url: row.url,
+        enabled: true, is_official: false, plugin_count: row.plugin_count,
+        last_synced_at: row.last_synced_at }).then(function (ins) {
+        if (ins.error) {
+          if (tableMissing(ins.error)) { plugMarketRowsMissing = true; finish(); return; }
+          done("마켓을 추가하지 못했습니다: " + ins.error.message);
+          return;
+        }
+        row._local = false;
+        finish();
+      });
+      function finish() {
+        plugMarkets.push(row);
+        saveLocalMarkets(plugMarkets);
+        done("", "마켓을 추가했습니다: " + row.name + (plugMarketRowsMissing ? " (이 브라우저에만 기억)" : ""));
+        refreshMarketsUi();
+      }
+    }).catch(function (e) {
+      done("마켓 목록을 읽지 못했습니다: " + (e && e.message ? e.message : e));
+    });
+  }
+
+  function setMarketRow(id, patch, cb) {
+    var done = cb || function () {};
+    var row = null;
+    plugMarkets.forEach(function (m) { if (m.id === id) row = m; });
+    if (!row) { done("마켓을 찾지 못했습니다: " + id); return; }
+    if (row.is_official) { done("공식 마켓은 바꿀 수 없습니다."); return; }
+    Object.keys(patch).forEach(function (k) { row[k] = patch[k]; });
+    if (plugMarketRowsMissing || !sb || row._local) {
+      saveLocalMarkets(plugMarkets);
+      done(""); refreshMarketsUi(); return;
+    }
+    sb.from("plugin_markets").update(patch).eq("id", id).then(function (r) {
+      if (r.error) { done("바꾸지 못했습니다: " + r.error.message); return; }
+      saveLocalMarkets(plugMarkets);
+      done(""); refreshMarketsUi();
+    });
+  }
+
+  function removeMarket(id, cb) {
+    var done = cb || function () {};
+    var row = null;
+    plugMarkets.forEach(function (m) { if (m.id === id) row = m; });
+    if (!row) { done("마켓을 찾지 못했습니다: " + id); return; }
+    if (row.is_official) { done("공식 마켓은 삭제할 수 없습니다."); return; }
+    if (!window.confirm("‘" + row.name + "’ 마켓을 삭제할까요?\n설치한 플러그인은 그대로 남습니다.")) { done(""); return; }
+    function local() {
+      plugMarkets = plugMarkets.filter(function (m) { return m.id !== id; });
+      saveLocalMarkets(plugMarkets);
+      done("", "마켓을 삭제했습니다: " + row.name);
+      refreshMarketsUi();
+    }
+    if (plugMarketRowsMissing || !sb) { local(); return; }
+    sb.from("plugin_markets").delete().eq("id", id).then(function (r) {
+      if (r.error) { done("삭제하지 못했습니다: " + r.error.message); return; }
+      local();
+    });
+  }
+
+  function refreshMarketsUi() {
+    var merged = mergeMarketList();
+    plugMarket = { base: marketAbs(plugMarketUrl), list: merged.plugins, meta: merged.meta,
+                   markets: plugMarkets, duplicates: merged.duplicates };
+    renderPlugins();
+    if (window.SBP_MARKET && window.SBP_MARKET.refreshMarkets) {
+      window.SBP_MARKET.refreshMarkets(plugMarkets, merged.plugins, merged.meta.categories, merged.duplicates);
+    } else {
+      renderMarket();
+    }
   }
 
   /* ---------- v10.0 마켓 탐색기 (assets/market.js — 플러그인 탭을 처음 열 때 지연 로딩) ----------
@@ -5337,22 +5575,20 @@
     if (!box) return;
     var list = plugMarket.list || [];
     var host = marketToolsHost(box);
-    if (!list.length) {
-      host.innerHTML = "";
-      box.innerHTML = '<p class="plug-empty">마켓에 표시할 플러그인이 없습니다. 위 주소를 확인하거나 새로고침해 보세요.</p>';
-      return;
-    }
     ensureMarketUi().then(function (UI) {
       if (!UI) {
         box.innerHTML = '<p class="plug-empty">마켓 화면(assets/market.js)을 불러오지 못했습니다. 새로고침해 주세요.</p>';
         return;
       }
       var meta = plugMarket.meta || {};
+      var markets = plugMarket.markets || pluginMarketRows();
       UI.mount({
         root: box,
         tools: host,
         mode: "admin",
         items: list,
+        markets: markets,
+        duplicates: plugMarket.duplicates || 0,
         url: plugMarketUrl,
         categories: meta.categories || [],
         sbpress: meta.sbpress || "",
@@ -5365,9 +5601,55 @@
         onRollback: function (id, cb) { rollbackPlugin(id, cb); },
         onRefresh: function () { loadPlugins(false); },
         onRemove: function (id) { deletePlugin(id); },
-        onSaveSettings: function (id, values, cb) { savePluginSettings(id, values, cb); }
+        onSaveSettings: function (id, values, cb) { savePluginSettings(id, values, cb); },
+        onMarketAdd: function (name, url, cb) { addMarket(name, url, cb); },
+        onMarketToggle: function (id) {
+          var row = null;
+          (plugMarket.markets || []).forEach(function (m) { if (m.id === id) row = m; });
+          if (!row) return;
+          if (row.is_official) { marketNote("공식 마켓은 끌 수 없습니다.", "err"); return; }
+          setMarketRow(id, { enabled: !(row.enabled !== false) }, function (err) {
+            if (err) { marketNote(err, "err"); return; }
+            marketNote("‘" + row.name + "’ 마켓을 " + (row.enabled === false ? "껐습니다" : "켰습니다") + ".", "ok");
+          });
+        },
+        onMarketSync: function (id, cb) {
+          var row = null;
+          (plugMarket.markets || []).forEach(function (m) { if (m.id === id) row = m; });
+          if (!row) { if (cb) cb("마켓을 찾지 못했습니다."); return; }
+          fetchMarketJson(row).then(function (r) {
+            var merged = mergeMarketList();
+            plugMarket.list = merged.plugins;
+            plugMarket.meta = merged.meta;
+            plugMarket.duplicates = merged.duplicates;
+            renderPlugins();
+            if (window.SBP_MARKET && window.SBP_MARKET.refreshMarkets) {
+              window.SBP_MARKET.refreshMarkets(plugMarket.markets, merged.plugins, merged.meta.categories, merged.duplicates);
+            }
+            if (cb) {
+              cb(r._error || "", r._error ? "‘" + r.name + "’ 마켓을 읽지 못했습니다: " + r._error
+                : "‘" + r.name + "’ 마켓을 동기화했습니다 · 플러그인 " + (r.plugin_count || 0) + "개");
+            }
+          });
+        },
+        onMarketRemove: function (id, btn) {
+          removeMarket(id, function (err, msg) {
+            if (err) { marketNote(err, "err"); return; }
+            if (msg) marketNote(msg, "ok");
+          });
+        }
       });
     });
+  }
+
+  function pluginMarketRows() {
+    return (plugMarkets && plugMarkets.length) ? plugMarkets : [PLUG_MARKET_DEFAULT];
+  }
+
+  function marketNote(text, kind) {
+    var msg = $("#plug-market-msg");
+    if (msg) msg.textContent = text;
+    try { if (window.SBP_MARKET) window.SBP_MARKET.setMarketMessage(text, kind); } catch (e) { /* noop */ }
   }
 
   function installFromMarket(id, btn) {
@@ -5382,12 +5664,15 @@
         plugMsg("‘" + (item.name || item.id) + "’ 을 설치하지 않았습니다 — " + scan.reasons.join(", "), "err");
         return;
       }
-      savePluginRow({
+      var payload = {
         id: item.id, name: item.name || item.id, version: item.version || "1.0.0",
         description: item.description || null, author: item.author || null,
         script_url: url, source: item.source || "market", enabled: true,
         manifest: manifestPayload(item), settings_schema: settingsSchemaPayload(item)
-      }).then(function (r) {
+      };
+      /* v10.4 — 어느 구독 마켓에서 설치했는지 남깁니다(공식 마켓이면 비웁니다). */
+      if (item.marketId && !item.marketOfficial) payload.market_id = item.marketId;
+      savePluginRow(payload).then(function (r) {
         if (btn) { btn.disabled = false; btn.textContent = "설치 및 켜기"; }
         if (r && r.error) {
           plugMsg("설치하지 못했습니다: " + r.error.message, "err");
@@ -5408,8 +5693,13 @@
     sb.from("site_contents").upsert({ key: "plugins.market_url", section: "플러그인 · 마켓", label: "플러그인 마켓 주소 (plugins.json)", value: v }, { onConflict: "key" })
       .then(function (r) {
         if (r.error) { if (msg) msg.textContent = "저장하지 못했습니다: " + r.error.message; return; }
-        if (msg) msg.textContent = "마켓 주소를 저장했습니다: " + v;
-        loadMarket();
+        if (msg) msg.textContent = "공식 마켓 주소를 저장했습니다: " + v;
+        /* v10.4 — 서버에 구독 마켓이 있으면 공식 마켓 주소도 함께 맞춥니다. */
+        if (!plugMarketRowsMissing && sb) {
+          sb.from("plugin_markets").update({ url: v }).eq("id", "official").then(function () {
+            loadMarket();
+          });
+        } else loadMarket();
       });
   }
 

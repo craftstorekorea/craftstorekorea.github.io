@@ -1,8 +1,10 @@
 /* ===== SBPress 플러그인 엔진 (assets/plugins.js) — API 문서: README.md
    플러그인: SBPress.registerPlugin({id, name, version, setup(ctx)})
-   훅: decorateCard · addWidget · addMenuItem · addAdminTab · addCss
+   훅: decorateCard · addWidget · addMenuItem · addAdminTab · addCss · addBlock (v10.4)
    설정: ctx.getSettings() · ctx.onSettingsChange(fn)  (v10.2)
    버전: 관리자 화면의 원클릭 업데이트 · 이전 버전 롤백 (v10.3, supabase/24_v103)
+   블록: ctx.addBlock({id, name_ko, fields, defaultData, render}) → hunmin 블록 (v10.4)
+   마켓: 관리자의 구독 마켓 여러 곳을 합쳐 보여 줍니다 (v10.4, supabase/25_v104)
    목록: public.plugins_public 뷰(예전 DB 는 public.plugins) · 의존: auth-config.js */
 (function () {
   "use strict";
@@ -22,6 +24,8 @@
     css: {},                  // plugin → [cssText]
     rows: {},                 // id → DB 행(설정)
     settingsFns: {},          // id → [fn] — 설정이 바뀌면 부를 함수(v10.2)
+    blocks: {},               // type → hunmin 커스텀 블록 정의 (v10.4)
+    blockOrder: [],           // type 등록 순서 (v10.4)
     errors: [],               // {plugin, message, when}
     notices: [],              // {plugin, message, when} — 실행하지 않고 건너뛴 이유(관리자 화면의 custom 등)
     skipped: {},              // id → 이유 (이번 화면에서 실행하지 않은 플러그인)
@@ -103,7 +107,7 @@
   }
 
   /* manifest v1 — 없으면 정의에서 채웁니다. */
-  var HOOKS = ["menu", "card", "widget", "admin-tab", "css", "settings"];
+  var HOOKS = ["menu", "card", "widget", "admin-tab", "css", "settings", "block"];
   function manifestOf(def) {
     var m = (def && def.manifest && typeof def.manifest === "object") ? def.manifest : {};
     var v = parseInt(m.v != null ? m.v : 1, 10);
@@ -144,6 +148,11 @@
     });
     state.tabs = state.tabs.filter(function (t) { return t.plugin !== id; });
     state.cardFns = state.cardFns.filter(function (c) { return c.plugin !== id; });
+    /* v10.4 — 오류로 격리된 플러그인의 커스텀 블록도 목록에서 뺍니다(페이지에는 폴백). */
+    Object.keys(state.blocks).forEach(function (t) {
+      if (state.blocks[t].plugin === id) delete state.blocks[t];
+    });
+    state.blockOrder = state.blockOrder.filter(function (t) { return !!state.blocks[t]; });
     delete state.css[id];
     var st = document.getElementById("sbp-css-" + id);
     if (st && st.parentNode) st.parentNode.removeChild(st);
@@ -282,9 +291,110 @@
         if (!css.trim()) return;
         (state.css[id] = state.css[id] || []).push(css);
         injectCss(id);
-      }
+      },
+      /* v10.4 — hunmin 커스텀 블록을 등록합니다. */
+      addBlock: function (def) { return addBlock(id, def); },
+      /* 이 플러그인의 블록 종류 키(페이지에 저장되는 type)를 돌려줍니다. */
+      blockType: function (blockId) { return "sbp:" + id + ":" + String(blockId || ""); }
     };
     return ctx;
+  }
+
+  /* ---------------- v10.4 커스텀 hunmin 블록 ---------------- */
+  var BLOCK_FIELD_TYPES = ["text", "textarea", "number", "boolean", "select", "color"];
+
+  function blockField(x) {
+    if (!x || typeof x !== "object") return null;
+    var key = String(x.key || "").trim().slice(0, 30);
+    if (!/^[a-z][a-z0-9_]*$/.test(key)) return null;
+    var t = String(x.type || "text").toLowerCase();
+    if (BLOCK_FIELD_TYPES.indexOf(t) < 0) t = "text";
+    var opts = (Array.isArray(x.options) ? x.options : []).map(function (o) {
+      if (!o || typeof o !== "object" || o.value == null) return null;
+      return {
+        value: String(o.value).slice(0, 40),
+        label_ko: String(o.label_ko || o.label || o.value).slice(0, 80),
+        label_en: String(o.label_en || o.label || o.value).slice(0, 80)
+      };
+    }).filter(Boolean).slice(0, 20);
+    var def = x.default;
+    if (t === "number") def = Number(def) || 0;
+    else if (t === "boolean") def = def === true;
+    else if (t === "select") {
+      var ok = opts.some(function (o) { return o.value === String(def); });
+      def = ok ? String(def) : (opts[0] ? opts[0].value : "");
+    } else def = String(def == null ? "" : def).slice(0, 2000);
+    return {
+      key: key, type: t,
+      label_ko: String(x.label_ko || x.label || key).slice(0, 80),
+      label_en: String(x.label_en || x.label || x.label_ko || key).slice(0, 80),
+      help_ko: String(x.help_ko || "").slice(0, 200),
+      help_en: String(x.help_en || "").slice(0, 200),
+      placeholder_ko: String(x.placeholder_ko || "").slice(0, 80),
+      placeholder_en: String(x.placeholder_en || "").slice(0, 80),
+      default: def,
+      min: typeof x.min === "number" && isFinite(x.min) ? x.min : null,
+      max: typeof x.max === "number" && isFinite(x.max) ? x.max : null,
+      step: typeof x.step === "number" && x.step > 0 ? x.step : null,
+      maxlength: typeof x.maxlength === "number" ? Math.max(1, Math.min(2000, x.maxlength)) : 2000,
+      options: opts
+    };
+  }
+
+  function addBlock(pluginId, def) {
+    if (!def || typeof def !== "object") { recordError(pluginId, "addBlock 에 정의 객체가 없습니다."); return ""; }
+    var bid = String(def.id || "").trim().slice(0, 40);
+    if (!/^[a-z0-9][a-z0-9_-]{0,39}$/.test(bid)) {
+      recordError(pluginId, "블록 id 는 영문 소문자·숫자·-·_ 로 1~40자여야 합니다: " + bid);
+      return "";
+    }
+    if (typeof def.render !== "function") { recordError(pluginId, "블록 ‘" + bid + "’ 에 render(data, ctx) 함수가 없습니다."); return ""; }
+    var type = "sbp:" + pluginId + ":" + bid;
+    if (state.blocks[type]) return type;                     // 같은 블록을 두 번 등록해도 한 번만
+    var fields = (Array.isArray(def.fields) ? def.fields : []).map(blockField).filter(Boolean).slice(0, 16);
+    /* 기본값은 스키마에 있는 칸만, 칸마다 형식에 맞게 다듬습니다. */
+    var src = (def.defaultData && typeof def.defaultData === "object") ? def.defaultData : {};
+    var data = {};
+    fields.forEach(function (f) {
+      if (f.type === "number") {
+        var n = Number(src[f.key]);
+        data[f.key] = isFinite(n) ? n : f.default;
+      } else if (f.type === "boolean") {
+        data[f.key] = src[f.key] === undefined ? f.default : src[f.key] === true;
+      } else {
+        var v = src[f.key] === undefined ? f.default : src[f.key];
+        if (f.type === "select") {
+          var ok = f.options.some(function (o) { return o.value === String(v); });
+          data[f.key] = ok ? String(v) : f.default;
+        } else data[f.key] = String(v == null ? "" : v).slice(0, 2000);
+      }
+    });
+    state.blocks[type] = {
+      type: type,
+      id: bid,
+      plugin: pluginId,
+      name_ko: String(def.name_ko || def.name || bid).slice(0, 80),
+      name_en: String(def.name_en || def.name || def.name_ko || bid).slice(0, 80),
+      category: String(def.category || "content").slice(0, 30),
+      fields: fields,
+      defaultData: data,
+      render: def.render
+    };
+    state.blockOrder.push(type);
+    announceBlocks();
+    return type;
+  }
+
+  function blockList() {
+    return state.blockOrder.map(function (t) { return state.blocks[t]; }).filter(Boolean);
+  }
+
+  function announceBlocks() {
+    try {
+      document.dispatchEvent(new CustomEvent("sbpress:blocks", {
+        detail: { blocks: blockList().map(function (b) { return { type: b.type, plugin: b.plugin, id: b.id }; }) }
+      }));
+    } catch (e) { /* 구형 브라우저 — 다음 그리기에서 반영됩니다 */ }
   }
 
   function injectCss(id) {
@@ -662,17 +772,24 @@
       notices: state.notices.slice(),
       disabled: Object.keys(state.failed).map(function (id) { return { id: id, reason: state.failed[id] }; }),
       adminPage: state.adminPage,
-      admin: state.admin
+      admin: state.admin,
+      blocks: blockList().map(function (b) {
+        return { type: b.type, id: b.id, plugin: b.plugin, name: b.name_ko, fields: b.fields.length };
+      })
     };
   }
 
   /* ---------------- 공개 API ---------------- */
   var SBPress = {
     __engine: true,
-    version: "10.3.0",          // SBPress 엔진(사이트) 버전 — v10.2 부터 같은 번호를 씁니다.
+    version: "10.4.0",          // SBPress 엔진(사이트) 버전 — v10.2 부터 같은 번호를 씁니다.
     api: 2,                     // 플러그인이 기대는 엔진 API 판
     settingsApi: 1,             // getSettings · onSettingsChange · applySettings 가 있는 판
     versionsApi: 1,             // v10.3 — 원클릭 업데이트 · 버전 비교 · 롤백이 있는 판
+    blocksApi: 1,               // v10.4 — addBlock · getBlocks · getBlock 이 있는 판
+    getBlocks: function () { return blockList().slice(); },
+    getBlock: function (type) { return state.blocks[String(type || "")] || null; },
+    hasBlock: function (type) { return !!state.blocks[String(type || "")]; },
     getSettings: function (id) { return mergedSettings(String(id || "")); },
     applySettings: function (id, settings, opts) {
       var pid = String(id || "");

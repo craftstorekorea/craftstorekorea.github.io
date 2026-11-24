@@ -25,7 +25,7 @@
   "use strict";
 
   var NS = "http://www.w3.org/2000/svg";
-  var VERSION = "2.0";
+  var VERSION = "2.1";
   var HISTORY_LIMIT = 20;
 
   var SBP = window.SBP || null;
@@ -96,7 +96,13 @@
     "표에 넣을 내용이 없습니다.": "This table has no rows yet.",
     "자세히 보기": "Learn more",
     "유튜브·구글 드라이브(문서) 주소만 넣을 수 있습니다.": "Only YouTube or Google Drive (Docs) links are allowed.",
-    "미리보기를 표시할 수 없습니다.": "This preview cannot be shown."
+    "미리보기를 표시할 수 없습니다.": "This preview cannot be shown.",
+    "이 블록의 플러그인이 꺼져 있거나 설치되지 않았습니다. 블록 내용은 그대로 남아 있습니다.":
+      "The plugin for this block is off or not installed. The block content is kept as it is.",
+    "이 블록의 플러그인이 꺼져 있거나 설치되지 않았습니다. 블록 내용은 그대로 남아 있으며, 플러그인을 다시 켜면 나타납니다.":
+      "The plugin for this block is off or not installed. The content is kept and appears again once the plugin is back on.",
+    "이 블록은 바꿀 값이 없습니다.": "This block has no values to change.",
+    "플러그인이 더한 블록입니다.": "A block added by a plugin."
   };
   function T(ko) {
     if (!isEn()) return ko;
@@ -247,18 +253,126 @@
   function typeDef(t) {
     var key = LEGACY[t] || t;
     for (var i = 0; i < TYPES.length; i++) if (TYPES[i].type === key) return TYPES[i];
+    return customTypeDef(key);
+  }
+
+  /* ============================================================
+     v10.4 — 플러그인이 addBlock 으로 더한 커스텀 블록
+     type 은 ‘sbp:<플러그인 id>:<블록 id>’ 이고, 플러그인이 꺼져 있어도
+     이 접두어로 알아보아 페이지에서 블록을 잃지 않습니다.
+     ============================================================ */
+  var CUSTOM_RE = /^sbp:[a-z0-9][a-z0-9_-]{0,39}:[a-z0-9][a-z0-9_-]{0,39}$/;
+
+  function isCustomType(t) { return CUSTOM_RE.test(String(t || "")); }
+
+  function sbpBlocks() {
+    try {
+      return (window.SBPress && window.SBPress.getBlocks) ? (window.SBPress.getBlocks() || []) : [];
+    } catch (e) { return []; }
+  }
+
+  function blockName(d) {
+    if (!d) return "";
+    return isEn() ? (d.name_en || d.name_ko || d.id) : (d.name_ko || d.name_en || d.id);
+  }
+
+  function customTypeDef(type) {
+    var t = String(type || "");
+    if (!isCustomType(t)) return null;
+    var d = null;
+    try { d = (window.SBPress && window.SBPress.getBlock) ? window.SBPress.getBlock(t) : null; } catch (e) { d = null; }
+    if (!d) return null;
+    return {
+      type: t, label: blockName(d), icon: "doc",
+      desc: (isEn() ? "Block added by a plugin." : "플러그인이 더한 블록입니다."),
+      defaults: d.defaultData || {}, custom: true, plugin: d.plugin,
+      fields: Array.isArray(d.fields) ? d.fields : [], render: d.render,
+      name_ko: d.name_ko, name_en: d.name_en
+    };
+  }
+
+  /* 커스텀 블록의 값 — 스키마(fields)에 있는 칸만, 형식에 맞게 다듬습니다. */
+  function customProps(def, src, base) {
+    var p = base || {};
+    (def.fields || []).forEach(function (f) {
+      if (!f || !f.key) return;
+      var v = src[f.key];
+      if (v === undefined) { if (p[f.key] === undefined) p[f.key] = f.default; return; }
+      if (f.type === "number") {
+        var n = Number(v);
+        if (!isFinite(n)) n = Number(f.default) || 0;
+        if (typeof f.min === "number" && n < f.min) n = f.min;
+        if (typeof f.max === "number" && n > f.max) n = f.max;
+        p[f.key] = n;
+      } else if (f.type === "boolean") {
+        p[f.key] = v === true;
+      } else if (f.type === "select") {
+        var ok = (f.options || []).some(function (o) { return o.value === String(v); });
+        p[f.key] = ok ? String(v) : String(f.default == null ? "" : f.default);
+      } else {
+        p[f.key] = str(v).slice(0, Math.max(1, Math.min(2000, f.maxlength || 2000)));
+      }
+    });
+    return p;
+  }
+
+  /* 커스텀 블록을 그립니다. 플러그인이 없으면 null(공개 페이지) 또는 안내(편집 미리보기). */
+  function renderCustom(b, opts) {
+    var def = customTypeDef(b.type);
+    if (!def) {
+      if (!(opts && opts.placeholder)) return null;
+      var miss = el("section", "hm-block hm-block-missing");
+      miss.setAttribute("data-block", b.type);
+      miss.innerHTML = '<p class="hm-missing-note">' + esc(T("이 블록의 플러그인이 꺼져 있거나 설치되지 않았습니다. 블록 내용은 그대로 남아 있습니다.")) + "</p>";
+      return miss;
+    }
+    var out = null;
+    try {
+      out = def.render(b.props || {}, {
+        esc: esc,
+        getSettings: function () {
+          try { return (window.SBPress && window.SBPress.getSettings) ? window.SBPress.getSettings(def.plugin) : {}; }
+          catch (e) { return {}; }
+        },
+        type: b.type
+      });
+    } catch (e) { out = null; }
+    if (out == null) return null;
+    if (typeof out === "string") {
+      var wrap = document.createElement("div");
+      wrap.textContent = out;                      // 문자열은 글자로만 넣습니다(안전)
+      return wrap;
+    }
+    if (out.nodeType === 1) return out;
     return null;
   }
 
   var idSeq = 0;
   function blockId() { idSeq += 1; return "b" + Date.now().toString(36).slice(-4) + idSeq.toString(36); }
 
-  /* 저장된 값을 안전한 모양으로 다듬습니다(모르는 종류는 버립니다). */
+  /* 저장된 값을 안전한 모양으로 다듬습니다(모르는 종류는 버립니다).
+     v10.4 — ‘sbp:’ 커스텀 블록은 플러그인이 꺼져 있어도 버리지 않고 보존합니다. */
   function normalize(raw) {
     if (!raw || typeof raw !== "object") return null;
-    var def = typeDef(raw.type);
-    if (!def) return null;
+    var rawType = str(raw.type).slice(0, 90);
+    var def = typeDef(rawType);
     var src = (raw.props && typeof raw.props === "object") ? raw.props : raw;
+    if (!def) {
+      if (!isCustomType(rawType)) return null;
+      /* 플러그인 미설치·꺼짐 — 값을 글자·숫자·참거짓만 남겨 블록을 지킵니다. */
+      var kept = {};
+      Object.keys(src).slice(0, 40).forEach(function (k) {
+        if (k === "images" || k === "rows" || k === "columns") return;
+        var v = src[k];
+        if (typeof v === "string") kept[k] = v.slice(0, 2000);
+        else if (typeof v === "number" || typeof v === "boolean") kept[k] = v;
+      });
+      return {
+        id: str(raw.id || "").slice(0, 40) || blockId(),
+        type: rawType, props: kept,
+        hidden: raw.hidden === true, locked: raw.locked === true
+      };
+    }
     var p = {};
     for (var k in def.defaults) if (def.defaults.hasOwnProperty(k)) p[k] = def.defaults[k];
     for (var k2 in src) {
@@ -274,6 +388,10 @@
       hidden: raw.hidden === true,
       locked: raw.locked === true
     };
+    if (def.custom) {
+      b.props = customProps(def, src, p);
+      return b;
+    }
     if (def.type === "latest" || def.type === "popular") {
       p.board = str(p.board || "all").slice(0, 60) || "all";
       p.count = Math.round(clamp(p.count, 1, 12, 3));
@@ -643,8 +761,9 @@
     return sec;
   }
 
-  /* 페이지의 블록을 순서대로 그립니다. 그린 블록 수를 돌려줍니다. */
-  function render(container, page) {
+  /* 페이지의 블록을 순서대로 그립니다. 그린 블록 수를 돌려줍니다.
+     opts.placeholder — 편집 미리보기에서 플러그인이 꺼진 블록을 안내로 보여 줍니다. */
+  function render(container, page, opts) {
     if (!container) return 0;
     container.innerHTML = "";
     var blocks = parseBlocks(page && page.blocks);
@@ -662,10 +781,11 @@
         else if (b.type === "table") node = renderTable(b);
         else if (b.type === "cta") node = renderCta(b);
         else if (b.type === "embed") node = renderEmbed(b);
+        else if (isCustomType(b.type)) node = renderCustom(b, opts);
       } catch (e) { node = null; }
-      if (node) { node.setAttribute("data-block", b.type); container.appendChild(node); drawn++; }
+      if (node) { node.setAttribute("data-block", b.type); container.appendChild(node); if (!node.classList.contains("hm-block-missing")) drawn++; }
     });
-    container.hidden = drawn === 0;
+    container.hidden = drawn === 0 && !container.querySelector(".hm-block-missing");
     return drawn;
   }
 
@@ -699,7 +819,7 @@
     if (u) { u.disabled = !editorState.undo.length; u.setAttribute("data-count", String(editorState.undo.length)); }
     if (r) { r.disabled = !editorState.redo.length; r.setAttribute("data-count", String(editorState.redo.length)); }
     var n = root.querySelector("[data-hmcount]");
-    if (n) n.textContent = editorState.blocks.length + " / 9";
+    if (n) n.textContent = editorState.blocks.length + " / " + (TYPES.length + sbpBlocks().length);
   }
 
   function field(label, name, value, opts) {
@@ -738,6 +858,7 @@
   function blockFields(b, i, opts) {
     var p = b.props || {};
     var dis = !!b.locked;
+    if (isCustomType(b.type)) return customBlockFields(b, p, dis);
     if (b.type === "latest" || b.type === "popular") {
       var boards = [["all", "전체 게시판"]].concat((opts.boards || []).map(function (x) { return [x.slug, x.name]; }));
       return '<div class="hm-grid2">' +
@@ -816,7 +937,78 @@
 
   function typeLabel(b) {
     var def = typeDef(b.type);
-    return def ? def.label : b.type;
+    if (def) return def.label;
+    return b.type;      // 플러그인이 꺼진 커스텀 블록 — 종류 키를 그대로 보여 줍니다
+  }
+
+  /* ---------- v10.4 — 커스텀 블록 편집 폼 · 팔레트 ---------- */
+  function paletteTypes() {
+    var out = TYPES.slice();
+    sbpBlocks().forEach(function (d) {
+      if (!d || !isCustomType(d.type)) return;
+      out.push({
+        type: d.type, label: blockName(d), icon: "doc", custom: true,
+        desc: (isEn() ? "Block added by a plugin: " : "플러그인이 더한 블록: ") + blockName(d)
+      });
+    });
+    return out;
+  }
+
+  function fieldLabel(f) {
+    return isEn() ? (f.label_en || f.label_ko || f.key) : (f.label_ko || f.label_en || f.key);
+  }
+
+  function fieldHelp(f) {
+    var h = isEn() ? (f.help_en || "") : (f.help_ko || "");
+    return h ? '<p class="hm-help">' + esc(h) + "</p>" : "";
+  }
+
+  function fieldPlaceholder(f) {
+    return isEn() ? (f.placeholder_en || "") : (f.placeholder_ko || "");
+  }
+
+  function customBlockFields(b, p, dis) {
+    var def = customTypeDef(b.type);
+    if (!def) {
+      var plugin = isCustomType(b.type) ? b.type.split(":")[1] : "";
+      return '<p class="hm-missing-note">' + esc(T("이 블록의 플러그인이 꺼져 있거나 설치되지 않았습니다. 블록 내용은 그대로 남아 있으며, 플러그인을 다시 켜면 나타납니다.")) +
+        (plugin ? ' <code>' + esc(plugin) + "</code>" : "") + "</p>";
+    }
+    if (!def.fields.length) return '<p class="hm-help">' + esc(T("이 블록은 바꿀 값이 없습니다.")) + "</p>";
+    return def.fields.map(function (f) {
+      var label = esc(fieldLabel(f));
+      var help = fieldHelp(f);
+      if (f.type === "boolean") {
+        return '<label class="hm-field hm-check"><span>' + label + "</span>" +
+          '<input type="checkbox" data-hmf="' + esc(f.key) + '"' + (p[f.key] === false ? "" : " checked") +
+          (dis ? " disabled" : "") + ">" + help + "</label>";
+      }
+      if (f.type === "select") {
+        var opts2 = (f.options || []).map(function (o) {
+          return [o.value, isEn() ? (o.label_en || o.label_ko || o.value) : (o.label_ko || o.label_en || o.value)];
+        });
+        return '<label class="hm-field"><span>' + label + "</span>" +
+          '<select data-hmf="' + esc(f.key) + '"' + (dis ? " disabled" : "") + ">" +
+          opts2.map(function (o) {
+            return '<option value="' + edEsc(o[0]) + '"' + (String(o[0]) === String(p[f.key]) ? " selected" : "") + ">" + edEsc(o[1]) + "</option>";
+          }).join("") + "</select>" + help + "</label>";
+      }
+      var id = "hmf-" + f.key + "-" + Math.random().toString(36).slice(2, 7);
+      var dis2 = dis ? " disabled" : "";
+      var ph = edEsc(fieldPlaceholder(f));
+      var input;
+      if (f.type === "textarea") {
+        input = '<textarea id="' + id + '" data-hmf="' + esc(f.key) + '" rows="3" maxlength="' + (f.maxlength || 2000) +
+          '" placeholder="' + ph + '"' + dis2 + ">" + edEsc(p[f.key]) + "</textarea>";
+      } else {
+        input = '<input id="' + id + '" data-hmf="' + esc(f.key) + '" type="' + (f.type === "number" ? "number" : "text") + '"' +
+          (f.type === "number"
+            ? ' min="' + (f.min == null ? "" : f.min) + '" max="' + (f.max == null ? "" : f.max) + '" step="' + (f.step || 1) + '"'
+            : ' maxlength="' + (f.maxlength || 200) + '"') +
+          ' value="' + edEsc(p[f.key]) + '" placeholder="' + ph + '"' + dis2 + ">";
+      }
+      return '<label class="hm-field"><span>' + label + "</span>" + input + help + "</label>";
+    }).join("");
   }
 
   function renderEditor() {
@@ -837,14 +1029,16 @@
     }
     html += '<div class="hm-block-list" role="list" data-hmlist>' + blocks.map(function (b, i) {
       var def = typeDef(b.type) || { label: b.type, icon: "doc" };
-      var cls = "hm-block-card" + (b.hidden ? " is-hidden" : "") + (b.locked ? " is-locked" : "");
+      var missing = isCustomType(b.type) && !def;
+      var cls = "hm-block-card" + (b.hidden ? " is-hidden" : "") + (b.locked ? " is-locked" : "") + (missing ? " is-missing" : "");
       return '<article class="' + cls + '" data-i="' + i + '" data-id="' + edEsc(b.id) + '" data-type="' + edEsc(b.type) + '" role="listitem" ' +
         'aria-label="' + (i + 1) + "번째 블록 — " + edEsc(def.label) + '">' +
         '<header class="hm-block-head">' +
           '<button type="button" class="hm-drag" data-hmdrag aria-label="' + (i + 1) + '번째 블록 끌어서 순서 바꾸기">⣿</button>' +
           '<span class="hm-block-no">' + (i + 1) + "</span>" +
           '<span class="hm-block-type"><svg width="15" height="15" aria-hidden="true"><use href="#i-' + edEsc(def.icon) + '"/></svg>' +
-            edEsc(def.label) + ' <code>' + edEsc(b.type) + "</code>" +
+            edEsc(def.label) + (def.custom ? ' <span class="hm-plugin-badge">플러그인</span>' : "") + ' <code>' + edEsc(b.type) + "</code>" +
+            (missing ? ' <span class="hm-state">플러그인 꺼짐</span>' : "") +
             (b.hidden ? ' <span class="hm-state">숨김</span>' : "") +
             (b.locked ? ' <span class="hm-state lock">잠금</span>' : "") + "</span>" +
           '<span class="hm-block-tools">' +
@@ -858,9 +1052,10 @@
         '<div class="hm-block-body"' + (b.locked ? ' aria-disabled="true"' : "") + '>' + blockFields(b, i, opts) + "</div></article>";
     }).join("") + "</div>";
     html += '<div class="hm-add"><span class="hm-add-label">hunmin 블록 추가</span>' +
-      TYPES.map(function (t) {
-        return '<button type="button" class="hm-add-btn" data-hmadd="' + t.type + '" title="' + edEsc(t.desc) + '">' +
-          '<svg width="15" height="15" aria-hidden="true"><use href="#i-' + t.icon + '"/></svg>' + edEsc(t.label) + "</button>";
+      paletteTypes().map(function (t) {
+        return '<button type="button" class="hm-add-btn' + (t.custom ? " is-plugin" : "") + '" data-hmadd="' + edEsc(t.type) + '" title="' + edEsc(t.desc) + '">' +
+          '<svg width="15" height="15" aria-hidden="true"><use href="#i-' + t.icon + '"/></svg>' + edEsc(t.label) +
+          (t.custom ? ' <span class="hm-plugin-badge">플러그인</span>' : "") + "</button>";
       }).join("") + "</div>";
     root.innerHTML = html;
     editorState.list = root.querySelector("[data-hmlist]");
@@ -885,7 +1080,7 @@
       try {
         var page = editorState.opts.page || {};
         var pg = { images: page.images || [], blocks: serialize(editorState.blocks) };
-        render(box, pg);
+        render(box, pg, { placeholder: true });
       } catch (e) { /* 미리보기는 실패해도 편집을 막지 않습니다 */ }
     }, 60);
   }
@@ -918,6 +1113,17 @@
       if (b.type === "table" && (key === "columns_text" || key === "rows_text")) {
         b.props[key] = t.value;
         applyTableText(b.props);
+        changed();
+        return;
+      }
+      if (t.type === "checkbox") {
+        b.props[key] = !!t.checked;
+        changed();
+        return;
+      }
+      if (t.type === "number") {
+        var nv = parseInt(t.value, 10);
+        b.props[key] = isFinite(nv) ? nv : 0;
         changed();
         return;
       }
@@ -1257,6 +1463,8 @@
     name: "hunmin",
     version: VERSION,
     types: TYPES,
+    palette: paletteTypes,
+    blocks: sbpBlocks,
     normalize: normalize,
     normalizeList: normalizeList,
     parseBlocks: parseBlocks,
@@ -1265,4 +1473,19 @@
     render: render,
     editor: editor
   };
+
+  /* v10.4 — 플러그인이 늦게 로드되면(addBlock) 편집기의 팔레트를 다시 그립니다.
+     이미 만든 블록·입력값은 그대로 두고 팔레트와 미리보기만 새로 그립니다. */
+  document.addEventListener("sbpress:blocks", function () {
+    /* 공개 페이지 — 플러그인이 늦게 붙으면 보이던 페이지를 다시 그립니다. */
+    try {
+      if (window.CRAFT_APP && window.CRAFT_APP.refreshPageBlocks
+          && /^#\/?page\//.test(location.hash || "")) window.CRAFT_APP.refreshPageBlocks();
+    } catch (e) { /* 페이지가 아직 없으면 그냥 넘어갑니다 */ }
+    if (!editorState.root || !document.body.contains(editorState.root)) return;
+    try {
+      renderEditor();
+      schedulePreview();
+    } catch (e) { /* 팔레트를 다시 그리지 못해도 편집은 계속됩니다 */ }
+  });
 })();
