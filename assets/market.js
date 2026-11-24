@@ -23,7 +23,7 @@
 
   var seq = 0;
   var INSTANCES = [];
-  var HOOK_ORDER = ["menu", "card", "widget", "admin-tab", "css", "settings"];
+  var HOOK_ORDER = ["menu", "card", "widget", "admin-tab", "css", "settings", "block"];
 
   /* ---------------- 문구 (KO · EN) ---------------- */
   var L = {
@@ -335,7 +335,9 @@
     "ui:floating": { ko: "화면 위에 떠 있는 버튼을 그립니다.", en: "Draws a button floating over the page." },
     "ui:home-top": { ko: "홈 맨 위에 배너 영역을 그립니다.", en: "Draws a banner area at the top of home." },
     "css:inject": { ko: "사이트에 스타일(CSS)을 더합니다.", en: "Adds style rules (CSS) to the site." },
-    "nav:menu": { ko: "헤더 메뉴에 항목을 더합니다.", en: "Adds an item to the header menu." }
+    "nav:menu": { ko: "헤더 메뉴에 항목을 더합니다.", en: "Adds an item to the header menu." },
+    "ui:block": { ko: "hunmin 페이지에 블록을 그립니다.", en: "Draws a block on hunmin pages." },
+    "read:block-data": { ko: "관리자가 입력한 블록 값을 읽습니다.", en: "Reads the block values the admin entered." }
   };
 
   var CAT_FALLBACK = {
@@ -670,7 +672,7 @@
     var M = {
       menu: { ko: "메뉴", en: "Menu" }, card: { ko: "카드", en: "Card" }, widget: { ko: "위젯", en: "Widget" },
       "admin-tab": { ko: "관리자 탭", en: "Admin tab" }, css: { ko: "CSS", en: "CSS" },
-      settings: { ko: "설정", en: "Settings" }
+      settings: { ko: "설정", en: "Settings" }, block: { ko: "블록", en: "Block" }
     };
     var x = M[h];
     if (!x) return h;
