@@ -2522,9 +2522,12 @@
     sans: "'Helvetica Neue',Arial,'Malgun Gothic',sans-serif"
   };
   function hexOk(v) { return /^#[0-9a-f]{6}$/i.test(String(v || "").trim()); }
+  /* v10.8 — 테마 마켓 토큰 — 기본 3색 외에 표면·선·보조 글자색까지 담습니다(v:2). */
+  var TOKEN_EXTRA = ["surface", "bg2", "ink2", "ink3", "line", "line2", "accentDark", "accentSoft"];
+  var TOKEN_PRESETS = { magazine: 1, craft: 1, org: 1 };
   function parseTokens(raw) {
     var out = { accent: THEME_TOKENS.accent, bg: THEME_TOKENS.bg, ink: THEME_TOKENS.ink,
-      radius: THEME_TOKENS.radius, fontStack: THEME_TOKENS.fontStack };
+      radius: THEME_TOKENS.radius, fontStack: THEME_TOKENS.fontStack, extras: {} };
     var v = raw;
     if (typeof raw === "string") {
       try { v = JSON.parse(raw); } catch (e) { v = null; }
@@ -2536,19 +2539,65 @@
     var r = parseInt(v.radius, 10);
     if (isFinite(r)) out.radius = Math.max(0, Math.min(32, r));
     if (v.fontStack && THEME_FONT_CSS[v.fontStack]) out.fontStack = v.fontStack;
+    TOKEN_EXTRA.forEach(function (k) {
+      if (hexOk(v[k])) out.extras[k] = String(v[k]).toUpperCase();
+    });
+    if (TOKEN_PRESETS[v.preset]) out.extras.preset = v.preset;
     return out;
   }
   function tokensJson(t) {
-    return JSON.stringify({ v: 1, accent: t.accent, bg: t.bg, ink: t.ink, radius: t.radius, fontStack: t.fontStack });
+    var o = { v: 2, accent: t.accent, bg: t.bg, ink: t.ink, radius: t.radius, fontStack: t.fontStack };
+    var ex = t.extras || {};
+    TOKEN_EXTRA.concat(["preset"]).forEach(function (k) {
+      if (ex[k]) o[k] = ex[k];
+    });
+    return JSON.stringify(o);
   }
-  function paintTokensPreview(t) {
+  /* 토큰을 :root 변수로 — 색은 #RRGGBB, 모서리는 숫자, 글꼴은 정해진 이름만이라 CSS 주입이 될 수 없습니다. */
+  function tokenRgb(hex) {
+    var m = /^#([0-9a-f]{6})$/i.exec(String(hex || ""));
+    if (!m) return null;
+    var n = parseInt(m[1], 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  function tokenShade(hex, f) {
+    var rgb = tokenRgb(hex);
+    if (!rgb) return "";
+    return "#" + rgb.map(function (c) {
+      var x = f < 0 ? c * (1 + f) : c + (255 - c) * f;
+      x = Math.max(0, Math.min(255, Math.round(x)));
+      return (x < 16 ? "0" : "") + x.toString(16);
+    }).join("").toUpperCase();
+  }
+  function applyTokensToRoot(t) {
     var root = document.documentElement;
+    var ex = t.extras || {};
     root.style.setProperty("--accent", t.accent);
+    root.style.setProperty("--accent-d", ex.accentDark || tokenShade(t.accent, -0.18));
+    root.style.setProperty("--accent-s", ex.accentSoft || tokenShade(t.accent, 0.86));
     root.style.setProperty("--bg", t.bg);
+    root.style.setProperty("--bg-2", ex.bg2 || tokenShade(t.bg, -0.05));
+    root.style.setProperty("--card", ex.surface || "#FFFDFB");
     root.style.setProperty("--ink", t.ink);
+    root.style.setProperty("--ink-2", ex.ink2 || tokenShade(t.ink, 0.32));
+    root.style.setProperty("--ink-3", ex.ink3 || tokenShade(t.ink, 0.45));
+    if (ex.line) root.style.setProperty("--line", ex.line);
+    if (ex.line2) root.style.setProperty("--line-2", ex.line2);
+    else if (ex.line) root.style.setProperty("--line-2", tokenShade(ex.line, -0.12));
     root.style.setProperty("--r", t.radius + "px");
     root.style.setProperty("--r-s", Math.max(0, t.radius - 6) + "px");
     root.style.setProperty("--font-head", THEME_FONT_CSS[t.fontStack]);
+    var rgb = tokenRgb(t.bg);
+    if (rgb) {
+      root.style.setProperty("--hero-rgb", rgb.join(","));
+      root.style.setProperty("--header-bg", "rgba(" + rgb.join(",") + ",.82)");
+    }
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", t.accent);
+    root.setAttribute("data-accent", t.accent);
+  }
+  function paintTokensPreview(t) {
+    applyTokensToRoot(t);
     var json = $("#tt-json");
     if (json) json.textContent = tokensJson(t);
   }
@@ -5820,7 +5869,14 @@
         sbpress: meta.sbpress || "",
         name: meta.name || "",
         installed: plugById,
-        onInstall: function (id, btn, cb, consent) { installFromMarket(id, btn, consent); },
+        onInstall: function (id, btn, cb, consent) { installFromMarket(id, btn, consent, cb); },
+        onApplyTheme: function (theme, cb) { applyThemeFromMarket(theme, cb); },
+        onApplyBundle: function (bundle, opts, progress, done) {
+          applyBundleFromMarket(bundle, opts, progress, function (err, info) {
+            renderMarket();
+            done(err, info);
+          });
+        },
         onToggle: function (id) { var p = plugById(id); setPluginEnabled(id, !(p && p.enabled)); },
         onUpdate: function (id, btn, cb, consent) { updatePlugin(id, btn, cb, consent); },
         onUpdateAll: function (ids, cb) { updateAllPlugins(ids, cb); },
@@ -5880,16 +5936,18 @@
     try { if (window.SBP_MARKET) window.SBP_MARKET.setMarketMessage(text, kind); } catch (e) { /* noop */ }
   }
 
-  function installFromMarket(id, btn, consent) {
+  function installFromMarket(id, btn, consent, cb) {
+    var done = typeof cb === "function" ? cb : function () {};
     var item = null;
     (plugMarket.list || []).forEach(function (p) { if (p.id === id) item = p; });
-    if (!item) return;
+    if (!item) { done("‘" + id + "’ 플러그인을 마켓 목록에서 찾지 못했습니다."); return; }
     if (btn) { btn.disabled = true; btn.textContent = "설치하는 중…"; }
     var url = marketAbs(item.script_url);
     verifyPluginFile(url, function (scan) {
       if (!scan.ok) {
         if (btn) { btn.disabled = false; btn.textContent = "설치 및 켜기"; }
         plugMsg("‘" + (item.name || item.id) + "’ 을 설치하지 않았습니다 — " + scan.reasons.join(", "), "err");
+        done("‘" + (item.name || item.id) + "’ 설치를 막았습니다(" + scan.reasons.join(", ") + ").");
         return;
       }
       var payload = {
@@ -5907,6 +5965,7 @@
         if (btn) { btn.disabled = false; btn.textContent = "설치 및 켜기"; }
         if (r && r.error) {
           plugMsg("설치하지 못했습니다: " + r.error.message, "err");
+          done("‘" + (item.name || item.id) + "’ 설치 실패: " + r.error.message);
           return;
         }
         var doneMsg = "‘" + (item.name || item.id) + "’ 플러그인을 설치하고 켰습니다. 사이트를 새로고침해 확인하세요.";
@@ -5917,8 +5976,198 @@
         countInstall(item.id, 1);
         reloadEngine();
         loadPlugins(false);
+        done("");
       });
     });
+  }
+
+  /* ==========================================================================
+     v10.8 — 테마 마켓 · 업종별 번들 팩
+     · 테마  — 프리셋 토큰을 site_contents 의 theme.tokens(theme.preset)에 저장하고 바로 적용합니다.
+     · 번들  — 테마 → (v10.5 권한 동의를 거친) 플러그인 설치 → hunmin 홈 블록 프리셋 순서로 진행하고
+              29_v108 의 apply_bundle_preset RPC 로 audit_logs 에 bundle_apply 를 남깁니다.
+     ========================================================================== */
+  function tokensFromMarket(theme) {
+    var tk = (theme && theme.tokens) || {};
+    function pick(a, b) { return tk[a] != null ? tk[a] : (b ? tk[b] : ""); }
+    return parseTokens({
+      accent: pick("--accent", "accent"), bg: pick("--bg", "bg"), ink: pick("--text", "ink"),
+      radius: pick("--radius", "radius"), fontStack: pick("--font", "fontStack"),
+      surface: pick("--surface", "surface"), bg2: pick("--bg-2", "bg2"),
+      ink2: pick("--text-2", "ink2"), ink3: pick("--text-3", "ink3"),
+      line: pick("--line", "line"), line2: pick("--line-2", "line2"),
+      accentDark: pick("--accent-dark", "accentDark"), accentSoft: pick("--accent-soft", "accentSoft"),
+      preset: pick("--preset", "preset")
+    });
+  }
+
+  function applyThemeFromMarket(theme, cb) {
+    var done = typeof cb === "function" ? cb : function () {};
+    if (!sb) { done("Supabase 연결이 없습니다."); return; }
+    var t = tokensFromMarket(theme);
+    if (!hexOk(t.accent) || !hexOk(t.bg)) { done("테마 토큰이 올바르지 않습니다."); return; }
+    sb.from("site_contents").upsert({
+      key: "theme.tokens", section: "테마 · 디자인",
+      label: "테마 토큰 (accent · bg · ink · radius · fontStack — CSS 직접 주입 없이 변수로 적용)",
+      value: tokensJson(t), image_url: null
+    }, { onConflict: "key" }).then(function (r) {
+      if (r.error) { done("테마를 저장하지 못했습니다: " + r.error.message); return; }
+      applyTokensToRoot(t);
+      fillTokenForm(t);
+      var preset = (t.extras && t.extras.preset) || "";
+      if (!TOKEN_PRESETS[preset]) { done(""); return; }
+      sb.from("site_contents").upsert({
+        key: "theme.preset", section: "테마 · 디자인",
+        label: "테마 프리셋 (magazine = 매거진형 / craft = 공방·쇼케이스형 / org = 기관 소개형)",
+        value: preset, image_url: null
+      }, { onConflict: "key" }).then(function (r2) {
+        if (!r2.error) {
+          CMS_THEME = preset;
+          document.body.setAttribute("data-theme", preset);
+          try { renderThemePicks(); } catch (e) { /* noop */ }
+        }
+        done("");
+      }, function () { done(""); });
+    }, function (e) {
+      done("테마를 저장하지 못했습니다: " + (e && e.message ? e.message : e));
+    });
+  }
+
+  /* 홈 블록 프리셋 — site_contents 의 home.blocks(hunmin JSON). 이전 구성은 브라우저에 백업합니다. */
+  var HOME_BLOCK_LS = "sbpress-home-blocks-backup";
+  function applyHomeBlocks(preset, cb) {
+    var done = typeof cb === "function" ? cb : function () {};
+    var raw = preset && Array.isArray(preset.items) ? preset.items : preset;
+    var list = [];
+    if (window.CRAFT_HUNMIN && window.CRAFT_HUNMIN.normalizeList) list = window.CRAFT_HUNMIN.normalizeList(raw || []);
+    else if (Array.isArray(raw)) list = raw.slice();
+    if (!list.length) { done("홈 블록 프리셋이 비어 있습니다."); return; }
+    if (!sb) { done("Supabase 연결이 없습니다."); return; }
+    var value = JSON.stringify({ v: 1, items: list });
+
+    function save() {
+      sb.from("site_contents").upsert({
+        key: "home.blocks", section: "홈",
+        label: "홈 블록 (hunmin) — 업종별 번들 팩 프리셋 · 비우면 기본 홈 구성",
+        value: value, image_url: null
+      }, { onConflict: "key" }).then(function (r) {
+        if (r.error) { done("홈 블록을 저장하지 못했습니다: " + r.error.message); return; }
+        try { reloadEngine(); } catch (e) { /* noop */ }
+        done("", list.length);
+      }, function (e) {
+        done("홈 블록을 저장하지 못했습니다: " + (e && e.message ? e.message : e));
+      });
+    }
+    sb.from("site_contents").select("key,value").eq("key", "home.blocks").then(function (r) {
+      var row = (!r.error && r.data) ? r.data[0] : null;
+      try { if (row && row.value) localStorage.setItem(HOME_BLOCK_LS, String(row.value)); } catch (e) { /* noop */ }
+      save();
+    }, function () { save(); });
+  }
+
+  function pluginItemsForBundle(bundle) {
+    var out = [];
+    (bundle.plugin_slugs || []).forEach(function (slug) {
+      if (plugById(slug)) return;                       // 이미 설치됨 — 건너뜁니다
+      var item = null;
+      (plugMarket.list || []).forEach(function (p) { if (p.id === slug) item = p; });
+      if (item) out.push(item);
+    });
+    return out;
+  }
+
+  /* 29_v108 을 실행하지 않은 DB — 적용 기록은 이 브라우저에 남겨 두고 화면이 안내합니다. */
+  var BUNDLE_LS = "sbpress-bundle-applies";
+  function localBundleApply(bundle, info, opts) {
+    try {
+      var list = JSON.parse(localStorage.getItem(BUNDLE_LS) || "[]");
+      if (!Array.isArray(list)) list = [];
+      list.unshift({ slug: bundle.slug, version: bundle.version || "",
+        theme_slug: opts.theme ? (bundle.theme_slug || "") : "",
+        plugin_count: info.plugins || 0,
+        blocks: info.blocks == null ? 0 : info.blocks,
+        at: new Date().toISOString() });
+      localStorage.setItem(BUNDLE_LS, JSON.stringify(list.slice(0, 50)));
+    } catch (e) { /* 저장소 차단 — 기록 없이 진행 */ }
+    info.auditMissing = true;
+    info.auditLocal = true;
+  }
+  function auditBundleApply(bundle, info, opts, next) {
+    if (!sb || typeof sb.rpc !== "function") { localBundleApply(bundle, info, opts); next(); return; }
+    sb.rpc("apply_bundle_preset", {
+      p_bundle_slug: bundle.slug,
+      p_apply_theme: !!opts.theme && !!bundle.theme_slug,
+      p_plugin_count: info.plugins || 0
+    }).then(function (r) {
+      if (r.error) {
+        if (isMissingFn(r.error) || /apply_bundle_preset/i.test(String(r.error.message || ""))) {
+          localBundleApply(bundle, info, opts);
+        }
+      }
+      next();
+    }, function () { localBundleApply(bundle, info, opts); next(); });
+  }
+
+  function applyBundleFromMarket(bundle, opts, progress, done) {
+    opts = opts || {};
+    var step = typeof progress === "function" ? progress : function () {};
+    var end = typeof done === "function" ? done : function () {};
+    var info = { theme: "", plugins: 0, blocks: null, note: "", auditMissing: false };
+    var queue = [];
+
+    if (opts.theme && bundle.theme_slug) {
+      queue.push(function (next) {
+        step("bndStepTheme", {});
+        var th = (window.SBP_MARKET && window.SBP_MARKET.themeBySlug)
+          ? window.SBP_MARKET.themeBySlug(bundle.theme_slug) : null;
+        if (!th) { next(); return; }
+        applyThemeFromMarket(th, function (err) {
+          if (!err) info.theme = (th.name || bundle.theme_slug);
+          else info.note = (info.note ? info.note + " " : "") + err;
+          next();
+        });
+      });
+    }
+
+    var items = pluginItemsForBundle(bundle);
+    if (opts.plugins && items.length) {
+      queue.push(function (next) {
+        var i = 0;
+        (function one() {
+          if (i >= items.length) { next(); return; }
+          var item = items[i];
+          i += 1;
+          step("bndStepPlugin", { i: i, n: items.length, name: item.name || item.id });
+          var consent = {
+            granted: Array.isArray(item.permissions) ? item.permissions.slice(0, 12) : [],
+            integrity: item.integrity || "", mode: "strict"
+          };
+          installFromMarket(item.id, null, consent, function (err) {
+            if (!err) info.plugins += 1;
+            else info.note = (info.note ? info.note + " " : "") + err;
+            one();
+          });
+        })();
+      });
+    }
+
+    if (opts.blocks && bundle.blocks_preset) {
+      queue.push(function (next) {
+        step("bndStepBlocks", {});
+        applyHomeBlocks(bundle.blocks_preset, function (err, n) {
+          if (!err) info.blocks = n;
+          else { info.blocks = 0; info.note = (info.note ? info.note + " " : "") + err; }
+          next();
+        });
+      });
+    }
+
+    queue.push(function (next) { auditBundleApply(bundle, info, opts, next); });
+
+    (function run(i) {
+      if (i >= queue.length) { end("", info); return; }
+      queue[i](function () { run(i + 1); });
+    })(0);
   }
 
   /* v10.6 — 심사에서 승인된 제출을 바로 설치합니다.

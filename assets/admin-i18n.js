@@ -1557,7 +1557,8 @@
   "별점 · 리뷰 · 설치 통계": "Ratings · reviews · install stats",
   "설치 수를 서버에 남기지 못했습니다: ": "Could not record the install count on the server: ",
   "리뷰를 저장하지 못했습니다": "Could not save the review",
-  "28_v107 SQL 을 실행하면 리뷰·통계가 서버에 저장됩니다.": "Run the 28_v107 SQL to store reviews and stats on the server."
+  "28_v107 SQL 을 실행하면 리뷰·통계가 서버에 저장됩니다.": "Run the 28_v107 SQL to store reviews and stats on the server.",
+  "테마 마켓 · 업종별 번들 팩 — 마켓 위쪽 탭에서 「테마 마켓」과 「업종별 번들 팩」을 엽니다. 테마는 색·모서리·글꼴 토큰만 담아 「테마 적용」으로 사이트 설정(theme.tokens)에 저장하고, 「번들 일괄 적용」은 테마·플러그인(v10.5 권한 동의)·홈 블록 프리셋을 한 번에 적용합니다. Supabase theme_presets · plugin_bundles · 29_v108 SQL": "Theme market · industry bundle packs — open “Theme market” and “Bundle packs” in the tabs above the market. A theme carries only colour, corner and type tokens and “Apply theme” saves it to the site's theme tokens; “Apply bundle” applies a theme, plugins (with the v10.5 permission consent) and a home block preset in one step. Supabase theme_presets · plugin_bundles · 29_v108 SQL"
 };
   var RULES = ([
   [
@@ -2379,6 +2380,34 @@
   [
     "^‘(.+?)’ 플러그인을 설치하고 켰습니다\\. 사이트를 새로고침해 확인하세요\\. (.+)$",
     "Installed and turned on “\\1”. Reload the site to check. \\2"
+  ],
+  [
+    "^테마를 저장하지 못했습니다: (.+)$",
+    "Could not save the theme: \\1"
+  ],
+  [
+    "^테마 토큰이 올바르지 않습니다\\.$",
+    "The theme tokens are not valid."
+  ],
+  [
+    "^홈 블록을 저장하지 못했습니다: (.+)$",
+    "Could not save the home blocks: \\1"
+  ],
+  [
+    "^홈 블록 프리셋이 비어 있습니다\\.$",
+    "The home block preset is empty."
+  ],
+  [
+    "^‘(.+?)’ 설치를 막았습니다\\((.+)\\)\\.$",
+    "Blocked the install of “\\1” (\\2)."
+  ],
+  [
+    "^‘(.+?)’ 플러그인을 마켓 목록에서 찾지 못했습니다\\.$",
+    "Could not find “\\1” in the market list."
+  ],
+  [
+    "^‘(.+?)’ 설치 실패: (.+)$",
+    "Could not install “\\1”: \\2"
   ]
 ]).map(function (r) {
     /* 파이썬 쪽 규칙은 \1 로 그룹을 가리킵니다 — JS replace 는 $1 을 씁니다. */

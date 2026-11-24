@@ -1991,6 +1991,7 @@
       ? window.CRAFT_SEO.title
       : title;
     if (r.name === "map") { buildMap(); }
+    if (r.name === "home") renderHomeBlocks();
     if (scroll !== false) window.scrollTo({ top: 0, behavior: "auto" });
   }
   window.addEventListener("hashchange", function () { route(true); });
@@ -2062,6 +2063,7 @@
       if (r.name === "search") renderSearch(searchState.q, false);
       if (window.CRAFT_TASKS) window.CRAFT_TASKS.refresh();
       if (window.CRAFT_APPROVALS) window.CRAFT_APPROVALS.refresh();
+      renderHomeBlocks();
     });
   }
 
@@ -2098,12 +2100,48 @@
     if (r.name === "mypage" && window.CRAFT_MYPAGE) window.CRAFT_MYPAGE.refresh();
     renderBoardSwitch();
     if (window.CRAFT_CMS) window.CRAFT_CMS.recount();
+    renderHomeBlocks();
   }
   /* hunmin 블록이 등록 공방 목록을 쓸 수 있게 지도 데이터를 내줍니다. */
   function refreshPageBlocks() {
     var r = parseRoute();
     if (r.name === "page") renderPageView(r.arg);
   }
+  /* v10.8 — 업종별 번들 팩이 정한 홈 블록 프리셋(site_contents 의 home.blocks)을 홈에 그립니다.
+     값이 없거나 비어 있으면 홈은 지금 그대로입니다(기본 구성). */
+  function renderHomeBlocks() {
+    var box = document.getElementById("home-blocks");
+    var wrapEl = document.getElementById("home-blocks-wrap");
+    if (!box || !wrapEl) return;
+    var C = window.CRAFT_CMS;
+    var row = (C && C.contents) ? C.contents()["home.blocks"] : null;
+    var raw = row ? String(row.value || "").trim() : "";
+    var parsed = null;
+    if (raw) { try { parsed = JSON.parse(raw); } catch (e) { parsed = null; } }
+    var rawItems = parsed
+      ? (Array.isArray(parsed) ? parsed : (Array.isArray(parsed.items) ? parsed.items : []))
+      : [];
+    if (!rawItems.length) { box.innerHTML = ""; wrapEl.hidden = true; return; }
+    /* hunmin 은 페이지 화면에서만 미리 받습니다 — 홈 블록 프리셋이 있을 때만 지금 받아 그립니다. */
+    if (!window.CRAFT_HUNMIN) {
+      if (!homeBlocksLoading && window.SBP && window.SBP.loadScript) {
+        homeBlocksLoading = true;
+        window.SBP.loadScript("assets/hunmin.js").then(function () {
+          homeBlocksLoading = false;
+          renderHomeBlocks();
+        }, function () { homeBlocksLoading = false; });
+      }
+      return;
+    }
+    var list = (window.CRAFT_HUNMIN && window.CRAFT_HUNMIN.parseBlocks)
+      ? (window.CRAFT_HUNMIN.parseBlocks(parsed) || []) : rawItems;
+    if (!list.length) { box.innerHTML = ""; wrapEl.hidden = true; return; }
+    box.innerHTML = "";
+    var drawn = (window.CRAFT_HUNMIN && window.CRAFT_HUNMIN.render)
+      ? window.CRAFT_HUNMIN.render(box, { blocks: parsed, images: [] }) : 0;
+    wrapEl.hidden = !drawn;
+  }
+  var homeBlocksLoading = false;
   var offlineBack = $("#offline-reader-back");
   if (offlineBack) {
     offlineBack.addEventListener("click", function () {

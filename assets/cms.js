@@ -573,8 +573,25 @@
        값은 색 코드·숫자·글꼴 이름뿐이라 CSS 주입이 될 수 없습니다. */
     var tok = themeTokens();
     var root = document.documentElement;
-    if (tok.bg) root.style.setProperty("--bg", tok.bg);
-    if (tok.ink) root.style.setProperty("--ink", tok.ink);
+    if (tok.bg) {
+      root.style.setProperty("--bg", tok.bg);
+      root.style.setProperty("--bg-2", tok.bg2 || rgbHex(shade(hexToRgb(tok.bg) || [247, 245, 242], -0.05)));
+      var brgb = hexToRgb(tok.bg);
+      if (brgb) {
+        root.style.setProperty("--hero-rgb", brgb.join(","));
+        root.style.setProperty("--header-bg", "rgba(" + brgb.join(",") + ",.82)");
+      }
+    } else if (tok.bg2) root.style.setProperty("--bg-2", tok.bg2);
+    if (tok.surface) root.style.setProperty("--card", tok.surface);
+    if (tok.ink) {
+      root.style.setProperty("--ink", tok.ink);
+      var irgb = hexToRgb(tok.ink) || [62, 47, 38];
+      root.style.setProperty("--ink-2", tok.ink2 || rgbHex(shade(irgb, 0.32)));
+      root.style.setProperty("--ink-3", tok.ink3 || rgbHex(shade(irgb, 0.45)));
+    }
+    if (tok.line) root.style.setProperty("--line", tok.line);
+    if (tok.line2) root.style.setProperty("--line-2", tok.line2);
+    else if (tok.line) root.style.setProperty("--line-2", rgbHex(shade(hexToRgb(tok.line) || [230, 220, 209], -0.12)));
     if (tok.radius != null) {
       root.style.setProperty("--r", tok.radius + "px");
       root.style.setProperty("--r-s", Math.max(0, tok.radius - 6) + "px");
@@ -585,8 +602,8 @@
     if (!rgb) return "";
     var hex = rgbHex(rgb);
     root.style.setProperty("--accent", hex);
-    root.style.setProperty("--accent-d", rgbHex(shade(rgb, -0.18)));
-    root.style.setProperty("--accent-s", rgbHex(shade(rgb, 0.86)));
+    root.style.setProperty("--accent-d", tok.accentDark || rgbHex(shade(rgb, -0.18)));
+    root.style.setProperty("--accent-s", tok.accentSoft || rgbHex(shade(rgb, 0.86)));
     root.setAttribute("data-accent", hex);
     var th = document.querySelector('meta[name="theme-color"]');
     if (th) th.setAttribute("content", hex);
@@ -602,7 +619,8 @@
   };
   function themeTokens() {
     var raw = cval("theme.tokens");
-    var out = { accent: "", bg: "", ink: "", radius: null, fontCss: "" };
+    var out = { accent: "", bg: "", ink: "", bg2: "", surface: "", ink2: "", ink3: "",
+      line: "", line2: "", accentDark: "", accentSoft: "", radius: null, fontCss: "" };
     if (!raw) return out;
     var v = raw;
     if (typeof raw === "string") {
@@ -610,6 +628,10 @@
     }
     if (!v || typeof v !== "object") return out;
     var hex = /^#[0-9a-f]{6}$/i;
+    /* v10.8 — 테마 마켓 토큰(v:2)은 표면·선·보조 글자색까지 담습니다. */
+    ["bg2", "surface", "ink2", "ink3", "line", "line2", "accentDark", "accentSoft"].forEach(function (k) {
+      if (hex.test(String(v[k] || ""))) out[k] = String(v[k]).toUpperCase();
+    });
     if (hex.test(String(v.accent || ""))) out.accent = String(v.accent).toUpperCase();
     if (hex.test(String(v.bg || ""))) out.bg = String(v.bg).toUpperCase();
     if (hex.test(String(v.ink || ""))) out.ink = String(v.ink).toUpperCase();

@@ -410,7 +410,61 @@
       reviewNeedSql: "supabase/28_v107_plugin_reviews_stats.sql 을 실행하면 리뷰·통계가 서버에 저장됩니다. 지금은 이 브라우저에만 저장합니다.",
       statsLoadFail: "설치·평점 통계를 불러오지 못했습니다: ",
       statsNeedSql: "28_v107 SQL 을 실행하기 전이라 설치·평점 통계는 이 브라우저에만 쌓입니다.",
-      installRecordFail: "설치 수를 서버에 남기지 못했습니다: "
+      installRecordFail: "설치 수를 서버에 남기지 못했습니다: ",
+      /* v10.8 — theme market & industry bundle packs */
+      tabsAria: "마켓 종류",
+      tabPlugins: "플러그인",
+      tabThemes: "테마 마켓",
+      tabBundles: "업종별 번들 팩",
+      fIndustry: "업종",
+      themesLead: "색·모서리·글꼴을 한 번에 바꾸는 테마입니다. 「미리보기」는 이 브라우저에만 잠시 보여 주고, 「테마 적용」은 관리자가 사이트 설정(테마 토큰)에 저장해 방문자 화면에도 바로 반영합니다.",
+      bundlesLead: "업종별로 테마·플러그인·홈 블록 구성을 묶었습니다. 「번들 일괄 적용」에서 적용할 항목을 고르면 테마 저장과 플러그인 설치(권한 동의 포함), 홈 블록 프리셋 적용을 한 번에 합니다.",
+      themesEmpty: "조건에 맞는 테마가 없습니다. 업종 필터를 바꿔 보세요.",
+      bundlesEmpty: "조건에 맞는 번들이 없습니다. 업종 필터를 바꿔 보세요.",
+      catNeedSql: "29_v108 SQL 을 실행하면 테마·번들 목록을 서버에서도 읽고 적용 기록을 남깁니다. 지금은 정적 목록(themes-market.json · bundles-market.json)으로 동작합니다.",
+      fromDb: "서버",
+      preview: "미리보기",
+      previewStop: "미리보기 종료",
+      previewing: "‘{name}’ 미리보기 중",
+      previewNote: "이 브라우저에만 보이는 임시 모습입니다.",
+      themeApply: "테마 적용",
+      themeApplying: "적용하는 중…",
+      themeApplied: "‘{name}’ 테마를 저장하고 바로 적용했습니다.",
+      themeApplyFail: "테마를 적용하지 못했습니다: ",
+      applyAdminOnly: "적용은 관리자 화면에서만 할 수 있습니다.",
+      radiusShort: "모서리 {n}px",
+      bundleTheme: "테마",
+      bundlePlugins: "플러그인",
+      bundleBlocks: "홈 블록",
+      bundleNoTheme: "테마 없음",
+      bundleApply: "번들 일괄 적용",
+      bundleView: "구성 보기",
+      bundleViewNote: "구성만 보는 화면입니다. 적용은 관리자 화면에서 할 수 있습니다.",
+      bundleModalTitle: "‘{name}’ 일괄 적용",
+      bndTheme: "테마 적용",
+      bndPlugins: "플러그인 설치",
+      bndPluginsNote: "설치 예정 {n}개 · 포함 {t}개",
+      bndInstalled: "설치됨",
+      bndWillInstall: "설치 예정",
+      bndPermsHead: "설치할 플러그인이 요청하는 권한",
+      bndPermsNote: "설치할 때 이 권한을 한 번에 확인합니다. 권한 동의와 무결성 검사는 v10.5 방식 그대로입니다.",
+      bndBlocks: "홈 블록 프리셋",
+      bndBlocksNote: "블록 {n}개",
+      bndBlocksHint: "지금 홈 블록(site_contents 의 home.blocks)을 이 구성으로 바꿉니다. 이전 구성은 이 브라우저에 백업합니다.",
+      bndNoPerms: "설치할 플러그인이 없습니다.",
+      bndGo: "적용하기",
+      bndRunning: "적용하는 중…",
+      bndStepTheme: "테마를 저장하는 중…",
+      bndStepPlugin: "플러그인을 설치하는 중… ({i}/{n}) {name}",
+      bndStepBlocks: "홈 블록 프리셋을 적용하는 중…",
+      bndDone: "번들을 적용했습니다 — {list}",
+      bndDoneTheme: "테마 ‘{name}’",
+      bndDonePlugins: "플러그인 {n}개 설치",
+      bndDoneBlocks: "홈 블록 {n}개",
+      bndFail: "번들을 적용하지 못했습니다: ",
+      bndFlash: "‘{name}’ 번들을 적용했습니다.",
+      bndPickOne: "적용할 항목을 하나 이상 골라 주세요.",
+      bndAdminOnly: "번들 적용은 관리자 화면에서만 할 수 있습니다."
     },
     en: {
       eyebrow: "PLUGIN MARKET",
@@ -777,7 +831,61 @@
       reviewNeedSql: "Run supabase/28_v107_plugin_reviews_stats.sql to store reviews and stats on the server. For now they are kept in this browser only.",
       statsLoadFail: "Could not load install and rating stats: ",
       statsNeedSql: "The 28_v107 SQL has not been run, so install and rating stats are kept in this browser only.",
-      installRecordFail: "Could not record the install count: "
+      installRecordFail: "Could not record the install count: ",
+      /* v10.8 — theme market & industry bundle packs */
+      tabsAria: "Market sections",
+      tabPlugins: "Plugins",
+      tabThemes: "Theme market",
+      tabBundles: "Bundle packs",
+      fIndustry: "Industry",
+      themesLead: "Themes that change colours, corners and type at once. “Preview” shows them in this browser only; “Apply theme” saves them to the site's theme tokens so visitors see them too.",
+      bundlesLead: "Industry packs that group a theme, plugins and a home block layout. In “Apply bundle” pick what to apply and the site saves the theme, installs the plugins (with permission consent) and applies the home block preset in one step.",
+      themesEmpty: "No theme matches. Try another industry.",
+      bundlesEmpty: "No bundle matches. Try another industry.",
+      catNeedSql: "Run 29_v108 SQL to read the theme and bundle lists from the server and record applies. For now the static lists (themes-market.json · bundles-market.json) are used.",
+      fromDb: "Server",
+      preview: "Preview",
+      previewStop: "End preview",
+      previewing: "Previewing “{name}”",
+      previewNote: "Shown in this browser only.",
+      themeApply: "Apply theme",
+      themeApplying: "Applying…",
+      themeApplied: "Saved and applied the “{name}” theme.",
+      themeApplyFail: "Could not apply the theme: ",
+      applyAdminOnly: "Only an admin can apply a theme.",
+      radiusShort: "corners {n}px",
+      bundleTheme: "Theme",
+      bundlePlugins: "Plugins",
+      bundleBlocks: "Home blocks",
+      bundleNoTheme: "No theme",
+      bundleApply: "Apply bundle",
+      bundleView: "See contents",
+      bundleViewNote: "This is a read-only view. Applying needs an admin.",
+      bundleModalTitle: "Apply “{name}”",
+      bndTheme: "Apply theme",
+      bndPlugins: "Install plugins",
+      bndPluginsNote: "{n} to install · {t} in the pack",
+      bndInstalled: "Installed",
+      bndWillInstall: "Will install",
+      bndPermsHead: "Permissions the plugins ask for",
+      bndPermsNote: "These permissions are reviewed once at install. Consent and integrity checks work exactly as in v10.5.",
+      bndBlocks: "Home block preset",
+      bndBlocksNote: "{n} blocks",
+      bndBlocksHint: "Replaces the current home blocks (home.blocks in site_contents) with this layout. The previous layout is backed up in this browser.",
+      bndNoPerms: "No plugin to install.",
+      bndGo: "Apply",
+      bndRunning: "Applying…",
+      bndStepTheme: "Saving the theme…",
+      bndStepPlugin: "Installing plugins… ({i}/{n}) {name}",
+      bndStepBlocks: "Applying the home block preset…",
+      bndDone: "Bundle applied — {list}",
+      bndDoneTheme: "theme “{name}”",
+      bndDonePlugins: "{n} plugins installed",
+      bndDoneBlocks: "{n} home blocks",
+      bndFail: "Could not apply the bundle: ",
+      bndFlash: "Applied the “{name}” bundle.",
+      bndPickOne: "Choose at least one item to apply.",
+      bndAdminOnly: "Only an admin can apply a bundle."
     }
   };
 
@@ -3795,6 +3903,797 @@
     try { if (SET.lastFocus && SET.lastFocus.focus) SET.lastFocus.focus(); } catch (e) { /* noop */ }
   }
 
+  /* ============================================================================
+     v10.8 — 테마 마켓 · 업종별 번들 팩
+     ----------------------------------------------------------------------------
+     · 카탈로그는 정적 JSON(themes-market.json · bundles-market.json)에서 읽습니다.
+       29_v108 SQL 을 실행한 DB 가 있으면 theme_presets · plugin_bundles 행을 겹쳐 읽습니다.
+     · 테마 = CSS 변수 토큰만. 「미리보기」는 이 브라우저의 :root 변수만 잠시 바꾸고,
+       「테마 적용」은 관리자 화면에서만 site_contents 의 테마 토큰으로 저장합니다.
+     · 번들 = 테마 + 플러그인 + hunmin 홈 블록 프리셋. 「번들 일괄 적용」은 항목을 골라
+       테마 적용 · (v10.5 권한 동의를 거친) 플러그인 설치 · 홈 블록 프리셋 순서로 진행합니다.
+     ============================================================================ */
+  var TABS = [["plugins", "tabPlugins"], ["themes", "tabThemes"], ["bundles", "tabBundles"]];
+  var CATALOG = {
+    themes: { url: "/themes-market.json", items: null, industries: [], loading: false, error: "", tableMissing: false, inst: null, loaded: false },
+    bundles: { url: "/bundles-market.json", items: null, industries: [], loading: false, error: "", tableMissing: false, inst: null, loaded: false }
+  };
+  var PREVIEW = { slug: "", saved: null, inst: null };
+  var THEME_VARS = ["--bg", "--bg-2", "--card", "--ink", "--ink-2", "--ink-3", "--line", "--line-2",
+    "--accent", "--accent-d", "--accent-s", "--r", "--r-s", "--font-head", "--hero-rgb", "--header-bg"];
+  var FONT_CSS = {
+    nanum: "'SBP Nanum','Nanum Gothic','나눔고딕',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif",
+    system: "-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic','Segoe UI',sans-serif",
+    serif: "Georgia,'Nanum Myeongjo','바탕',serif",
+    sans: "'Helvetica Neue',Arial,'Malgun Gothic',sans-serif"
+  };
+  var PRESET_KEYS = { magazine: 1, craft: 1, org: 1 };
+
+  function hex6(v) {
+    var s = String(v == null ? "" : v).trim();
+    return /^#[0-9a-f]{6}$/i.test(s) ? s.toUpperCase() : "";
+  }
+  function pxNum(v, min, max, dflt) {
+    var n = parseInt(String(v == null ? "" : v).replace(/[^0-9-]/g, ""), 10);
+    if (!isFinite(n)) return dflt;
+    return Math.max(min, Math.min(max, n));
+  }
+  function tokOf(t, a, b) { return t && (t[a] != null ? t[a] : (b ? t[b] : null)); }
+
+  /* 테마 JSON 의 CSS 변수 맵 → SBPress 토큰(검사한 값만) */
+  function themeTokens(theme) {
+    var t = (theme && theme.tokens) || {};
+    var out = {};
+    var map = {
+      bg: ["--bg", "bg"], bg2: ["--bg-2", "bg2"], surface: ["--surface", "surface"],
+      ink: ["--text", "ink"], ink2: ["--text-2", "ink2"], ink3: ["--text-3", "ink3"],
+      line: ["--line", "line"], line2: ["--line-2", "line2"],
+      accent: ["--accent", "accent"], accentDark: ["--accent-dark", "accentDark"],
+      accentSoft: ["--accent-soft", "accentSoft"]
+    };
+    Object.keys(map).forEach(function (k) {
+      var v = hex6(tokOf(t, map[k][0], map[k][1]));
+      if (v) out[k] = v;
+    });
+    out.radius = pxNum(tokOf(t, "--radius", "radius"), 0, 32, 18);
+    var f = String(tokOf(t, "--font", "fontStack") || tokOf(t, "font", "") || "nanum");
+    out.fontStack = FONT_CSS[f] ? f : "nanum";
+    var pre = String(tokOf(t, "--preset", "preset") || "");
+    out.preset = PRESET_KEYS[pre] ? pre : "";
+    return out;
+  }
+
+  function dim(hex, f) {   /* f<0 어둡게, f>0 흰색 쪽으로 */
+    var m = /^#([0-9a-f]{6})$/i.exec(hex || "");
+    if (!m) return "";
+    var n = parseInt(m[1], 16), r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    function mix(c) { return Math.max(0, Math.min(255, Math.round(f < 0 ? c * (1 + f) : c + (255 - c) * f))); }
+    var v = [mix(r), mix(g), mix(b)].map(function (x) { return (x < 16 ? "0" : "") + x.toString(16); }).join("");
+    return "#" + v.toUpperCase();
+  }
+  function rgba(hex, a) {
+    var m = /^#([0-9a-f]{6})$/i.exec(hex || "");
+    if (!m) return "";
+    var n = parseInt(m[1], 16);
+    return "rgba(" + ((n >> 16) & 255) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + a + ")";
+  }
+
+  /* 토큰을 지금 화면의 :root 에 적용(미리보기 · 적용 직후 공통) */
+  function paintThemeVars(t) {
+    var root = document.documentElement;
+    function set(k, v) { if (v) root.style.setProperty(k, v); }
+    if (t.bg) {
+      set("--bg", t.bg);
+      set("--bg-2", t.bg2 || dim(t.bg, -0.05));
+      set("--hero-rgb", (function () {
+        var m = /^#([0-9a-f]{6})$/i.exec(t.bg);
+        if (!m) return "";
+        var n = parseInt(m[1], 16);
+        return ((n >> 16) & 255) + "," + ((n >> 8) & 255) + "," + (n & 255);
+      })());
+      set("--header-bg", rgba(t.bg, 0.82));
+    } else if (t.bg2) set("--bg-2", t.bg2);
+    if (t.surface) set("--card", t.surface);
+    if (t.ink) {
+      set("--ink", t.ink);
+      set("--ink-2", t.ink2 || dim(t.ink, 0.32));
+      set("--ink-3", t.ink3 || dim(t.ink, 0.45));
+    }
+    if (t.line) set("--line", t.line);
+    if (t.line2) set("--line-2", t.line2);
+    else if (t.line) set("--line-2", dim(t.line, -0.12));
+    if (t.accent) {
+      set("--accent", t.accent);
+      set("--accent-s", t.accentSoft || dim(t.accent, 0.86));
+      root.setAttribute("data-accent", t.accent);
+    }
+    set("--accent-d", t.accentDark || (t.accent ? dim(t.accent, -0.18) : ""));
+    if (t.radius != null) {
+      set("--r", t.radius + "px");
+      set("--r-s", Math.max(0, t.radius - 6) + "px");
+    }
+    if (t.fontStack && FONT_CSS[t.fontStack]) set("--font-head", FONT_CSS[t.fontStack]);
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta && t.accent) meta.setAttribute("content", t.accent);
+  }
+
+  function cat(kind) { return CATALOG[kind === "bundles" ? "bundles" : "themes"]; }
+
+  function themeBySlug(slug) {
+    var list = cat("themes").items || [];
+    for (var i = 0; i < list.length; i++) if (list[i].slug === slug) return list[i];
+    return null;
+  }
+  function bundleBySlug(slug) {
+    var list = cat("bundles").items || [];
+    for (var i = 0; i < list.length; i++) if (list[i].slug === slug) return list[i];
+    return null;
+  }
+  function indLabel(inst, kind, id) {
+    if (!id) return tr(inst.lang, "all");
+    var list = cat(kind).industries || [];
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) return inst.lang === "en" ? (list[i].en || list[i].ko) : list[i].ko;
+    }
+    return id;
+  }
+  function themeName(inst, theme) {
+    if (!theme) return "";
+    return inst.lang === "en" ? (theme.name_en || theme.name) : theme.name;
+  }
+  function bundleName(inst, b) {
+    if (!b) return "";
+    return inst.lang === "en" ? (b.name_en || b.name) : b.name;
+  }
+  function themeSummary(inst, th) {
+    if (!th) return "";
+    return inst.lang === "en" ? (th.summary_en || th.summary || "") : (th.summary || "");
+  }
+  function bundleSummary(inst, b) {
+    if (!b) return "";
+    return inst.lang === "en" ? (b.summary_en || b.summary || "") : (b.summary || "");
+  }
+
+  function normalizeTheme(x) {
+    if (!x || typeof x !== "object") return null;
+    var slug = String(x.slug || "").trim();
+    if (!/^[a-z0-9][a-z0-9-]{1,39}$/.test(slug)) return null;
+    var colors = Array.isArray(x.preview_colors)
+      ? x.preview_colors.map(hex6).filter(Boolean).slice(0, 5) : [];
+    return {
+      slug: slug,
+      name: String(x.name || slug).slice(0, 60),
+      name_en: x.name_en ? String(x.name_en).slice(0, 80) : "",
+      industry: String(x.industry || "general").slice(0, 20),
+      summary: x.summary ? String(x.summary).slice(0, 300) : "",
+      summary_en: x.summary_en ? String(x.summary_en).slice(0, 400) : "",
+      tokens: (x.tokens && typeof x.tokens === "object") ? x.tokens : {},
+      preview_colors: colors,
+      version: String(x.version || "1.0.0").slice(0, 20),
+      is_official: x.is_official !== false,
+      __db: !!x.__db
+    };
+  }
+
+  function normalizeBundle(x) {
+    if (!x || typeof x !== "object") return null;
+    var slug = String(x.slug || "").trim();
+    if (!/^[a-z0-9][a-z0-9-]{1,39}$/.test(slug)) return null;
+    var slugs = Array.isArray(x.plugin_slugs) ? x.plugin_slugs.filter(function (s) {
+      return /^[a-z0-9][a-z0-9._-]{1,59}$/.test(String(s || ""));
+    }).slice(0, 12) : [];
+    var blocks = (x.blocks_preset && typeof x.blocks_preset === "object") ? x.blocks_preset : {};
+    var items = (window.CRAFT_HUNMIN && window.CRAFT_HUNMIN.parseBlocks)
+      ? window.CRAFT_HUNMIN.parseBlocks(blocks || [])
+      : (Array.isArray(blocks.items) ? blocks.items : []);
+    return {
+      slug: slug,
+      name: String(x.name || slug).slice(0, 80),
+      name_en: x.name_en ? String(x.name_en).slice(0, 100) : "",
+      industry: String(x.industry || "general").slice(0, 20),
+      summary: x.summary ? String(x.summary).slice(0, 300) : "",
+      summary_en: x.summary_en ? String(x.summary_en).slice(0, 400) : "",
+      theme_slug: /^[a-z0-9][a-z0-9-]{1,39}$/.test(String(x.theme_slug || "")) ? x.theme_slug : "",
+      plugin_slugs: slugs,
+      blocks_preset: { v: 1, items: items },
+      block_count: items.length,
+      version: String(x.version || "1.0.0").slice(0, 20),
+      __db: !!x.__db
+    };
+  }
+
+  function indsOf(list) {
+    var seen = {}, out = [];
+    (list || []).forEach(function (x) {
+      var k = x.industry;
+      if (!k || seen[k]) return;
+      seen[k] = 1;
+      out.push(k);
+    });
+    return out;
+  }
+
+  function mergeDb(kind, rows) {
+    var c = cat(kind);
+    var cur = c.items || [];
+    var bySlug = {};
+    cur.forEach(function (x) { bySlug[x.slug] = x; });
+    (rows || []).forEach(function (raw) {
+      var row = Object.assign({}, raw, { __db: true });
+      var x = kind === "bundles" ? normalizeBundle(row) : normalizeTheme(row);
+      if (x) bySlug[x.slug] = x;
+    });
+    var items = Object.keys(bySlug).map(function (k) { return bySlug[k]; });
+    items.sort(function (a, b) {
+      if (!!b.is_official !== !!a.is_official) return b.is_official ? 1 : -1;
+      return String(a.slug) < String(b.slug) ? -1 : 1;
+    });
+    c.items = items;
+    c.inds = indsOf(items);
+  }
+
+  /* 카탈로그 읽기 — JSON 먼저, DB(29_v108) 가 있으면 겹쳐 읽기 */
+  function loadCatalog(kind, inst, force) {
+    var c = cat(kind);
+    if (c.loading) return;
+    if (c.loaded && !force) return;
+    c.loading = true;
+    if (inst) c.inst = inst;
+    if (inst) paintTools(inst);
+    function finish() {
+      c.loading = false;
+      c.loaded = true;
+      if (c.inst) { paintTools(c.inst); render(c.inst); }
+    }
+    function fromDb() {
+      if (!sbCfg().url) { c.tableMissing = true; finish(); return; }
+      var table = kind === "bundles" ? "plugin_bundles" : "theme_presets";
+      sbRequest("/rest/v1/" + table + "?select=*&order=created_at.asc&limit=200", { token: sbToken() })
+        .then(function (rows) {
+          c.tableMissing = false;
+          mergeDb(kind, Array.isArray(rows) ? rows : []);
+          finish();
+        }, function (e) {
+          c.tableMissing = missingTable(e);
+          if (!c.tableMissing) c.error = String((e && e.message) || e);
+          finish();
+        });
+    }
+    if (typeof fetch !== "function") { c.error = "no fetch"; finish(); return; }
+    fetch(c.url, { cache: "no-store" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        c.error = "";
+        var list = (data && (kind === "bundles" ? data.bundles : data.themes)) || [];
+        c.industries = Array.isArray(data && data.industries) ? data.industries.filter(function (x) {
+          return x && /^[a-z]{1,20}$/.test(String(x.id || ""));
+        }).slice(0, 12) : [];
+        c.items = list.map(function (x) { return kind === "bundles" ? normalizeBundle(x) : normalizeTheme(x); })
+          .filter(Boolean);
+        c.inds = indsOf(c.items);
+        fromDb();
+      })
+      .catch(function (e) {
+        c.error = String((e && e.message) || e);
+        c.items = c.items || [];
+        finish();
+      });
+  }
+
+  function catMissingHtml(inst, kind) {
+    var c = cat(kind);
+    if (!c.tableMissing) return "";
+    return '<p class="mkt-note mkt-warn" id="mkt-cat-missing">' + esc(tr(inst.lang, "catNeedSql")) + "</p>";
+  }
+
+  /* ---------------- 탭 · 도구 영역 ---------------- */
+  function tabsHtml(inst) {
+    var lang = inst.lang;
+    var cur = inst.tab || "plugins";
+    return '<div class="mkt-tabs" role="tablist" aria-label="' + esc(tr(lang, "tabsAria")) + '">' +
+      TABS.map(function (t) {
+        var on = cur === t[0];
+        return '<button type="button" role="tab" class="mkt-tab' + (on ? " is-on" : "") + '"' +
+          ' aria-selected="' + (on ? "true" : "false") + '" data-mkt-tab="' + t[0] + '">' +
+          esc(tr(lang, t[1])) + "</button>";
+      }).join("") + "</div>";
+  }
+
+  function indChipsHtml(inst, kind, cur) {
+    var c = cat(kind);
+    var inds = c.inds || [];
+    if (!inds.length) return "";
+    var lang = inst.lang;
+    var head = '<button type="button" class="mkt-chip' + (!cur ? " on" : "") + '" data-mkt-ind="' +
+      (kind === "bundles" ? "b" : "t") + '|">' + esc(tr(lang, "all")) + "</button>";
+    return '<div class="mkt-chips" data-group="ind" role="group" aria-label="' + esc(tr(lang, "fIndustry")) + '">' +
+      '<span class="mkt-chip-label">' + esc(tr(lang, "fIndustry")) + "</span>" + head +
+      inds.map(function (id) {
+        return '<button type="button" class="mkt-chip' + (cur === id ? " on" : "") + '" data-mkt-ind="' +
+          (kind === "bundles" ? "b" : "t") + '|' + esc(id) + '">' + esc(indLabel(inst, kind, id)) + "</button>";
+      }).join("") + "</div>";
+  }
+
+  function previewBarHtml(inst) {
+    if (!PREVIEW.slug) return "";
+    var th = themeBySlug(PREVIEW.slug);
+    if (!th) return "";
+    return '<div class="mkt-previewbar" id="mkt-previewbar" role="status">' +
+      '<span class="mkt-preview-swatch" aria-hidden="true">' + swatchesHtml(th) + "</span>" +
+      '<b>' + esc(tr(inst.lang, "previewing", { name: themeName(inst, th) })) + "</b>" +
+      '<span class="muted">' + esc(tr(inst.lang, "previewNote")) + "</span>" +
+      '<button type="button" class="btn btn-ghost btn-sm" data-mkt-theme-stop="1">' +
+        esc(tr(inst.lang, "previewStop")) + "</button></div>";
+  }
+
+  function swatchesHtml(th) {
+    var colors = (th && th.preview_colors) || [];
+    return colors.slice(0, 5).map(function (c) {
+      return '<i style="background:' + esc(c) + '"></i>';
+    }).join("");
+  }
+
+  function themeToolsHtml(inst) {
+    var lang = inst.lang;
+    var list = filteredThemes(inst);
+    return previewBarHtml(inst) +
+      '<div class="mkt-chipset">' + indChipsHtml(inst, "themes", inst.indT) + "</div>" +
+      '<p class="mkt-count" id="mkt-cat-count" role="status" aria-live="polite">' +
+        esc(tr(lang, "count", { m: list.length, n: (cat("themes").items || []).length })) + "</p>" +
+      '<p class="mkt-lead mkt-lead-sm">' + esc(tr(lang, "themesLead")) + "</p>" +
+      catMissingHtml(inst, "themes") +
+      '<p class="mkt-empty" id="mkt-cat-empty"' + (list.length ? " hidden" : "") + ">" +
+        esc(tr(lang, cat("themes").loading ? "loading" : "themesEmpty")) + "</p>" +
+      '<p class="mkt-flash' + (FLASH.kind ? " " + esc(FLASH.kind) : "") + '" id="mkt-flash" role="status" aria-live="polite">' +
+        esc(FLASH.text) + "</p>";
+  }
+
+  function bundleToolsHtml(inst) {
+    var lang = inst.lang;
+    var list = filteredBundles(inst);
+    return '<div class="mkt-chipset">' + indChipsHtml(inst, "bundles", inst.indB) + "</div>" +
+      '<p class="mkt-count" id="mkt-cat-count" role="status" aria-live="polite">' +
+        esc(tr(lang, "count", { m: list.length, n: (cat("bundles").items || []).length })) + "</p>" +
+      '<p class="mkt-lead mkt-lead-sm">' + esc(tr(lang, "bundlesLead")) + "</p>" +
+      catMissingHtml(inst, "bundles") +
+      '<p class="mkt-empty" id="mkt-cat-empty"' + (list.length ? " hidden" : "") + ">" +
+        esc(tr(lang, cat("bundles").loading ? "loading" : "bundlesEmpty")) + "</p>" +
+      '<p class="mkt-flash' + (FLASH.kind ? " " + esc(FLASH.kind) : "") + '" id="mkt-flash" role="status" aria-live="polite">' +
+        esc(FLASH.text) + "</p>";
+  }
+
+  function filteredThemes(inst) {
+    var ind = inst.indT || "";
+    return (cat("themes").items || []).filter(function (t) { return !ind || t.industry === ind; });
+  }
+  function filteredBundles(inst) {
+    var ind = inst.indB || "";
+    return (cat("bundles").items || []).filter(function (b) { return !ind || b.industry === ind; });
+  }
+
+  /* ---------------- 테마 카드 ---------------- */
+  function themeCardHtml(inst, th) {
+    var lang = inst.lang;
+    var t = themeTokens(th);
+    var isAdmin = inst.mode === "admin";
+    var on = PREVIEW.slug === th.slug;
+    return '<article class="mkt-theme' + (on ? " is-previewing" : "") + '" data-theme-slug="' + esc(th.slug) +
+      '" data-industry="' + esc(th.industry) + '">' +
+      '<div class="mkt-swatch" aria-hidden="true">' + swatchesHtml(th) + "</div>" +
+      '<header class="mkt-theme-head"><h3>' + esc(themeName(inst, th)) +
+        ' <span class="plug-tag ind">' + esc(indLabel(inst, "themes", th.industry)) + "</span>" +
+        (th.__db ? ' <span class="plug-tag db">' + esc(tr(lang, "fromDb")) + "</span>" : "") + "</h3>" +
+
+      "</header>" +
+      '<p class="mkt-theme-sum">' + esc(themeSummary(inst, th)) + "</p>" +
+      '<p class="mkt-theme-tokens">' +
+        '<span><i style="background:' + esc(t.bg || "#FFFFFF") + '"></i>' + esc(t.bg || "—") + "</span>" +
+        '<span><i style="background:' + esc(t.accent || "#000000") + '"></i>' + esc(t.accent || "—") + "</span>" +
+        '<span>' + esc(tr(lang, "radiusShort", { n: t.radius })) + "</span>" +
+      "</p>" +
+      '<div class="mkt-actions mkt-theme-acts">' +
+        '<button type="button" class="btn btn-ghost btn-sm" data-mkt-theme-preview="' + esc(th.slug) + '">' +
+          esc(tr(lang, on ? "previewStop" : "preview")) + "</button>" +
+        (isAdmin
+          ? '<button type="button" class="btn btn-primary btn-sm" data-mkt-theme-apply="' + esc(th.slug) + '">' +
+              esc(tr(lang, "themeApply")) + "</button>"
+          : '<span class="mkt-note mkt-inline">' + esc(tr(lang, "applyAdminOnly")) + "</span>") +
+      "</div></article>";
+  }
+
+  function renderThemes(inst) {
+    var list = filteredThemes(inst);
+    inst.root.innerHTML = list.map(function (th) { return themeCardHtml(inst, th); }).join("");
+    var count = inst.tools ? inst.tools.querySelector("#mkt-cat-count") : null;
+    if (count) count.textContent = tr(inst.lang, "count", { m: list.length, n: (cat("themes").items || []).length });
+    var empty = inst.tools ? inst.tools.querySelector("#mkt-cat-empty") : null;
+    if (empty) empty.hidden = list.length > 0;
+  }
+
+  /* ---------------- 번들 카드 ---------------- */
+  function pluginName(inst, slug) {
+    var p = inst && inst.data ? byId(inst, slug) : null;
+    if (p) return disp(inst, p).name || slug;
+    var c = cat("bundles").pluginNames || {};
+    return c[slug] || slug;
+  }
+
+  function bundleCardHtml(inst, b) {
+    var lang = inst.lang;
+    var th = themeBySlug(b.theme_slug);
+    var isAdmin = inst.mode === "admin";
+    var plugins = b.plugin_slugs.map(function (s) {
+      var p = inst.data ? byId(inst, s) : null;
+      var done = !!(p && inst.installed && inst.installed(s));
+      return '<span class="plug-tag' + (done ? " is-on" : "") + '">' + esc(pluginName(inst, s)) +
+        (done ? " ✓" : "") + "</span>";
+    }).join("");
+    var blocks = (b.blocks_preset.items || []).map(function (it) {
+      return '<span class="mkt-blockchip">' + esc(blockLabel(lang, it.type)) + "</span>";
+    }).join("");
+    return '<article class="mkt-bundle" data-bundle-slug="' + esc(b.slug) + '" data-industry="' + esc(b.industry) + '">' +
+      '<header class="mkt-bundle-head"><h3>' + esc(bundleName(inst, b)) +
+        ' <span class="plug-tag ind">' + esc(indLabel(inst, "bundles", b.industry)) + "</span>" +
+        (b.__db ? ' <span class="plug-tag db">' + esc(tr(lang, "fromDb")) + "</span>" : "") + "</h3>" +
+
+      "</header>" +
+      '<p class="mkt-theme-sum">' + esc(bundleSummary(inst, b)) + "</p>" +
+      '<dl class="mkt-bundle-facts">' +
+        "<div><dt>" + esc(tr(lang, "bundleTheme")) + "</dt><dd>" +
+          (th ? '<span class="mkt-mini-swatch" aria-hidden="true">' + swatchesHtml(th) + "</span>" +
+            esc(themeName(inst, th)) : esc(tr(lang, "bundleNoTheme"))) + "</dd></div>" +
+        "<div><dt>" + esc(tr(lang, "bundlePlugins")) + "</dt><dd>" + (plugins || "—") + "</dd></div>" +
+        "<div><dt>" + esc(tr(lang, "bundleBlocks")) + "</dt><dd>" +
+          (blocks || "—") + "</dd></div>" +
+      "</dl>" +
+      '<div class="mkt-actions">' +
+        '<button type="button" class="btn ' + (isAdmin ? "btn-primary" : "btn-ghost") + ' btn-sm" data-mkt-bundle-open="' +
+          esc(b.slug) + '">' + esc(tr(lang, isAdmin ? "bundleApply" : "bundleView")) + "</button>" +
+      "</div></article>";
+  }
+
+  function blockLabel(lang, type) {
+    var map = {
+      ko: { latest: "최신글", popular: "인기글", map: "지도", form: "구독/제보 폼", gallery: "갤러리",
+            text: "텍스트·배너", table: "표", cta: "버튼/CTA", embed: "임베드" },
+      en: { latest: "Latest posts", popular: "Popular", map: "Map", form: "Subscribe form", gallery: "Gallery",
+            text: "Text banner", table: "Table", cta: "Call to action", embed: "Embed" }
+    };
+    var d = (lang === "en" ? map.en : map.ko)[type];
+    if (d) return d;
+    return String(type || "").replace(/^sbp:[^:]+:/, "");
+  }
+
+  function renderBundles(inst) {
+    if (cat("themes").loaded || !cat("themes").loading) loadCatalog("themes", inst, false);
+    var list = filteredBundles(inst);
+    inst.root.innerHTML = list.map(function (b) { return bundleCardHtml(inst, b); }).join("");
+    var count = inst.tools ? inst.tools.querySelector("#mkt-cat-count") : null;
+    if (count) count.textContent = tr(inst.lang, "count", { m: list.length, n: (cat("bundles").items || []).length });
+    var empty = inst.tools ? inst.tools.querySelector("#mkt-cat-empty") : null;
+    if (empty) empty.hidden = list.length > 0;
+  }
+
+  /* ---------------- 미리보기 ---------------- */
+  function startPreview(inst, slug) {
+    var th = themeBySlug(slug);
+    if (!th) return;
+    if (!PREVIEW.saved) {
+      PREVIEW.saved = {
+        style: document.documentElement.getAttribute("style") || "",
+        preset: document.body.getAttribute("data-theme") || "",
+        accent: document.documentElement.getAttribute("data-accent") || ""
+      };
+    }
+    PREVIEW.slug = slug;
+    PREVIEW.inst = inst;
+    paintThemeVars(themeTokens(th));
+    if (themeTokens(th).preset) document.body.setAttribute("data-theme", themeTokens(th).preset);
+    paintTools(inst);
+    render(inst);
+  }
+
+  function stopPreview(inst, quiet) {
+    if (PREVIEW.saved) {
+      document.documentElement.setAttribute("style", PREVIEW.saved.style);
+      if (PREVIEW.saved.preset) document.body.setAttribute("data-theme", PREVIEW.saved.preset);
+      else document.body.removeAttribute("data-theme");
+      if (PREVIEW.saved.accent) document.documentElement.setAttribute("data-accent", PREVIEW.saved.accent);
+      else document.documentElement.removeAttribute("data-accent");
+    }
+    PREVIEW.saved = null;
+    PREVIEW.slug = "";
+    var target = inst || PREVIEW.inst;
+    PREVIEW.inst = null;
+    if (target && !quiet) { paintTools(target); render(target); }
+  }
+
+  function applyTheme(inst, slug, btn) {
+    var th = themeBySlug(slug);
+    if (!th) return;
+    if (inst.mode !== "admin" || typeof inst.onApplyTheme !== "function") {
+      flash(inst, tr(inst.lang, "applyAdminOnly"), "err");
+      return;
+    }
+    if (btn) { btn.disabled = true; }
+    var old = btn ? btn.textContent : "";
+    if (btn) btn.textContent = tr(inst.lang, "themeApplying");
+    inst.onApplyTheme(th, function (err, msg) {
+      if (btn) { btn.disabled = false; btn.textContent = old; }
+      if (err) { flash(inst, tr(inst.lang, "themeApplyFail") + err, "err"); return; }
+      /* 저장했으니 미리보기는 그대로 두되 되돌리기 정보만 지웁니다(이미 적용됨). */
+      PREVIEW.saved = null;
+      PREVIEW.slug = slug;
+      flash(inst, msg || tr(inst.lang, "themeApplied", { name: themeName(inst, th) }), "ok");
+      paintTools(inst);
+      render(inst);
+    });
+  }
+
+  /* ---------------- 번들 일괄 적용 모달 ---------------- */
+  var BND = { el: null, inst: null, slug: "", busy: false, lastFocus: null, msg: "", kind: "" };
+
+  function bundlePluginRows(inst, b) {
+    return b.plugin_slugs.map(function (s) {
+      var p = inst.data ? byId(inst, s) : null;
+      var d = p ? disp(inst, p) : null;
+      var done = !!(p && inst.installed && inst.installed(s));
+      var perms = p ? (p.permissions || []) : [];
+      return {
+        slug: s, name: d ? d.name : pluginName(inst, s), installed: done,
+        version: p ? p.version : "", perms: perms, item: p || null
+      };
+    });
+  }
+
+  function permsOf(rows) {
+    var seen = {}, out = [];
+    rows.forEach(function (r) {
+      if (r.installed) return;
+      r.perms.forEach(function (p) {
+        var k = String(p || "");
+        if (!k || seen[k]) return;
+        seen[k] = 1;
+        out.push(k);
+      });
+    });
+    return out;
+  }
+
+  function bundleModalHtml(inst, b) {
+    var lang = inst.lang;
+    var th = themeBySlug(b.theme_slug);
+    var rows = bundlePluginRows(inst, b);
+    var need = rows.filter(function (r) { return !r.installed; });
+    var perms = permsOf(rows);
+    var isAdmin = inst.mode === "admin";
+    var blocks = (b.blocks_preset.items || []).map(function (it) {
+      /* 블록 제목은 사이트 내용(한국어)이라 영어 화면에서는 종류만 보여 줍니다. */
+      return '<li><b>' + esc(blockLabel(lang, it.type)) + "</b>" +
+        (lang !== "en" && it.props && it.props.title
+          ? " · " + esc(String(it.props.title).slice(0, 60)) : "") + "</li>";
+    }).join("");
+    var permList = perms.length
+      ? perms.map(function (p) {
+          return "<li><code>" + esc(p) + "</code> " + esc(permText(p, lang)) + "</li>";
+        }).join("")
+      : '<li class="muted">' + esc(tr(lang, "bundleNoPerms")) + "</li>";
+    return '<div class="mkt-modal-backdrop" data-mkt-bnd-close="1"></div>' +
+      '<div class="mkt-modal-card mkt-bnd-card" role="dialog" aria-modal="true" aria-labelledby="mkt-bnd-title">' +
+        '<header class="mkt-modal-head"><div><h2 id="mkt-bnd-title">' + esc(tr(lang, "bundleModalTitle", { name: bundleName(inst, b) })) + "</h2>" +
+          '<p class="mkt-bnd-lead">' + esc(bundleSummary(inst, b)) + "</p></div>" +
+          '<button type="button" class="mkt-modal-x" data-mkt-bnd-close="1" aria-label="' + esc(tr(lang, "close")) + '">×</button>' +
+        "</header>" +
+        '<div class="mkt-modal-body">' +
+          '<ul class="mkt-bnd-steps">' +
+            '<li class="mkt-bnd-step"><label class="mkt-bnd-check"><input type="checkbox" data-bnd-opt="theme"' +
+              (isAdmin && th ? " checked" : " disabled") + ">" +
+              '<span class="mkt-bnd-check-main"><b>' + esc(tr(lang, "bndTheme")) + "</b> " +
+              (th ? esc(themeName(inst, th)) + ' <span class="mkt-mini-swatch" aria-hidden="true">' +
+                swatchesHtml(th) + "</span>" : esc(tr(lang, "bundleNoTheme"))) + "</span></label></li>" +
+            '<li class="mkt-bnd-step"><label class="mkt-bnd-check"><input type="checkbox" data-bnd-opt="plugins"' +
+              (isAdmin && need.length ? " checked" : " disabled") + ">" +
+              '<span class="mkt-bnd-check-main"><b>' + esc(tr(lang, "bndPlugins")) + "</b> " +
+              esc(tr(lang, "bndPluginsNote", { n: need.length, t: rows.length })) + "</span></label>" +
+              '<ul class="mkt-bnd-plugins">' + rows.map(function (r) {
+                return "<li" + (r.installed ? ' class="is-on"' : "") + "><span>" + esc(r.name) +
+                  (r.version ? ' <span class="plug-tag ver">v' + esc(r.version) + "</span>" : "") + "</span>" +
+                  '<span class="mkt-bnd-state">' + esc(tr(lang, r.installed ? "bndInstalled" : "bndWillInstall")) + "</span></li>";
+              }).join("") + "</ul>" +
+              '<div class="mkt-bnd-perms"><p class="mkt-bnd-perms-head">' + esc(tr(lang, "bndPermsHead")) + "</p>" +
+                '<ul class="mkt-perms">' + permList + "</ul>" +
+                '<p class="mkt-hint">' + esc(tr(lang, "bndPermsNote")) + "</p></div>" +
+            "</li>" +
+            '<li class="mkt-bnd-step"><label class="mkt-bnd-check"><input type="checkbox" data-bnd-opt="blocks"' +
+              (isAdmin && blocks ? " checked" : " disabled") + ">" +
+              '<span class="mkt-bnd-check-main"><b>' + esc(tr(lang, "bndBlocks")) + "</b> " +
+              esc(tr(lang, "bndBlocksNote", { n: (b.blocks_preset.items || []).length })) + "</span></label>" +
+              '<ul class="mkt-bnd-blocks">' + (blocks || '<li class="muted">—</li>') + "</ul>" +
+              '<p class="mkt-hint">' + esc(tr(lang, "bndBlocksHint")) + "</p></li>" +
+          "</ul>" +
+          '<p class="mkt-bnd-msg' + (BND.kind ? " " + esc(BND.kind) : "") + '" id="mkt-bnd-msg" role="status" aria-live="polite">' +
+            esc(BND.msg || (isAdmin ? "" : tr(lang, "bundleViewNote"))) + "</p>" +
+        "</div>" +
+        '<footer class="mkt-modal-foot">' +
+          '<span class="mkt-foot-id">' + esc(b.slug) + (b.version ? " · v" + esc(b.version) : "") + "</span>" +
+          (isAdmin
+            ? '<button type="button" class="btn btn-primary btn-sm" data-mkt-bnd-go="1">' + esc(tr(lang, "bndGo")) + "</button>"
+            : "") +
+          '<button type="button" class="btn btn-ghost btn-sm" data-mkt-bnd-close="1">' + esc(tr(lang, "close")) + "</button>" +
+        "</footer>" +
+      "</div>";
+  }
+
+  function ensureBundleModal() {
+    if (BND.el && document.body.contains(BND.el)) return BND.el;
+    var el = document.createElement("div");
+    el.className = "mkt-modal mkt-bnd-modal";
+    el.id = "mkt-bundle";
+    el.hidden = true;
+    document.body.appendChild(el);
+    el.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-mkt-bnd-close]")) { closeBundle(); return; }
+      var go = e.target.closest ? e.target.closest("[data-mkt-bnd-go]") : null;
+      if (go) { runBundle(go); return; }
+    });
+    document.addEventListener("keydown", function (e) {
+      if (!BND.el || BND.el.hidden) return;
+      if (e.key === "Escape") closeBundle();
+    });
+    BND.el = el;
+    return el;
+  }
+
+  function openBundle(inst, slug) {
+    var b = bundleBySlug(slug);
+    if (!b) return;
+    var el = ensureBundleModal();
+    BND.inst = inst;
+    BND.slug = slug;
+    BND.msg = "";
+    BND.kind = "";
+    BND.busy = false;
+    BND.lastFocus = document.activeElement;
+    el.innerHTML = bundleModalHtml(inst, b);
+    el.hidden = false;
+    document.documentElement.classList.add("mkt-modal-open");
+    try { el.querySelector(".mkt-modal-x").focus(); } catch (e) { /* noop */ }
+  }
+
+  function closeBundle() {
+    if (!BND.el) return;
+    if (BND.busy) return;
+    BND.el.hidden = true;
+    BND.el.innerHTML = "";
+    BND.slug = "";
+    BND.inst = null;
+    document.documentElement.classList.remove("mkt-modal-open");
+    try { if (BND.lastFocus && BND.lastFocus.focus) BND.lastFocus.focus(); } catch (e) { /* noop */ }
+  }
+
+  function bndMsg(text, kind) {
+    var box = BND.el ? BND.el.querySelector("#mkt-bnd-msg") : null;
+    BND.msg = text || "";
+    BND.kind = kind || "";
+    if (box) {
+      box.textContent = BND.msg;
+      box.className = "mkt-bnd-msg" + (kind ? " " + kind : "");
+    }
+  }
+
+  function runBundle(btn) {
+    var inst = BND.inst;
+    var b = bundleBySlug(BND.slug);
+    if (!inst || !b || BND.busy) return;
+    var el = BND.el;
+    function opt(k) {
+      var n = el ? el.querySelector('[data-bnd-opt="' + k + '"]') : null;
+      return !!(n && n.checked && !n.disabled);
+    }
+    var opts = { theme: opt("theme"), plugins: opt("plugins"), blocks: opt("blocks") };
+    if (!opts.theme && !opts.plugins && !opts.blocks) {
+      bndMsg(tr(inst.lang, "bndPickOne"), "err");
+      return;
+    }
+    if (typeof inst.onApplyBundle !== "function") {
+      bndMsg(tr(inst.lang, "bndAdminOnly"), "err");
+      return;
+    }
+    BND.busy = true;
+    if (btn) btn.disabled = true;
+    if (el) {
+      [].forEach.call(el.querySelectorAll("[data-bnd-opt]"), function (n) { n.disabled = true; });
+    }
+    bndMsg(tr(inst.lang, "bndRunning"), "");
+    inst.onApplyBundle(b, opts, function (key, vars) {
+      /* 진행 알림 — 실패해도 멈추지 않고 끝까지 진행합니다(각 단계가 결과를 모읍니다). */
+      bndMsg(tr(inst.lang, key || "bndRunning", vars || {}), "");
+    }, function (err, info) {
+      BND.busy = false;
+      if (btn) btn.disabled = false;
+      if (el) [].forEach.call(el.querySelectorAll("[data-bnd-opt]"), function (n) {
+        n.disabled = n.getAttribute("data-bnd-opt") === "plugins" && n.getAttribute("data-disable") === "1";
+      });
+      info = info || {};
+      if (err && !info.partial) {
+        bndMsg(tr(inst.lang, "bndFail") + err, "err");
+        return;
+      }
+      var parts = [];
+      if (info.theme) parts.push(tr(inst.lang, "bndDoneTheme", { name: info.theme }));
+      if (info.plugins != null) parts.push(tr(inst.lang, "bndDonePlugins", { n: info.plugins }));
+      if (info.blocks != null) parts.push(tr(inst.lang, "bndDoneBlocks", { n: info.blocks }));
+      bndMsg(tr(inst.lang, "bndDone", { list: parts.join(" · ") }) +
+        (info.note ? " " + info.note : "") +
+        (info.auditMissing ? " " + tr(inst.lang, "catNeedSql") : ""), "ok");
+      flash(inst, tr(inst.lang, "bndFlash", { name: bundleName(inst, b) }) + " " + parts.join(" · "), "ok");
+      paintTools(inst);
+      render(inst);
+    });
+  }
+
+  /* ---------------- 탭 전환·카드 클릭 위임 ---------------- */
+  function tabsDelegation(host) {
+    if (host.getAttribute("data-mkt-cattabs-bound")) return;
+    host.setAttribute("data-mkt-cattabs-bound", "1");
+    host.addEventListener("click", function (e) {
+      var inst2 = host.__mktInst;
+      if (!inst2 || !e.target.closest) return;
+      var tab = e.target.closest("[data-mkt-tab]");
+      if (tab) {
+        var v = tab.getAttribute("data-mkt-tab");
+        inst2.tab = v === "themes" || v === "bundles" ? v : "plugins";
+        if (inst2.tab !== "plugins") loadCatalog(inst2.tab, inst2, false);
+        paintTools(inst2);
+        render(inst2);
+        return;
+      }
+      var chip = e.target.closest("[data-mkt-ind]");
+      if (chip) {
+        var raw = String(chip.getAttribute("data-mkt-ind") || "");
+        var bits = raw.split("|");
+        if (bits[0] === "b") inst2.indB = bits[1] || "";
+        else inst2.indT = bits[1] || "";
+        paintTools(inst2);
+        render(inst2);
+        return;
+      }
+      var pv = e.target.closest("[data-mkt-theme-preview]");
+      if (pv) { startPreview(inst2, pv.getAttribute("data-mkt-theme-preview")); return; }
+      var ap = e.target.closest("[data-mkt-theme-apply]");
+      if (ap) { applyTheme(inst2, ap.getAttribute("data-mkt-theme-apply"), ap); return; }
+      var stop = e.target.closest("[data-mkt-theme-stop]");
+      if (stop) { stopPreview(inst2); return; }
+      var open = e.target.closest("[data-mkt-bundle-open]");
+      if (open) { openBundle(inst2, open.getAttribute("data-mkt-bundle-open")); return; }
+    });
+  }
+
+  function catalogDelegation(root) {
+    if (root.getAttribute("data-mkt-cat-bound")) return;
+    root.setAttribute("data-mkt-cat-bound", "1");
+    root.addEventListener("click", function (e) {
+      var inst2 = root.__sbpMarket;
+      if (!inst2 || !e.target.closest) return;
+      var card = e.target.closest(".mkt-theme, .mkt-bundle");
+      if (!card) return;
+      var pv = e.target.closest("[data-mkt-theme-preview]");
+      if (pv) { startPreview(inst2, pv.getAttribute("data-mkt-theme-preview")); return; }
+      var ap = e.target.closest("[data-mkt-theme-apply]");
+      if (ap) { applyTheme(inst2, ap.getAttribute("data-mkt-theme-apply"), ap); return; }
+      var bd = e.target.closest("[data-mkt-bundle-open]");
+      if (bd) { openBundle(inst2, bd.getAttribute("data-mkt-bundle-open")); return; }
+      if (card.classList.contains("mkt-theme")) {
+        var slug = card.getAttribute("data-theme-slug");
+        if (slug === PREVIEW.slug) stopPreview(inst2);
+        else startPreview(inst2, slug);
+      }
+    });
+  }
+
   /* ---------------- 인스턴스 ---------------- */
   /* 마켓 화면 전용 CSS 는 이 화면에 들어갈 때 한 번만 받습니다(첫 화면 300KB 예산). */
   function ensureStyles() {
@@ -3885,7 +4784,7 @@
     if (!STATS.loaded && !STATS.loading) {
       setTimeout(function () { loadStats(inst); }, 0);
     }
-    host.innerHTML =
+    var pluginBody =
       (inst.mode === "admin" ? submissionPanelHtml(inst) : "") +
       (inst.mode === "admin" ? compatPanelHtml(inst) : "") +
       (inst.mode === "admin" && inst.markets ? marketPanelHtml(inst) : "") +
@@ -3918,6 +4817,17 @@
       '<p class="mkt-empty" hidden>' + esc(tr(lang, "empty")) + "</p>" +
       '<p class="mkt-flash' + (FLASH.kind ? " " + esc(FLASH.kind) : "") + '" id="mkt-flash" role="status" aria-live="polite">' +
         esc(FLASH.text) + "</p>";
+    /* v10.8 — 서브탭(플러그인 · 테마 마켓 · 업종별 번들 팩) */
+    var tab = inst.tab || "plugins";
+    var body = tab === "themes" ? themeToolsHtml(inst)
+      : tab === "bundles" ? bundleToolsHtml(inst) : pluginBody;
+    host.innerHTML = tabsHtml(inst) + body;
+    if (tab !== "plugins") {
+      /* 테마·번들 탭은 카드만 그립니다(플러그인 검색·칩은 쓰지 않음). */
+      if (typeof tabsDelegation === "function") tabsDelegation(host);
+      setBusy(inst, false);
+      return;
+    }
     var all = host.querySelector("[data-mkt-updall]");
     if (all) all.addEventListener("click", function () { runUpdateAll(inst, all); });
     var input = host.querySelector(".mkt-q");
@@ -4066,6 +4976,8 @@
         if (typeof inst2.onMarketRemove === "function") inst2.onMarketRemove(id, t);
       });
     }
+    /* v10.8 — 서브탭 · 업종 칩 · 테마 미리보기/적용 · 번들 적용 버튼도 한 번만 위임합니다. */
+    tabsDelegation(host);
   }
 
   /* v10.3 — 업데이트가 필요한 플러그인이 있으면 맨 위에 바를 그립니다(관리자 화면만). */
@@ -4093,6 +5005,9 @@
   }
 
   function render(inst) {
+    var tab = inst.tab || "plugins";
+    if (tab === "themes") { renderThemes(inst); setBusy(inst, false); return; }
+    if (tab === "bundles") { renderBundles(inst); setBusy(inst, false); return; }
     if (!inst.data) return;
     var list = (inst.data.plugins || []).filter(function (p) { return matches(inst, p, inst.state); });
     list = sortList(inst, list, inst.state.sort);
@@ -4181,12 +5096,15 @@
       prev.onRecheck = opts.onRecheck || prev.onRecheck;
       prev.onConsent = opts.onConsent || prev.onConsent;
       prev.onInstallSubmission = opts.onInstallSubmission || prev.onInstallSubmission;
+      prev.onApplyTheme = opts.onApplyTheme || prev.onApplyTheme;
+      prev.onApplyBundle = opts.onApplyBundle || prev.onApplyBundle;
       if (Array.isArray(opts.markets)) {
         prev.markets = opts.markets;
         prev.marketCount = opts.markets.length;
       }
       if (opts.tools) prev.tools = opts.tools;
       prev.tools.__mktInst = prev;
+      if (opts.tab) prev.tab = opts.tab;
       if (opts.page) { prev.page = opts.page; paintHeader(prev, prev.page); }
       if (Array.isArray(opts.items)) {
         prev.data = dataFrom(opts, prev.url);
@@ -4202,6 +5120,9 @@
       tools: opts.tools || ensureToolsHost(root),
       page: opts.page || null,
       mode: opts.mode === "admin" ? "admin" : "public",
+      tab: "plugins",
+      indT: "",
+      indB: "",
       url: opts.url || "/plugins-market.json",
       lang: opts.lang || currentLang(),
       installed: opts.installed || null,
@@ -4220,6 +5141,8 @@
       onRecheck: opts.onRecheck || null,
       onConsent: opts.onConsent || null,
       onInstallSubmission: opts.onInstallSubmission || null,
+      onApplyTheme: opts.onApplyTheme || null,
+      onApplyBundle: opts.onApplyBundle || null,
       verify: {},
       verifyRun: 0,
       consented: {},
@@ -4270,6 +5193,7 @@
         var card = e.target.closest ? e.target.closest(".mkt-card") : null;
         if (card) openDetail(inst2, card.getAttribute("data-market-id"));
       });
+      catalogDelegation(root);
       root.addEventListener("keydown", function (e) {
         if (e.key !== "Enter" && e.key !== " ") return;
         var card = e.target.closest ? e.target.closest(".mkt-card") : null;
@@ -4363,8 +5287,8 @@
   }
 
   window.SBP_MARKET = {
-    __v: 107,
-    version: "10.7.0",
+    __v: 108,
+    version: "10.8.0",
     mount: mount,
     update: update,
     normalize: normalize,
@@ -4481,7 +5405,61 @@
       return true;
     },
     statsTableMissing: function () { return !!STATS.tableMissing; },
-    reviewsTableMissing: function () { return !!REV.tableMissing; }
+    reviewsTableMissing: function () { return !!REV.tableMissing; },
+    /* v10.8 — 테마 마켓 · 업종별 번들 팩(시험·다른 화면에서 쓰는 표면) */
+    themes: function () { return (cat("themes").items || []).slice(); },
+    bundles: function () { return (cat("bundles").items || []).slice(); },
+    themeBySlug: themeBySlug,
+    bundleBySlug: bundleBySlug,
+    themeTokens: themeTokens,
+    loadCatalog: function (kind) {
+      var inst = adminInst() || INSTANCES[0] || null;
+      loadCatalog(kind === "bundles" ? "bundles" : "themes", inst, true);
+      return true;
+    },
+    showTab: function (tab) {
+      var inst = adminInst() || INSTANCES[0] || null;
+      if (!inst) return false;
+      inst.tab = tab === "themes" || tab === "bundles" ? tab : "plugins";
+      if (inst.tab !== "plugins") loadCatalog(inst.tab, inst, false);
+      paintTools(inst);
+      render(inst);
+      return true;
+    },
+    currentTab: function () {
+      var inst = adminInst() || INSTANCES[0] || null;
+      return inst ? (inst.tab || "plugins") : "";
+    },
+    previewTheme: function (slug) {
+      var inst = adminInst() || INSTANCES[0] || null;
+      if (!inst) return false;
+      startPreview(inst, slug);
+      return PREVIEW.slug === slug;
+    },
+    stopPreview: function () {
+      var inst = adminInst() || INSTANCES[0] || null;
+      if (!inst) return false;
+      stopPreview(inst);
+      return true;
+    },
+    previewing: function () { return PREVIEW.slug; },
+    openBundle: function (slug) {
+      var inst = adminInst() || INSTANCES[0] || null;
+      if (!inst) return false;
+      openBundle(inst, slug);
+      return true;
+    },
+    closeBundle: closeBundle,
+    bundlePluginRows: function (slug) {
+      var inst = adminInst() || INSTANCES[0] || null;
+      var b = bundleBySlug(slug);
+      return (inst && b) ? bundlePluginRows(inst, b) : [];
+    },
+    catalogTableMissing: function (kind) { return !!cat(kind).tableMissing; },
+    appliedTheme: function () {
+      var raw = (window.CRAFT_CMS && window.CRAFT_CMS.contents) ? window.CRAFT_CMS.contents()["theme.tokens"] : null;
+      return raw ? String(raw.value || "") : "";
+    }
   };
 
   function adminInst() {
