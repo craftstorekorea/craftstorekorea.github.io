@@ -27,6 +27,7 @@ GitHub Pages로 배포합니다.
 | 직접 만든 게시판 | `#/board/<slug>` — 게시판별 페이지당 글 수·댓글 정책 (관리자에서 생성) |
 | 업무 관리 | `#/tasks` — 로그인한 회원의 3칸 업무 보드(할 일·진행 중·완료). **로그아웃 상태에서는 메뉴에 나타나지 않고**, 주소로 들어가도 로그인 안내만 보입니다 |
 | 통합 검색 (v2.1) | 헤더의 🔍 또는 `#/search?q=<검색어>` — 발행된 글(제목·요약·본문·태그·게시판)과 공개 페이지를 한 번에 찾고, 낱말을 띄어 쓰면 모두 들어간 글만 보여 줍니다. 결과는 그대로 링크로 공유할 수 있습니다 |
+| 업무 · 결재 Pro (v10.1) | `/admin → 업무·결재 Pro` — 조직도·업무 분장과 담당자별 워크로드, 반복 일감·마감(D-3/D-1/지연) 배지, 일감 템플릿과 하위 체크리스트(진행률 자동 합산), 조건부 결재선 추천과 일괄 승인, 결재→업무 자동 연동, 주간/월간 리포트(인쇄·CSV) |
 | 플러그인 마켓 (v10.0) | `#/market` — 사이트에 기능을 더하는 플러그인 카탈로그. 실시간 검색·카테고리/훅/태그 필터·정렬, 카드를 누르면 미리보기·최소 SBPress 버전·필요 권한·변경 이력이 보입니다. 설치·켜기·제거는 관리자 화면(`/admin → 플러그인 · 마켓`)에서만 됩니다 |
 
 모든 게시판 목록(공방 소개·공방 뉴스·작가 인터뷰·지원·공모·직접 만든 게시판)은
@@ -85,6 +86,8 @@ assets/hunmin.js          hunmin 블록 — 사이트 렌더(최신글·인기�
 assets/body-format.js     본문 형식(text·markdown·html) 변환 + 화이트리스트 정화 — 공개 사이트·관리자 미리보기 공용
 assets/editor.js          관리자 글·페이지 본문 툴바(굵게·기울임·제목·링크·목록·인용·이미지)·미리보기
 assets/mypage.js          마이페이지 (#/mypage) — 내 정보·착·내가 쓴 댓글
+assets/work-pro.js        업무 · 결재 Pro (/admin 탭) — 조직도·반복·템플릿·조건부 결재선·연동·리포트 (지연 로딩)
+assets/work-pro.css       업무 · 결재 Pro 화면 전용 스타일(좁은 화면·인쇄 리포트)
 assets/plugins.js         SBPress 플러그인 엔진 — 켜진 플러그인을 불러와 메뉴·카드·위젯·관리자 탭 훅을 겁니다
 assets/plugins/*.js       기본 플러그인 4종 (읽기 시간 배지·맨 위로·추천 공방·데이터 내보내기)
 plugins-market.json       플러그인 마켓 목록 (관리자에서 GitHub raw 주소로 바꿀 수 있습니다)
@@ -193,7 +196,7 @@ scripts/build_static_seo.py | build_feeds.py | check_repo_budget.py | measure_tr
 - **이미지 WebP 압축**: 모든 업로드가 긴 변 1600px·WebP 품질 82% 로 줄어 올라가고, `4.4 MB → 760 KB (83% 절감)` 처럼 표시합니다.
   `원본 그대로 올리기`(미디어 라이브러리·글 편집기)로 예외, SVG·GIF 는 원본 유지.
 - 설정·검증 기록: `../supabase/13_v22_newsletter_stats_i18n.md` · DB `../supabase/13_v22_newsletter_stats_i18n.sql`,
-  테스트 `cd .. && CMS_TEST_MODE=v10 python3 cms_test.py`.
+  테스트 `cd .. && CMS_TEST_MODE=v10 python3 cms_test.py` · `v101`.
 
 ## v2.1 기능 (통합 검색·공유·접수함·백업·자동 SEO·KO/EN)
 
@@ -267,9 +270,31 @@ scripts/build_static_seo.py | build_feeds.py | check_repo_budget.py | measure_tr
 - **대댓글(답글)**: 댓글의 `답글` 을 누르면 부모 댓글 아래에 들여쓰기로 달립니다(`comments.parent_id`).
   회원과 비회원(캡차) 모두 쓸 수 있고 **한 단계**만 허용합니다(답글에 다시 답글 금지 — 서버 트리거가 거부).
 - 설정·검증 기록: `../supabase/07_cms.md` · `../supabase/08_grades_lang_tasks.md` · `../supabase/09_plugins_market.md` · `../supabase/10_v12_editor_community.md`, DB 파일 `../supabase/03_cms_comments.sql` · `../supabase/04_header_footer_head.sql` · `../supabase/05_cms_plus.sql` · `../supabase/06_pages_boards_captcha.sql` · `../supabase/07_grades_lang_tasks.sql` · `../supabase/08_themes_hunmin_trash_revisions.sql` · `../supabase/10_v12_editor_community.sql`,
-  테스트 `cd .. && CMS_TEST_MODE=user|admin|brand|plus|v2|v3|v3admin|v4|plugins|v6|v7|v8|v9|v10 python3 cms_test.py`,
+  테스트 `cd .. && CMS_TEST_MODE=user|admin|brand|plus|v2|v3|v3admin|v4|plugins|v6|v7|v8|v9|v10|v101 python3 cms_test.py`,
   정적 SEO `cd .. && python3 build_static_seo.py` (검사 `--check`, 비우기 `--clean`),
   서버 검증 `cd ../supabase && SUPABASE_MGMT_TOKEN=… python3 06_check.py` · `07_check.py` · `08_check.py` · `09_check.py` · `10_check.py`.
+
+## v10.1 기능 (업무 · 결재 고도화 6종)
+
+`/admin → 업무·결재 Pro` 한 탭에서 여섯 가지를 다룹니다. 화면은 `assets/work-pro.js`·`assets/work-pro.css` 로
+**탭을 처음 열 때만** 내려받아 공개 첫 화면 300KB 예산을 건드리지 않습니다(첫 화면 252KB · 300KB 예산의 84.1% · 브라우저 실측 260KB).
+
+| # | 기능 | 화면 | DB (`supabase/22_v101_work_approval_pro.sql`) |
+|---|---|---|---|
+| 1 | 조직도 · 업무 분장 + 담당자별 워크로드 | 부서/팀 트리, 진행·지연·임박 카드 | `org_roles` · `org_workload()` |
+| 2 | 반복 업무 · 마감 알림 | 줄에서 `매주/매월` 설정, ‘다음 일감 생성’, D-3/D-1/지연 배지 | `issues.recurrence`·`next_run_at`·`recur_source_id` · `issue_recur_run()` · `issue_deadline_state()` |
+| 3 | 일감 템플릿 · 하위 체크리스트 | 템플릿 카드 원클릭 생성, 체크하면 진행률 자동 계산 | `task_templates` · `issue_checklist` · `checklist_add/toggle/remove` · `issue_progress_sync()` 트리거 |
+| 4 | 조건부 결재선 · 일괄 결재 | 양식·금액 규칙, 기안 시 ‘결재선 추천’, 대기함 다중 선택 후 일괄 승인/반려 | `approval_line_rules` · `approval_recommend()` · `approval_batch_act()` |
+| 5 | 결재 → 업무 자동 연동 | 기안에 관련 일감·목표 상태를 연결, 최종 승인 시 자동 변경 | `approval_docs.linked_task_id`·`task_target_status` · `approval_create3()` · `approval_apply_linked_task()` 트리거 |
+| 6 | 주간 · 월간 리포트 | 완료 일감·지연·평균 결재 소요 시간, 부서/양식별 표, 인쇄·CSV | `work_report()` (관리자 전용) |
+
+- **결재–업무 연동은 감사 기록을 남깁니다** — 최종 승인 순간 `issues.status` 가 목표 상태로 바뀌고
+  `approval_logs(action='task')` 와 `audit_logs(detail.source='approval_auto')` 에 누가·어느 일감을·어떻게 바꿨는지 남습니다.
+  반려·회수에는 아무 변화도 없습니다.
+- **전결 규정이 우선** — 금액이 전결 상한 이하이면 `approval_rule` 의 단독 결재선이 조건부 규칙보다 먼저 적용됩니다.
+- **폴백** — `22_v101` SQL 을 실행하지 않아도 사이트는 그대로이고, 탭은 “표가 아직 없습니다 + 실행할 SQL” 안내만 합니다.
+- **KO | EN** — 탭·표·버튼·카드 문구까지 영어로 바뀝니다(`assets/admin-i18n.js`, 한글 잔존 0 시험).
+- 테스트 `cd .. && CMS_TEST_MODE=v101 python3 cms_test.py` (v101 105개 + 회귀 v100·v90·v80·v70·v60).
 
 ## 플러그인 · 마켓
 

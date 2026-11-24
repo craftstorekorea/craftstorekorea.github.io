@@ -1,0 +1,174 @@
+/* ===== SBPress v10.1 · 업무 · 결재 Pro (assets/work-pro.css) =====
+   /admin 의 ‘업무·결재 Pro’ 탭에서만 받습니다(첫 화면 300KB 예산).
+   styles.css · admin.css 의 색·타이포 토큰(--bg, --ink, --line, --accent …)을 그대로 씁니다. */
+
+#tab-workpro .wp-hero{display:flex;gap:18px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin-bottom:6px}
+#tab-workpro .wp-eyebrow{font-size:.7rem;font-weight:800;letter-spacing:.16em;color:var(--accent);text-transform:uppercase}
+#tab-workpro .wp-hero h1{font-size:1.5rem;letter-spacing:-.03em;margin:4px 0 6px}
+#tab-workpro .wp-sub{color:var(--ink-2);font-size:.92rem;line-height:1.7;max-width:70ch}
+#tab-workpro .wp-note{margin:2px 0 10px}
+#tab-workpro .wp-missing{margin:8px 0 14px;padding:12px 14px;border:1px dashed var(--line);border-radius:var(--r-s);background:var(--bg-2);color:var(--ink-2)}
+
+#tab-workpro .wp-nav{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px;margin:8px 0 18px}
+#tab-workpro .wp-navbtn{
+  border:1px solid var(--line-2,#e3ded6);background:var(--card,#fff);color:var(--ink-2);
+  border-radius:999px;padding:7px 13px;font-size:.84rem;font-weight:600;cursor:pointer;
+  font-family:inherit;line-height:1.2;
+}
+#tab-workpro .wp-navbtn[aria-selected="true"]{background:var(--ink);color:#F7F5F2;border-color:var(--ink)}
+
+#tab-workpro .wp-sec{display:flex;flex-direction:column;gap:18px}
+#tab-workpro .wp-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+#tab-workpro .wp-kpi{background:var(--card,#fff);border:1px solid var(--line);border-radius:var(--r,14px);padding:14px 16px}
+#tab-workpro .wp-kpi-label{margin:0;font-size:.74rem;font-weight:700;letter-spacing:.03em;color:var(--ink-3,#7a736a)}
+#tab-workpro .wp-kpi-value{margin:4px 0 2px;font-size:1.5rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+#tab-workpro .wp-kpi-note{margin:0;font-size:.74rem;color:var(--ink-3,#7a736a);line-height:1.45}
+
+/* admin.css 의 .panel-wide{grid-column:1 / -1} 는 대시보드 그리드용 — 여기서는 두 칸 안에 놓습니다. */
+#tab-workpro .wp-split > .panel-wide,#tab-workpro .wp-report .panel-wide{grid-column:auto}
+#tab-workpro .wp-split{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,1fr);gap:16px;align-items:start}
+#tab-workpro .wp-split > .wp-grow{min-width:0}
+#tab-workpro .wp-side{min-width:0}
+#tab-workpro .wp-empty{margin:10px 0;padding:18px 14px;text-align:center;color:var(--ink-3,#7a736a);font-size:.88rem;border:1px dashed var(--line);border-radius:var(--r-s,10px);background:var(--bg-2,#faf8f5)}
+
+/* ---------- 필터 · 칩 ---------- */
+#tab-workpro .wp-filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 10px}
+#tab-workpro .wp-filters .spacer{flex:1}
+#tab-workpro .fchip{
+  border:1px solid var(--line-2,#e3ded6);background:var(--card,#fff);color:var(--ink-2);
+  border-radius:999px;padding:6px 12px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;
+}
+#tab-workpro .fchip.on,#tab-workpro .fchip[aria-pressed="true"]{background:var(--accent-s,#f1ece3);border-color:var(--accent);color:var(--ink)}
+
+/* ---------- 조직도 ---------- */
+#tab-workpro .wp-tree{display:flex;flex-direction:column;gap:14px;margin-top:8px}
+#tab-workpro .wp-dept{border-left:3px solid var(--accent-s,#f1ece3);padding-left:12px}
+#tab-workpro .wp-dept-name{margin:0 0 6px;font-size:.95rem;font-weight:800}
+#tab-workpro .wp-dept-n{font-size:.72rem;font-weight:700;color:var(--ink-3,#7a736a);background:var(--bg-2,#f5f2ed);border-radius:999px;padding:2px 8px;margin-left:4px}
+#tab-workpro .wp-team{margin:6px 0 0 2px}
+#tab-workpro .wp-team-name{margin:0 0 4px;font-size:.78rem;font-weight:700;color:var(--ink-3,#7a736a)}
+#tab-workpro .wp-person{
+  display:flex;gap:10px;align-items:center;justify-content:space-between;width:100%;
+  background:transparent;border:1px solid transparent;border-bottom-color:var(--line);
+  padding:8px 6px;text-align:left;cursor:pointer;font-family:inherit;color:inherit;
+}
+#tab-workpro .wp-person:hover{background:var(--bg-2,#faf8f5);border-radius:8px}
+#tab-workpro .wp-person-main{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;min-width:0}
+#tab-workpro .wp-person-main b{font-size:.92rem}
+#tab-workpro .wp-title{font-size:.74rem;color:var(--ink-3,#7a736a)}
+#tab-workpro .wp-area{font-size:.76rem;color:var(--ink-2);background:var(--bg-2,#f5f2ed);border-radius:6px;padding:1px 7px}
+#tab-workpro .wp-load{display:flex;gap:8px;flex-shrink:0}
+#tab-workpro .wp-li{font-size:.76rem;color:var(--ink-3,#7a736a);white-space:nowrap}
+#tab-workpro .wp-li b{color:var(--ink);font-size:.86rem;margin-left:2px}
+#tab-workpro .wp-li.is-over b{color:#b43b2b}
+
+/* ---------- 표 ---------- */
+#tab-workpro .wp-tablewrap{overflow-x:auto}
+#tab-workpro .wp-table{width:100%;border-collapse:collapse;font-size:.85rem}
+#tab-workpro .wp-table th,#tab-workpro .wp-table td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+#tab-workpro .wp-table th{font-size:.74rem;font-weight:800;letter-spacing:.03em;color:var(--ink-3,#7a736a);white-space:nowrap}
+#tab-workpro .wp-table td.right,#tab-workpro .wp-table th.right{text-align:right;white-space:nowrap}
+#tab-workpro .wp-cell-main b{font-weight:700}
+#tab-workpro .wp-table tr.is-over td{background:rgba(180,59,43,.05)}
+
+/* ---------- 배지 · 태그 ---------- */
+#tab-workpro .wp-badge{
+  display:inline-block;font-size:.72rem;font-weight:700;border-radius:999px;padding:2px 8px;
+  background:var(--bg-2,#f5f2ed);color:var(--ink-2);margin-left:4px;white-space:nowrap;
+}
+#tab-workpro .wp-badge.is-over{background:#fbe9e6;color:#8f2a1d}
+#tab-workpro .wp-badge.is-d1{background:#fdf1e2;color:#8a4a10}
+#tab-workpro .wp-badge.is-d3{background:#f4f1e0;color:#6f6215}
+#tab-workpro .wp-badge.is-done{background:#e8f2e9;color:#2f5c34}
+#tab-workpro .wp-tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:6px;padding:1px 7px;background:var(--accent-s,#f1ece3);color:var(--ink-2)}
+#tab-workpro .wp-tag.is-off{background:#efeae4;color:#8a8177}
+#tab-workpro .wp-card-meta{display:block;font-size:.76rem;color:var(--ink-3,#7a736a);margin-top:3px}
+
+/* ---------- 카드(템플릿) ---------- */
+#tab-workpro .wp-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:10px}
+#tab-workpro .wp-card{background:var(--card,#fff);border:1px solid var(--line);border-radius:var(--r,14px);padding:14px 15px;display:flex;flex-direction:column;gap:6px}
+#tab-workpro .wp-card header{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+#tab-workpro .wp-card h3{margin:0;font-size:.95rem;flex:1;min-width:0}
+#tab-workpro .wp-card-sub{margin:0;font-size:.84rem;color:var(--ink-2)}
+#tab-workpro .wp-card-list{margin:4px 0 0;padding-left:16px;font-size:.78rem;color:var(--ink-2);line-height:1.55;max-height:110px;overflow:auto}
+#tab-workpro .wp-card-foot{display:flex;gap:6px;margin-top:auto;padding-top:6px}
+
+/* ---------- 체크리스트 · 진행률 ---------- */
+#tab-workpro .wp-cl-head{display:flex;gap:8px;align-items:center;justify-content:space-between;margin:10px 0 6px;flex-wrap:wrap}
+#tab-workpro .wp-progress{position:relative;height:12px;background:var(--bg-2,#f0ece6);border-radius:999px;overflow:hidden}
+#tab-workpro .wp-progress i{position:absolute;inset:0 auto 0 0;background:var(--accent,#8a6d3b);border-radius:999px;transition:width .2s ease}
+#tab-workpro .wp-progress span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.64rem;font-weight:800;color:var(--ink)}
+#tab-workpro .wp-checks{list-style:none;margin:8px 0;padding:0;display:flex;flex-direction:column;gap:2px}
+#tab-workpro .wp-checks li{display:flex;gap:6px;align-items:center;border-bottom:1px dashed var(--line);padding:5px 2px}
+#tab-workpro .wp-checks li.is-done span{text-decoration:line-through;color:var(--ink-3,#8a8177)}
+#tab-workpro .wp-checks label{flex:1;min-width:0;font-size:.85rem;display:flex;gap:7px;align-items:flex-start;cursor:pointer}
+#tab-workpro .wp-checks input{margin-top:3px}
+#tab-workpro .wp-x{border:0;background:transparent;color:var(--ink-3,#8a8177);font-size:1.05rem;line-height:1;cursor:pointer;padding:2px 6px;font-family:inherit}
+#tab-workpro .wp-x:hover{color:#8f2a1d}
+#tab-workpro .wp-check{display:flex;gap:6px;align-items:center;font-size:.84rem;color:var(--ink-2);margin:6px 0;cursor:pointer}
+
+/* ---------- 폼 ---------- */
+#tab-workpro .wp-formfoot{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+#tab-workpro .wp-formfoot .spacer{flex:1}
+#tab-workpro .wp-grid-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 12px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+#tab-workpro .wp-span2{grid-column:span 2}
+#tab-workpro .wp-inline{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+#tab-workpro .wp-inline input{flex:1;min-width:140px}
+#tab-workpro .wp-line{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
+#tab-workpro .wp-rec{font-size:.82rem;color:var(--ink-2)}
+#tab-workpro .wp-meta{color:var(--ink-3,#7a736a);font-size:.76rem}
+#tab-workpro .wp-mini{
+  border:1px solid var(--line-2,#e3ded6);background:var(--card,#fff);border-radius:8px;
+  padding:4px 6px;font-size:.8rem;font-family:inherit;color:inherit;
+}
+
+/* ---------- 연동 기록 ---------- */
+#tab-workpro .wp-logs{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:0}
+#tab-workpro .wp-logs li{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;padding:8px 4px;border-bottom:1px solid var(--line);font-size:.82rem}
+#tab-workpro .wp-log-time{font-size:.74rem;color:var(--ink-3,#7a736a);min-width:112px}
+#tab-workpro .wp-log-who{font-weight:700}
+#tab-workpro .wp-log-move{font-size:.78rem;background:var(--bg-2,#f5f2ed);border-radius:6px;padding:1px 7px}
+#tab-workpro .wp-log-doc{font-size:.74rem;color:var(--ink-3,#7a736a)}
+
+/* ---------- 리포트 ---------- */
+#tab-workpro .wp-report .sub-h{margin:14px 0 6px;font-size:.84rem;font-weight:800;color:var(--ink-2)}
+#tab-workpro .wp-report .wp-split{margin-top:6px}
+
+/* ---------- 모달 ---------- */
+.wp-modal .cms-modal-card{max-width:640px;width:100%}
+.wp-modal .cms-modal-body{padding:2px 2px 0}
+
+/* ---------- 좁은 화면 ---------- */
+@media (max-width:900px){
+  #tab-workpro .wp-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #tab-workpro .wp-split{grid-template-columns:1fr}
+  #tab-workpro .wp-grid-form{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:560px){
+  #tab-workpro .wp-kpis{grid-template-columns:1fr}
+  #tab-workpro .wp-grid-form{grid-template-columns:1fr}
+  #tab-workpro .wp-span2{grid-column:auto}
+  #tab-workpro .wp-person{flex-direction:column;align-items:flex-start;gap:4px}
+  #tab-workpro .wp-load{flex-wrap:wrap}
+}
+
+/* ---------- 인쇄(리포트만) ---------- */
+@media print{
+  body.wp-print-report .admin-header,
+  body.wp-print-report .admin-tabs,
+  body.wp-print-report .admin-foot,
+  body.wp-print-report .tabpanel:not(#tab-workpro),
+  body.wp-print-report #tab-workpro .wp-hero,
+  body.wp-print-report #tab-workpro .wp-note,
+  body.wp-print-report #tab-workpro .wp-missing,
+  body.wp-print-report #tab-workpro .wp-msg,
+  body.wp-print-report #tab-workpro .wp-nav,
+  body.wp-print-report #tab-workpro .wp-sec:not(#wp-sec-report),
+  body.wp-print-report #tab-workpro .wp-nonprint{display:none !important}
+  body.wp-print-report .admin-main{padding:0;max-width:none}
+  body.wp-print-report #tab-workpro .panel{border:0;box-shadow:none;padding:0}
+  body.wp-print-report #tab-workpro .wp-report .wp-kpi{border:1px solid #ccc}
+  body.wp-print-report #tab-workpro .wp-table{font-size:10.5pt}
+  body.wp-print-report #tab-workpro .wp-table th,
+  body.wp-print-report #tab-workpro .wp-table td{border-bottom:1px solid #ddd}
+}

@@ -1,8 +1,8 @@
 {
   "name": "SBPress",
   "kind": "core-manifest",
-  "version": "10.0",
-  "generatedAt": "2026-11-24T23:09:31+09:00",
+  "version": "10.1",
+  "generatedAt": "2026-11-24T23:37:38+09:00",
   "generator": "craftstore_site/sync_template.py --manifest",
   "engine": {
     "html": {
@@ -11,7 +11,7 @@
         "strategy": "structural"
       },
       "admin.html": {
-        "sha256": "8a44928e454e1b933dae4000b5ecd057b1b658bf6914eb7964ff7f1e01500504",
+        "sha256": "1a266a51996457b45a34b65ed062a1cdfc0b38692558a6137cd9e2c739c8462c",
         "strategy": "structural"
       },
       "admin/index.html": {
@@ -33,11 +33,11 @@
         "strategy": "copy"
       },
       "assets/admin.js": {
-        "sha256": "f0a56be2fad822cbc5859c74877c34219223cc22c448442d15df6c1b73bf0edd",
+        "sha256": "8eaf760ab1510a39e74ad47f33045a6ddb97b670b9b5f8706b59e920f82a54a0",
         "strategy": "copy"
       },
       "assets/admin-i18n.js": {
-        "sha256": "112a4e1fd72f147d6bc5c52c1a21574990a040901e7eb81077ff5247cd36c949",
+        "sha256": "a91d776182536171e366a5d245994568ff30cf1da3cd41b317f886591677729d",
         "strategy": "copy"
       },
       "assets/archive.js": {
@@ -137,7 +137,7 @@
         "strategy": "copy"
       },
       "sw.js": {
-        "sha256": "796d2b0d759512fed73d300ca6eb920200fc5df15520938f22f2cf85d2302cec",
+        "sha256": "32b0af9a177f839fde65afd27deb6fbbea99e0185854eecc4130a225e0cec8e2",
         "strategy": "copy"
       },
       "assets/plugins/admin-json-export.js": {
@@ -167,6 +167,10 @@
       "assets/market.js": {
         "sha256": "e2ee24547811d1e6f778a95180584cd7ef77db149642f6455206084cabcddbc4",
         "strategy": "copy"
+      },
+      "assets/work-pro.js": {
+        "sha256": "3c6049233a72f08202978a26cfa97e9cdf0779e825f46a2dda5ac914bcd38d4b",
+        "strategy": "copy"
       }
     },
     "css": {
@@ -184,6 +188,10 @@
       },
       "assets/market.css": {
         "sha256": "0167f4363a5142c5f75bd93a7d8db6c64e0422852721ec183424c3807ca97610",
+        "strategy": "copy"
+      },
+      "assets/work-pro.css": {
+        "sha256": "88206634e9a69af58050491cc23291aa825453e0bb4fd10a08a79b3fc903b00a",
         "strategy": "copy"
       }
     },
@@ -249,7 +257,7 @@
         "strategy": "copy"
       },
       "scripts/measure_traffic.py": {
-        "sha256": "d6714d6ceb5d7d6a03861eb92c1e5211f00048c8599937de73b602f8d931f64b",
+        "sha256": "1b4f52662d4339401a1aff1ab029d7a9eb803ddb128ebe7d2ec27a7f926976d4",
         "strategy": "copy"
       },
       "scripts/clone_site.py": {

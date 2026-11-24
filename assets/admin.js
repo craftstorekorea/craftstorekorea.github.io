@@ -899,6 +899,7 @@
     if (name === "brand") { loadGrade(); loadTheme(); }
     if (name === "posts") { if (!CMS.loaded.posts) loadPosts(); loadBoards(); }
     if (name === "tasks") loadTasksAdmin();
+    if (name === "workpro") loadWorkPro();
     if (name === "approvals") loadApprovalsAdmin();
     if (name === "media") loadMedia();
     if (name === "comments" && !CMS.loaded.comments) loadComments();
@@ -4526,6 +4527,31 @@
   var adminTasks = [];
   var TASK_STATUS = { todo: "할 일", doing: "진행 중", done: "완료" };
   var TASK_PRIO = { low: "낮음", normal: "보통", high: "높음" };
+
+  /* ---------- v10.1 업무 · 결재 Pro (assets/work-pro.js — 탭을 처음 열 때 지연 로딩) ----------
+     조직도·반복 업무·템플릿·조건부 결재선·결재–업무 연동·리포트는 work-pro.js 가 그리고,
+     스타일(work-pro.css)도 그 파일이 처음 한 번만 받습니다(첫 화면 300KB 예산). */
+  var workProPromise = null;
+
+  function loadWorkPro() {
+    if (window.CRAFT_WORKPRO) { window.CRAFT_WORKPRO.show(); return Promise.resolve(); }
+    if (workProPromise) return workProPromise;
+    workProPromise = new Promise(function (resolve) {
+      var done = false;
+      function finish() {
+        if (done) return;
+        done = true;
+        if (window.CRAFT_WORKPRO) window.CRAFT_WORKPRO.show();
+        resolve(window.CRAFT_WORKPRO || null);
+      }
+      try {
+        if (window.SBP && window.SBP.loadScript) window.SBP.loadScript("assets/work-pro.js").then(finish, finish);
+        else finish();
+      } catch (e) { finish(); }
+      setTimeout(finish, 6000);
+    });
+    return workProPromise;
+  }
 
   function loadTasksAdmin() {
     var body = $("#tasks-admin-table tbody");
