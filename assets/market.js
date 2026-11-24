@@ -1,4 +1,4 @@
-/* ===== SBPress v10.6 · 플러그인 마켓 탐색기 (assets/market.js) =====
+/* ===== SBPress v10.7 · 플러그인 마켓 탐색기 (assets/market.js) =====
    관리자(/admin · 플러그인 · 마켓)와 공개 화면(#/market)이 함께 쓰는 마켓 화면입니다.
 
    · v10.5 권한 동의 · 무결성 — 설치·업데이트 전에 「권한을 확인해 주세요」 모달로
@@ -19,6 +19,14 @@
      plugin_submissions 에 들어가고, 관리자 마켓의 「제출 · 심사 큐」에서 승인/반려(사유)합니다.
      승인된 항목은 v10.5 동의 모달로 바로 설치하거나 마켓 JSON 으로 복사·내보냅니다.
      (supabase/27_v106_plugin_submissions.sql · 표가 없으면 이 브라우저에만 저장)
+
+   · v10.7 별점 · 리뷰 · 설치 통계 — 카드와 상세 모달에 평균 별점(★ 4.5 · 리뷰 3건) ·
+     설치 수 · 호환성 배지(SBPress 10.7 호환 / 미검증 / 주의)를 보여 주고, 정렬에
+     「평점 높은순」·「인기(설치)순」을 더합니다. 상세 모달에는 1~5 별점 리뷰 목록과
+     작성·수정 폼(로그인 회원)이 있고, 관리자는 리뷰를 숨기거나 복원합니다.
+     관리자 「호환성 리포트」는 설치·마켓 플러그인을 min/max SBPress 버전 · 훅 API
+     (blocksApi·securityApi) · 최근 실행 오류와 견주고 「전체 호환성 재검사」로 결과를 남깁니다.
+     (supabase/28_v107_plugin_reviews_stats.sql · 표가 없으면 이 브라우저에만 저장)
 
    이 파일은 첫 화면에 넣지 않습니다. 공개 사이트는 #/market 에 들어갈 때(app.js 의
    LAZY_ROUTES), 관리자 화면은 플러그인 탭을 처음 열 때 admin.js 가 SBP.loadScript 로
@@ -330,7 +338,79 @@
       scanHttp: "http:// 주소",
       scanInnerHtml: "innerHTML 대입",
       scanStorage: "localStorage 사용",
-      scanExternal: "외부 주소로 요청"
+      scanExternal: "외부 주소로 요청",
+      /* v10.7 — 별점 · 리뷰 · 설치 통계 · 호환성 리포트 */
+      ratingLabel: "평점",
+      installsLabel: "설치",
+      reviewsCount: "리뷰 {n}건",
+      reviewOne: "리뷰 1건",
+      noReviewsYet: "아직 리뷰 없음",
+      installsCount: "설치 {n}",
+      installsTitle: "마켓에서 설치한 수입니다.",
+      ratingTitle: "공개 리뷰의 평균 별점입니다.",
+      activeCount: "켜짐 {n}",
+      sortRating: "평점 높은순",
+      sortInstalls: "인기(설치)순",
+      compatBadgeOk: "SBPress {v} 호환",
+      compatWarn: "주의",
+      compatUnverified: "미검증",
+      compatBadgeTitle: "SBPress {v} 기준 호환성",
+      compatMin: "최소",
+      compatMax: "최대",
+      compatVerifiedShort: "검증 v{v}",
+      compatNotVerified: "재검사 전",
+      compatLabel: "호환성",
+      compatTitle: "호환성 리포트",
+      compatLead: "설치된 플러그인과 마켓 플러그인을 현재 코어(v{v})와 견줍니다 — 최소·최대 SBPress 버전, 훅 API(blocksApi·securityApi), 최근 실행 오류를 한 목록으로 봅니다.",
+      compatRun: "전체 호환성 재검사",
+      compatRunning: "재검사하는 중…",
+      compatSummary: "{n}개 검사 · 호환 {ok} · 주의 {warn} · 미검증 {unv} (코어 v{v})",
+      compatDone: "{n}개를 재검사했습니다 — 호환 {ok} · 주의 {warn} · 미검증 {unv}.",
+      compatSaveFailed: "서버에 {n}개를 저장하지 못했습니다.",
+      compatNeedSql: "Supabase 에 supabase/28_v107_plugin_reviews_stats.sql 을 실행하면 재검사 결과가 서버에 남습니다. 지금은 이 브라우저에만 저장했습니다.",
+      compatEmpty: "검사할 플러그인이 없습니다.",
+      compatHooksShort: "훅 API",
+      compatHooksOk: "선언한 요구 없음",
+      compatHooksBad: "{a} {have}/{need}",
+      compatVerified: "검증 버전 v{v}",
+      compatErrors: "최근 오류 {n}건",
+      compatFailed: "실행 실패로 꺼짐",
+      compatMarketOnly: "마켓만",
+      compatOk: "호환",
+      reviewTitle: "리뷰",
+      reviewWriteTitle: "리뷰 쓰기",
+      reviewEditTitle: "내 리뷰 수정",
+      reviewRating: "별점",
+      reviewRateAria: "{n}점 주기",
+      reviewTitleLabel: "제목 (선택)",
+      reviewBodyLabel: "내용",
+      reviewSave: "리뷰 저장",
+      reviewUpdate: "리뷰 수정",
+      reviewSaving: "저장하는 중…",
+      reviewSaved: "리뷰를 저장했습니다.",
+      reviewSavedLocal: "28_v107 SQL 을 실행하기 전이라 이 브라우저에만 저장했습니다.",
+      reviewSaveFail: "리뷰를 저장하지 못했습니다: ",
+      reviewLoadFail: "리뷰를 불러오지 못했습니다: ",
+      reviewLoading: "리뷰를 불러오는 중…",
+      reviewEmpty: "아직 리뷰가 없습니다. 첫 리뷰를 남겨 보세요.",
+      reviewGate: "리뷰를 쓰려면 로그인이 필요합니다.",
+      reviewGateLink: "로그인",
+      reviewNeedLogin: "로그인 후 리뷰를 쓸 수 있습니다.",
+      reviewNeedRating: "별점을 골라 주세요.",
+      reviewNeedBody: "내용을 10자 이상 적어 주세요.",
+      reviewMine: "내 리뷰",
+      reviewHiddenBadge: "숨김",
+      reviewHide: "숨기기",
+      reviewRestore: "복원",
+      reviewDelete: "삭제",
+      reviewDeleteConfirm: "이 리뷰를 삭제할까요?",
+      reviewHiddenDone: "리뷰를 숨겼습니다. 평균 별점에서 빠집니다.",
+      reviewShownDone: "리뷰를 다시 공개했습니다.",
+      reviewEdited: "수정됨",
+      reviewNeedSql: "supabase/28_v107_plugin_reviews_stats.sql 을 실행하면 리뷰·통계가 서버에 저장됩니다. 지금은 이 브라우저에만 저장합니다.",
+      statsLoadFail: "설치·평점 통계를 불러오지 못했습니다: ",
+      statsNeedSql: "28_v107 SQL 을 실행하기 전이라 설치·평점 통계는 이 브라우저에만 쌓입니다.",
+      installRecordFail: "설치 수를 서버에 남기지 못했습니다: "
     },
     en: {
       eyebrow: "PLUGIN MARKET",
@@ -625,7 +705,79 @@
       scanHttp: "http:// address",
       scanInnerHtml: "innerHTML assignment",
       scanStorage: "localStorage use",
-      scanExternal: "fetch to another host"
+      scanExternal: "fetch to another host",
+      /* v10.7 — ratings, reviews, install stats, compatibility report */
+      ratingLabel: "Rating",
+      installsLabel: "Installs",
+      reviewsCount: "{n} reviews",
+      reviewOne: "1 review",
+      noReviewsYet: "No reviews yet",
+      installsCount: "{n} installs",
+      installsTitle: "How many times this plugin was installed from the market.",
+      ratingTitle: "Average rating of published reviews.",
+      activeCount: "{n} on",
+      sortRating: "Highest rated",
+      sortInstalls: "Most installed",
+      compatBadgeOk: "SBPress {v} compatible",
+      compatWarn: "Check",
+      compatUnverified: "Not verified",
+      compatBadgeTitle: "Compatibility with SBPress {v}",
+      compatMin: "min",
+      compatMax: "max",
+      compatVerifiedShort: "verified v{v}",
+      compatNotVerified: "not re-checked",
+      compatLabel: "Compatibility",
+      compatTitle: "Compatibility report",
+      compatLead: "Checks installed and market plugins against the current core (v{v}) — minimum and maximum SBPress version, hook APIs (blocksApi, securityApi) and recent runtime errors in one list.",
+      compatRun: "Re-check all compatibility",
+      compatRunning: "Re-checking…",
+      compatSummary: "{n} checked · {ok} compatible · {warn} to check · {unv} not verified (core v{v})",
+      compatDone: "Re-checked {n} plugins — {ok} compatible · {warn} to check · {unv} not verified.",
+      compatSaveFailed: "Could not save {n} results on the server.",
+      compatNeedSql: "Run supabase/28_v107_plugin_reviews_stats.sql in Supabase to store the results on the server. For now they are kept in this browser only.",
+      compatEmpty: "No plugins to check.",
+      compatHooksShort: "Hook API",
+      compatHooksOk: "no requirement declared",
+      compatHooksBad: "{a} {have}/{need}",
+      compatVerified: "Verified version v{v}",
+      compatErrors: "{n} recent errors",
+      compatFailed: "turned off after a failure",
+      compatMarketOnly: "market only",
+      compatOk: "Compatible",
+      reviewTitle: "Reviews",
+      reviewWriteTitle: "Write a review",
+      reviewEditTitle: "Edit my review",
+      reviewRating: "Rating",
+      reviewRateAria: "Give {n} stars",
+      reviewTitleLabel: "Title (optional)",
+      reviewBodyLabel: "Review",
+      reviewSave: "Save review",
+      reviewUpdate: "Update review",
+      reviewSaving: "Saving…",
+      reviewSaved: "Your review was saved.",
+      reviewSavedLocal: "The 28_v107 SQL has not been run yet, so the review was saved in this browser only.",
+      reviewSaveFail: "Could not save the review: ",
+      reviewLoadFail: "Could not load reviews: ",
+      reviewLoading: "Loading reviews…",
+      reviewEmpty: "No reviews yet. Be the first to write one.",
+      reviewGate: "Sign in to write a review.",
+      reviewGateLink: "Sign in",
+      reviewNeedLogin: "Sign in before writing a review.",
+      reviewNeedRating: "Choose a star rating.",
+      reviewNeedBody: "Write at least 10 characters.",
+      reviewMine: "My review",
+      reviewHiddenBadge: "Hidden",
+      reviewHide: "Hide",
+      reviewRestore: "Restore",
+      reviewDelete: "Delete",
+      reviewDeleteConfirm: "Delete this review?",
+      reviewHiddenDone: "Review hidden. It is left out of the average rating.",
+      reviewShownDone: "Review published again.",
+      reviewEdited: "edited",
+      reviewNeedSql: "Run supabase/28_v107_plugin_reviews_stats.sql to store reviews and stats on the server. For now they are kept in this browser only.",
+      statsLoadFail: "Could not load install and rating stats: ",
+      statsNeedSql: "The 28_v107 SQL has not been run, so install and rating stats are kept in this browser only.",
+      installRecordFail: "Could not record the install count: "
     }
   };
 
@@ -888,6 +1040,29 @@
         order: Number(item.order || 0) || 100,
         updated: dateText(item.updated || item.updated_at),
         min_sbpress_version: String(item.min_sbpress_version || item.minVersion || ""),
+        /* v10.7 — 최대 버전·훅 API 요구·통계(마켓 JSON 이 미리 알려 줄 수 있습니다). */
+        max_sbpress_version: String(item.max_sbpress_version || item.maxVersion || ""),
+        requires: (function (r) {
+          if (!r || typeof r !== "object") return {};
+          var out = {};
+          ["blocksApi", "securityApi", "settingsApi", "versionsApi", "api"].forEach(function (k) {
+            var n = Number(r[k] || 0);
+            if (n > 0) out[k] = n;
+          });
+          return out;
+        })(item.requires || (m && m.requires)),
+        stats: (function (st) {
+          if (!st || typeof st !== "object") return null;
+          return {
+            install_count: Number(st.install_count || 0) || 0,
+            active_count: Number(st.active_count || 0) || 0,
+            avg_rating: Number(st.avg_rating || 0) || 0,
+            review_count: Number(st.review_count || 0) || 0,
+            last_verified_version: st.last_verified_version == null ? "" : String(st.last_verified_version),
+            compat_ok: st.compat_ok === true ? true : (st.compat_ok === false ? false : null),
+            compat_note: String(st.compat_note || "")
+          };
+        })(item.stats),
         script_url: String(item.script_url || ""),
         source: String(item.source || ""),
         tags: tags,
@@ -1206,7 +1381,19 @@
   function sortList(inst, list, mode) {
     var arr = list.slice();
     var locale = inst.lang === "en" ? "en" : "ko";
-    if (mode === "latest") {
+    if (mode === "rating") {
+      arr.sort(function (a, b) {
+        var x = statsOf(inst, a), y = statsOf(inst, b);
+        return (y.avg_rating - x.avg_rating) || (y.review_count - x.review_count) ||
+          (a.order - b.order) || disp(inst, a).name.localeCompare(disp(inst, b).name, locale);
+      });
+    } else if (mode === "installs") {
+      arr.sort(function (a, b) {
+        var x = statsOf(inst, a), y = statsOf(inst, b);
+        return (y.install_count - x.install_count) || (y.review_count - x.review_count) ||
+          (a.order - b.order) || disp(inst, a).name.localeCompare(disp(inst, b).name, locale);
+      });
+    } else if (mode === "latest") {
       arr.sort(function (a, b) {
         var x = a.updated || "", y = b.updated || "";
         if (x !== y) return y.localeCompare(x);
@@ -1237,6 +1424,704 @@
       return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
     });
     return { cats: cats, hooks: hooks, tags: tags, markets: markets };
+  }
+
+  /* ======================================================================
+     v10.7 — 별점 · 리뷰 · 설치 통계 · 호환성
+     ----------------------------------------------------------------------
+     통계는 plugin_stats(서버) → 마켓 JSON 의 stats → 이 브라우저(localStorage)
+     순서로 겹쳐 읽습니다. 28_v107 SQL 이 없으면 리뷰는 localStorage 에만 쌓고,
+     평균·건수도 그 자리에서 다시 계산합니다. 쓰기는 모두 이 파일이 하지만,
+     설치·제거 수는 관리자 화면(admin.js)이 recordInstall 로 알려 줍니다. */
+  var STATS = { loaded: false, loading: false, tableMissing: false, map: {}, local: false, msg: "", msgKind: "" };
+  var STATS_LS = "sbpress-plugin-stats";
+  var REV_LS = "sbpress-plugin-reviews";
+  var REV = { slug: "", inst: null, items: null, loading: false, tableMissing: false, mine: null,
+              user: null, rating: 0, msg: "", msgKind: "", busy: false };
+  var COMPAT = { busy: false, flash: null };
+
+  function num(v) { var n = Number(v); return isFinite(n) ? n : 0; }
+  function enc(s) { return encodeURIComponent(String(s == null ? "" : s)); }
+  function mergeInto(dst, src) {
+    Object.keys(src || {}).forEach(function (k) { dst[k] = src[k]; });
+    return dst;
+  }
+  function readLS(key, fallback) {
+    try {
+      var v = JSON.parse(localStorage.getItem(key) || "null");
+      return v == null ? fallback : v;
+    } catch (e) { return fallback; }
+  }
+  function writeLS(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); return true; } catch (e) { return false; }
+  }
+
+  /* 현재 코어 버전 — 마켓 JSON 의 sbpress(10.7) → 엔진 버전 순서. 10.7.0 은 10.7 로 줄입니다. */
+  function coreVer(inst) {
+    var v = String((inst && inst.data && inst.data.sbpress) || "");
+    if (!v) { try { v = String((window.SBPress && window.SBPress.version) || ""); } catch (e) { v = ""; } }
+    v = v.replace(/^v/i, "").trim();
+    if (!v) return "10.7";
+    var p = v.split(".");
+    if (p.length === 3 && p[2] === "0") return p[0] + "." + p[1];
+    return v;
+  }
+  function coreShort(v) { return String(v || "").split(".").slice(0, 2).join("."); }
+  function apiVer(k) {
+    var n = 0;
+    try { n = Number((window.SBPress && window.SBPress[k]) || 0); } catch (e) { n = 0; }
+    return n || ((k === "blocksApi" || k === "securityApi") ? 1 : 0);
+  }
+  function ratingText(n) { n = num(n); return n > 0 ? (Math.round(n * 10) / 10).toFixed(1) : "0.0"; }
+
+  function statsOf(inst, p) {
+    var id = (p && p.id) ? p.id : String(p || "");
+    var base = (p && p.stats && typeof p.stats === "object") ? p.stats : {};
+    var row = STATS.map[id] || {};
+    var pick = function (k) { return row[k] != null ? row[k] : base[k]; };
+    var ok = pick("compat_ok");
+    var lv = pick("last_verified_version");
+    return {
+      install_count: Math.max(0, num(pick("install_count"))),
+      active_count: Math.max(0, num(pick("active_count"))),
+      avg_rating: Math.min(5, Math.max(0, num(pick("avg_rating")))),
+      review_count: Math.max(0, num(pick("review_count"))),
+      last_verified_version: lv == null ? "" : String(lv),
+      compat_ok: ok === true ? true : (ok === false ? false : null),
+      compat_note: String(pick("compat_note") || ""),
+      updated_at: String(pick("updated_at") || "")
+    };
+  }
+
+  function setLocalStats(id, patch) {
+    var all = readLS(STATS_LS, {});
+    if (!all || typeof all !== "object" || Array.isArray(all)) all = {};
+    var cur = (all[id] && typeof all[id] === "object") ? all[id] : {};
+    mergeInto(cur, patch || {});
+    cur.updated_at = new Date().toISOString();
+    all[id] = cur;
+    writeLS(STATS_LS, all);
+    STATS.map[id] = mergeInto({ plugin_slug: id }, cur);
+    STATS.local = true;
+    return STATS.map[id];
+  }
+
+  function applyLocalStats() {
+    var all = readLS(STATS_LS, {});
+    if (all && typeof all === "object" && !Array.isArray(all)) {
+      Object.keys(all).forEach(function (id) {
+        var row = all[id];
+        if (row && typeof row === "object") {
+          row.plugin_slug = id;
+          STATS.map[id] = row;
+        }
+      });
+    }
+    STATS.local = true;
+  }
+
+  function repaintStats(inst, keepModal) {
+    if (!inst) return;
+    if (inst.tools) paintTools(inst);
+    if (inst.data) render(inst);
+    if (keepModal && MODAL.el && !MODAL.el.hidden && MODAL.inst === inst && MODAL.id) {
+      openDetail(inst, MODAL.id, true);
+    }
+  }
+
+  /* plugin_stats 를 한 번 읽어 둡니다. 표가 없으면(28_v107 이전) 이 브라우저 값으로 대신합니다. */
+  function loadStats(inst, force) {
+    if (!inst) return;
+    if (STATS.loading) return;
+    if (STATS.loaded && !force) return;
+    STATS.loading = true;
+    STATS.msg = ""; STATS.msgKind = "";
+    function finish() {
+      STATS.loading = false;
+      STATS.loaded = true;
+      repaintStats(inst, true);
+    }
+    if (!sbCfg().url) { STATS.tableMissing = true; applyLocalStats(); finish(); return; }
+    sbRequest("/rest/v1/plugin_stats?select=*&limit=500", { token: sbToken() }).then(function (rows) {
+      if (Array.isArray(rows)) {
+        rows.forEach(function (r) { if (r && r.plugin_slug) STATS.map[r.plugin_slug] = r; });
+      }
+      STATS.tableMissing = false;
+      STATS.local = false;
+      finish();
+    }, function (e) {
+      STATS.tableMissing = missingTable(e);
+      applyLocalStats();
+      if (!STATS.tableMissing) { STATS.msg = tr(inst.lang, "statsLoadFail") + (e.message || e); STATS.msgKind = "err"; }
+      finish();
+    });
+  }
+
+  /* 설치·켜짐 수 — 관리자 화면이 설치/제거/켜기/끄기 뒤에 부릅니다.
+     p_delta 는 설치 수, p_active_delta 는 켜짐 수(생략하면 같은 값)입니다. */
+  function recordInstall(id, delta, activeDelta, cb) {
+    if (!id) { if (cb) cb(null); return; }
+    var inst = adminInst() || INSTANCES[0] || null;
+    var d = delta === -1 ? -1 : (delta === 1 ? 1 : 0);
+    var ad = (activeDelta === undefined || activeDelta === null) ? d
+      : (activeDelta === -1 ? -1 : (activeDelta === 1 ? 1 : 0));
+    var cur = statsOf(inst, { id: id });
+    var next = setLocalStats(id, {
+      install_count: Math.max(0, cur.install_count + d),
+      active_count: Math.max(0, cur.active_count + ad),
+      avg_rating: cur.avg_rating, review_count: cur.review_count,
+      last_verified_version: cur.last_verified_version || null,
+      compat_ok: cur.compat_ok, compat_note: cur.compat_note || null
+    });
+    function done(err) {
+      repaintStats(inst, false);
+      if (cb) cb(err || null);
+    }
+    if (!sbCfg().url || STATS.tableMissing) { done(null); return; }
+    sbRequest("/rest/v1/rpc/record_plugin_install", {
+      method: "POST", token: sbToken(),
+      body: { p_slug: id, p_delta: d, p_active_delta: ad }
+    }).then(function (res) {
+      if (res && res.install_count != null) {
+        STATS.map[id] = {
+          plugin_slug: id, install_count: Math.max(0, num(res.install_count)),
+          active_count: Math.max(0, num(res.active_count)),
+          avg_rating: next.avg_rating, review_count: next.review_count,
+          last_verified_version: next.last_verified_version,
+          compat_ok: next.compat_ok, compat_note: next.compat_note,
+          updated_at: res.updated_at || new Date().toISOString()
+        };
+      }
+      done(null);
+    }, function (e) {
+      done((missingRpc(e) || missingTable(e)) ? null : ((e && e.message) || String(e)));
+    });
+  }
+
+  /* ---------------- 호환성 ---------------- */
+  function compatOf(inst, p) {
+    var core = coreVer(inst);
+    var min = String((p && p.min_sbpress_version) || "");
+    var max = String((p && p.max_sbpress_version) || "");
+    var st = statsOf(inst, p);
+    var verOk = (!min || cmpVer(core, min) >= 0) && (!max || cmpVer(core, max) <= 0);
+    var req = (p && p.requires && typeof p.requires === "object") ? p.requires : {};
+    var hooksBad = [];
+    ["blocksApi", "securityApi"].forEach(function (k) {
+      var need = Number(req[k] || 0);
+      if (need && apiVer(k) < need) hooksBad.push({ api: k, need: need, have: apiVer(k) });
+    });
+    var verified = st.last_verified_version ? (cmpVer(st.last_verified_version, core) >= 0) : false;
+    var state = (!verOk || st.compat_ok === false || hooksBad.length) ? "warn"
+      : (!min && !max && !verified && st.compat_ok === null) ? "unverified" : "ok";
+    return { state: state, core: core, min: min, max: max, verOk: verOk, verified: verified,
+             compatOk: st.compat_ok, note: st.compat_note, hooksBad: hooksBad, req: req, stats: st };
+  }
+
+  function compatBadge(inst, p, short) {
+    var lang = inst.lang, c = compatOf(inst, p);
+    var text = c.state === "warn" ? tr(lang, "compatWarn")
+      : c.state === "unverified" ? tr(lang, "compatUnverified")
+      : tr(lang, "compatBadgeOk", { v: coreShort(c.core) });
+    var bits = [tr(lang, "compatBadgeTitle", { v: coreShort(c.core) })];
+    if (c.min) bits.push(tr(lang, "compatMin") + " v" + c.min);
+    if (c.max) bits.push(tr(lang, "compatMax") + " v" + c.max);
+    bits.push(c.verified ? tr(lang, "compatVerifiedShort", { v: c.stats.last_verified_version })
+                         : tr(lang, "compatNotVerified"));
+    if (c.hooksBad.length) {
+      bits.push(c.hooksBad.map(function (h) { return h.api + " " + h.need + ">" + h.have; }).join(", "));
+    }
+    if (c.note) bits.push(c.note);
+    return '<span class="mkt-compat is-' + c.state + '" data-mkt-compat="' + esc(p.id) + '" title="' +
+      esc(bits.join(" · ")) + '">' + esc(text) + "</span>";
+  }
+
+  function starBar(n) {
+    var v = Math.max(0, Math.min(5, Math.round(num(n))));
+    var out = "";
+    for (var i = 1; i <= 5; i++) {
+      out += '<i class="mkt-star' + (i <= v ? " on" : "") + '" aria-hidden="true">' + (i <= v ? "★" : "☆") + "</i>";
+    }
+    return '<span class="mkt-stars" aria-label="' + esc(v + " / 5") + '">' + out + "</span>";
+  }
+
+  function ratingChip(inst, p) {
+    var st = statsOf(inst, p);
+    if (!st.review_count) {
+      return '<span class="mkt-rate-empty" data-mkt-rate-chip="' + esc(p.id) + '">' +
+        esc(tr(inst.lang, "noReviewsYet")) + "</span>";
+    }
+    return '<span class="mkt-rate" data-mkt-rate-chip="' + esc(p.id) + '" title="' +
+      esc(tr(inst.lang, "ratingTitle")) + '"><b>★ ' + esc(ratingText(st.avg_rating)) + "</b> " +
+      '<span class="muted">' + esc(tr(inst.lang, st.review_count === 1 ? "reviewOne" : "reviewsCount", { n: st.review_count })) +
+      "</span></span>";
+  }
+
+  function installChip(inst, p) {
+    var st = statsOf(inst, p);
+    return '<span class="mkt-installs" data-mkt-installs="' + esc(p.id) + '" title="' +
+      esc(tr(inst.lang, "installsTitle")) + '">' + esc(tr(inst.lang, "installsCount", { n: st.install_count })) + "</span>";
+  }
+
+  /* ---------------- 리뷰 ---------------- */
+  function readLocalReviews() {
+    var all = readLS(REV_LS, []);
+    return Array.isArray(all) ? all : [];
+  }
+  function writeLocalReviews(list) { return writeLS(REV_LS, (list || []).slice(0, 300)); }
+  function localReviewsFor(slug) {
+    return readLocalReviews().filter(function (r) { return r && r.plugin_slug === slug; });
+  }
+  function authorName(u) {
+    var m = (u && u.user_metadata) || {};
+    var n = m.full_name || m.name || m.nickname || "";
+    if (!n && u && u.email) n = String(u.email).split("@")[0];
+    return String(n || "").slice(0, 60);
+  }
+  function viewUser() { return SUB.userChecked ? SUB.user : null; }
+
+  function loadReviews(inst, p, force) {
+    if (!inst || !p) return;
+    if (!force && REV.slug === p.id && REV.items && !REV.loading) { paintReviews(inst, p); return; }
+    if (REV.loading && REV.slug === p.id && !force) { paintReviews(inst, p); return; }
+    if (REV.slug !== p.id) { REV.msg = ""; REV.msgKind = ""; }
+    REV.inst = inst;
+    REV.slug = p.id;
+    REV.items = null;
+    REV.loading = true;
+    REV.tableMissing = false;
+    REV.mine = null;
+    if (!force) REV.rating = 0;
+    paintReviews(inst, p);
+    function finish() {
+      REV.loading = false;
+      paintReviews(inst, p);
+    }
+    if (!sbCfg().url) {
+      REV.tableMissing = true;
+      REV.items = localReviewsFor(p.id);
+      loadMine(inst, p, finish);
+      return;
+    }
+    var admin = inst.mode === "admin";
+    var path = admin
+      ? "/rest/v1/plugin_reviews?select=*&plugin_slug=eq." + enc(p.id) + "&order=created_at.desc&limit=100"
+      : "/rest/v1/plugin_reviews_public?select=*&plugin_slug=eq." + enc(p.id) + "&order=created_at.desc&limit=100";
+    sbRequest(path, { token: sbToken() }).then(function (rows) {
+      REV.tableMissing = false;
+      REV.items = Array.isArray(rows) ? rows : [];
+      loadMine(inst, p, finish);
+    }, function (e) {
+      if (missingTable(e)) {
+        REV.tableMissing = true;
+        REV.items = localReviewsFor(p.id);
+        loadMine(inst, p, finish);
+        return;
+      }
+      REV.items = [];
+      REV.msg = tr(inst.lang, "reviewLoadFail") + ((e && e.message) || e);
+      REV.msgKind = "err";
+      finish();
+    });
+  }
+
+  function loadMine(inst, p, done) {
+    subUser(function (u) {
+      REV.user = u || null;
+      if (!u) { done(); return; }
+      var mine = (REV.items || []).filter(function (r) {
+        return r && String(r.user_id || "") === String(u.id);
+      })[0] || null;
+      if (mine) { REV.mine = mine; if (!REV.rating) REV.rating = num(mine.rating); done(); return; }
+      if (REV.tableMissing) {
+        var lo = localReviewsFor(p.id).filter(function (r) { return String(r.user_id || "") === String(u.id); })[0] || null;
+        if (lo) { REV.mine = lo; if (!REV.rating) REV.rating = num(lo.rating); }
+        done();
+        return;
+      }
+      sbRequest("/rest/v1/plugin_reviews?select=*&plugin_slug=eq." + enc(p.id) +
+                "&user_id=eq." + enc(u.id) + "&limit=1", { token: sbToken() }).then(function (rows) {
+        REV.mine = (Array.isArray(rows) && rows[0]) || null;
+        if (REV.mine && !REV.rating) REV.rating = num(REV.mine.rating);
+      }, function () { REV.mine = null; }).then(done, done);
+    });
+  }
+
+  function reviewHtml(inst, p, r) {
+    var lang = inst.lang;
+    var u = viewUser();
+    var mine = !!(u && String(r.user_id || "") === String(u.id));
+    var hidden = String(r.status || "") === "hidden";
+    var acts = "";
+    if (inst.mode === "admin") {
+      acts += hidden
+        ? '<button type="button" class="rowlink" data-mkt-rev-show="' + esc(r.id) + '">' + esc(tr(lang, "reviewRestore")) + "</button>"
+        : '<button type="button" class="rowlink" data-mkt-rev-hide="' + esc(r.id) + '">' + esc(tr(lang, "reviewHide")) + "</button>";
+      acts += '<button type="button" class="rowlink danger" data-mkt-rev-del="' + esc(r.id) + '">' + esc(tr(lang, "reviewDelete")) + "</button>";
+    }
+    return '<li class="mkt-rev' + (hidden ? " is-hidden" : "") + (mine ? " is-mine" : "") +
+      '" data-rev-id="' + esc(r.id) + '">' +
+      '<div class="mkt-revtop">' + starBar(r.rating) +
+        (r.title ? "<b>" + esc(r.title) + "</b>" : "") +
+        (mine ? '<span class="mkt-badge">' + esc(tr(lang, "reviewMine")) + "</span>" : "") +
+        (hidden ? '<span class="mkt-badge warn">' + esc(tr(lang, "reviewHiddenBadge")) + "</span>" : "") +
+      "</div>" +
+      '<p class="mkt-revbody">' + esc(r.body || "") + "</p>" +
+      '<p class="mkt-revmeta">' + esc(r.author_name || "—") + " · " + esc(dateText(r.created_at)) +
+        (r.sbpress_version ? " · v" + esc(r.sbpress_version) : "") +
+        (r.updated_at && dateText(r.updated_at) !== dateText(r.created_at) ? " · " + esc(tr(lang, "reviewEdited")) : "") +
+      "</p>" +
+      (acts ? '<div class="mkt-revacts">' + acts + "</div>" : "") +
+      "</li>";
+  }
+
+  function reviewFormHtml(inst, p) {
+    var lang = inst.lang;
+    if (!viewUser()) {
+      return '<div class="mkt-revgate" id="mkt-rev-gate">' + esc(tr(lang, "reviewGate")) +
+        ' <a class="rowlink" href="#/sign">' + esc(tr(lang, "reviewGateLink")) + "</a></div>";
+    }
+    var mine = REV.mine || null;
+    var rating = num(REV.rating) || (mine ? num(mine.rating) : 0);
+    var stars = "";
+    for (var i = 1; i <= 5; i++) {
+      stars += '<button type="button" class="mkt-rateset' + (i <= rating ? " on" : "") +
+        '" data-mkt-rate="' + i + '" aria-label="' + esc(tr(lang, "reviewRateAria", { n: i })) +
+        '" aria-pressed="' + (i <= rating ? "true" : "false") + '">' + (i <= rating ? "★" : "☆") + "</button>";
+    }
+    return '<form class="mkt-revform" id="mkt-rev-form" novalidate>' +
+      "<h4>" + esc(tr(lang, mine ? "reviewEditTitle" : "reviewWriteTitle")) + "</h4>" +
+      '<div class="mkt-ratepick" role="group" aria-label="' + esc(tr(lang, "reviewRating")) + '">' +
+        '<span class="mkt-sortlabel">' + esc(tr(lang, "reviewRating")) + "</span>" + stars + "</div>" +
+      '<label class="cms-field"><span>' + esc(tr(lang, "reviewTitleLabel")) + "</span>" +
+        '<input id="mkt-rev-title" maxlength="120" autocomplete="off" value="' + esc(mine ? (mine.title || "") : "") + '"></label>' +
+      '<label class="cms-field"><span>' + esc(tr(lang, "reviewBodyLabel")) + "</span>" +
+        '<textarea id="mkt-rev-body" rows="4" maxlength="4000">' + esc(mine ? (mine.body || "") : "") + "</textarea></label>" +
+      '<div class="mkt-revform-acts">' +
+        '<button type="button" class="btn btn-primary btn-sm" data-mkt-rev-save="' + esc(p.id) + '">' +
+          esc(tr(lang, mine ? "reviewUpdate" : "reviewSave")) + "</button></div></form>";
+  }
+
+  function paintReviews(inst, p) {
+    var box = MODAL.el ? MODAL.el.querySelector("#mkt-reviews") : null;
+    if (!box) return;
+    var lang = inst.lang;
+    var st = statsOf(inst, p);
+    var head = '<div class="mkt-revhead"><div class="mkt-revavg">' +
+      '<b class="mkt-revscore">' + esc(ratingText(st.avg_rating)) + "</b>" + starBar(st.avg_rating) +
+      '<span class="muted">' + esc(tr(lang, st.review_count === 1 ? "reviewOne" : "reviewsCount", { n: st.review_count })) +
+      "</span></div>" + installChip(inst, p) + "</div>";
+    var list;
+    if (REV.loading) list = '<p class="mkt-note">' + esc(tr(lang, "reviewLoading")) + "</p>";
+    else if (!(REV.items || []).length) list = '<p class="mkt-note mkt-rev-empty">' + esc(tr(lang, "reviewEmpty")) + "</p>";
+    else list = '<ul class="mkt-revlist">' + REV.items.map(function (r) { return reviewHtml(inst, p, r); }).join("") + "</ul>";
+    box.innerHTML = head +
+      (REV.tableMissing ? '<p class="mkt-note mkt-warn" id="mkt-rev-missing">' + esc(tr(lang, "reviewNeedSql")) + "</p>" : "") +
+      (REV.msg ? '<p class="mkt-rev-msg' + (REV.msgKind ? " " + esc(REV.msgKind) : "") +
+        '" role="status" aria-live="polite">' + esc(REV.msg) + "</p>" : "") +
+      list + reviewFormHtml(inst, p);
+  }
+
+  function revMsg(inst, text, kind) {
+    REV.msg = text || "";
+    REV.msgKind = kind || "";
+    var p = byId(inst, REV.slug) || { id: REV.slug, stats: {} };
+    paintReviews(inst, p);
+  }
+
+  function saveLocalReview(inst, p, row, done) {
+    var list = readLocalReviews();
+    var hit = null;
+    list.forEach(function (r) {
+      if (r && r.plugin_slug === row.plugin_slug && String(r.user_id || "") === String(row.user_id)) hit = r;
+    });
+    var now = new Date().toISOString();
+    if (hit) {
+      hit.rating = row.rating; hit.title = row.title; hit.body = row.body;
+      hit.sbpress_version = row.sbpress_version; hit.status = "published"; hit.updated_at = now;
+    } else {
+      row.id = "local-" + Date.now();
+      row.status = "published";
+      row.created_at = now; row.updated_at = now;
+      list.unshift(row);
+      hit = row;
+    }
+    writeLocalReviews(list);
+    REV.tableMissing = true;
+    REV.mine = hit;
+    recomputeLocalStats(p.id);
+    done(true);
+  }
+
+  function recomputeLocalStats(slug) {
+    var list = localReviewsFor(slug).filter(function (r) {
+      return String(r.status || "published") === "published";
+    });
+    var sum = list.reduce(function (a, r) { return a + num(r.rating); }, 0);
+    var cur = statsOf(REV.inst, { id: slug });
+    setLocalStats(slug, {
+      avg_rating: list.length ? Math.round((sum / list.length) * 100) / 100 : 0,
+      review_count: list.length,
+      install_count: cur.install_count, active_count: cur.active_count,
+      last_verified_version: cur.last_verified_version || null,
+      compat_ok: cur.compat_ok, compat_note: cur.compat_note || null
+    });
+  }
+
+  function saveReview(inst, p, btn) {
+    if (!inst || !p || REV.busy) return;
+    var lang = inst.lang;
+    var bodyEl = MODAL.el ? MODAL.el.querySelector("#mkt-rev-body") : null;
+    var titleEl = MODAL.el ? MODAL.el.querySelector("#mkt-rev-title") : null;
+    var rating = num(REV.rating);
+    var body = bodyEl ? String(bodyEl.value || "").trim() : "";
+    var title = titleEl ? String(titleEl.value || "").trim().slice(0, 120) : "";
+    if (!rating) { revMsg(inst, tr(lang, "reviewNeedRating"), "err"); return; }
+    if (body.length < 10) { revMsg(inst, tr(lang, "reviewNeedBody"), "err"); return; }
+    subUser(function (u) {
+      if (!u) { revMsg(inst, tr(lang, "reviewNeedLogin"), "err"); return; }
+      REV.busy = true;
+      if (btn) { btn.disabled = true; btn.textContent = tr(lang, "reviewSaving"); }
+      var row = { plugin_slug: p.id, rating: rating, title: title || null, body: body,
+                  sbpress_version: coreVer(inst), user_id: u.id,
+                  author_name: authorName(u), status: "published" };
+      function saved(local) {
+        REV.busy = false;
+        if (btn) { btn.disabled = false; btn.textContent = tr(lang, REV.mine ? "reviewUpdate" : "reviewSave"); }
+        REV.rating = rating;
+        var box = sbCfg().url && !REV.tableMissing;
+        loadStats(inst, box);
+        REV.slug = "";
+        loadReviews(inst, p, true);
+        revMsg(inst, tr(lang, local ? "reviewSavedLocal" : "reviewSaved"), "ok");
+      }
+      function failed(e) {
+        REV.busy = false;
+        if (btn) { btn.disabled = false; btn.textContent = tr(lang, REV.mine ? "reviewUpdate" : "reviewSave"); }
+        if (missingTable(e)) { saveLocalReview(inst, p, row, saved); return; }
+        if (e && (e.status === 401 || e.status === 403)) {
+          revMsg(inst, tr(lang, "reviewNeedLogin") + " (" + ((e.message) || "") + ")", "err");
+          return;
+        }
+        revMsg(inst, tr(lang, "reviewSaveFail") + ((e && e.message) || e), "err");
+      }
+      if (REV.tableMissing) { saveLocalReview(inst, p, row, saved); return; }
+      if (REV.mine && REV.mine.id) {
+        sbRequest("/rest/v1/plugin_reviews?id=eq." + enc(REV.mine.id), {
+          method: "PATCH", token: sbToken(), prefer: "return=representation",
+          body: { rating: row.rating, title: row.title, body: row.body, sbpress_version: row.sbpress_version }
+        }).then(function () { saved(false); }, failed);
+        return;
+      }
+      sbRequest("/rest/v1/plugin_reviews", {
+        method: "POST", token: sbToken(), prefer: "return=representation", body: row
+      }).then(function (data) {
+        var got = (Array.isArray(data) && data[0]) || null;
+        if (got) { REV.mine = got; }
+        saved(false);
+      }, failed);
+    });
+  }
+
+  function moderateReview(inst, p, id, status, btn) {
+    if (!inst || inst.mode !== "admin" || !id) return;
+    var lang = inst.lang;
+    if (btn) btn.disabled = true;
+    function done(err) {
+      if (btn) btn.disabled = false;
+      if (err) { revMsg(inst, tr(lang, "reviewSaveFail") + err, "err"); return; }
+      REV.items = null;
+      REV.mine = null;
+      loadStats(inst, true);
+      loadReviews(inst, p, true);
+      revMsg(inst, tr(lang, status === "hidden" ? "reviewHiddenDone" : "reviewShownDone"), "ok");
+    }
+    if (REV.tableMissing) {
+      var list = readLocalReviews();
+      list.forEach(function (r) { if (String(r.id) === String(id)) r.status = status; });
+      writeLocalReviews(list);
+      recomputeLocalStats(p.id);
+      done(null);
+      return;
+    }
+    sbRequest("/rest/v1/plugin_reviews?id=eq." + enc(id), {
+      method: "PATCH", token: sbToken(), body: { status: status }
+    }).then(function () { done(null); }, function (e) { done((e && e.message) || String(e)); });
+  }
+
+  function deleteReview(inst, p, id, btn) {
+    if (!inst || inst.mode !== "admin" || !id) return;
+    var lang = inst.lang;
+    if (typeof window.confirm === "function" && !window.confirm(tr(lang, "reviewDeleteConfirm"))) return;
+    if (btn) btn.disabled = true;
+    function done(err) {
+      if (btn) btn.disabled = false;
+      if (err) { revMsg(inst, tr(lang, "reviewSaveFail") + err, "err"); return; }
+      REV.items = null; REV.mine = null;
+      loadStats(inst, true);
+      loadReviews(inst, p, true);
+    }
+    if (REV.tableMissing) {
+      writeLocalReviews(readLocalReviews().filter(function (r) { return String(r.id) !== String(id); }));
+      recomputeLocalStats(p.id);
+      done(null);
+      return;
+    }
+    sbRequest("/rest/v1/plugin_reviews?id=eq." + enc(id), { method: "DELETE", token: sbToken() })
+      .then(function () { done(null); }, function (e) { done((e && e.message) || String(e)); });
+  }
+
+  /* ---------------- 호환성 리포트 (관리자) ---------------- */
+  function compatRow(inst, p, engRow) {
+    var c = compatOf(inst, p);
+    var eng = engRow || engineStatus(inst, p.id);
+    var row = installedRow(inst, p.id);
+    var errs = eng ? (eng.errors || []).length : 0;
+    var failed = !!(eng && eng.disabled);
+    var notices = 0;
+    try {
+      var st = (window.SBPress && window.SBPress.status) ? window.SBPress.status() : null;
+      if (st && Array.isArray(st.notices)) {
+        notices = st.notices.filter(function (n) { return n && n.plugin === p.id; }).length;
+      }
+    } catch (e) { notices = 0; }
+    return {
+      id: p.id,
+      name: (function () { try { return disp(inst, p).name; } catch (e) { return p.id; } })(),
+      version: String(p.version || ""),
+      installed: !!row, enabled: !!(row && row.enabled),
+      state: (failed || errs) ? "warn" : c.state,
+      compat: c,
+      errors: errs + notices,
+      failed: failed
+    };
+  }
+
+  function compatRows(inst) {
+    var out = [], seen = {};
+    (inst.data && inst.data.plugins || []).forEach(function (p) {
+      if (!p || !p.id || seen[p.id]) return;
+      seen[p.id] = 1;
+      out.push(compatRow(inst, p));
+    });
+    var rows = [];
+    try { rows = (window.SBPress && window.SBPress.status) ? (window.SBPress.status().plugins || []) : []; } catch (e) { rows = []; }
+    rows.forEach(function (r) {
+      if (!r || !r.id || seen[r.id]) return;
+      seen[r.id] = 1;
+      var m = r.manifest || {};
+      /* 마켓에 없는 설치본은 영문 이름이 없습니다 — EN 화면에서는 ID 로 보여 줍니다. */
+      out.push(compatRow(inst, {
+        id: r.id, name: inst.lang === "en" ? r.id : (r.name || r.id), version: r.version || "",
+        min_sbpress_version: String(m.min_sbpress_version || ""),
+        max_sbpress_version: String(m.max_sbpress_version || ""),
+        requires: (m.requires && typeof m.requires === "object") ? m.requires : {},
+        stats: {}
+      }, r));
+    });
+    return out;
+  }
+
+  function compatPanelHtml(inst) {
+    var lang = inst.lang;
+    var rows = compatRows(inst);
+    var core = coreVer(inst);
+    var nOk = 0, nWarn = 0, nUnv = 0;
+    rows.forEach(function (r) {
+      if (r.state === "warn") nWarn += 1;
+      else if (r.state === "unverified") nUnv += 1;
+      else nOk += 1;
+    });
+    var items = rows.map(function (r) {
+      var c = r.compat;
+      var stateText = r.state === "warn" ? tr(lang, "compatWarn")
+        : r.state === "unverified" ? tr(lang, "compatUnverified") : tr(lang, "compatOk");
+      var bits = [];
+      bits.push((c.min ? tr(lang, "compatMin") + " v" + c.min : tr(lang, "compatMin") + " —") + " · " +
+                (c.max ? tr(lang, "compatMax") + " v" + c.max : tr(lang, "compatMax") + " —"));
+      var declared = Object.keys(c.req || {}).filter(function (k) {
+        return k === "blocksApi" || k === "securityApi";
+      });
+      bits.push(tr(lang, "compatHooksShort") + " " + (c.hooksBad.length
+        ? c.hooksBad.map(function (h) { return h.api + " " + h.have + "/" + h.need; }).join(", ")
+        : (declared.length
+            ? declared.map(function (k) { return k + " " + apiVer(k) + "/" + c.req[k]; }).join(", ")
+            : tr(lang, "compatHooksOk"))));
+      bits.push(c.stats.last_verified_version
+        ? tr(lang, "compatVerifiedShort", { v: c.stats.last_verified_version })
+        : tr(lang, "compatNotVerified"));
+      if (r.errors) bits.push(tr(lang, "compatErrors", { n: r.errors }));
+      if (r.failed) bits.push(tr(lang, "compatFailed"));
+      return '<li class="mkt-compatrow is-' + r.state + '" data-compat-slug="' + esc(r.id) + '">' +
+        '<div class="mkt-compatmain"><b>' + esc(r.name) + "</b> <code>v" + esc(r.version) + "</code> " +
+          (r.installed
+            ? '<span class="plug-badge ' + (r.enabled ? "b-on" : "b-off") + '">' +
+              esc(tr(lang, r.enabled ? "installedOn" : "installedOff")) + "</span>"
+            : '<span class="mkt-compat-market">' + esc(tr(lang, "compatMarketOnly")) + "</span>") +
+          ' <span class="mkt-compat is-' + r.state + '">' + esc(stateText) + "</span></div>" +
+        '<p class="mkt-compatmeta">' + esc(bits.join(" · ")) + "</p></li>";
+    }).join("");
+    var fl = COMPAT.flash || {};
+    return '<section class="mkt-compatpanel" id="mkt-compat" aria-labelledby="mkt-compat-title">' +
+      '<div class="mkt-compathead"><div><h3 id="mkt-compat-title">' + esc(tr(lang, "compatTitle")) + "</h3>" +
+        '<p class="mkt-compatlead">' + esc(tr(lang, "compatLead", { v: core })) + "</p></div>" +
+        '<div class="mkt-compatactions"><button type="button" class="btn btn-primary btn-sm" data-mkt-compat-run="1">' +
+          esc(tr(lang, "compatRun")) + "</button></div></div>" +
+      '<p class="mkt-compat-sum" id="mkt-compat-sum" role="status" aria-live="polite">' +
+        esc(tr(lang, "compatSummary", { n: rows.length, ok: nOk, warn: nWarn, unv: nUnv, v: core })) + "</p>" +
+      (rows.length ? '<ul class="mkt-compatlist">' + items + "</ul>"
+                   : '<p class="mkt-note">' + esc(tr(lang, "compatEmpty")) + "</p>") +
+      (STATS.tableMissing ? '<p class="mkt-note mkt-warn" id="mkt-compat-missing">' + esc(tr(lang, "compatNeedSql")) + "</p>" : "") +
+      (fl.text ? '<p class="mkt-compat-msg' + (fl.kind ? " " + esc(fl.kind) : "") + '" role="status" aria-live="polite">' +
+        esc(fl.text) + "</p>" : "") +
+      "</section>";
+  }
+
+  function runCompatCheck(inst, btn) {
+    if (!inst || inst.mode !== "admin" || COMPAT.busy) return;
+    var lang = inst.lang;
+    var core = coreVer(inst);
+    var rows = compatRows(inst);
+    COMPAT.busy = true;
+    if (btn) { btn.disabled = true; btn.textContent = tr(lang, "compatRunning"); }
+    var queue = rows.slice();
+    var okCount = 0, warnCount = 0, unvCount = 0, failed = 0;
+    function finish() {
+      COMPAT.busy = false;
+      if (btn) { btn.disabled = false; btn.textContent = tr(lang, "compatRun"); }
+      var msg = tr(lang, "compatDone", { n: rows.length, ok: okCount, warn: warnCount, unv: unvCount });
+      if (failed) msg += " " + tr(lang, "compatSaveFailed", { n: failed });
+      else if (STATS.tableMissing) msg += " " + tr(lang, "compatNeedSql");
+      COMPAT.flash = { text: msg, kind: failed ? "err" : "ok" };
+      repaintStats(inst, true);
+      flash(inst, msg, failed ? "err" : "ok");
+    }
+    function step() {
+      if (!queue.length) { finish(); return; }
+      var r = queue.shift();
+      var c = r.compat;
+      var ok = r.state !== "warn";
+      if (r.state === "warn") warnCount += 1;
+      else if (r.state === "unverified") unvCount += 1;
+      else okCount += 1;
+      var note = "core " + core + (c.min ? " · min " + c.min : "") + (c.max ? " · max " + c.max : "") +
+        " · hooks blocksApi " + apiVer("blocksApi") + " securityApi " + apiVer("securityApi") +
+        (c.note ? " · " + c.note : "");
+      setLocalStats(r.id, {
+        last_verified_version: core, compat_ok: ok, compat_note: note.slice(0, 500),
+        install_count: c.stats.install_count, active_count: c.stats.active_count,
+        avg_rating: c.stats.avg_rating, review_count: c.stats.review_count
+      });
+      if (!sbCfg().url || STATS.tableMissing) { step(); return; }
+      sbRequest("/rest/v1/rpc/update_plugin_compat", {
+        method: "POST", token: sbToken(),
+        body: { p_slug: r.id, p_version: core, p_ok: ok, p_note: note.slice(0, 500) }
+      }).then(function () { step(); }, function (e) {
+        if (!missingRpc(e) && !missingTable(e)) failed += 1;
+        step();
+      });
+    }
+    step();
   }
 
   /* ---------------- 화면 조각 ---------------- */
@@ -1346,6 +2231,7 @@
         (d.category ? '<span class="plug-tag cat">' + esc(d.category) + "</span>" : "") +
         tags + (grant ? " " + grant : "") +
       "</div>" +
+      '<div class="mkt-statrow">' + ratingChip(inst, p) + installChip(inst, p) + compatBadge(inst, p, true) + "</div>" +
       '<div class="plug-actions mkt-actions">' + actionButtons(inst, p, "card") + "</div>" +
       "</article>";
   }
@@ -1376,6 +2262,34 @@
     el.addEventListener("click", function (e) {
       var closer = e.target.closest ? e.target.closest("[data-mkt-close]") : null;
       if (closer) { closeDetail(); return; }
+      /* v10.7 — 별점 고르기 · 리뷰 저장 · 관리자 숨김/복원/삭제 */
+      var revSave = e.target.closest ? e.target.closest("[data-mkt-rev-save]") : null;
+      if (revSave && MODAL.inst) {
+        saveReview(MODAL.inst, byId(MODAL.inst, revSave.getAttribute("data-mkt-rev-save")), revSave);
+        return;
+      }
+      var rate = e.target.closest ? e.target.closest("[data-mkt-rate]") : null;
+      if (rate && MODAL.inst) {
+        REV.rating = num(rate.getAttribute("data-mkt-rate"));
+        var rp = byId(MODAL.inst, REV.slug);
+        if (rp) paintReviews(MODAL.inst, rp);
+        return;
+      }
+      var revHide = e.target.closest ? e.target.closest("[data-mkt-rev-hide]") : null;
+      if (revHide && MODAL.inst) {
+        moderateReview(MODAL.inst, byId(MODAL.inst, REV.slug), revHide.getAttribute("data-mkt-rev-hide"), "hidden", revHide);
+        return;
+      }
+      var revShow = e.target.closest ? e.target.closest("[data-mkt-rev-show]") : null;
+      if (revShow && MODAL.inst) {
+        moderateReview(MODAL.inst, byId(MODAL.inst, REV.slug), revShow.getAttribute("data-mkt-rev-show"), "published", revShow);
+        return;
+      }
+      var revDel = e.target.closest ? e.target.closest("[data-mkt-rev-del]") : null;
+      if (revDel && MODAL.inst) {
+        deleteReview(MODAL.inst, byId(MODAL.inst, REV.slug), revDel.getAttribute("data-mkt-rev-del"), revDel);
+        return;
+      }
       var action = e.target.closest ? e.target.closest("[data-mplug-install],[data-mplug-toggle],[data-mplug-update],[data-mplug-rollback],[data-mplug-remove],[data-mplug-settings]") : null;
       if (action) {
         var inst = MODAL.inst;
@@ -1420,6 +2334,8 @@
     var cur = String((inst.data && inst.data.sbpress) || "");
     var minV = p.min_sbpress_version;
     var compat = !minV || !cur || verNum(minV) <= verNum(cur);
+    var st = statsOf(inst, p);
+    var cmp = compatOf(inst, p);
     el.querySelector("#mkt-modal-title").textContent = d.name;
     var shots = p.screenshots.length
       ? '<div class="mkt-shots">' + p.screenshots.map(function (s) {
@@ -1442,6 +2358,14 @@
           (cur ? '<span class="muted">· ' + esc(tr(lang, "currentVersion", { v: "v" + cur })) + "</span>" : "") + " " +
           (compat ? '<span class="mkt-ok">' + esc(tr(lang, "compatOk")) + "</span>"
                   : '<span class="mkt-warn">' + esc(tr(lang, "compatNo", { v: minV })) + "</span>") + "</dd></div>" +
+        "<div><dt>" + esc(tr(lang, "ratingLabel")) + "</dt><dd>" + starBar(st.avg_rating) + " <b>" +
+          esc(ratingText(st.avg_rating)) + "</b> " + '<span class="muted">' +
+          esc(tr(lang, st.review_count === 1 ? "reviewOne" : "reviewsCount", { n: st.review_count })) + "</span></dd></div>" +
+        "<div><dt>" + esc(tr(lang, "installsLabel")) + "</dt><dd>" + esc(tr(lang, "installsCount", { n: st.install_count })) +
+          (st.active_count ? ' <span class="muted">· ' + esc(tr(lang, "activeCount", { n: st.active_count })) + "</span>" : "") + "</dd></div>" +
+        "<div><dt>" + esc(tr(lang, "compatLabel")) + "</dt><dd>" + compatBadge(inst, p, false) +
+          (cmp.min ? ' <span class="muted">' + esc(tr(lang, "compatMin")) + " v" + esc(cmp.min) + "</span>" : "") +
+          (cmp.max ? ' <span class="muted">· ' + esc(tr(lang, "compatMax")) + " v" + esc(cmp.max) + "</span>" : "") + "</dd></div>" +
         (p.updated ? "<div><dt>" + esc(tr(lang, "updated")) + "</dt><dd>" + esc(p.updated) + "</dd></div>" : "") +
         (d.category ? "<div><dt>" + esc(tr(lang, "category")) + "</dt><dd>" + esc(d.category) + "</dd></div>" : "") +
         (p.hooks.length ? "<div><dt>" + esc(tr(lang, "hooks")) + "</dt><dd>" + p.hooks.map(function (h) {
@@ -1529,6 +2453,8 @@
       (d.desc ? '<p class="mkt-desc-full">' + esc(d.desc) + "</p>" : "") +
       facts +
       trustSec +
+      '<section class="mkt-sec mkt-revsec" id="mkt-revsec"><h3>' + esc(tr(lang, "reviewTitle")) +
+        '</h3><div id="mkt-reviews"></div></section>' +
       updSec +
       rbSec +
       '<section class="mkt-sec"><h3>' + esc(tr(lang, "permissions")) + "</h3>" + perms + "</section>" +
@@ -1541,6 +2467,8 @@
         '<a class="btn btn-ghost btn-sm" href="/admin" rel="nofollow">' + esc(tr(lang, "goAdmin")) + "</a>";
     }
     el.querySelector("#mkt-modal-foot").innerHTML = foot;
+    /* v10.7 — 리뷰 목록·작성 폼은 따로 채웁니다(불러오는 동안 나머지 화면은 그대로). */
+    loadReviews(inst, p);
     el.querySelector(".mkt-modal-x").setAttribute("aria-label", tr(lang, "close"));
     var wasOpen = !el.hidden;
     el.hidden = false;
@@ -1553,6 +2481,7 @@
   function closeDetail() {
     if (!MODAL.el) return;
     RB.id = "";
+    REV.slug = ""; REV.items = null; REV.mine = null; REV.msg = ""; REV.msgKind = ""; REV.rating = 0;
     MODAL.el.hidden = true;
     MODAL.el.querySelector("#mkt-modal-body").innerHTML = "";
     MODAL.el.querySelector("#mkt-modal-foot").innerHTML = "";
@@ -2543,7 +3472,7 @@
       id: s.slug, name: s.name || s.slug, version: s.version,
       description: s.summary || "", author: s.author_name || "",
       category: s.category || "content", order: 50, updated: day,
-      min_sbpress_version: "10.6", script_url: s.script_url, source: "market",
+      min_sbpress_version: "10.7", script_url: s.script_url, source: "market",
       hooks: Array.isArray(s.hooks) ? s.hooks : [],
       permissions: Array.isArray(s.permissions) ? s.permissions : [],
       tags: [], screenshots: [],
@@ -2952,8 +3881,13 @@
     if (inst.mode === "admin" && !SUB.loaded && !SUB.loading) {
       setTimeout(function () { loadSubmissions(inst); }, 0);
     }
+    /* v10.7 — 설치·평점 통계도 한 번 읽어 둡니다(없으면 이 브라우저 값). */
+    if (!STATS.loaded && !STATS.loading) {
+      setTimeout(function () { loadStats(inst); }, 0);
+    }
     host.innerHTML =
       (inst.mode === "admin" ? submissionPanelHtml(inst) : "") +
+      (inst.mode === "admin" ? compatPanelHtml(inst) : "") +
       (inst.mode === "admin" && inst.markets ? marketPanelHtml(inst) : "") +
       (inst.mode === "admin" ? updBarHtml(inst) : "") +
       (inst.mode === "admin" ? "" :
@@ -2967,6 +3901,8 @@
           '<select class="mkt-sort" aria-label="' + esc(tr(lang, "sortAria")) + '">' +
             '<option value="recommend">' + esc(tr(lang, "sortRecommend")) + "</option>" +
             '<option value="latest">' + esc(tr(lang, "sortLatest")) + "</option>" +
+            '<option value="rating">' + esc(tr(lang, "sortRating")) + "</option>" +
+            '<option value="installs">' + esc(tr(lang, "sortInstalls")) + "</option>" +
             '<option value="name">' + esc(tr(lang, "sortName")) + "</option>" +
           "</select></label>" +
       "</div>" +
@@ -3061,6 +3997,17 @@
         }
         downloadJson("plugin-" + String(row.slug || "plugin") + ".json", subJsonText(row));
         subQueueMsg(inst2, tr(inst2.lang, "queueCopied"), "ok");
+      });
+    }
+    /* v10.7 — 「전체 호환성 재검사」 버튼도 한 번만 위임합니다. */
+    if (!host.getAttribute("data-mkt-compat-bound")) {
+      host.setAttribute("data-mkt-compat-bound", "1");
+      host.addEventListener("click", function (e) {
+        var inst2 = host.__mktInst;
+        if (!inst2 || !e.target.closest) return;
+        var t = e.target.closest("[data-mkt-compat-run]");
+        if (!t) return;
+        runCompatCheck(inst2, t);
       });
     }
     /* v10.4 — 구독 마켓 추가·켜기/끄기·동기화·삭제 버튼도 한 번만 위임합니다. */
@@ -3416,8 +4363,8 @@
   }
 
   window.SBP_MARKET = {
-    __v: 106,
-    version: "10.6.0",
+    __v: 107,
+    version: "10.7.0",
     mount: mount,
     update: update,
     normalize: normalize,
@@ -3503,7 +4450,38 @@
       var bytes = new TextEncoder().encode(String(text || ""));
       return sriOf(bytes.buffer);
     },
-    submissionsTableMissing: function () { return !!SUB.tableMissing; }
+    submissionsTableMissing: function () { return !!SUB.tableMissing; },
+    /* v10.7 — 별점 · 리뷰 · 설치 통계 · 호환성(시험·다른 화면에서 쓰는 표면) */
+    recordInstall: recordInstall,
+    statsFor: function (id) {
+      var inst = adminInst() || INSTANCES[0] || null;
+      return statsOf(inst, { id: id });
+    },
+    compatFor: function (id) {
+      var inst = adminInst() || INSTANCES[0] || null;
+      var p = inst ? byId(inst, id) : null;
+      return p ? compatOf(inst, p) : null;
+    },
+    compatRows: function () {
+      var inst = adminInst();
+      return inst ? compatRows(inst) : [];
+    },
+    runCompatCheck: function () {
+      var inst = adminInst();
+      if (!inst) return false;
+      runCompatCheck(inst, inst.tools ? inst.tools.querySelector("[data-mkt-compat-run]") : null);
+      return true;
+    },
+    reviews: function () { return (REV.items || []).slice(); },
+    reloadReviews: function () {
+      var inst = adminInst() || INSTANCES[0] || null;
+      var p = inst ? byId(inst, REV.slug) : null;
+      if (!inst || !p) return false;
+      loadReviews(inst, p, true);
+      return true;
+    },
+    statsTableMissing: function () { return !!STATS.tableMissing; },
+    reviewsTableMissing: function () { return !!REV.tableMissing; }
   };
 
   function adminInst() {

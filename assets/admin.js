@@ -4757,6 +4757,18 @@
 
   function plugMsg(text, kind) { cmsMsg("plugins-msg", text, kind); }
 
+  /* v10.7 — 설치·켜짐 수를 plugin_stats 에 남깁니다(28_v107 · RPC·폴백은 market.js 가 맡습니다).
+     통계는 화면을 막지 않습니다 — 실패해도 설치·제거는 그대로 끝납니다. */
+  function countInstall(id, delta, activeDelta) {
+    try {
+      if (window.SBP_MARKET && window.SBP_MARKET.recordInstall) {
+        window.SBP_MARKET.recordInstall(id, delta, activeDelta === undefined ? null : activeDelta, function (err) {
+          if (err) plugMsg("설치 수를 서버에 남기지 못했습니다: " + err, "err");
+        });
+      }
+    } catch (e) { /* noop */ }
+  }
+
   function plugById(id) {
     for (var i = 0; i < plugRows.length; i++) if (plugRows[i].id === id) return plugRows[i];
     return null;
@@ -5370,6 +5382,7 @@
       /* 켠 플러그인은 이 관리자 화면에도 바로 불러와 탭·위젯을 붙입니다(끄기는 새로고침 후 반영). */
       if (on) reloadEngine();
       plugMsg("‘" + (p ? p.name : id) + "’를 " + (on ? "켰습니다" : "껐습니다") + ". 사이트를 새로고침하면 반영됩니다.", "ok");
+      countInstall(id, 0, on ? 1 : -1);
       var stampOn = plugRows.filter(function (x) { return x.enabled; }).length;
       var stamp = $("#plugins-stamp");
       if (stamp) stamp.textContent = "설치 " + plugRows.length + "개 · 켜짐 " + stampOn + "개";
@@ -5389,6 +5402,7 @@
       if (r.error) { plugMsg("제거하지 못했습니다: " + r.error.message, "err"); return; }
       plugRows = plugRows.filter(function (x) { return x.id !== id; });
       renderPlugins();
+      countInstall(id, -1);
       plugMsg("‘" + (p ? p.name : id) + "’ 플러그인을 제거했습니다.", "ok");
     });
   }
@@ -5900,6 +5914,7 @@
         recordConsent(id, consent, item, function (msg) {
           if (msg) plugMsg(doneMsg + " " + msg, "ok");
         });
+        countInstall(item.id, 1);
         reloadEngine();
         loadPlugins(false);
       });
@@ -5937,6 +5952,7 @@
         recordConsent(item.id, consent, item, function (msg) {
           if (msg) plugMsg(doneMsg + " " + msg, "ok");
         });
+        countInstall(item.id, 1);
         reloadEngine();
         loadPlugins(false);
       });

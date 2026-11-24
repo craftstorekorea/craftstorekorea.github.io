@@ -386,3 +386,96 @@ html.mkt-modal-open{overflow:hidden}
   .mkt-subpanel-head{flex-direction:column}
   .mkt-subcard-acts .btn{flex:1 1 auto}
 }
+
+/* ============================================================================
+   v10.7 — 별점 · 리뷰 · 설치 통계 · 호환성 리포트
+   ============================================================================ */
+.mkt-statrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:1px 0 0}
+.mkt-rate,.mkt-rate-empty,.mkt-installs,.mkt-compat{
+  display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 9px;
+  font-size:.72rem;font-weight:800;line-height:1.7;white-space:nowrap;
+}
+.mkt-rate{background:#FFF6E6;color:#8A5A12}
+.mkt-rate b{font-weight:900}
+.mkt-rate-empty{background:var(--bg-2,#F2EEEA);color:var(--ink-3);font-weight:700}
+.mkt-installs{background:#EEF3F8;color:#2F5A78}
+.mkt-compat{background:#E9F3E4;color:#2F6B3A;border:1px solid #CFE0C4}
+.mkt-compat.is-warn{background:#FDF0E7;color:#9C3A16;border-color:#EBCBB8}
+.mkt-compat.is-unverified{background:#F1EFEC;color:#6E5C4F;border-color:var(--line)}
+.mkt-stars{display:inline-flex;gap:1px;font-style:normal}
+.mkt-star{font-style:normal;color:#D8CFC4;font-size:.86rem;line-height:1}
+.mkt-star.on{color:#D99A2B}
+
+/* 리뷰 — 상세 모달 */
+.mkt-revsec #mkt-reviews{margin-top:4px}
+.mkt-revhead{
+  display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;
+  padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg-2,#FAF7F3);
+}
+.mkt-revavg{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mkt-revscore{font-size:1.6rem;font-weight:900;color:var(--ink);line-height:1}
+.mkt-revavg .muted{font-size:.78rem}
+.mkt-revlist{list-style:none;margin:12px 0;padding:0;display:grid;gap:10px}
+.mkt-rev{padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.mkt-rev.is-mine{border-color:#CFE0C4;background:#F7FBF4}
+.mkt-rev.is-hidden{background:#FAF7F3;border-style:dashed;opacity:.78}
+.mkt-revtop{display:flex;flex-wrap:wrap;align-items:center;gap:7px}
+.mkt-revtop b{font-size:.9rem;color:var(--ink)}
+.mkt-badge{display:inline-flex;align-items:center;border-radius:999px;padding:1px 8px;
+  font-size:.66rem;font-weight:900;background:#E9F3E4;color:#2F6B3A}
+.mkt-badge.warn{background:#FFF3DC;color:#8A6316}
+.mkt-revbody{margin:5px 0 0;font-size:.86rem;line-height:1.7;color:var(--ink-2);white-space:pre-wrap;word-break:break-word}
+.mkt-revmeta{margin:6px 0 0;font-size:.72rem;color:var(--ink-3)}
+.mkt-revacts{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.mkt-rev-msg{margin:8px 0;font-size:.8rem;min-height:1.1em;color:var(--ink-2)}
+.mkt-rev-msg.ok{color:#2F6B3A;font-weight:700}
+.mkt-rev-msg.err{color:#9C3A16;font-weight:700}
+.mkt-rev-empty{margin:10px 0}
+.mkt-revform{margin-top:14px;display:grid;gap:9px;border-top:1px dashed var(--line);padding-top:14px}
+.mkt-revform h4{margin:0;font-size:.9rem}
+.mkt-ratepick{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.mkt-rateset{border:0;background:none;font-size:1.5rem;line-height:1;cursor:pointer;color:#D8CFC4;padding:0 2px}
+.mkt-rateset.on{color:#D99A2B}
+.mkt-rateset:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.mkt-revform .cms-field{display:block;margin:0}
+.mkt-revform .cms-field>span{display:block;margin:0 0 4px;font-size:.76rem;font-weight:800;color:var(--ink-3)}
+.mkt-revform .cms-field input,.mkt-revform .cms-field textarea{
+  width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid var(--line);border-radius:9px;
+  background:var(--card);font:inherit;font-size:.86rem;color:var(--ink);resize:vertical;
+}
+.mkt-revform .cms-field input:focus,.mkt-revform .cms-field textarea:focus{
+  outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,109,68,.14);
+}
+.mkt-revform-acts{display:flex;justify-content:flex-end}
+.mkt-revgate{margin-top:12px;padding:12px 14px;border:1px dashed var(--line);border-radius:10px;
+  font-size:.85rem;color:var(--ink-2);background:var(--bg-2,#FAF7F3)}
+.mkt-revgate .rowlink{font-weight:800}
+
+/* 호환성 리포트 — 관리자 */
+.mkt-compatpanel{margin:0 0 16px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.mkt-compathead{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:flex-start}
+.mkt-compathead h3{margin:0;font-size:1rem}
+.mkt-compatlead{margin:5px 0 0;max-width:52rem;font-size:.8rem;line-height:1.65;color:var(--ink-2)}
+.mkt-compatactions{display:flex;gap:8px;align-items:center}
+.mkt-compat-sum{margin:9px 0 0;font-size:.78rem;font-weight:800;color:var(--ink-2)}
+.mkt-compatlist{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+.mkt-compatrow{padding:8px 11px;border:1px solid var(--line);border-radius:10px;background:var(--bg-2,#FAF7F3)}
+.mkt-compatrow.is-warn{border-color:#EBCBB8;background:#FDF6F2}
+.mkt-compatrow.is-unverified{border-style:dashed}
+.mkt-compatmain{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.86rem}
+.mkt-compatmain code{font-family:inherit;font-size:.74rem;color:var(--ink-3)}
+.mkt-compat-market{font-size:.68rem;font-weight:800;color:var(--ink-3);background:#EEF2F5;border-radius:999px;padding:1px 7px}
+.mkt-compatmeta{margin:4px 0 0;font-size:.73rem;line-height:1.6;color:var(--ink-3);word-break:break-word}
+.mkt-compat-msg{margin:8px 0 0;font-size:.8rem;line-height:1.6}
+.mkt-compat-msg.ok{color:#2F6B3A;font-weight:700}
+.mkt-compat-msg.err{color:#9C3A16;font-weight:700}
+
+@media (max-width:700px){
+  .mkt-revhead{flex-direction:column;align-items:flex-start;gap:8px}
+  .mkt-compathead{flex-direction:column}
+  .mkt-compatactions{width:100%}
+  .mkt-compatactions .btn{width:100%}
+  .mkt-statrow .mkt-compat{white-space:normal}
+  .mkt-rateset{font-size:1.7rem;padding:0 4px}
+  .mkt-revform-acts .btn{width:100%}
+}

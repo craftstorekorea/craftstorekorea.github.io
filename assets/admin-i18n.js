@@ -1552,7 +1552,12 @@
   "27_v106 SQL 을 실행하면 제출·심사가 서버에 저장됩니다.": "Run the 27_v106 SQL to store submissions and reviews on the server.",
   "제출 · 심사 큐": "Submissions · review queue",
   "마켓 JSON 복사": "Copy market JSON",
-  "JSON 내보내기": "Export JSON"
+  "JSON 내보내기": "Export JSON",
+  "별점 · 리뷰 · 설치 통계 — 마켓 카드와 상세에 평균 별점·리뷰 수·설치 수·호환성 배지가 보이고, 회원은 상세에서 별점 리뷰를 씁니다. 「호환성 리포트」는 코어 버전·훅 API·최근 오류를 견주고 「전체 호환성 재검사」로 결과를 남깁니다. Supabase plugin_reviews · plugin_stats · 28_v107 SQL": "Ratings · reviews · install stats — market cards and details show the average rating, review count, installs and a compatibility badge, and members write star reviews in the detail view. The compatibility report compares the core version, hook APIs and recent errors, and “Re-check all compatibility” records the result. Supabase plugin_reviews · plugin_stats · 28_v107 SQL",
+  "별점 · 리뷰 · 설치 통계": "Ratings · reviews · install stats",
+  "설치 수를 서버에 남기지 못했습니다: ": "Could not record the install count on the server: ",
+  "리뷰를 저장하지 못했습니다": "Could not save the review",
+  "28_v107 SQL 을 실행하면 리뷰·통계가 서버에 저장됩니다.": "Run the 28_v107 SQL to store reviews and stats on the server."
 };
   var RULES = ([
   [

@@ -1047,7 +1047,7 @@
   /* ---------------- 공개 API ---------------- */
   var SBPress = {
     __engine: true,
-    version: "10.6.0",          // SBPress 엔진(사이트) 버전 — v10.2 부터 같은 번호를 씁니다.
+    version: "10.7.0",          // SBPress 엔진(사이트) 버전 — v10.2 부터 같은 번호를 씁니다.
     api: 2,                     // 플러그인이 기대는 엔진 API 판
     settingsApi: 1,             // getSettings · onSettingsChange · applySettings 가 있는 판
     versionsApi: 1,             // v10.3 — 원클릭 업데이트 · 버전 비교 · 롤백이 있는 판
