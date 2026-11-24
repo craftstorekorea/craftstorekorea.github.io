@@ -297,7 +297,7 @@ scripts/build_static_seo.py | build_feeds.py | check_repo_budget.py | measure_tr
 - **기본 블록 플러그인** — `faq-accordion`(FAQ 아코디언, `/assets/plugins/faq-accordion.js`)이
   `addBlock` 훅으로 `질문 | 답` 을 `<details>` 아코디언으로 그립니다(자바스크립트 없이, CSP 안전).
   마켓 미리보기 SVG 와 설정(강조색·번호 표시)도 함께 들어 있습니다.
-- **첫 화면** — **252,971 B**(300KB 예산의 82.3% · v5.1 대비 **31.5% 감소**).
+- **첫 화면** — **252,998 B**(300KB 예산의 82.4% · v5.1 대비 **31.5% 감소**).
 - 테스트 `cd .. && CMS_TEST_MODE=v104 python3 cms_test.py` (v104 151개 + 회귀 v103·v102·v101·v100·v90·v80·v70·v60).
 
 ## v10.3 기능 (플러그인 마켓 3단계 — 원클릭 업데이트 · 버전 비교 · 롤백)
