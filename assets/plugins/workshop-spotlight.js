@@ -1,5 +1,6 @@
-/* SBPress 플러그인 · 추천 공방 스포트라이트 (workshop-spotlight)
+/* SBPress 플러그인 · 추천 공방 스포트라이트 (workshop-spotlight)  v1.1.0
    홈 맨 위(home-top 존)에 '추천 공방 + 마감 임박' 하이라이트 배너를 띄웁니다.
+   설정(v10.2): limit(보여 줄 마감·공방 수) · heading(배너 제목)
    (addWidget 훅) — data.js 의 info(마감일)·workshops 를 쓰고, 지도에 실시간으로
    실린 공방(window.CRAFT_APP.mapPlaces)도 후보에 넣습니다. */
 (function () {
@@ -9,9 +10,10 @@
   window.SBPress.registerPlugin({
     id: "workshop-spotlight",
     name: "추천 공방 스포트라이트",
-    version: "1.0.0",
+    version: "1.1.0",
     author: (window.SBP && window.SBP.brandName ? window.SBP.brandName() : "SBPress"),
     description: "홈 맨 위에 이번 주 추천 공방과 마감 임박 공모·체험을 모아 보여 줍니다.",
+    settings: { limit: 2, heading: "" },
     setup: function (ctx) {
       ctx.addCss([
         ".sbp-zone[data-sbp-zone=\"home-top\"]{max-width:1200px;margin:22px auto 0;padding:0 28px}",
@@ -56,15 +58,24 @@
           return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
         });
       }
+      function limitOf(s) {
+        var n = Number(s.limit);
+        if (!isFinite(n)) return 2;
+        return Math.max(1, Math.min(5, Math.round(n)));
+      }
 
       ctx.addWidget("home-top", function (box) {
+        var s = ctx.getSettings();
+        var limit = limitOf(s);
+        var heading = String(s.heading || "").trim();
+
         var S = window.SITE || {};
         var info = (S.info || []).map(function (it) {
           var d = dday(it.due);
           return { it: it, d: d };
         }).filter(function (x) { return x.d != null && x.d >= 0 && x.d <= 14; })
           .sort(function (a, b) { return a.d - b.d; })
-          .slice(0, 2);
+          .slice(0, limit);
 
         var pool = (S.workshops || []).slice();
         try {
@@ -93,10 +104,14 @@
         }
         if (!rows) return;   // 보여 줄 것이 없으면 위젯을 그리지 않습니다
 
+        /* 제목을 설정에서 바꿀 수 있습니다 — 비우면 기본 문구. */
+        var head = heading
+          ? "<h2>" + esc(heading) + "</h2>"
+          : "<h2>지금 볼 만한 <em>공방과 마감</em></h2>";
         box.innerHTML =
           '<section class="sbp-spot" aria-label="이번 주 추천 공방과 마감 임박">' +
             '<div><p class="sbp-spot-eyebrow">이번 주 스포트라이트</p>' +
-              "<h2>지금 볼 만한 <em>공방과 마감</em></h2>" +
+              head +
               '<p class="sbp-spot-desc">등록 공방 중 한 곳과, 2주 안에 마감되는 공모·체험을 모았습니다. 카드를 누르면 바로 이동합니다.</p></div>' +
             '<ul class="sbp-spot-list">' + rows + "</ul>" +
           "</section>";

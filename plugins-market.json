@@ -2,35 +2,61 @@
   "name": "전국공방 플러그인 마켓",
   "manifest": 1,
   "schema": 2,
-  "sbpress": "10.0",
+  "sbpress": "10.2",
   "description": "SBPress 사이트·관리자에 기능을 더하는 브라우저 JS 플러그인 목록입니다. 관리자 > 플러그인 · 마켓에서 한 번에 설치하고 켜고 끌 수 있습니다.",
   "homepage": "https://craftstorekorea.github.io/",
   "updated": "2026-11-24",
   "categories": [
-    { "id": "content", "ko": "콘텐츠 꾸미기", "en": "Content" },
-    { "id": "navigation", "ko": "내비게이션", "en": "Navigation" },
-    { "id": "widget", "ko": "위젯·홈", "en": "Widgets & home" },
-    { "id": "admin", "ko": "관리자 도구", "en": "Admin tools" },
-    { "id": "accessibility", "ko": "읽기·접근성", "en": "Reading & accessibility" }
+    {
+      "id": "content",
+      "ko": "콘텐츠 꾸미기",
+      "en": "Content"
+    },
+    {
+      "id": "navigation",
+      "ko": "내비게이션",
+      "en": "Navigation"
+    },
+    {
+      "id": "widget",
+      "ko": "위젯·홈",
+      "en": "Widgets & home"
+    },
+    {
+      "id": "admin",
+      "ko": "관리자 도구",
+      "en": "Admin tools"
+    },
+    {
+      "id": "accessibility",
+      "ko": "읽기·접근성",
+      "en": "Reading & accessibility"
+    }
   ],
   "plugins": [
     {
       "id": "reading-time",
       "name": "읽기 시간 배지",
       "name_en": "Reading time badge",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "description": "글·공방 카드에「약 N분 · N자」배지를 붙여, 긴 글을 고르기 쉽게 합니다.",
       "description_en": "Adds an “about N min · N chars” badge to post and workshop cards so longer pieces are easier to choose.",
       "author": "전국공방",
       "author_en": "Craft Store Korea",
       "category": "content",
       "order": 1,
-      "updated": "2026-11-23",
+      "updated": "2026-11-24",
       "min_sbpress_version": "1.0",
       "script_url": "/assets/plugins/reading-time.js",
       "source": "builtin",
-      "tags": ["카드 꾸미기", "읽기"],
-      "tags_en": ["Card decoration", "Reading"],
+      "tags": [
+        "카드 꾸미기",
+        "읽기"
+      ],
+      "tags_en": [
+        "Card decoration",
+        "Reading"
+      ],
       "screenshots": [
         {
           "src": "assets/market-shots/reading-time-1.svg",
@@ -39,6 +65,12 @@
         }
       ],
       "changelog": [
+        {
+          "version": "1.2.0",
+          "date": "2026-11-24",
+          "notes": "설정 UI(v10.2) — 설정 화면에서 분당 글자 수·배지 강조색·글자 수 표시를 바꿀 수 있습니다.",
+          "notes_en": "Settings UI (v10.2) — Settings now let you change characters per minute, badge accent color and the character count."
+        },
         {
           "version": "1.1.0",
           "date": "2026-11-23",
@@ -55,29 +87,72 @@
       "manifest": {
         "v": 1,
         "name": "읽기 시간 배지",
-        "version": "1.1.0",
+        "version": "1.2.0",
         "author": "전국공방",
-        "hooks": ["card"],
-        "permissions": ["read:card-text"]
-      }
+        "hooks": [
+          "card",
+          "settings"
+        ],
+        "permissions": [
+          "read:card-text"
+        ]
+      },
+      "settings_schema": [
+        {
+          "key": "chars_per_min",
+          "type": "number",
+          "label_ko": "분당 글자 수",
+          "label_en": "Characters per minute",
+          "default": 500,
+          "min": 100,
+          "max": 2000,
+          "step": 50,
+          "help_ko": "읽기 시간을 계산하는 기준입니다. 한국어 글은 500자/분이 흔합니다.",
+          "help_en": "Basis for the estimate. Korean text usually reads at about 500 characters per minute."
+        },
+        {
+          "key": "badge_color",
+          "type": "color",
+          "label_ko": "배지 강조색",
+          "label_en": "Badge accent color",
+          "default": "",
+          "help_ko": "비우면 사이트 테마 색을 씁니다(#RRGGBB).",
+          "help_en": "Leave empty to use the site theme color (#RRGGBB)."
+        },
+        {
+          "key": "show_char_count",
+          "type": "boolean",
+          "label_ko": "글자 수 표시",
+          "label_en": "Show character count",
+          "default": true,
+          "help_ko": "끄면 ‘약 N분’만 보여 줍니다.",
+          "help_en": "Turn off to show only “about N min”."
+        }
+      ]
     },
     {
       "id": "scroll-top",
       "name": "맨 위로 버튼",
       "name_en": "Back to top button",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "description": "오른쪽 아래에 '맨 위로' 버튼을 띄웁니다. 400px 이상 스크롤하면 나타납니다.",
       "description_en": "Shows a “Back to top” button at the bottom right once the page is scrolled 400 px.",
       "author": "전국공방",
       "author_en": "Craft Store Korea",
       "category": "navigation",
       "order": 2,
-      "updated": "2026-11-21",
+      "updated": "2026-11-24",
       "min_sbpress_version": "1.0",
       "script_url": "/assets/plugins/scroll-top.js",
       "source": "builtin",
-      "tags": ["위젯", "내비게이션"],
-      "tags_en": ["Widget", "Navigation"],
+      "tags": [
+        "위젯",
+        "내비게이션"
+      ],
+      "tags_en": [
+        "Widget",
+        "Navigation"
+      ],
       "screenshots": [
         {
           "src": "assets/market-shots/scroll-top-1.svg",
@@ -86,6 +161,12 @@
         }
       ],
       "changelog": [
+        {
+          "version": "1.1.0",
+          "date": "2026-11-24",
+          "notes": "설정 UI(v10.2) — 버튼이 나타나는 스크롤 위치와 왼쪽/오른쪽 위치를 설정에서 고를 수 있습니다.",
+          "notes_en": "Settings UI (v10.2) — Settings now choose when the button appears and whether it sits at the bottom left or right."
+        },
         {
           "version": "1.0.0",
           "date": "2026-11-21",
@@ -96,29 +177,75 @@
       "manifest": {
         "v": 1,
         "name": "맨 위로 버튼",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "author": "전국공방",
-        "hooks": ["widget"],
-        "permissions": ["ui:floating"]
-      }
+        "hooks": [
+          "widget",
+          "settings"
+        ],
+        "permissions": [
+          "ui:floating"
+        ]
+      },
+      "settings_schema": [
+        {
+          "key": "threshold_px",
+          "type": "number",
+          "label_ko": "나타나는 스크롤 위치(px)",
+          "label_en": "Show after scrolling (px)",
+          "default": 400,
+          "min": 0,
+          "max": 3000,
+          "step": 50,
+          "help_ko": "이만큼 내리면 버튼이 나타납니다. 0이면 처음부터 보입니다.",
+          "help_en": "The button appears after this much scrolling. 0 shows it from the start."
+        },
+        {
+          "key": "position",
+          "type": "select",
+          "label_ko": "버튼 위치",
+          "label_en": "Button position",
+          "default": "right",
+          "options": [
+            {
+              "value": "right",
+              "label_ko": "오른쪽 아래",
+              "label_en": "Bottom right"
+            },
+            {
+              "value": "left",
+              "label_ko": "왼쪽 아래",
+              "label_en": "Bottom left"
+            }
+          ],
+          "help_ko": "화면에서 버튼이 놓일 쪽입니다.",
+          "help_en": "Which corner the button sits in."
+        }
+      ]
     },
     {
       "id": "workshop-spotlight",
       "name": "추천 공방 스포트라이트",
       "name_en": "Workshop spotlight",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "description": "홈 맨 위에 이번 주 추천 공방과 마감 임박 공모·체험을 모은 배너를 보여 줍니다.",
       "description_en": "Adds a banner at the top of home with this week’s featured workshop and grants or classes closing soon.",
       "author": "전국공방",
       "author_en": "Craft Store Korea",
       "category": "widget",
       "order": 3,
-      "updated": "2026-11-22",
+      "updated": "2026-11-24",
       "min_sbpress_version": "1.0",
       "script_url": "/assets/plugins/workshop-spotlight.js",
       "source": "builtin",
-      "tags": ["위젯", "홈"],
-      "tags_en": ["Widget", "Home"],
+      "tags": [
+        "위젯",
+        "홈"
+      ],
+      "tags_en": [
+        "Widget",
+        "Home"
+      ],
       "screenshots": [
         {
           "src": "assets/market-shots/workshop-spotlight-1.svg",
@@ -127,6 +254,12 @@
         }
       ],
       "changelog": [
+        {
+          "version": "1.1.0",
+          "date": "2026-11-24",
+          "notes": "설정 UI(v10.2) — 배너에 보여 줄 개수와 배너 제목을 설정에서 바꿀 수 있습니다.",
+          "notes_en": "Settings UI (v10.2) — Settings now change how many items the banner shows and its heading."
+        },
         {
           "version": "1.0.0",
           "date": "2026-11-22",
@@ -137,11 +270,43 @@
       "manifest": {
         "v": 1,
         "name": "추천 공방 스포트라이트",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "author": "전국공방",
-        "hooks": ["widget"],
-        "permissions": ["read:posts", "ui:home-top"]
-      }
+        "hooks": [
+          "widget",
+          "settings"
+        ],
+        "permissions": [
+          "read:posts",
+          "ui:home-top"
+        ]
+      },
+      "settings_schema": [
+        {
+          "key": "limit",
+          "type": "number",
+          "label_ko": "보여 줄 개수",
+          "label_en": "Items to show",
+          "default": 2,
+          "min": 1,
+          "max": 5,
+          "step": 1,
+          "help_ko": "마감 임박 공모·체험을 몇 건까지 보여 줄지 정합니다.",
+          "help_en": "How many closing grants and classes to show."
+        },
+        {
+          "key": "heading",
+          "type": "text",
+          "label_ko": "배너 제목",
+          "label_en": "Banner heading",
+          "default": "",
+          "maxlength": 60,
+          "placeholder_ko": "지금 볼 만한 공방과 마감",
+          "placeholder_en": "Workshops and deadlines to see now",
+          "help_ko": "비우면 기본 제목을 씁니다.",
+          "help_en": "Leave empty to use the default heading."
+        }
+      ]
     },
     {
       "id": "admin-json-export",
@@ -158,8 +323,14 @@
       "min_sbpress_version": "1.0",
       "script_url": "/assets/plugins/admin-json-export.js",
       "source": "builtin",
-      "tags": ["관리자", "백업"],
-      "tags_en": ["Admin", "Backup"],
+      "tags": [
+        "관리자",
+        "백업"
+      ],
+      "tags_en": [
+        "Admin",
+        "Backup"
+      ],
       "screenshots": [
         {
           "src": "assets/market-shots/admin-json-export-1.svg",
@@ -180,15 +351,19 @@
         "name": "데이터 내보내기",
         "version": "1.0.0",
         "author": "전국공방",
-        "hooks": ["admin-tab"],
-        "permissions": ["read:admin-lists"]
+        "hooks": [
+          "admin-tab"
+        ],
+        "permissions": [
+          "read:admin-lists"
+        ]
       }
     },
     {
       "id": "print-friendly",
       "name": "인쇄용 스타일",
       "name_en": "Print-friendly styles",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "description": "글을 인쇄하거나 PDF로 저장할 때 메뉴·버튼을 숨기고 본문만 또렷하게 남깁니다.",
       "description_en": "Hides menus and buttons when a post is printed or saved as PDF, leaving a clean body.",
       "author": "전국공방",
@@ -199,8 +374,14 @@
       "min_sbpress_version": "1.0",
       "script_url": "/assets/plugins/print-friendly.js",
       "source": "builtin",
-      "tags": ["인쇄", "읽기"],
-      "tags_en": ["Print", "Reading"],
+      "tags": [
+        "인쇄",
+        "읽기"
+      ],
+      "tags_en": [
+        "Print",
+        "Reading"
+      ],
       "screenshots": [
         {
           "src": "assets/market-shots/print-friendly-1.svg",
@@ -209,6 +390,12 @@
         }
       ],
       "changelog": [
+        {
+          "version": "1.1.0",
+          "date": "2026-11-24",
+          "notes": "설정 UI(v10.2) — 머리글·메뉴 숨김 여부와 본문 글자 크기를 설정에서 고를 수 있습니다.",
+          "notes_en": "Settings UI (v10.2) — Settings now control hiding the header and menu and the body font size."
+        },
         {
           "version": "1.0.0",
           "date": "2026-11-24",
@@ -219,11 +406,39 @@
       "manifest": {
         "v": 1,
         "name": "인쇄용 스타일",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "author": "전국공방",
-        "hooks": ["css"],
-        "permissions": ["css:inject"]
-      }
+        "hooks": [
+          "css",
+          "settings"
+        ],
+        "permissions": [
+          "css:inject"
+        ]
+      },
+      "settings_schema": [
+        {
+          "key": "hide_chrome",
+          "type": "boolean",
+          "label_ko": "머리글·바닥글·메뉴 숨김",
+          "label_en": "Hide header, footer and menu",
+          "default": true,
+          "help_ko": "끄면 인쇄에도 머리글과 메뉴가 남습니다(본문 여백·글자 크기는 그대로 적용).",
+          "help_en": "Turn off to keep the header and menu when printing (body size and margins still apply)."
+        },
+        {
+          "key": "font_size_px",
+          "type": "number",
+          "label_ko": "본문 글자 크기(px)",
+          "label_en": "Body font size (px)",
+          "default": 16,
+          "min": 10,
+          "max": 24,
+          "step": 1,
+          "help_ko": "인쇄할 때 본문 글자 크기입니다.",
+          "help_en": "Body text size when printing."
+        }
+      ]
     },
     {
       "id": "quick-search",
@@ -240,8 +455,14 @@
       "min_sbpress_version": "2.0",
       "script_url": "/assets/plugins/quick-search.js",
       "source": "builtin",
-      "tags": ["메뉴", "검색"],
-      "tags_en": ["Menu", "Search"],
+      "tags": [
+        "메뉴",
+        "검색"
+      ],
+      "tags_en": [
+        "Menu",
+        "Search"
+      ],
       "screenshots": [
         {
           "src": "assets/market-shots/quick-search-1.svg",
@@ -262,8 +483,12 @@
         "name": "통합 검색 바로가기",
         "version": "1.0.0",
         "author": "전국공방",
-        "hooks": ["menu"],
-        "permissions": ["nav:menu"]
+        "hooks": [
+          "menu"
+        ],
+        "permissions": [
+          "nav:menu"
+        ]
       }
     }
   ]

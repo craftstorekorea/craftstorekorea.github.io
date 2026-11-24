@@ -1,6 +1,6 @@
 {
-  "version": "10.1",
-  "generatedAt": "2026-11-24T23:35:19+09:00",
+  "version": "10.2",
+  "generatedAt": "2026-11-25T00:15:24+09:00",
   "limits": {
     "budgetBytes": 307200,
     "budgetLabel": "300 KB",
@@ -10,7 +10,7 @@
   },
   "after": {
     "index": "index.html",
-    "totalBytes": 258473,
+    "totalBytes": 258471,
     "resources": [
       {
         "kind": "html",
@@ -50,8 +50,8 @@
       {
         "kind": "js",
         "path": "assets/config.js",
-        "rawBytes": 9593,
-        "bytes": 3592,
+        "rawBytes": 8940,
+        "bytes": 3289,
         "counted": true
       },
       {
@@ -120,15 +120,15 @@
       {
         "kind": "js",
         "path": "assets/plugins.js",
-        "rawBytes": 29221,
-        "bytes": 8962,
+        "rawBytes": 31194,
+        "bytes": 9362,
         "counted": true
       },
       {
         "kind": "js",
         "path": "assets/pwa.js",
-        "rawBytes": 5818,
-        "bytes": 2012,
+        "rawBytes": 5435,
+        "bytes": 1913,
         "counted": true
       }
     ],
@@ -344,7 +344,7 @@
     "assumedFirstLoads": 1.0,
     "extraPageViews": 2.5,
     "extraPageBytes": 30720,
-    "bytesPerMonth": 10058190000.0,
+    "bytesPerMonth": 10058130000.0,
     "gbPerMonth": 9.37,
     "percentOfCap": 9.37,
     "roomGbPerMonth": 100.0

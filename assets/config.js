@@ -1,21 +1,9 @@
 /* ===== SBPress · 사이트 설정 로더 (assets/config.js) =====
-   사이트마다 다른 값(사이트 이름·주소, Supabase, GA4, 기능 스위치, 구글 시트)을
-   **sbpress.config.json 한 파일**에서 읽어 window.SBPRESS_CONFIG 로 내줍니다.
-   - 이 파일은 다른 스크립트보다 먼저, 동기(synchronous)로 설정을 읽습니다.
-     (app/auth/admin 이 시작되기 전에 값이 준비되어야 하기 때문입니다.)
-   - 설정 파일이 없거나 읽지 못하면 아래 GENERIC 기본값으로 조용히 동작합니다.
-   - 템플릿을 새 사이트로 복사할 때는 sbpress.config.json 만 바꾸면 됩니다.
-
-   window.SBP 도우미:
-     SBP.config            설정 객체
-     SBP.feature("map")    기능 켜짐 여부 (기본 true)
-     SBP.brandName()       사이트 이름
-     SBP.tagline()         작은 글씨(부제)
-     SBP.siteUrl()         사이트 주소(끝 / 없이)
-     SBP.configured()      Supabase 주소·키가 실제 값인지
-     SBP.sheetId()         등록 게시판 시트 ID (없으면 "")
-     SBP.isPlaceholder(v)  예시값(YOUR_… 등)인지
-*/
+   sbpress.config.json(사이트별 값)을 다른 스크립트보다 먼저 동기로 읽어
+   window.SBPRESS_CONFIG 로 내줍니다. 없거나 못 읽으면 아래 GENERIC 기본값.
+   도우미: SBP.config · SBP.feature(name) · SBP.brandName() · SBP.siteUrl()
+           SBP.configured() · SBP.sheetId() · SBP.isPlaceholder(v)
+   ※ 옵션 설명은 sbpress.config.json.example 과 README 를 봅니다. */
 (function () {
   "use strict";
 

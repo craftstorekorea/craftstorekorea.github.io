@@ -1219,6 +1219,7 @@
   "메뉴": "Menu",
   "검색": "Search",
   "업무 · 결재 Pro": "Work & approvals Pro",
+  "업무·결재 Pro": "Work & approvals Pro",
   "업무 · 결재 고도화": "Work & approval upgrade",
   "조직 · 업무 분장": "Org & duties",
   "반복 업무 · 마감": "Recurring work & deadlines",
@@ -1431,7 +1432,25 @@
   "부서 미지정": "No department",
   "이름 없음": "No name",
   "/ 전체": "/ total",
-  "— 체크하면 일감 진행률이 바로 바뀝니다.": "— ticking recalculates the task progress at once."
+  "— 체크하면 일감 진행률이 바로 바뀝니다.": "— ticking recalculates the task progress at once.",
+  "설정 저장": "Save settings",
+  "설정 열기": "Open settings",
+  "설정을 저장했습니다.": "Saved the settings.",
+  "이 플러그인의 동작을 바꿉니다. 저장하면 사이트와 이 화면에 바로 적용됩니다.": "Change how this plugin behaves. Saving applies it to the site and this screen right away.",
+  "설정은 관리자 화면에서만 바꿀 수 있습니다.": "Settings can be changed in the admin screen only.",
+  "저장했습니다. 사이트에 바로 적용됩니다.": "Saved. Applied to the site right away.",
+  "기본값으로 복원": "Restore defaults",
+  "기본값으로 되돌렸습니다.": "Restored the defaults.",
+  "이 플러그인의 설정을 모두 기본값으로 되돌릴까요?": "Reset every setting of this plugin to its default?",
+  "이 플러그인은 바꿀 설정이 없습니다.": "This plugin has no settings to change.",
+  "테마 색": "Theme color",
+  "관리자 화면에서만 바꿀 수 있습니다. 사이트에서는 저장된 값으로 동작합니다.": "Changeable in the admin screen only; the site runs with the saved values.",
+  "관리자 권한으로 로그인했는지 확인해 주세요.": "Check that you are signed in as an admin.",
+  "Supabase 에 supabase/23_v102_plugin_settings.sql 을 실행한 뒤 다시 시도해 주세요.": "Run supabase/23_v102_plugin_settings.sql in Supabase, then try again.",
+  "설정 화면을 불러오지 못했습니다. 새로고침해 주세요.": "Could not load the settings screen. Please reload.",
+  "플러그인 마켓을 먼저 불러와야 설정을 열 수 있습니다.": "Load the plugin market first to open settings.",
+  "설정할 수 있는 항목 수": "Number of settings you can change",
+  "꺼진 플러그인은 켜야 사이트에 적용됩니다.": "A plugin that is off is applied to the site only after you turn it on."
 };
   var RULES = ([
   [
@@ -2137,6 +2156,18 @@
   [
     "^D-(\\d+)$",
     "D-\\1"
+  ],
+  [
+    "^‘(.+)’ 설정을 저장했습니다\\. 사이트에 바로 반영됩니다\\.$",
+    "Saved the settings for “\\1”. Applied to the site right away."
+  ],
+  [
+    "^설정을 저장하지 못했습니다: (.+)$",
+    "Could not save the settings: \\1"
+  ],
+  [
+    "^설정 (\\d+)$",
+    "\\1 settings"
   ]
 ]).map(function (r) {
     /* 파이썬 쪽 규칙은 \1 로 그룹을 가리킵니다 — JS replace 는 $1 을 씁니다. */

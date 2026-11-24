@@ -76,7 +76,31 @@
       adminOnly: "설치·켜기·제거는 관리자 화면에서만 할 수 있습니다.",
       goAdmin: "관리자에서 관리",
       unknownPerm: "이 플러그인이 요청한 권한입니다.",
-      screenshotAlt: "{name} 미리보기"
+      screenshotAlt: "{name} 미리보기",
+      /* v10.2 — 플러그인 설정 */
+      settings: "설정",
+      settingsOf: "{name} 설정",
+      settingsLead: "이 플러그인의 동작을 바꿉니다. 저장하면 사이트와 이 화면에 바로 적용됩니다.",
+      settingsAdminOnly: "설정은 관리자 화면에서만 바꿀 수 있습니다.",
+      save: "저장",
+      saving: "저장하는 중…",
+      saved: "저장했습니다. 사이트에 바로 적용됩니다.",
+      saveFailed: "저장하지 못했습니다: ",
+      restore: "기본값으로 복원",
+      restoring: "기본값으로 되돌리는 중…",
+      restored: "기본값으로 되돌렸습니다.",
+      restoreConfirm: "이 플러그인의 설정을 모두 기본값으로 되돌릴까요?",
+      noChanges: "바뀐 값이 없습니다.",
+      defaultTag: "기본값",
+      colorClear: "테마 색",
+      needSql: "설정을 저장하지 못했습니다. Supabase 에 supabase/23_v102_plugin_settings.sql 을 실행한 뒤 다시 시도해 주세요.",
+      noSchema: "이 플러그인은 바꿀 설정이 없습니다.",
+      invalidNumber: "숫자로 넣어 주세요: ",
+      outOfRange: "범위를 벗어난 값은 가까운 값으로 맞춥니다: ",
+      enabledNote: "꺼진 플러그인은 켜야 사이트에 적용됩니다.",
+      fieldCheck: "값을 다시 확인해 주세요: ",
+      on: "켜짐",
+      off: "꺼짐"
     },
     en: {
       eyebrow: "PLUGIN MARKET",
@@ -130,7 +154,31 @@
       adminOnly: "Installing, turning on and removing can be done in the admin screen only.",
       goAdmin: "Manage in admin",
       unknownPerm: "A permission this plugin asks for.",
-      screenshotAlt: "{name} preview"
+      screenshotAlt: "{name} preview",
+      /* v10.2 — plugin settings */
+      settings: "Settings",
+      settingsOf: "Settings for {name}",
+      settingsLead: "Change how this plugin behaves. Saving applies it to the site and this screen right away.",
+      settingsAdminOnly: "Settings can be changed in the admin screen only.",
+      save: "Save",
+      saving: "Saving…",
+      saved: "Saved. Applied to the site right away.",
+      saveFailed: "Could not save: ",
+      restore: "Restore defaults",
+      restoring: "Restoring defaults…",
+      restored: "Restored the defaults.",
+      restoreConfirm: "Reset every setting of this plugin to its default?",
+      noChanges: "Nothing has changed.",
+      defaultTag: "default",
+      colorClear: "Theme color",
+      needSql: "Could not save. Run supabase/23_v102_plugin_settings.sql in Supabase, then try again.",
+      noSchema: "This plugin has no settings to change.",
+      invalidNumber: "Enter a number: ",
+      outOfRange: "An out-of-range value is moved to the nearest allowed value: ",
+      enabledNote: "A plugin that is off is applied to the site only after you turn it on.",
+      fieldCheck: "Check this value again: ",
+      on: "On",
+      off: "Off"
     }
   };
 
@@ -209,6 +257,39 @@
   }
 
   /* ---------------- 데이터 정규화 ---------------- */
+  /* v10.2 — 설정 입력 스키마 한 항목을 정리합니다(서버의 plugin_settings_schema_clean 과 같은 규칙). */
+  function normField(x) {
+    if (!x || typeof x !== "object") return null;
+    var key = String(x.key || "").trim().slice(0, 40);
+    if (!/^[a-z][a-z0-9_]*$/.test(key)) return null;
+    var t = String(x.type || "text").toLowerCase();
+    if (["number", "text", "boolean", "select", "color"].indexOf(t) < 0) t = "text";
+    var opts = (Array.isArray(x.options) ? x.options : []).map(function (o) {
+      if (!o || typeof o !== "object" || o.value == null) return null;
+      return {
+        value: String(o.value).slice(0, 40),
+        label_ko: String(o.label_ko || o.label || o.value).slice(0, 80),
+        label_en: String(o.label_en || o.label || o.value).slice(0, 80)
+      };
+    }).filter(Boolean).slice(0, 20);
+    return {
+      key: key, type: t,
+      label_ko: String(x.label_ko || x.label || key).slice(0, 80),
+      label_en: String(x.label_en || x.label || x.label_ko || key).slice(0, 80),
+      help_ko: String(x.help_ko || "").slice(0, 200),
+      help_en: String(x.help_en || "").slice(0, 200),
+      placeholder_ko: String(x.placeholder_ko || "").slice(0, 80),
+      placeholder_en: String(x.placeholder_en || "").slice(0, 80),
+      default: x.default !== undefined ? x.default : (t === "number" ? 0 : t === "boolean" ? false : ""),
+      min: typeof x.min === "number" ? x.min : null,
+      max: typeof x.max === "number" ? x.max : null,
+      step: typeof x.step === "number" && x.step > 0 ? x.step : null,
+      maxlength: typeof x.maxlength === "number" ? Math.max(1, Math.min(2000, x.maxlength)) : 200,
+      options: opts,
+      sensitive: x.sensitive === true
+    };
+  }
+
   function normShot(x, lang) {
     if (x == null) return null;
     if (typeof x === "string") return { src: x, alt: "", alt_en: "" };
@@ -280,6 +361,8 @@
         tags: tags,
         tags_en: tagsEn,
         screenshots: shots,
+        settings_schema: (Array.isArray(item.settings_schema) ? item.settings_schema : [])
+          .map(normField).filter(Boolean).slice(0, 40),
         changelog: log,
         hooks: hooks,
         permissions: perms,
@@ -337,6 +420,24 @@
 
   function installedRow(inst, id) {
     try { return inst.installed ? (inst.installed(id) || null) : null; } catch (e) { return null; }
+  }
+
+  function hasSettings(p) {
+    return !!(p && Array.isArray(p.settings_schema) && p.settings_schema.length);
+  }
+
+  /* 기본값(마켓 스키마) + DB 에 저장된 값 */
+  function settingsOf(inst, p) {
+    var out = {};
+    (p.settings_schema || []).forEach(function (f) {
+      if (f.default !== undefined) out[f.key] = f.default;
+    });
+    var row = installedRow(inst, p.id);
+    var saved = (row && row.settings && typeof row.settings === "object") ? row.settings : {};
+    (p.settings_schema || []).forEach(function (f) {
+      if (saved[f.key] !== undefined) out[f.key] = saved[f.key];
+    });
+    return out;
   }
 
   /* ---------------- 필터 · 정렬 ---------------- */
@@ -434,6 +535,10 @@
     }
     var html = '<button type="button" class="btn btn-ghost btn-sm" data-mplug-toggle="' + esc(p.id) + '"' + attrs + ">" +
       esc(tr(lang, on ? "turnOff" : "turnOn")) + "</button>";
+    if (hasSettings(p)) {
+      html += '<button type="button" class="btn btn-ghost btn-sm mkt-set-btn" data-mplug-settings="' + esc(p.id) + '"' + attrs + ">" +
+        esc(tr(lang, "settings")) + "</button>";
+    }
     if (newer) {
       html += '<button type="button" class="btn btn-ghost btn-sm" data-mplug-update="' + esc(p.id) + '"' + attrs + ">" +
         esc(tr(lang, "update", { v: p.version })) + "</button>";
@@ -500,11 +605,12 @@
     el.addEventListener("click", function (e) {
       var closer = e.target.closest ? e.target.closest("[data-mkt-close]") : null;
       if (closer) { closeDetail(); return; }
-      var action = e.target.closest ? e.target.closest("[data-mplug-install],[data-mplug-toggle],[data-mplug-update],[data-mplug-remove]") : null;
+      var action = e.target.closest ? e.target.closest("[data-mplug-install],[data-mplug-toggle],[data-mplug-update],[data-mplug-remove],[data-mplug-settings]") : null;
       if (action) {
         var inst = MODAL.inst;
         if (!inst) return;
-        if (action.hasAttribute("data-mplug-install")) runAction(inst, "onInstall", action.getAttribute("data-mplug-install"), action, true);
+        if (action.hasAttribute("data-mplug-settings")) openSettings(inst, action.getAttribute("data-mplug-settings"));
+        else if (action.hasAttribute("data-mplug-install")) runAction(inst, "onInstall", action.getAttribute("data-mplug-install"), action, true);
         else if (action.hasAttribute("data-mplug-toggle")) runAction(inst, "onToggle", action.getAttribute("data-mplug-toggle"), action, true);
         else if (action.hasAttribute("data-mplug-update")) runAction(inst, "onUpdate", action.getAttribute("data-mplug-update"), action, true);
         else if (action.hasAttribute("data-mplug-remove")) runAction(inst, "onRemove", action.getAttribute("data-mplug-remove"), action, true);
@@ -623,6 +729,253 @@
         }, ms);
       });
     }
+  }
+
+  /* ---------------- 설정 모달 (v10.2) ---------------- */
+  var SET = { el: null, inst: null, id: "", lastFocus: null };
+
+  function ensureSettingsModal() {
+    if (SET.el && document.body.contains(SET.el)) return SET.el;
+    var el = document.createElement("div");
+    el.className = "mkt-modal mkt-set-modal";
+    el.id = "mkt-settings";
+    el.hidden = true;
+    el.innerHTML =
+      '<div class="mkt-modal-backdrop" data-mkt-set-close="1"></div>' +
+      '<div class="mkt-modal-card mkt-set-card" role="dialog" aria-modal="true" aria-labelledby="mkt-set-title">' +
+        '<header class="mkt-modal-head">' +
+          '<h2 id="mkt-set-title"></h2>' +
+          '<button type="button" class="mkt-modal-x" data-mkt-set-close="1" aria-label="">×</button>' +
+        "</header>" +
+        '<div class="mkt-modal-body" id="mkt-set-body"></div>' +
+        '<footer class="mkt-modal-foot" id="mkt-set-foot"></footer>' +
+      "</div>";
+    document.body.appendChild(el);
+    el.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-mkt-set-close]")) { closeSettings(); return; }
+      var clear = e.target.closest ? e.target.closest("[data-mkt-clear]") : null;
+      if (clear) {
+        var key = clear.getAttribute("data-mkt-clear");
+        var inp = el.querySelector('[data-set-field="' + key + '"]');
+        if (inp) { inp.setAttribute("data-empty", "1"); inp.value = "#c86d44"; }
+        var code = el.querySelector('[data-set-value="' + key + '"]');
+        if (code) code.textContent = tr(SET.inst ? SET.inst.lang : "ko", "colorClear");
+        return;
+      }
+      var color = e.target.closest ? e.target.closest('input[type="color"][data-set-field]') : null;
+      if (color) color.setAttribute("data-empty", "0");
+    });
+    el.addEventListener("input", function (e) {
+      var inp = e.target;
+      if (!inp || !inp.getAttribute) return;
+      if (inp.type === "color") {
+        inp.setAttribute("data-empty", "0");
+        var code = el.querySelector('[data-set-value="' + inp.getAttribute("data-set-field") + '"]');
+        if (code) code.textContent = String(inp.value || "").toLowerCase();
+      }
+      if (inp.type === "checkbox") {
+        var lab = inp.closest ? inp.closest(".mkt-switch") : null;
+        var em = lab ? lab.querySelector("em") : null;
+        if (em) em.textContent = inp.checked ? tr(SET.inst ? SET.inst.lang : "ko", "on") : tr(SET.inst ? SET.inst.lang : "ko", "off");
+      }
+    });
+    document.addEventListener("keydown", function (e) {
+      if (!SET.el || SET.el.hidden) return;
+      if (e.key === "Escape") { e.preventDefault(); closeSettings(); }
+    });
+    SET.el = el;
+    return el;
+  }
+
+  function fieldHtml(inst, f, val) {
+    var lang = inst.lang;
+    var label = lang === "en" ? f.label_en : f.label_ko;
+    var help = lang === "en" ? f.help_en : f.help_ko;
+    var ph = lang === "en" ? f.placeholder_en : f.placeholder_ko;
+    var id = "mkt-set-" + f.key;
+    var input = "";
+    var extra = "";
+    if (f.type === "boolean") {
+      var on = val === true;
+      input = '<label class="mkt-switch"><input type="checkbox" id="' + id + '" data-set-field="' + esc(f.key) + '"' +
+        (on ? " checked" : "") + '><span class="mkt-switch-box" aria-hidden="true"></span>' +
+        "<em>" + esc(tr(lang, on ? "on" : "off")) + "</em></label>";
+    } else if (f.type === "select") {
+      input = '<select id="' + id + '" data-set-field="' + esc(f.key) + '">' +
+        (f.options || []).map(function (o) {
+          var ol = lang === "en" ? (o.label_en || o.label_ko) : (o.label_ko || o.label_en);
+          return '<option value="' + esc(o.value) + '"' + (String(val) === String(o.value) ? " selected" : "") + ">" + esc(ol) + "</option>";
+        }).join("") + "</select>";
+    } else if (f.type === "color") {
+      var cur = /^#[0-9a-fA-F]{6}$/.test(String(val || "")) ? String(val).toLowerCase() : "";
+      input = '<span class="mkt-color">' +
+        '<input type="color" id="' + id + '" data-set-field="' + esc(f.key) + '" data-empty="' + (cur ? "0" : "1") + '" value="' + esc(cur || "#c86d44") + '">' +
+        '<code data-set-value="' + esc(f.key) + '">' + esc(cur || tr(lang, "colorClear")) + "</code>" +
+        '<button type="button" class="rowlink" data-mkt-clear="' + esc(f.key) + '">' + esc(tr(lang, "colorClear")) + "</button>" +
+        "</span>";
+    } else if (f.type === "number") {
+      var n = (val === null || val === undefined || val === "") ? "" : String(val);
+      input = '<input type="number" id="' + id + '" data-set-field="' + esc(f.key) + '" value="' + esc(n) + '"' +
+        (f.min != null ? ' min="' + esc(f.min) + '"' : "") + (f.max != null ? ' max="' + esc(f.max) + '"' : "") +
+        (f.step != null ? ' step="' + esc(f.step) + '"' : "") + ' inputmode="numeric">';
+    } else {
+      input = '<input type="text" id="' + id + '" data-set-field="' + esc(f.key) + '" value="' + esc(val == null ? "" : val) + '"' +
+        ' maxlength="' + esc(f.maxlength || 200) + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : "") + ">";
+    }
+    var defTxt = "";
+    if (f.type === "boolean") defTxt = tr(lang, f.default === true ? "on" : "off");
+    else if (f.default !== undefined && f.default !== "" && f.default !== null) defTxt = String(f.default);
+    if (defTxt) {
+      extra = '<span class="mkt-def">' + esc(tr(lang, "defaultTag")) + " " + esc(defTxt) + "</span>";
+    }
+    return '<div class="mkt-field mkt-field-' + esc(f.type) + '" data-key="' + esc(f.key) + '">' +
+      '<label class="mkt-field-label" for="' + id + '">' + esc(label) + extra + "</label>" +
+      '<div class="mkt-field-input">' + input + "</div>" +
+      (help ? '<p class="mkt-field-help">' + esc(help) + "</p>" : "") +
+      "</div>";
+  }
+
+  function paintSettingsBody(inst, p) {
+    var el = SET.el;
+    if (!el) return;
+    var lang = inst.lang;
+    var d = disp(inst, p);
+    el.querySelector("#mkt-set-title").textContent = tr(lang, "settingsOf", { name: d.name });
+    el.querySelector(".mkt-modal-x").setAttribute("aria-label", tr(lang, "close"));
+    var row = installedRow(inst, p.id);
+    var body = el.querySelector("#mkt-set-body");
+    var foot = el.querySelector("#mkt-set-foot");
+    if (!row) {
+      body.innerHTML = '<p class="mkt-note">' + esc(tr(lang, "adminOnly")) + "</p>";
+      foot.innerHTML = "";
+      return;
+    }
+    if (!hasSettings(p)) {
+      body.innerHTML = '<p class="mkt-note">' + esc(tr(lang, "noSchema")) + "</p>";
+      foot.innerHTML = '<button type="button" class="btn btn-ghost btn-sm" data-mkt-set-close="1">' + esc(tr(lang, "close")) + "</button>";
+      return;
+    }
+    body.innerHTML =
+      '<p class="mkt-set-lead">' + esc(tr(lang, "settingsLead")) + "</p>" +
+      (row.enabled ? "" : '<p class="mkt-note mkt-warn">' + esc(tr(lang, "enabledNote")) + "</p>") +
+      '<div class="mkt-form" id="mkt-set-form">' +
+        (p.settings_schema || []).map(function (f) { return fieldHtml(inst, f, settingsOf(inst, p)[f.key]); }).join("") +
+      "</div>" +
+      '<p class="mkt-set-msg" id="mkt-set-msg" role="status" aria-live="polite"></p>';
+    if (!inst.onSaveSettings) {
+      foot.innerHTML = '<p class="mkt-note">' + esc(tr(lang, "settingsAdminOnly")) + "</p>" +
+        '<button type="button" class="btn btn-ghost btn-sm" data-mkt-set-close="1">' + esc(tr(lang, "close")) + "</button>";
+      return;
+    }
+    foot.innerHTML =
+      '<button type="button" class="btn btn-ghost btn-sm" data-mkt-set-restore="' + esc(p.id) + '">' + esc(tr(lang, "restore")) + "</button>" +
+      '<span class="spacer"></span>' +
+      '<button type="button" class="btn btn-ghost btn-sm" data-mkt-set-close="1">' + esc(tr(lang, "close")) + "</button>" +
+      '<button type="button" class="btn btn-primary btn-sm" data-mkt-set-save="' + esc(p.id) + '">' + esc(tr(lang, "save")) + "</button>";
+    var saveBtn = foot.querySelector("[data-mkt-set-save]");
+    var restoreBtn = foot.querySelector("[data-mkt-set-restore]");
+    if (saveBtn) saveBtn.addEventListener("click", function () { saveSettings(inst, p, saveBtn); });
+    if (restoreBtn) restoreBtn.addEventListener("click", function () { restoreSettings(inst, p, restoreBtn); });
+  }
+
+  function collectSettings(p) {
+    var out = {};
+    var el = SET.el;
+    if (!el) return out;
+    (p.settings_schema || []).forEach(function (f) {
+      var inp = el.querySelector('[data-set-field="' + f.key + '"]');
+      if (!inp) return;
+      if (f.type === "boolean") { out[f.key] = !!inp.checked; return; }
+      if (f.type === "color") {
+        if (inp.getAttribute("data-empty") === "1") return;      // 테마 색 그대로
+        out[f.key] = String(inp.value || "").toLowerCase();
+        return;
+      }
+      if (f.type === "number") {
+        var raw = String(inp.value || "").trim();
+        if (raw === "") return;
+        var n = Number(raw);
+        if (!isFinite(n)) return;
+        if (f.min != null) n = Math.max(n, f.min);
+        if (f.max != null) n = Math.min(n, f.max);
+        out[f.key] = n;
+        return;
+      }
+      if (f.type === "select") { out[f.key] = String(inp.value || ""); return; }
+      var t = String(inp.value || "").slice(0, f.maxlength || 200);
+      if (t !== "") out[f.key] = t;                 // 빈 글자는 기본값과 같습니다
+    });
+    return out;
+  }
+
+  function afterSettingsSaved(inst, p, saved) {
+    var row = installedRow(inst, p.id);
+    if (row && saved && typeof saved === "object") row.settings = saved;
+    if (window.SBPress && window.SBPress.applySettings) {
+      try { window.SBPress.applySettings(p.id, saved || {}, { silent: false }); } catch (e) { /* noop */ }
+    }
+    try { paintSettingsBody(inst, p); } catch (e) { /* noop */ }
+    try { if (inst.data) { render(inst); } } catch (e) { /* noop */ }
+  }
+
+  function saveSettings(inst, p, btn) {
+    var lang = inst.lang;
+    var msg = SET.el ? SET.el.querySelector("#mkt-set-msg") : null;
+    if (!inst.onSaveSettings) return;
+    var values = collectSettings(p);
+    if (btn) { btn.disabled = true; btn.textContent = tr(lang, "saving"); }
+    if (msg) { msg.textContent = tr(lang, "saving"); msg.className = "mkt-set-msg"; }
+    inst.onSaveSettings(p.id, values, function (err, saved) {
+      if (btn) { btn.disabled = false; btn.textContent = tr(lang, "save"); }
+      if (err) {
+        if (msg) { msg.textContent = tr(lang, "saveFailed") + err; msg.className = "mkt-set-msg err"; }
+        return;
+      }
+      afterSettingsSaved(inst, p, saved);
+      var m2 = SET.el ? SET.el.querySelector("#mkt-set-msg") : null;
+      if (m2) { m2.textContent = tr(lang, "saved"); m2.className = "mkt-set-msg ok"; }
+    });
+  }
+
+  function restoreSettings(inst, p, btn) {
+    var lang = inst.lang;
+    if (!inst.onSaveSettings) return;
+    if (btn) { btn.disabled = true; btn.textContent = tr(lang, "restoring"); }
+    inst.onSaveSettings(p.id, {}, function (err, saved) {
+      if (btn) { btn.disabled = false; btn.textContent = tr(lang, "restore"); }
+      var msg = SET.el ? SET.el.querySelector("#mkt-set-msg") : null;
+      if (err) {
+        if (msg) { msg.textContent = tr(lang, "saveFailed") + err; msg.className = "mkt-set-msg err"; }
+        return;
+      }
+      afterSettingsSaved(inst, p, saved || {});
+      var m2 = SET.el ? SET.el.querySelector("#mkt-set-msg") : null;
+      if (m2) { m2.textContent = tr(lang, "restored"); m2.className = "mkt-set-msg ok"; }
+    });
+  }
+
+  function openSettings(inst, id) {
+    var p = byId(inst, id);
+    if (!p) return;
+    var el = ensureSettingsModal();
+    SET.inst = inst;
+    SET.id = id;
+    SET.lastFocus = document.activeElement;
+    paintSettingsBody(inst, p);
+    el.hidden = false;
+    document.documentElement.classList.add("mkt-modal-open");
+    try { el.querySelector(".mkt-modal-x").focus(); } catch (e) { /* noop */ }
+  }
+
+  function closeSettings() {
+    if (!SET.el) return;
+    SET.el.hidden = true;
+    SET.el.querySelector("#mkt-set-body").innerHTML = "";
+    SET.el.querySelector("#mkt-set-foot").innerHTML = "";
+    SET.inst = null;
+    SET.id = "";
+    document.documentElement.classList.remove("mkt-modal-open");
+    try { if (SET.lastFocus && SET.lastFocus.focus) SET.lastFocus.focus(); } catch (e) { /* noop */ }
   }
 
   /* ---------------- 인스턴스 ---------------- */
@@ -784,6 +1137,7 @@
       prev.onToggle = opts.onToggle || prev.onToggle;
       prev.onUpdate = opts.onUpdate || prev.onUpdate;
       prev.onRemove = opts.onRemove || prev.onRemove;
+      prev.onSaveSettings = opts.onSaveSettings || prev.onSaveSettings;
       if (opts.tools) prev.tools = opts.tools;
       prev.tools.__mktInst = prev;
       if (opts.page) { prev.page = opts.page; paintHeader(prev, prev.page); }
@@ -809,6 +1163,7 @@
       onToggle: opts.onToggle || null,
       onUpdate: opts.onUpdate || null,
       onRemove: opts.onRemove || null,
+      onSaveSettings: opts.onSaveSettings || null,
       data: null,
       meta: null,
       state: (root.__mktState && root.__mktState.url === (opts.url || "/plugins-market.json"))
@@ -834,8 +1189,9 @@
       root.addEventListener("click", function (e) {
         var inst2 = root.__sbpMarket;
         if (!inst2) return;
-        var btn = e.target.closest ? e.target.closest("[data-mplug-install],[data-mplug-toggle],[data-mplug-update],[data-mplug-remove]") : null;
+        var btn = e.target.closest ? e.target.closest("[data-mplug-install],[data-mplug-toggle],[data-mplug-update],[data-mplug-remove],[data-mplug-settings]") : null;
         if (btn) {
+          if (btn.hasAttribute("data-mplug-settings")) { openSettings(inst2, btn.getAttribute("data-mplug-settings")); return; }
           if (btn.hasAttribute("data-mplug-install")) runAction(inst2, "onInstall", btn.getAttribute("data-mplug-install"), btn, false);
           else if (btn.hasAttribute("data-mplug-toggle")) runAction(inst2, "onToggle", btn.getAttribute("data-mplug-toggle"), btn, false);
           else if (btn.hasAttribute("data-mplug-update")) runAction(inst2, "onUpdate", btn.getAttribute("data-mplug-update"), btn, false);
@@ -947,6 +1303,12 @@
     normalize: normalize,
     openDetail: openDetail,
     closeDetail: closeDetail,
+    openSettings: function (id) {
+      var box = document.getElementById("plug-market");
+      var inst = box && box.__sbpMarket;
+      if (inst) openSettings(inst, id);
+    },
+    settingsOf: settingsOf,
     currentLang: currentLang
   };
 

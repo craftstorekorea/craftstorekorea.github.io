@@ -274,6 +274,15 @@ scripts/build_static_seo.py | build_feeds.py | check_repo_budget.py | measure_tr
   정적 SEO `cd .. && python3 build_static_seo.py` (검사 `--check`, 비우기 `--clean`),
   서버 검증 `cd ../supabase && SUPABASE_MGMT_TOKEN=… python3 06_check.py` · `07_check.py` · `08_check.py` · `09_check.py` · `10_check.py`.
 
+## v10.2 기능 (플러그인별 설정 UI · 영구 저장)
+
+- `/admin → 플러그인 · 마켓` 설치 목록의 **설정** 버튼 → 스키마로 자동 생성한 폼(숫자·글자·켜기/끄기·고르기·색).
+  **저장** · **기본값으로 복원** · `KO | EN` 완역. 모달은 Esc·바깥 클릭으로 닫힙니다.
+- 설정은 DB `public.plugins.settings` 에 남고, 플러그인은 `ctx.getSettings()` 로 읽습니다. 저장 즉시 사이트·관리자 화면에 적용됩니다.
+- 공개 읽기는 뷰 `public.plugins_public` — 켜진 플러그인의 비민감 설정만 노출됩니다(`sensitive: true` 제외).
+- 첫 화면은 그대로 **300KB 미만**(v5.1 대비 30% 감소)이고, `market.js`·플러그인 파일은 지연 로딩입니다.
+- 테스트 `cd .. && CMS_TEST_MODE=v102 python3 cms_test.py` (v102 119개 + 회귀 v101·v100·v90·v80·v70·v60).
+
 ## v10.1 기능 (업무 · 결재 고도화 6종)
 
 `/admin → 업무·결재 Pro` 한 탭에서 여섯 가지를 다룹니다. 화면은 `assets/work-pro.js`·`assets/work-pro.css` 로
@@ -310,6 +319,41 @@ scripts/build_static_seo.py | build_feeds.py | check_repo_budget.py | measure_tr
 - **v1.3 보안**: 플러그인 주소는 `https://` 또는 사이트 안 경로(`/`)만 허용되고(`http://`·`javascript:`·`data:` 는 DB 와 화면 모두 거부),
   직접 올린 외부 플러그인(`source='custom'`)은 **관리자 화면에서 실행하지 않습니다**(관리자 세션 보호). 기본·마켓 플러그인은 그대로 동작합니다.
   같은 출처 마켓 주소는 `/assets/plugins/…` 처럼 경로로 저장됩니다.
+
+### 플러그인 API (v10.2 — `assets/plugins.js`)
+
+```js
+SBPress.registerPlugin({
+  id: "reading-time", name: "읽기 시간 배지", version: "1.2.0",
+  settings: { chars_per_min: 500, show_char_count: true },   // 기본값(DB 값보다 우선하지 않음)
+  setup: function (ctx) {
+    var s = ctx.getSettings();                     // 기본값 + DB 저장값
+    ctx.decorateCard(function (card, post, meta) { /* 카드 꾸미기 */ });
+    ctx.addWidget("home-top", function (box) { /* 위젯 */ });
+    ctx.addMenuItem({ id: "x", label_ko: "메뉴", label_en: "Menu", href: "#/news" });
+    ctx.addAdminTab({ id: "x", label: "탭 이름", render: function (box, ctx) { /* … */ } });
+    ctx.addCss(".x{color:red}");
+    ctx.onSettingsChange(function (next) { /* 관리자가 설정을 저장하면 즉시 다시 그리기 */ });
+  }
+});
+```
+
+- 위젯 존: `home-top` · `home-bottom` · `board-top` · `footer-top` · `floating`.
+- `ctx.getSettings()` — 플러그인 기본값(`settings`) · 스키마 기본값 · DB 저장값을 합쳐 돌려줍니다.
+  `ctx.onSettingsChange(fn)` 로 등록한 함수는 `SBPress.applySettings(id, settings)` 때 불립니다(카드·위젯은 엔진이 다시 그립니다).
+- 목록은 공개 뷰 `public.plugins_public`(켜진 플러그인의 **비민감** 설정만)에서 읽습니다.
+  `23_v102_plugin_settings.sql` 을 실행하기 전 DB 에서는 예전처럼 `public.plugins` 를 읽습니다.
+- `SBPress.status()` — 실행한 플러그인·오류·건너뛴 이유·지금 적용된 설정을 돌려줍니다.
+  하나가 실패해도 사이트는 멈추지 않습니다.
+
+### 플러그인 설정 (v10.2)
+
+- 마켓 목록(`plugins-market.json`)의 `settings_schema` 가 `/admin → 플러그인 · 마켓` 의 **설정** 폼을 만듭니다.
+  입력은 다섯 가지: `number`(min·max·step) · `text`(maxlength) · `boolean` · `select`(options) · `color`(#RRGGBB).
+- 저장은 RPC `plugin_save_settings(p_id, p_settings)` — 서버가 스키마에 있는 키만 남기고 형식·범위를 다시 검사합니다.
+  함수가 없는 DB 에서는 표를 직접 갱신(관리자 RLS)으로 폴백합니다. **기본값으로 복원**은 `{}` 를 저장합니다.
+- 공개 읽기는 뷰 `public.plugins_public` 하나뿐입니다. `anon` 은 표를 직접 읽지 못하고,
+  스키마에서 `sensitive: true` 로 표시한 설정은 뷰에서 빠집니다.
 
 ## 보안 (v1.3)
 

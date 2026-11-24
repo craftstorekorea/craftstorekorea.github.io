@@ -1,28 +1,8 @@
-/* ===== 전국공방 · SBPress 플러그인 엔진 (assets/plugins.js) =====
-   브라우저 JS 플러그인이 사이트(헤더 메뉴·카드·위젯)와 관리자(탭)에 훅을 거는
-   작은 엔진입니다. 플러그인은 자기 파일에서 아래처럼 등록합니다.
-
-     SBPress.registerPlugin({
-       id: "reading-time", name: "읽기 시간 배지", version: "1.0.0",
-       description: "카드에 예상 읽기 시간을 붙입니다.",
-       setup: function (ctx) {
-         ctx.decorateCard(function (card, post, meta) { ... });
-         ctx.addWidget("home-top", function (box, ctx) { ... });
-         ctx.addMenuItem({ id: "x", label_ko: "메뉴", label_en: "Menu", href: "#/news" });
-         ctx.addAdminTab({ id: "x", label: "데이터 내보내기", render: function (box, ctx) { ... } });
-         ctx.addCss(".x{color:red}");
-       }
-     });
-
-   - 켜진 플러그인은 Supabase public.plugins(enabled=true) 에서 읽어 옵니다.
-   - **관리자 화면 격리(v1.3)**: /admin(admin.html)에서는 source='custom'(직접 올린 외부 JS)을
-     불러오지 않습니다. 관리자 세션을 외부 스크립트가 만질 수 없게 하기 위해서입니다.
-     건너뛴 내역은 SBPress.status().notices / .skipped 에 남고, builtin·market 은 그대로 실행됩니다.
-   - 플러그인 스크립트 주소는 https:// 또는 사이트 안 경로(/)만 됩니다(DB CHECK + CSP).
-   - 플러그인 하나가 실패해도(스크립트 404·setup 예외·훅 예외) 사이트와 다른
-     플러그인은 그대로 동작합니다. 실패 내역은 SBPress.status() 로 볼 수 있습니다.
-   의존: assets/auth-config.js (window.CRAFT_SUPABASE) — 없으면 조용히 아무 것도 하지 않습니다.
-   주의: service_role 키나 비밀 값은 이 파일에 절대 넣지 않습니다. 공개(publishable) 키만 사용. */
+/* ===== SBPress 플러그인 엔진 (assets/plugins.js) — API 문서: README.md
+   플러그인: SBPress.registerPlugin({id, name, version, setup(ctx)})
+   훅: decorateCard · addWidget · addMenuItem · addAdminTab · addCss
+   설정: ctx.getSettings() · ctx.onSettingsChange(fn)  (v10.2)
+   목록: public.plugins_public 뷰(예전 DB 는 public.plugins) · 의존: auth-config.js */
 (function () {
   "use strict";
   if (window.SBPress && window.SBPress.__engine) return;
@@ -40,6 +20,7 @@
     cardFns: [],              // [{plugin, fn}]
     css: {},                  // plugin → [cssText]
     rows: {},                 // id → DB 행(설정)
+    settingsFns: {},          // id → [fn] — 설정이 바뀌면 부를 함수(v10.2)
     errors: [],               // {plugin, message, when}
     notices: [],              // {plugin, message, when} — 실행하지 않고 건너뛴 이유(관리자 화면의 custom 등)
     skipped: {},              // id → 이유 (이번 화면에서 실행하지 않은 플러그인)
@@ -64,7 +45,7 @@
     try { console.info("[SBPress] " + (plugin || "engine") + " — " + msg); } catch (e) { /* noop */ }
   }
 
-  /* 관리자 화면(/admin · admin.html)인지 확인합니다. body.admin-body 도 함께 봅니다. */
+  /* /admin 화면인지 확인합니다(body.admin-body 포함). */
   function isAdminPage() {
     var p = String((location && location.pathname) || "").replace(/\/+$/, "");
     if (/\/admin(\.html)?$/i.test(p) || /\/admin\/index\.html$/i.test(p)) return true;
@@ -75,9 +56,7 @@
     try { return new URL(String(url), base || location.href).href; } catch (e) { return String(url || ""); }
   }
 
-  /* ---------- v5.1 보안: 주소·코드 검사 ----------
-     · 스크립트 주소는 https:// 또는 사이트 안 경로(/)만 (http:// · javascript: · data: 거부)
-     · 코드에 eval · new Function · document.write · http:// · <script> 가 있으면 실행하지 않습니다. */
+  /* v5.1 보안 — 주소는 https:// 또는 / 만, 코드에 eval·new Function·document.write·http://·<script> 금지. */
   var UNSAFE = [
     { re: /(^|[^\w$.])eval\s*\(/, why: "eval()" },
     { re: /new\s+Function\s*\(/, why: "new Function()" },
@@ -103,7 +82,7 @@
     return { ok: reasons.length === 0, reasons: reasons };
   }
 
-  /* 파일을 받아 코드를 검사합니다. 받지 못하면(CORS·오류) 검사 없이 통과로 둡니다(CSP·격리가 막아 줍니다). */
+  /* 못 받으면(CORS) 검사 없이 통과 — CSP·격리가 막아 줍니다. */
   function scanRemote(url) {
     return new Promise(function (resolve) {
       var done = false, timer = null;
@@ -122,7 +101,7 @@
     });
   }
 
-  /* manifest v1 — name · version · author · hooks[] · permissions[] (없으면 정의에서 채웁니다) */
+  /* manifest v1 — 없으면 정의에서 채웁니다. */
   var HOOKS = ["menu", "card", "widget", "admin-tab", "css", "settings"];
   function manifestOf(def) {
     var m = (def && def.manifest && typeof def.manifest === "object") ? def.manifest : {};
@@ -150,7 +129,7 @@
     });
   }
 
-  /* 오류가 난 플러그인의 흔적(메뉴·위젯·탭·카드·CSS)을 전부 걺어냅니다 — 사이트가 죽지 않게. */
+  /* 오류 플러그인의 흔적을 걺어냅니다. */
   function purgePlugin(id) {
     state.menu = state.menu.filter(function (x) { return x.plugin !== id; });
     Object.keys(state.widgets).forEach(function (z) {
@@ -199,9 +178,42 @@
       state.order = state.order.filter(function (x) { return x !== id; });
       return false;
     }
-    /* 새 플러그인의 훅을 이미 그려진 화면에도 반영합니다. */
+    /* 새 훅을 이미 그려진 화면에도 반영합니다. */
     scheduleAll();
     return true;
+  }
+
+  /* ---------------- 설정(v10.2) ---------------- */
+  function schemaOf(id) {
+    var row = state.rows[id] || {}, sch = row.settings_schema;
+    if (Array.isArray(sch) && sch.length) return sch;
+    var def = state.defs[id] || {};
+    return Array.isArray(def.settings_schema) ? def.settings_schema : (Array.isArray(sch) ? sch : []);
+  }
+
+  /* 기본값 + DB 저장값 — 형식·범위는 서버가 검사합니다. */
+  function mergedSettings(id) {
+    var out = {}, def = state.defs[id] || {}, d = def.settings || {}, sch = schemaOf(id);
+    var saved = (state.rows[id] && state.rows[id].settings) || {}, i, k, v;
+    for (k in d) if (Object.prototype.hasOwnProperty.call(d, k)) out[k] = d[k];
+    for (i = 0; i < sch.length; i++) {
+      if (sch[i] && sch[i].key && out[sch[i].key] === undefined && sch[i].default !== undefined) {
+        out[sch[i].key] = sch[i].default;
+      }
+    }
+    for (k in saved) {
+      v = saved[k];
+      if (typeof v === "number" && !isFinite(v)) continue;
+      if (typeof v === "string") v = v.slice(0, 2000);
+      if (v !== null && v !== undefined) out[k] = v;
+    }
+    return out;
+  }
+
+  function emitSettings(id, snap) {
+    (state.settingsFns[id] || []).forEach(function (fn) {
+      try { fn(snap); } catch (e) { recordError(id, "설정 적용 오류: " + (e && e.message ? e.message : e)); }
+    });
   }
 
   function makeContext(id) {
@@ -209,7 +221,14 @@
     var ctx = {
       id: id,
       plugin: row,
-      settings: (row && row.settings && typeof row.settings === "object") ? row.settings : {},
+      settings: mergedSettings(id),
+      getSettings: function () { return mergedSettings(id); },
+      onSettingsChange: function (fn) {
+        if (typeof fn !== "function") return;
+        var list = state.settingsFns[id] = state.settingsFns[id] || [];
+        for (var i = 0; i < list.length; i++) if (list[i] === fn) return;   // 같은 함수는 한 번만
+        list.push(fn);
+      },
       esc: esc,
       el: function (tag, cls, html) {
         var n = document.createElement(tag || "div");
@@ -392,7 +411,7 @@
       type: card.getAttribute("data-sbp-type") || (card.classList.contains("bcard") ? "workshop" : "post")
     };
     if (card.__sbpPost && typeof card.__sbpPost === "object") {
-      /* 데이터의 원래 필드(title·summary·region…)와 화면에서 읽은 글자 수를 함께 넘깁니다. */
+      /* 원래 필드 + 화면에서 읽은 글자 수를 함께 넘깁니다. */
       var out = {};
       for (var k in card.__sbpPost) out[k] = card.__sbpPost[k];
       if (!out.title) out.title = derived.title;
@@ -522,9 +541,8 @@
   }
 
   /* ---------------- 불러오기 ---------------- */
-  function enabledRows() {
-    if (!CFG.url || !CFG.anonKey) return Promise.resolve([]);
-    return fetch(CFG.url + "/rest/v1/plugins?select=id,name,version,script_url,source,settings&enabled=eq.true&order=installed_at.asc", {
+  function fetchRows(table, select) {
+    return fetch(CFG.url + "/rest/v1/" + table + "?select=" + select + "&enabled=eq.true&order=installed_at.asc", {
       headers: { apikey: CFG.anonKey, Authorization: "Bearer " + CFG.anonKey }
     }).then(function (r) {
       if (!r.ok) throw new Error("플러그인 목록 HTTP " + r.status);
@@ -532,13 +550,22 @@
     }).then(function (rows) { return Array.isArray(rows) ? rows : []; });
   }
 
+  /* v10.2 — 뷰(plugins_public)를 먼저, 없는 예전 DB 는 표를 읽습니다. */
+  function enabledRows() {
+    if (!CFG.url || !CFG.anonKey) return Promise.resolve([]);
+    return fetchRows("plugins_public", "id,name,version,script_url,source,settings,settings_schema")
+      .then(function (rows) { return rows; })
+      .catch(function () {
+        recordNotice("engine", "plugins_public 뷰가 없어 public.plugins 를 읽습니다(23_v102_plugin_settings.sql 미실행).");
+        return fetchRows("plugins", "id,name,version,script_url,source,settings");
+      });
+  }
+
   function loadOne(row) {
     return new Promise(function (resolve) {
       if (state.defs[row.id]) { resolve(); return; }       // 이미 불러온 플러그인은 다시 실행하지 않습니다
       if (state.failed[row.id]) { resolve(); return; }
-      /* 보안(v1.3): 직접 올린 외부 JS(source='custom')는 관리자 화면에서 실행하지 않습니다.
-         관리자 세션(토큰·관리 권한)을 외부 스크립트가 만질 수 없게 하는 격리입니다.
-         기본(builtin)·마켓(market) 플러그인은 그대로 동작합니다. */
+      /* v1.3: custom 외부 JS 는 관리자 화면에서 실행하지 않습니다. */
       if (state.adminPage && row.source === "custom") {
         state.skipped[row.id] = "admin-custom";
         recordNotice(row.id, "관리자 화면에서는 직접 올린 외부 플러그인을 실행하지 않습니다(보안). 사이트에서는 그대로 동작합니다.");
@@ -597,6 +624,10 @@
     return enabledRows().then(function (rows) {
       rows.forEach(function (r) { state.rows[r.id] = r; });
       state.rows._order = rows;
+      /* 이미 실행 중인 플러그인은 새 설정으로 다시 그립니다. */
+      rows.forEach(function (r) {
+        if (state.defs[r.id]) { try { emitSettings(r.id, mergedSettings(r.id)); } catch (e) { recordError(r.id, e); } }
+      });
       var i = 0;
       function step() {
         if (i >= rows.length) { state.loading = false; state.loadedOnce = true; return; }
@@ -618,6 +649,7 @@
         id: r.id, name: r.name, source: r.source, loaded: ok,
         version: (state.manifests[r.id] && state.manifests[r.id].version) || r.version || "",
         manifest: state.manifests[r.id] || null,
+        settings: mergedSettings(r.id),
         disabled: state.failed[r.id] || null,
         skipped: state.skipped[r.id] || null,
         errors: state.errors.filter(function (e) { return e.plugin === r.id; })
@@ -636,7 +668,28 @@
   /* ---------------- 공개 API ---------------- */
   var SBPress = {
     __engine: true,
-    version: "2.0.0",
+    version: "10.2.0",          // SBPress 엔진(사이트) 버전 — v10.2 부터 같은 번호를 씁니다.
+    api: 2,                     // 플러그인이 기대는 엔진 API 판
+    settingsApi: 1,             // getSettings · onSettingsChange · applySettings 가 있는 판
+    getSettings: function (id) { return mergedSettings(String(id || "")); },
+    applySettings: function (id, settings, opts) {
+      var pid = String(id || "");
+      if (!pid) return {};
+      if (!state.rows[pid]) state.rows[pid] = { id: pid };
+      state.rows[pid].settings = (settings && typeof settings === "object") ? settings : {};
+      var snap = mergedSettings(pid);
+      emitSettings(pid, snap);
+      /* 카드·위젯은 엔진이, 탭은 플러그인이 다시 그립니다. */
+      try { resetCards(); applyCards(); } catch (e) { recordError(pid, e); }
+      try { paintZones(); } catch (e) { recordError(pid, e); }
+      if (!(opts && opts.silent)) {
+        /* 다른 탭(관리자 미리보기)에도 알립니다. */
+        try {
+          localStorage.setItem("sbpress-plugin-settings", JSON.stringify({ id: pid, settings: snap, at: Date.now() }));
+        } catch (e) { /* 저장소 차단 — 이 화면에만 적용 */ }
+      }
+      return snap;
+    },
     registerPlugin: registerPlugin,
     register: registerPlugin,
     safeScriptUrl: safeScriptUrl,
@@ -669,9 +722,18 @@
     paintZones();
     applyCards();
     load();
-    /* 늦게 그려지는 카드(라우팅·언어 전환)도 MutationObserver 가 잡지만,
-       화면 전환 직후 한 번 더 훑어 줍니다. */
+    /* 늦게 그려지는 카드도 훑습니다. */
     window.addEventListener("hashchange", function () { setTimeout(function () { applyCards(); paintZones(); }, 120); });
+    /* 설정 저장을 다른 탭에도 알립니다(v10.2). */
+    window.addEventListener("storage", function (e) {
+      if (!e || e.key !== "sbpress-plugin-settings" || !e.newValue) return;
+      try {
+        var msg = JSON.parse(e.newValue);
+        if (msg && msg.id && msg.settings && state.defs[msg.id]) {
+          SBPress.applySettings(msg.id, msg.settings, { silent: true });
+        }
+      } catch (err) { /* 남이 넣은 값 — 무시 */ }
+    });
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);

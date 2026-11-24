@@ -1,8 +1,8 @@
 {
   "name": "SBPress",
   "kind": "core-manifest",
-  "version": "10.1",
-  "generatedAt": "2026-11-24T23:37:38+09:00",
+  "version": "10.2",
+  "generatedAt": "2026-11-25T00:15:27+09:00",
   "generator": "craftstore_site/sync_template.py --manifest",
   "engine": {
     "html": {
@@ -33,11 +33,11 @@
         "strategy": "copy"
       },
       "assets/admin.js": {
-        "sha256": "8eaf760ab1510a39e74ad47f33045a6ddb97b670b9b5f8706b59e920f82a54a0",
+        "sha256": "0a573fe9be32c2f3afdcd54da23d77aeb3a63100e6a87a4528e6e551e80b5c71",
         "strategy": "copy"
       },
       "assets/admin-i18n.js": {
-        "sha256": "a91d776182536171e366a5d245994568ff30cf1da3cd41b317f886591677729d",
+        "sha256": "aa832c7844690944dead00243600e9f6fbd6d3ea887bfadb451aa81f6ced03b7",
         "strategy": "copy"
       },
       "assets/archive.js": {
@@ -61,7 +61,7 @@
         "strategy": "copy"
       },
       "assets/config.js": {
-        "sha256": "cb527f5faea5a64cd0f3ea78196aeb44e9e43877f76161e0e6b052454caadb7c",
+        "sha256": "5b95c907adc716668f9005b1f7043419aa6b48fea6b4407380a1688b7a93f2d4",
         "strategy": "copy"
       },
       "assets/editor.js": {
@@ -85,7 +85,7 @@
         "strategy": "copy"
       },
       "assets/plugins.js": {
-        "sha256": "b14de2eed2f2a5009e7f7f9b64f53e3c3e60e61cf568a92e079b09467cf6372a",
+        "sha256": "df5b54f5ce7854658e8be1235dd6cb38c2565097aa282300f6fd5f293702ac35",
         "strategy": "copy"
       },
       "assets/share.js": {
@@ -113,7 +113,7 @@
         "strategy": "copy"
       },
       "assets/pwa.js": {
-        "sha256": "f364d14b481612571e878879ca1b6ab43197f41883313e2a4c16e0684d1036c8",
+        "sha256": "7645d818e345b49d7297b3f6903ce83a6f766f0f99ee0a9e7ee2b4ecf67c1c0b",
         "strategy": "copy"
       },
       "assets/reserve.js": {
@@ -137,7 +137,7 @@
         "strategy": "copy"
       },
       "sw.js": {
-        "sha256": "32b0af9a177f839fde65afd27deb6fbbea99e0185854eecc4130a225e0cec8e2",
+        "sha256": "1b7cfdd6e8bcb29b60c600916671eb9c2c43eb1562a86678dc24f032b081b824",
         "strategy": "copy"
       },
       "assets/plugins/admin-json-export.js": {
@@ -145,19 +145,19 @@
         "strategy": "copy"
       },
       "assets/plugins/reading-time.js": {
-        "sha256": "93e1cea368771212ee92eed7f2954d55f8f01bf2e4a4d773de614a3603c6a900",
+        "sha256": "dc4db33b76ee4362bfaf673f68884b121350ef86d97ca796f81fdb64b82fd384",
         "strategy": "copy"
       },
       "assets/plugins/scroll-top.js": {
-        "sha256": "9454caa69ba2fae51cd4a8ef82f1706dcaa15a8adb4cc6a4390329e03ee63507",
+        "sha256": "6957eca86c9071d0ddef1a377c0f379faf8d7f7621ed30515678a382c4778ddd",
         "strategy": "copy"
       },
       "assets/plugins/workshop-spotlight.js": {
-        "sha256": "953899d64ca87baf04fa5b2f69baf5133e466f7069b5c3b5695adacb972feb3e",
+        "sha256": "29c0f80e3f4c882ea799e6b3b769db0197b9e714b4ad13d0ad152be6cb1e6f15",
         "strategy": "copy"
       },
       "assets/plugins/print-friendly.js": {
-        "sha256": "c0ca58eb12629218cfc21f4f25d434d851aa0bb1dba0d6f68b2c58da7d0431b2",
+        "sha256": "0846a77646b81d0c5c89b4adcdb8528825c72ea82be4cec4a0756f4956ebb519",
         "strategy": "copy"
       },
       "assets/plugins/quick-search.js": {
@@ -165,7 +165,7 @@
         "strategy": "copy"
       },
       "assets/market.js": {
-        "sha256": "e2ee24547811d1e6f778a95180584cd7ef77db149642f6455206084cabcddbc4",
+        "sha256": "4155683325c5c0000f0c05150b131fc92da730b03957d40f97646182ca78e84e",
         "strategy": "copy"
       },
       "assets/work-pro.js": {
@@ -187,7 +187,7 @@
         "strategy": "copy"
       },
       "assets/market.css": {
-        "sha256": "0167f4363a5142c5f75bd93a7d8db6c64e0422852721ec183424c3807ca97610",
+        "sha256": "74ed35ddee054df3218f4268d03c6373d1029e54b74eb41837696da4d38b37c3",
         "strategy": "copy"
       },
       "assets/work-pro.css": {
@@ -257,7 +257,7 @@
         "strategy": "copy"
       },
       "scripts/measure_traffic.py": {
-        "sha256": "1b4f52662d4339401a1aff1ab029d7a9eb803ddb128ebe7d2ec27a7f926976d4",
+        "sha256": "66a2123f0b353e8f1a145d78b053eb9bc9fbad135468f59c4cdaaf815b053892",
         "strategy": "copy"
       },
       "scripts/clone_site.py": {

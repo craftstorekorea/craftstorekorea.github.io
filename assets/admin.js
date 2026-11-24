@@ -4691,6 +4691,7 @@
       var item = marketItem(p.id);
       var newer = !!(item && item.version && String(item.version) !== String(p.version || ""));
       var pinned = !!p.pinned_version;
+      var schema = pluginSchema(p);
       return "<tr data-id=\"" + esc(p.id) + "\">" +
         '<td data-th="상태"><label class="plug-switch"><input type="checkbox" data-plug-toggle="' + esc(p.id) + '"' +
           (p.enabled ? " checked" : "") + ' aria-label="' + esc(p.name) + ' 켜기"><span class="plug-slider"></span><em>' +
@@ -4705,11 +4706,13 @@
         '<td data-th="버전" class="muted"><span class="plug-ver">' + esc(p.version || "1.0.0") + "</span>" +
           (pinned ? ' <span class="plug-tag" title="고정된 버전 — 마켓 새 버전이 와도 바꾸지 않습니다.">고정 ' + esc(p.pinned_version) + "</span>" : "") +
           (newer ? ' <button type="button" class="mini plug-upd" data-plug-update="' + esc(p.id) + '">→ v' + esc(item.version) + "</button>" : "") +
+          (schema.length ? ' <span class="plug-tag" title="설정할 수 있는 항목 수">설정 ' + schema.length + "</span>" : "") +
           '</td>' +
         '<td data-th="출처"><span class="plug-badge b-' + cls + '">' + esc(src) + "</span></td>" +
         '<td data-th="JS 주소"><span class="plug-src" title="' + esc(p.script_url) + '">' + esc(p.script_url) + "</span></td>" +
         '<td data-th="설치일" class="muted">' + esc(fmtDate(p.installed_at)) + "</td>" +
         '<td class="plug-act">' +
+          (schema.length ? '<button type="button" class="rowlink plug-set" data-plug-settings="' + esc(p.id) + '">설정</button> ' : "") +
           '<button type="button" class="rowlink plug-pin" data-plug-pin="' + esc(p.id) + '" aria-pressed="' + (pinned ? "true" : "false") + '">' +
             (pinned ? "고정 해제" : "버전 고정") + "</button> " +
           '<button type="button" class="rowlink plug-del" data-id="' + esc(p.id) + '">삭제</button></td>' +
@@ -4730,7 +4733,93 @@
     [].forEach.call(body.querySelectorAll("[data-plug-update]"), function (b) {
       b.addEventListener("click", function () { updatePlugin(b.getAttribute("data-plug-update"), b); });
     });
+    [].forEach.call(body.querySelectorAll("[data-plug-settings]"), function (b) {
+      b.addEventListener("click", function () { openPluginSettings(b.getAttribute("data-plug-settings")); });
+    });
     renderMarket();
+  }
+
+  /* ---------- v10.2 플러그인 설정 — 저장된 값·스키마 ----------
+     스키마는 DB(settings_schema)에 있고, 예전에 설치한 행은 마켓 목록(plugins-market.json)의
+     스키마를 씁니다. 화면은 그 스키마로 입력 폼을 자동으로 그립니다(assets/market.js). */
+  function pluginSchema(p) {
+    if (p && Array.isArray(p.settings_schema) && p.settings_schema.length) return p.settings_schema;
+    var item = marketItem(p ? p.id : "");
+    if (item && Array.isArray(item.settings_schema) && item.settings_schema.length) return item.settings_schema;
+    return [];
+  }
+
+  function openPluginSettings(id) {
+    var box = $("#plug-market");
+    if (box && box.__sbpMarket) {
+      try { window.SBP_MARKET.openSettings(id); } catch (e) { /* 아래에서 다시 시도 */ }
+      return;
+    }
+    ensureMarketUi().then(function (UI) {
+      if (!UI || !UI.openSettings) { plugMsg("설정 화면을 불러오지 못했습니다. 새로고침해 주세요.", "err"); return; }
+      var host = $("#plug-market");
+      var inst = host && host.__sbpMarket;
+      if (inst) UI.openSettings(id);
+      else plugMsg("플러그인 마켓을 먼저 불러와야 설정을 열 수 있습니다.", "err");
+    });
+  }
+
+  function settingsErrorText(err) {
+    var code = String((err && err.code) || "");
+    var msg = String((err && err.message) || err || "");
+    if (code === "42883" || code === "PGRST202" || /Could not find the function|does not exist/i.test(msg)) {
+      return "Supabase 에 supabase/23_v102_plugin_settings.sql 을 실행한 뒤 다시 시도해 주세요.";
+    }
+    if (code === "42501" || /permission denied|row-level security/i.test(msg)) {
+      return "관리자 권한으로 로그인했는지 확인해 주세요.";
+    }
+    return msg || "알 수 없는 오류";
+  }
+
+  function isMissingFn(err) {
+    var code = String((err && err.code) || "");
+    var msg = String((err && err.message) || "");
+    return code === "42883" || code === "PGRST202" || /Could not find the function/i.test(msg);
+  }
+
+  /* 설정 저장 — ① 23_v102 SQL 의 plugin_save_settings RPC(서버 검사) →
+     ② 함수가 없는 예전 DB 면 표를 직접 갱신(RLS 가 관리자만 허용) → 셋 다 안 되면 안내. */
+  function savePluginSettings(id, values, cb) {
+    var p = plugById(id);
+    var item = marketItem(id);
+    var schema = pluginSchema(p);
+    var done = function (err, saved) { if (typeof cb === "function") cb(err || null, saved || {}); };
+    function reportSaved(saved) {
+      if (p) p.settings = saved;
+      plugMsg("‘" + (p ? p.name : id) + "’ 설정을 저장했습니다. 사이트에 바로 반영됩니다.", "ok");
+      done(null, saved);
+    }
+    function fallback() {
+      var patch = { settings: values || {} };
+      if (schema.length && p && p.settings_schema !== undefined) patch.settings_schema = schema;
+      sb.from("plugins").update(patch).eq("id", id).then(function (r) {
+        if (r.error) {
+          var text = settingsErrorText(r.error);
+          plugMsg("설정을 저장하지 못했습니다: " + text, "err");
+          done(text, null);
+          return;
+        }
+        reportSaved(patch.settings);
+      });
+    }
+    if (!sb) { var no = "Supabase 연결이 없습니다."; plugMsg(no, "err"); done(no, null); return; }
+    if (typeof sb.rpc !== "function") { fallback(); return; }
+    sb.rpc("plugin_save_settings", { p_id: id, p_settings: values || {} }).then(function (r) {
+      if (r.error) {
+        if (isMissingFn(r.error)) { fallback(); return; }
+        var text = settingsErrorText(r.error);
+        plugMsg("설정을 저장하지 못했습니다: " + text, "err");
+        done(text, null);
+        return;
+      }
+      var saved = (r.data && r.data.settings && typeof r.data.settings === "object") ? r.data.settings : (values || {});
+      reportSaved(saved);
+    });
   }
 
   function marketItem(id) {
@@ -4774,7 +4863,8 @@
       sb.from("plugins").update({
         version: item.version || p.version, script_url: url,
         manifest: manifestPayload(item), description: item.description || p.description || null,
-        author: item.author || p.author || null
+        author: item.author || p.author || null,
+        settings_schema: settingsSchemaPayload(item)
       }).eq("id", id).then(function (r) {
         if (btn) btn.disabled = false;
         if (r.error) { plugMsg("업데이트하지 못했습니다: " + r.error.message, "err"); return; }
@@ -4812,6 +4902,12 @@
       hooks: Array.isArray(m.hooks) ? m.hooks.slice(0, 12) : [],
       permissions: Array.isArray(m.permissions) ? m.permissions.slice(0, 12) : []
     };
+  }
+
+  /* v10.2 — 마켓 목록의 설정 스키마를 DB(settings_schema)에 옮겨 담습니다(서버가 다시 검사·정리). */
+  function settingsSchemaPayload(item) {
+    var list = (item && Array.isArray(item.settings_schema)) ? item.settings_schema : [];
+    return list.filter(function (f) { return f && typeof f === "object" && f.key; }).slice(0, 40);
   }
 
   function setPluginEnabled(id, on, cb) {
@@ -4852,7 +4948,8 @@
     });
   }
 
-  /* 플러그인 저장 — 없으면 넣고, 같은 ID가 있으면 갱신합니다. */
+  /* 플러그인 저장 — 없으면 넣고, 같은 ID가 있으면 갱신합니다.
+     settings_schema 열이 없는 예전 DB(23_v102 미실행)면 그 열만 빼고 다시 시도합니다. */
   function savePluginRow(payload) {
     return sb.from("plugins").insert(payload).then(function (r) {
       if (!r.error) return r;
@@ -4860,6 +4957,17 @@
       var msg = r.error.message || "";
       if (code === "23505" || /duplicate key|already exists/i.test(msg)) {
         return sb.from("plugins").update(payload).eq("id", payload.id);
+      }
+      if ((code === "42703" || code === "PGRST204" || /settings_schema/i.test(msg)) && "settings_schema" in payload) {
+        var slim = {};
+        Object.keys(payload).forEach(function (k) { if (k !== "settings_schema") slim[k] = payload[k]; });
+        return sb.from("plugins").insert(slim).then(function (r2) {
+          if (!r2.error) return r2;
+          if ((r2.error.code === "23505" || /duplicate key|already exists/i.test(r2.error.message || ""))) {
+            return sb.from("plugins").update(slim).eq("id", payload.id);
+          }
+          return r2;
+        });
       }
       return r;
     });
@@ -5015,7 +5123,8 @@
         onInstall: function (id, btn) { installFromMarket(id, btn); },
         onToggle: function (id) { var p = plugById(id); setPluginEnabled(id, !(p && p.enabled)); },
         onUpdate: function (id, btn) { updatePlugin(id, btn); },
-        onRemove: function (id) { deletePlugin(id); }
+        onRemove: function (id) { deletePlugin(id); },
+        onSaveSettings: function (id, values, cb) { savePluginSettings(id, values, cb); }
       });
     });
   }
@@ -5036,7 +5145,7 @@
         id: item.id, name: item.name || item.id, version: item.version || "1.0.0",
         description: item.description || null, author: item.author || null,
         script_url: url, source: item.source || "market", enabled: true,
-        manifest: manifestPayload(item)
+        manifest: manifestPayload(item), settings_schema: settingsSchemaPayload(item)
       }).then(function (r) {
         if (btn) { btn.disabled = false; btn.textContent = "설치 및 켜기"; }
         if (r && r.error) {
