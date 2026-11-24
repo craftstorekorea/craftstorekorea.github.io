@@ -68,6 +68,7 @@
       updAllBusy: "업데이트하는 중… ({i}/{n})",
       updAllDone: "{n}개를 업데이트했습니다.",
       updAllFailed: "{n}개를 업데이트하지 못했습니다.",
+      updAllSkipped: "{n}개는 새 권한이 있어 건너뛰었습니다. 카드에서 「동의하고 업데이트」로 처리해 주세요.",
       updateNow: "업데이트",
       updating: "업데이트하는 중…",
       updatedDone: "v{v} 으로 업데이트했습니다.",
@@ -271,6 +272,7 @@
       updAllBusy: "Updating… ({i}/{n})",
       updAllDone: "Updated {n} plugins.",
       updAllFailed: "Could not update {n} plugins.",
+      updAllSkipped: "{n} plugins were skipped because they ask for new permissions. Use “Agree and update” on each card.",
       updateNow: "Update",
       updating: "Updating…",
       updatedDone: "Updated to v{v}.",
@@ -1427,8 +1429,11 @@
     function finish(err, res) {
       if (btn) { btn.disabled = false; btn.textContent = tr(lang, "updAll"); }
       var bad = err ? total : (res && res.failed) || 0;
+      var skip = (res && res.skipped) ? res.skipped.length : 0;
       var good = (res && res.updated != null) ? res.updated : Math.max(0, total - bad);
-      flash(inst, bad ? tr(lang, "updAllFailed", { n: bad }) : tr(lang, "updAllDone", { n: good }), bad ? "err" : "ok");
+      var text = bad ? tr(lang, "updAllFailed", { n: bad }) : tr(lang, "updAllDone", { n: good });
+      if (skip) text += " " + tr(lang, "updAllSkipped", { n: skip });
+      flash(inst, text, bad ? "err" : "ok");
       if (typeof inst.onRefresh === "function") { try { inst.onRefresh(); } catch (e) { /* noop */ } }
     }
     if (typeof inst.onUpdateAll === "function") {

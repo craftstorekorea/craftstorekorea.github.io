@@ -5192,10 +5192,23 @@
   /* 여러 플러그인을 차례로 업데이트합니다(마켓 상단 「전체 업데이트」). */
   function updateAllPlugins(ids, cb) {
     var list = (ids || []).slice();
+    /* v10.5 — 새 권한이 생긴 플러그인은 한 번에 업데이트하지 않습니다(동의가 필요).
+       카드에서 하나씩 「동의하고 업데이트」로 처리하도록 건너뛰고 알려 줍니다. */
+    var skipped = [];
+    list = list.filter(function (id) {
+      var p = plugById(id), item = marketItem(id);
+      if (!p || !item) return true;
+      var man = (p.manifest && Array.isArray(p.manifest.permissions)) ? p.manifest.permissions : [];
+      var perms = Array.isArray(item.permissions) ? item.permissions
+        : ((item.manifest && Array.isArray(item.manifest.permissions)) ? item.manifest.permissions : []);
+      var fresh = perms.filter(function (x) { return man.indexOf(x) < 0; });
+      if (fresh.length) { skipped.push(id); return false; }
+      return true;
+    });
     var i = 0, okCount = 0, failed = 0;
     function step() {
       if (i >= list.length) {
-        if (typeof cb === "function") cb(null, { updated: okCount, failed: failed, ids: list });
+        if (typeof cb === "function") cb(null, { updated: okCount, failed: failed, ids: list, skipped: skipped });
         return;
       }
       var id = list[i++];
@@ -5204,7 +5217,10 @@
         setTimeout(step, 150);
       });
     }
-    if (!list.length) { if (typeof cb === "function") cb(null, { updated: 0, failed: 0, ids: [] }); return; }
+    if (!list.length) {
+      if (typeof cb === "function") cb(null, { updated: 0, failed: 0, ids: [], skipped: skipped });
+      return;
+    }
     step();
   }
 
