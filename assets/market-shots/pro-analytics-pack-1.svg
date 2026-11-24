@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 405" width="720" height="405" role="img" aria-label="콘텐츠 인사이트 팩">
+<title>콘텐츠 인사이트 팩</title>
+<rect width="720" height="405" fill="#F7F5F2"/>
+<rect x="0" y="0" width="720" height="44" fill="#FFFDFB"/>
+<line x1="0" y1="44.5" x2="720" y2="44.5" stroke="#E6DCD1"/>
+<circle cx="30" cy="22" r="8" fill="#3E2F26"/>
+<rect x="46" y="16" width="86" height="11" rx="5.5" fill="#3E2F26"/>
+<rect x="530" y="17" width="44" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="584" y="17" width="44" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="638" y="17" width="44" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="40" y="70" width="640" height="200" rx="16" fill="#FFFDFB" stroke="#E6DCD1"/>
+<rect x="60" y="90" width="180" height="13" rx="6.5" fill="#3E2F26"/>
+<rect x="60" y="112" width="320" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="60" y="136" width="140" height="76" rx="10" fill="#F7F5F2" stroke="#E6DCD1"/>
+<text x="130" y="176" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="20" font-weight="800" fill="#3E2F26" text-anchor="middle">24</text>
+<text x="130" y="196" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11" fill="#8A7565" text-anchor="middle">카드</text>
+<rect x="212" y="136" width="140" height="76" rx="10" fill="#F7F5F2" stroke="#E6DCD1"/>
+<text x="282" y="176" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="20" font-weight="800" fill="#3E2F26" text-anchor="middle">18</text>
+<text x="282" y="196" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11" fill="#8A7565" text-anchor="middle">글</text>
+<rect x="364" y="136" width="140" height="76" rx="10" fill="#F7F5F2" stroke="#E6DCD1"/>
+<text x="434" y="176" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="20" font-weight="800" fill="#3E2F26" text-anchor="middle">6</text>
+<text x="434" y="196" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11" fill="#8A7565" text-anchor="middle">공방</text>
+<rect x="516" y="136" width="144" height="76" rx="10" fill="#F7F5F2" stroke="#E6DCD1"/>
+<text x="588" y="176" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="20" font-weight="800" fill="#C86D44" text-anchor="middle">21분</text>
+<text x="588" y="196" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11" fill="#8A7565" text-anchor="middle">모두 읽으면</text>
+<rect x="60" y="226" width="150" height="24" rx="12" fill="#FBF1EA" stroke="#C86D44"/>
+<text x="135" y="242" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11.5" font-weight="800" fill="#C86D44" text-anchor="middle">PRO · 분당 500자</text>
+<text x="40" y="379" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="13" font-weight="800" fill="#3E2F26">콘텐츠 인사이트 팩</text>
+<text x="40" y="395" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11" fill="#8A7565">홈 아래에 카드·글자 수·읽기 시간 요약을 더합니다.</text>
+</svg>

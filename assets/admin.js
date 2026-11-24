@@ -4917,12 +4917,23 @@
       var integ = String(p.integrity || "");
       var granted = Array.isArray(p.granted_permissions) ? p.granted_permissions : [];
       var sandboxed = String(p.sandbox_mode || "") === "standard" ? "표준" : "엄격";
+      /* v10.10 — 유료 플러그인의 라이선스 확인 상태(마켓 화면이 기록한 값) */
+      var lic = null;
+      try { if (window.SBP_MARKET && window.SBP_MARKET.licenseState) lic = window.SBP_MARKET.licenseState(p.id); }
+      catch (e) { lic = null; }
+      var licLine = (lic && lic.required)
+        ? '<i class="plug-tag lic' + (lic.ok ? "" : "-none") + '" title="' +
+            esc(lic.ok ? "라이선스 확인됨 · " + String(lic.plan || "") + (lic.key ? " · " + lic.key : "")
+                       : "유료 플러그인 — 설치할 때 마켓이 라이선스 키를 확인합니다") + '">' +
+            (lic.ok ? "라이선스 " + esc(String(lic.plan || "")) : "라이선스 미확인") + "</i>"
+        : "";
       var secLine = '<div class="plug-manifest">' +
         (integ ? '<i class="plug-tag sri" title="' + esc(integ) + '">SHA-256 검증</i>'
                : '<i class="plug-tag sri-bad" title="마켓 JSON 의 integrity 값이 없어 해시 검사를 하지 않습니다.">무결성 없음</i>') +
         (granted.length ? '<i class="plug-tag consent" title="' + esc(granted.join(", ")) + '">권한 ' + granted.length + "개 동의</i>"
                         : '<i class="plug-tag consent-none" title="권한 동의 기록이 없는 예전 설치본입니다. 업데이트하면 동의를 받습니다.">동의 기록 없음</i>') +
         '<i class="plug-tag" title="선언·동의한 권한 밖의 훅 호출을 막는 방식">샌드박스 ' + esc(sandboxed) + "</i>" +
+        licLine +
       "</div>";
       return "<tr data-id=\"" + esc(p.id) + "\">" +
         '<td data-th="상태"><label class="plug-switch"><input type="checkbox" data-plug-toggle="' + esc(p.id) + '"' +
@@ -5869,7 +5880,7 @@
         sbpress: meta.sbpress || "",
         name: meta.name || "",
         installed: plugById,
-        onInstall: function (id, btn, cb, consent) { installFromMarket(id, btn, consent, cb); },
+        onInstall: function (id, btn, cb, consent, license) { installFromMarket(id, btn, consent, cb, license); },
         onApplyTheme: function (theme, cb) { applyThemeFromMarket(theme, cb); },
         onApplyBundle: function (bundle, opts, progress, done) {
           applyBundleFromMarket(bundle, opts, progress, function (err, info) {
@@ -5936,7 +5947,7 @@
     try { if (window.SBP_MARKET) window.SBP_MARKET.setMarketMessage(text, kind); } catch (e) { /* noop */ }
   }
 
-  function installFromMarket(id, btn, consent, cb) {
+  function installFromMarket(id, btn, consent, cb, license) {
     var done = typeof cb === "function" ? cb : function () {};
     var item = null;
     (plugMarket.list || []).forEach(function (p) { if (p.id === id) item = p; });
@@ -5969,6 +5980,10 @@
           return;
         }
         var doneMsg = "‘" + (item.name || item.id) + "’ 플러그인을 설치하고 켰습니다. 사이트를 새로고침해 확인하세요.";
+        /* v10.10 — 유료 플러그인은 확인된 라이선스를 안내에 함께 적습니다(기록은 마켓 화면·audit_logs). */
+        if (license && license.key) {
+          doneMsg += " 라이선스 " + String(license.plan || "").toUpperCase() + " 확인됨(" + String(license.key) + ").";
+        }
         plugMsg(doneMsg, "ok");
         recordConsent(id, consent, item, function (msg) {
           if (msg) plugMsg(doneMsg + " " + msg, "ok");

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 405" width="720" height="405" role="img" aria-label="팀 백업 스냅샷">
+<title>팀 백업 스냅샷</title>
+<rect width="720" height="405" fill="#F7F5F2"/>
+<rect x="0" y="0" width="720" height="44" fill="#FFFDFB"/>
+<line x1="0" y1="44.5" x2="720" y2="44.5" stroke="#E6DCD1"/>
+<circle cx="30" cy="22" r="8" fill="#3E2F26"/>
+<rect x="46" y="16" width="86" height="11" rx="5.5" fill="#3E2F26"/>
+<rect x="530" y="17" width="44" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="584" y="17" width="44" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="638" y="17" width="44" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="130" y="66" width="460" height="250" rx="16" fill="#FFFDFB" stroke="#E6DCD1"/>
+<rect x="150" y="86" width="180" height="13" rx="6.5" fill="#3E2F26"/>
+<rect x="150" y="110" width="300" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="150" y="136" width="120" height="26" rx="13" fill="#C86D44"/>
+<text x="210" y="154" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11.5" font-weight="800" fill="#FFFDFB" text-anchor="middle">스냅샷 내려받기</text>
+<rect x="282" y="136" width="86" height="26" rx="13" fill="#F7F5F2" stroke="#E6DCD1"/>
+<text x="325" y="154" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11.5" font-weight="800" fill="#8A7565" text-anchor="middle">새로고침</text>
+<line x1="150" y1="182" x2="570" y2="182" stroke="#E6DCD1"/>
+<rect x="150" y="196" width="140" height="9" rx="4.5" fill="#8A7565"/>
+<rect x="310" y="196" width="54" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="384" y="196" width="54" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="458" y="196" width="90" height="9" rx="4.5" fill="#E6DCD1"/>
+<line x1="150" y1="216" x2="570" y2="216" stroke="#EFE8E0"/>
+<rect x="150" y="228" width="120" height="10" rx="5" fill="#3E2F26"/>
+<rect x="310" y="228" width="40" height="10" rx="5" fill="#E6DCD1"/>
+<rect x="384" y="228" width="34" height="10" rx="5" fill="#E6DCD1"/>
+<rect x="458" y="228" width="76" height="10" rx="5" fill="#E6DCD1"/>
+<line x1="150" y1="250" x2="570" y2="250" stroke="#EFE8E0"/>
+<rect x="150" y="262" width="136" height="10" rx="5" fill="#3E2F26"/>
+<rect x="310" y="262" width="40" height="10" rx="5" fill="#E6DCD1"/>
+<rect x="384" y="262" width="34" height="10" rx="5" fill="#E6DCD1"/>
+<rect x="458" y="262" width="58" height="10" rx="5" fill="#E6DCD1"/>
+<text x="150" y="298" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11" font-weight="800" fill="#8A7565">7개 플러그인을 읽었습니다.</text>
+<text x="40" y="379" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="13" font-weight="800" fill="#3E2F26">팀 백업 스냅샷</text>
+<text x="40" y="395" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11" fill="#8A7565">플러그인 설정을 JSON 스냅샷으로 내려받습니다.</text>
+</svg>

@@ -550,3 +550,64 @@ html.mkt-modal-open{overflow:hidden}
   .mkt-tab{flex:1 1 auto;padding:8px 10px;font-size:.78rem}
   .mkt-bundle-facts>div{grid-template-columns:1fr}
 }
+
+/* ===== v10.10 — 유료 · 라이선스 · 중앙 마켓 허브 ===== */
+.mkt-price{
+  display:inline-flex;align-items:center;gap:5px;padding:1px 8px;border-radius:999px;
+  border:1px solid var(--line-2);background:var(--bg-2);
+  font-size:.68rem;font-weight:800;letter-spacing:.02em;color:var(--ink-2);vertical-align:middle;white-space:nowrap}
+.mkt-price.is-paid{border-color:var(--accent);background:var(--accent-s);color:var(--accent-d)}
+.mkt-price.is-free{color:var(--ink-3)}
+.mkt-price .mkt-plan{font-style:normal;font-size:.62rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;opacity:.85}
+.mkt-plan{
+  display:inline-block;padding:1px 6px;border-radius:6px;border:1px solid currentColor;
+  font-size:.62rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;opacity:.8}
+.mkt-lic-field{display:grid;gap:6px;font-size:.82rem;font-weight:700;color:var(--ink-2)}
+.mkt-lic-field input{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase}
+.mkt-license .mkt-modal-card{width:min(520px,100%)}
+.mkt-license-note{font-size:.76rem}
+.mkt-lic-msg{min-height:1.2em;margin:4px 0 0;font-size:.82rem;font-weight:700;color:var(--ink-2)}
+.mkt-lic-msg.ok{color:#3F6B36}
+.mkt-lic-msg.err{color:var(--accent-d)}
+.mkt-licsec .mkt-lic-state{font-size:.84rem}
+.mkt-licsec-acts{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+.mkt-licenses{display:grid;gap:14px}
+.mkt-licenses-head{display:flex;gap:14px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+.mkt-licenses-head h3{margin:0 0 4px;font-size:1.02rem;font-weight:800;letter-spacing:-.01em}
+.mkt-licenses-note{margin:0;max-width:64ch;font-size:.82rem;line-height:1.7;color:var(--ink-2)}
+.mkt-licenses-acts{display:flex;gap:8px;flex-wrap:wrap}
+.mkt-hub-cards{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.mkt-hub-card{padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.mkt-hub-card b{display:block;font-size:1.35rem;font-weight:800;letter-spacing:-.02em;color:var(--ink)}
+.mkt-hub-card span{font-size:.72rem;font-weight:700;color:var(--ink-3)}
+.mkt-hub-acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mkt-hub-version{font-size:.74rem}
+.mkt-lic-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:14px;align-items:start}
+.mkt-lic-issue,.mkt-lic-list{padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.mkt-lic-issue h4,.mkt-lic-list h4{margin:0 0 8px;font-size:.88rem;font-weight:800}
+.mkt-lic-issue .mkt-note{margin:0 0 10px;font-size:.76rem}
+.mkt-lic-f{display:grid;gap:4px;margin:0 0 8px;font-size:.72rem;font-weight:800;letter-spacing:.03em;color:var(--ink-3);text-transform:uppercase}
+.mkt-lic-f .admin-input{font-weight:400;letter-spacing:0;text-transform:none}
+.mkt-lic-issue-act{margin-top:10px}
+.mkt-lic-rows{list-style:none;margin:0;padding:0;display:grid;gap:8px;max-height:520px;overflow:auto}
+.mkt-lic-row{display:flex;gap:10px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;
+  padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg-2)}
+.mkt-lic-main{display:grid;gap:4px;min-width:0}
+.mkt-lic-key{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82rem;font-weight:800;letter-spacing:.04em;color:var(--ink)}
+.mkt-lic-badges{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.mkt-lic-status{font-size:.66rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;padding:1px 6px;border-radius:6px;
+  border:1px solid currentColor;color:#3F6B36}
+.mkt-lic-status.is-revoked{color:var(--accent-d)}
+.mkt-lic-status.is-expired{color:var(--ink-3)}
+.mkt-lic-local{font-size:.66rem;font-weight:700;color:var(--ink-3)}
+.mkt-lic-meta{font-size:.74rem;line-height:1.6;color:var(--ink-3);word-break:break-word}
+.mkt-lic-acts{display:flex;gap:6px;flex-wrap:wrap}
+.mkt-lic-empty,.mkt-lic-list .mkt-note{font-size:.82rem}
+@media (max-width:900px){
+  .mkt-hub-cards{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .mkt-lic-grid{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .mkt-hub-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mkt-lic-row{align-items:stretch}
+}

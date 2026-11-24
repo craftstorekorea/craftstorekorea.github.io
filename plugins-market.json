@@ -1,8 +1,8 @@
 {
-  "name": "전국공방 플러그인 마켓",
+  "name": "전국공방 플러그인 마켓 10.10",
   "manifest": 1,
   "schema": 2,
-  "sbpress": "10.9",
+  "sbpress": "10.10",
   "description": "SBPress 사이트·관리자에 기능을 더하는 브라우저 JS 플러그인 목록입니다. 관리자 > 플러그인 · 마켓에서 한 번에 설치하고 켜고 끌 수 있으며, 설치 전에 요청 권한을 확인하고 SRI 무결성(sha256-…)으로 파일이 바뀌지 않았는지 검사합니다. v10.6 부터는 회원이 만든 플러그인을 제출하면 자동 사전 점검(HTTPS·정적 검사·SHA-256)을 거쳐 관리자가 승인/반려하고, v10.7 부터는 평균 별점·리뷰·설치 수·호환성 배지를 함께 보여 주고, v10.8 부터는 테마 마켓(themes-market.json)과 업종별 번들 팩(bundles-market.json)을 같은 탭에서 열어 테마·플러그인·홈 블록을 한 번에 적용합니다. v10.9 부터는 노코드 플러그인 스튜디오(관리자 > 플러그인 · 마켓 > 스튜디오)에서 프리셋·폼으로 만든 플러그인을 초안(plugin_drafts)으로 저장하거나 내 사이트에 바로 설치하고 마켓에 제출합니다.",
   "homepage": "https://craftstorekorea.github.io/",
   "updated": "2026-11-25",
@@ -47,7 +47,7 @@
       "order": 1,
       "updated": "2026-11-25",
       "min_sbpress_version": "1.0",
-      "max_sbpress_version": "10.9",
+      "max_sbpress_version": "10.10",
       "script_url": "/assets/plugins/reading-time.js",
       "source": "builtin",
       "tags": [
@@ -139,7 +139,9 @@
         }
       ],
       "sandbox_mode": "strict",
-      "integrity": "sha256-eqkfXCRC3fFl15D3Na1yNzKgcjRdz29iIyibzPMt1Os="
+      "integrity": "sha256-eqkfXCRC3fFl15D3Na1yNzKgcjRdz29iIyibzPMt1Os=",
+      "pricing": "free",
+      "license_required": false
     },
     {
       "id": "scroll-top",
@@ -154,7 +156,7 @@
       "order": 2,
       "updated": "2026-11-25",
       "min_sbpress_version": "1.0",
-      "max_sbpress_version": "10.9",
+      "max_sbpress_version": "10.10",
       "script_url": "/assets/plugins/scroll-top.js",
       "source": "builtin",
       "tags": [
@@ -243,7 +245,9 @@
         }
       ],
       "sandbox_mode": "strict",
-      "integrity": "sha256-PSvejGm8kHqbOqJhWzulJ+k4AI2rlj+Rk3YMe+ww1Jo="
+      "integrity": "sha256-PSvejGm8kHqbOqJhWzulJ+k4AI2rlj+Rk3YMe+ww1Jo=",
+      "pricing": "free",
+      "license_required": false
     },
     {
       "id": "workshop-spotlight",
@@ -258,7 +262,7 @@
       "order": 3,
       "updated": "2026-11-25",
       "min_sbpress_version": "1.0",
-      "max_sbpress_version": "10.9",
+      "max_sbpress_version": "10.10",
       "script_url": "/assets/plugins/workshop-spotlight.js",
       "source": "builtin",
       "tags": [
@@ -339,7 +343,9 @@
         }
       ],
       "sandbox_mode": "strict",
-      "integrity": "sha256-nlhSSuLdJ9qVXk2UN9T+TX+voiWgZ3MYpND5juFVkww="
+      "integrity": "sha256-nlhSSuLdJ9qVXk2UN9T+TX+voiWgZ3MYpND5juFVkww=",
+      "pricing": "free",
+      "license_required": false
     },
     {
       "id": "admin-json-export",
@@ -354,7 +360,7 @@
       "order": 4,
       "updated": "2026-11-25",
       "min_sbpress_version": "1.0",
-      "max_sbpress_version": "10.9",
+      "max_sbpress_version": "10.10",
       "script_url": "/assets/plugins/admin-json-export.js",
       "source": "builtin",
       "tags": [
@@ -403,7 +409,9 @@
         ]
       },
       "sandbox_mode": "strict",
-      "integrity": "sha256-4LP1i9aPtqMudCh3MHUh8rcl+E8HLT85WKjDNvjj/LI="
+      "integrity": "sha256-4LP1i9aPtqMudCh3MHUh8rcl+E8HLT85WKjDNvjj/LI=",
+      "pricing": "free",
+      "license_required": false
     },
     {
       "id": "print-friendly",
@@ -418,7 +426,7 @@
       "order": 5,
       "updated": "2026-11-25",
       "min_sbpress_version": "1.0",
-      "max_sbpress_version": "10.9",
+      "max_sbpress_version": "10.10",
       "script_url": "/assets/plugins/print-friendly.js",
       "source": "builtin",
       "tags": [
@@ -493,7 +501,9 @@
         }
       ],
       "sandbox_mode": "strict",
-      "integrity": "sha256-jPpYTbZERWTr9TrxquRVoV5BGoFaQScO2thGhwtLzRw="
+      "integrity": "sha256-jPpYTbZERWTr9TrxquRVoV5BGoFaQScO2thGhwtLzRw=",
+      "pricing": "free",
+      "license_required": false
     },
     {
       "id": "quick-search",
@@ -508,7 +518,7 @@
       "order": 6,
       "updated": "2026-11-25",
       "min_sbpress_version": "2.0",
-      "max_sbpress_version": "10.9",
+      "max_sbpress_version": "10.10",
       "script_url": "/assets/plugins/quick-search.js",
       "source": "builtin",
       "tags": [
@@ -555,7 +565,9 @@
         ]
       },
       "sandbox_mode": "strict",
-      "integrity": "sha256-IeSQLpTChChOZ6ZNcN+stE9WfyXIaVwWASxcgBhCr6A="
+      "integrity": "sha256-IeSQLpTChChOZ6ZNcN+stE9WfyXIaVwWASxcgBhCr6A=",
+      "pricing": "free",
+      "license_required": false
     },
     {
       "id": "faq-accordion",
@@ -570,7 +582,7 @@
       "order": 7,
       "updated": "2026-11-25",
       "min_sbpress_version": "10.4",
-      "max_sbpress_version": "10.9",
+      "max_sbpress_version": "10.10",
       "script_url": "/assets/plugins/faq-accordion.js",
       "source": "builtin",
       "tags": [
@@ -644,7 +656,139 @@
       "integrity": "sha256-9O/3ok+aF2PUbLRWbVI8WU0bDCm0fSxpQke2O06ikxc=",
       "requires": {
         "blocksApi": 1
-      }
+      },
+      "pricing": "free",
+      "license_required": false
+    },
+    {
+      "id": "pro-analytics-pack",
+      "name": "콘텐츠 인사이트 팩",
+      "name_en": "Content insights pack",
+      "version": "1.0.0",
+      "description": "홈 아래에 카드 종류·글자 수·예상 읽기 시간을 요약한 「콘텐츠 인사이트」 패널을 더합니다. 서버로 자료를 보내지 않습니다.",
+      "description_en": "Adds a Content insights panel under the home page summarising card types, character counts and expected reading time. Nothing is sent to a server.",
+      "author": "전국공방",
+      "author_en": "Craft Store Korea",
+      "category": "widget",
+      "order": 8,
+      "updated": "2026-11-25",
+      "min_sbpress_version": "10.10",
+      "max_sbpress_version": "10.10",
+      "script_url": "/assets/plugins/pro-analytics-pack.js",
+      "source": "builtin",
+      "pricing": "paid",
+      "license_required": true,
+      "plan_type": "pro",
+      "price_label": "연 29,000원",
+      "price_label_en": "$24/yr",
+      "tags": [
+        "유료",
+        "인사이트",
+        "홈 위젯"
+      ],
+      "tags_en": [
+        "Paid",
+        "Insights",
+        "Home widget"
+      ],
+      "screenshots": [
+        {
+          "src": "assets/market-shots/pro-analytics-pack-1.svg",
+          "alt": "홈 아래에 카드·글·공방 수와 읽기 시간을 요약한 인사이트 패널",
+          "alt_en": "An insights panel under the home page summarising cards, posts, workshops and reading time"
+        }
+      ],
+      "changelog": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-25",
+          "notes": "처음 선보였습니다. 유료(pro) 플러그인으로, v10.5 권한 동의·SHA-256 무결성 검사를 거쳐 설치하고 설치할 때 라이선스 키(SBP-…)를 확인합니다.",
+          "notes_en": "First release. A paid (pro) plugin: it installs through the v10.5 permission consent and SHA-256 integrity check, and the install step verifies a license key (SBP-…)."
+        }
+      ],
+      "manifest": {
+        "v": 1,
+        "name": "콘텐츠 인사이트 팩",
+        "version": "1.0.0",
+        "author": "전국공방",
+        "hooks": [
+          "widget",
+          "css"
+        ],
+        "permissions": [
+          "read:card-text",
+          "ui:home-bottom",
+          "css:inject"
+        ]
+      },
+      "sandbox_mode": "strict",
+      "integrity": "sha256-8cwujvYhdEmUvOXXdFxcgfi0TiP/uZKMWJaMhOgdAwQ="
+    },
+    {
+      "id": "team-backup-restore",
+      "name": "팀 백업 스냅샷",
+      "name_en": "Team backup snapshot",
+      "version": "1.0.0",
+      "description": "관리자 화면에 「백업 · 팀」 탭을 더해 설치된 플러그인과 설정을 JSON 스냅샷으로 내려받습니다.",
+      "description_en": "Adds a Backup · team tab to the admin screen that downloads installed plugins and their settings as a JSON snapshot.",
+      "author": "전국공방",
+      "author_en": "Craft Store Korea",
+      "category": "admin",
+      "order": 9,
+      "updated": "2026-11-25",
+      "min_sbpress_version": "10.10",
+      "max_sbpress_version": "10.10",
+      "script_url": "/assets/plugins/team-backup-restore.js",
+      "source": "builtin",
+      "pricing": "paid",
+      "license_required": true,
+      "plan_type": "team",
+      "price_label": "연 99,000원",
+      "price_label_en": "$79/yr",
+      "tags": [
+        "유료",
+        "백업",
+        "관리자"
+      ],
+      "tags_en": [
+        "Paid",
+        "Backup",
+        "Admin"
+      ],
+      "screenshots": [
+        {
+          "src": "assets/market-shots/team-backup-restore-1.svg",
+          "alt": "관리자 「백업 · 팀」 탭에서 플러그인 목록과 스냅샷 내려받기 버튼이 보이는 모습",
+          "alt_en": "The admin Backup · team tab with a plugin table and a snapshot download button"
+        }
+      ],
+      "changelog": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-25",
+          "notes": "처음 선보였습니다. 유료(team) 플러그인으로, v10.5 권한 동의·SHA-256 무결성 검사를 거쳐 설치하고 설치할 때 라이선스 키(SBP-…)를 확인합니다.",
+          "notes_en": "First release. A paid (team) plugin: it installs through the v10.5 permission consent and SHA-256 integrity check, and the install step verifies a license key (SBP-…)."
+        }
+      ],
+      "manifest": {
+        "v": 1,
+        "name": "팀 백업 스냅샷",
+        "version": "1.0.0",
+        "author": "전국공방",
+        "hooks": [
+          "admin-tab",
+          "menu",
+          "css"
+        ],
+        "permissions": [
+          "read:admin",
+          "ui:admin",
+          "nav:menu",
+          "css:inject"
+        ]
+      },
+      "sandbox_mode": "strict",
+      "integrity": "sha256-jZIlHOH+ZbkxMpRvvi+ZASRFYLjI8ZVaFOo/UjWlpYw="
     }
   ]
 }

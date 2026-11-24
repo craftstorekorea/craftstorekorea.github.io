@@ -35,6 +35,17 @@
    v10.9 — 관리자 마켓에 「스튜디오」 서브탭. 이 탭을 처음 열 때만 assets/studio.js ·
    assets/studio.css 를 따로 받아옵니다(노코드 플러그인 스튜디오 · 초안은 supabase/30_v109).
 
+   v10.10 — 유료/라이선스 키 & 중앙 마켓 허브
+   · 마켓 필터에 「전체 / 무료 / 유료·라이선스」 가격 칩, 카드·상세에 가격 배지와
+     플랜(pro · team · enterprise)을 더합니다.
+   · 유료 플러그인(license_required)은 설치 전에 「라이선스 키 확인」 모달에서
+     SBP-XXXX-XXXX-XXXX-XXXX 를 확인하고(verify_plugin_license RPC), 통과하면
+     v10.5 권한 동의 모달로 이어서 설치합니다. 잘못된 형식·없는 키·만료·한도 초과는
+     그 자리에서 막고 이유를 보여 줍니다.
+   · 관리자 「라이선스 · 허브」 서브탭 — 중앙 마켓 허브 대시보드(연결 마켓·플러그인·테마·
+     번들·승인 대기·활성 라이선스 수, hub-manifest.json 복사/내려받기)와 라이선스 발급·
+     관리(원클릭 키 발급·복사·폐기/되살리기)를 한 화면에 둡니다. (supabase/31_v1010)
+
    보안: 화면에 넣는 모든 값은 esc() 로 이스케이프하고, 인라인 이벤트·eval 을 쓰지 않습니다(CSP).
    설치·제거 같은 쓰기는 이 파일이 하지 않습니다. 관리자 화면이 넘겨준 콜백에 맡깁니다. */
 (function () {
@@ -469,7 +480,84 @@
       bndFail: "번들을 적용하지 못했습니다: ",
       bndFlash: "‘{name}’ 번들을 적용했습니다.",
       bndPickOne: "적용할 항목을 하나 이상 골라 주세요.",
-      bndAdminOnly: "번들 적용은 관리자 화면에서만 할 수 있습니다."
+      bndAdminOnly: "번들 적용은 관리자 화면에서만 할 수 있습니다.",
+      /* v10.10 — 유료 · 라이선스 · 중앙 마켓 허브 */
+      fPrice: "가격",
+      priceFree: "무료",
+      pricePaid: "유료",
+      priceFreeTag: "무료",
+      licTag: "라이선스",
+      priceLabel: "가격",
+      planLabel: "플랜",
+      licStateLabel: "라이선스",
+      licStateNone: "아직 확인하지 않았습니다",
+      licStateOk: "확인됨 · {plan}",
+      licOpen: "라이선스 키 입력",
+      licChange: "라이선스 키 다시 입력",
+      licTitle: "라이선스 키 확인",
+      licLead: "‘{name}’ 은(는) 유료 플러그인입니다. 발급받은 라이선스 키를 확인한 뒤 권한 동의로 이어집니다.",
+      licKeyLabel: "라이선스 키",
+      licKeyPh: "SBP-XXXX-XXXX-XXXX-XXXX",
+      licVerify: "키 확인",
+      licChecking: "확인하는 중…",
+      licCancel: "취소",
+      licBadFormat: "라이선스 키 형식이 올바르지 않습니다(SBP-XXXX-XXXX-XXXX-XXXX).",
+      licOk: "라이선스를 확인했습니다 · {plan}",
+      licFail: "라이선스를 확인하지 못했습니다: ",
+      licNeedKey: "라이선스 키를 입력해 주세요.",
+      licSite: "사이트",
+      licUsed: "사용 {n}/{m}곳",
+      licExpires: "만료",
+      licNoExpire: "무기한",
+      licNote: "키는 설치하는 사이트에서만 확인되고, 확인 기록은 audit_logs 에 남습니다. 목록은 관리자만 볼 수 있습니다.",
+      licLocalOk: "서버 없이 이 브라우저에서 확인했습니다. 31_v1010 SQL 을 실행하면 서버에 남습니다.",
+      /* 라이선스 · 허브 서브탭 */
+      tabLicenses: "라이선스 · 허브",
+      hubTitle: "라이선스 · 중앙 마켓 허브",
+      hubNote: "연결한 마켓과 이 사이트의 플러그인·테마·번들을 한눈에 보고, hub-manifest.json 을 내보내 다른 SBPress 사이트가 그대로 구독하게 합니다. 라이선스 키는 여기서 발급하고 폐기합니다.",
+      hubMarkets: "연결된 마켓",
+      hubPlugins: "플러그인",
+      hubThemes: "테마",
+      hubBundles: "번들",
+      hubPending: "승인 대기",
+      hubActive: "활성 라이선스",
+      hubCopy: "허브 JSON 복사",
+      hubDownload: "hub-manifest.json 내려받기",
+      hubRefresh: "새로고침",
+      hubCopied: "hub-manifest.json 을 클립보드에 복사했습니다.",
+      hubCopyFail: "복사하지 못했습니다. 「내려받기」를 써 주세요.",
+      hubDownloaded: "hub-manifest.json 을 내려받았습니다.",
+      hubVersion: "SBPress",
+      licIssueTitle: "라이선스 발급",
+      licIssueNote: "플러그인과 플랜, 소유자, 최대 사이트 수, 만료일을 정하고 키를 발급합니다. 발급 기록은 audit_logs(license_issue)에 남습니다.",
+      licSlug: "플러그인",
+      licPlan: "플랜",
+      licHolder: "소유자",
+      licHolderPh: "이름 또는 단체",
+      licEmail: "소유자 이메일",
+      licSites: "최대 사이트 수",
+      licExpiresLabel: "만료일",
+      licIssue: "키 발급",
+      licIssuing: "발급하는 중…",
+      licIssued: "키를 발급했습니다: {key}",
+      licIssueFail: "키를 발급하지 못했습니다: ",
+      licListTitle: "발급한 라이선스",
+      licListEmpty: "아직 발급한 라이선스가 없습니다.",
+      licRefresh: "목록 새로고침",
+      licLoading: "라이선스를 불러오는 중…",
+      licCopy: "키 복사",
+      licCopied: "라이선스 키를 복사했습니다.",
+      licRevoke: "폐기",
+      licRestore: "되살리기",
+      licStatusActive: "활성",
+      licStatusExpired: "만료",
+      licStatusRevoked: "폐기",
+      licChanged: "‘{key}’ 상태를 {status} 로 바꿨습니다.",
+      licChangeFail: "상태를 바꾸지 못했습니다: ",
+      licNeedSql: "31_v1010 SQL 을 실행하면 라이선스가 서버(plugin_licenses)에 남습니다. 지금은 이 브라우저에만 기억합니다.",
+      licLocalOnly: "이 브라우저에만 저장됨",
+      licPlanFree: "무료",
+      licNoPlugin: "발급할 플러그인이 없습니다 — 마켓 목록을 먼저 불러와 주세요."
     },
     en: {
       eyebrow: "PLUGIN MARKET",
@@ -892,7 +980,83 @@
       bndFail: "Could not apply the bundle: ",
       bndFlash: "Applied the “{name}” bundle.",
       bndPickOne: "Choose at least one item to apply.",
-      bndAdminOnly: "Only an admin can apply a bundle."
+      bndAdminOnly: "Only an admin can apply a bundle.",
+      /* v10.10 — paid · license · central market hub */
+      fPrice: "Price",
+      priceFree: "Free",
+      pricePaid: "Paid",
+      priceFreeTag: "Free",
+      licTag: "License",
+      priceLabel: "Price",
+      planLabel: "Plan",
+      licStateLabel: "License",
+      licStateNone: "Not verified yet",
+      licStateOk: "Verified · {plan}",
+      licOpen: "Enter license key",
+      licChange: "Enter another license key",
+      licTitle: "Verify license key",
+      licLead: "“{name}” is a paid plugin. Verify the license key you were issued, then the permission consent follows.",
+      licKeyLabel: "License key",
+      licKeyPh: "SBP-XXXX-XXXX-XXXX-XXXX",
+      licVerify: "Verify key",
+      licChecking: "Verifying…",
+      licCancel: "Cancel",
+      licBadFormat: "That is not a valid license key (SBP-XXXX-XXXX-XXXX-XXXX).",
+      licOk: "License verified · {plan}",
+      licFail: "Could not verify the license: ",
+      licNeedKey: "Enter a license key.",
+      licSite: "Site",
+      licUsed: "{n}/{m} sites used",
+      licExpires: "Expires",
+      licNoExpire: "No expiry",
+      licNote: "The key is checked on the site that installs the plugin and the check is written to audit_logs. Only an admin can see the list.",
+      licLocalOk: "Verified in this browser without a server. Run 31_v1010 SQL to keep it on the server.",
+      tabLicenses: "License · hub",
+      hubTitle: "Licenses · central market hub",
+      hubNote: "See the markets you subscribe to and this site's plugins, themes and bundles at a glance, then export hub-manifest.json so another SBPress site can subscribe to the same set. Issue and revoke license keys here.",
+      hubMarkets: "Markets",
+      hubPlugins: "Plugins",
+      hubThemes: "Themes",
+      hubBundles: "Bundles",
+      hubPending: "Pending review",
+      hubActive: "Active licenses",
+      hubCopy: "Copy hub JSON",
+      hubDownload: "Download hub-manifest.json",
+      hubRefresh: "Refresh",
+      hubCopied: "hub-manifest.json copied to the clipboard.",
+      hubCopyFail: "Could not copy. Use “Download” instead.",
+      hubDownloaded: "hub-manifest.json downloaded.",
+      hubVersion: "SBPress",
+      licIssueTitle: "Issue a license",
+      licIssueNote: "Choose the plugin, plan, holder, site limit and expiry, then issue the key. The issue is recorded in audit_logs (license_issue).",
+      licSlug: "Plugin",
+      licPlan: "Plan",
+      licHolder: "Holder",
+      licHolderPh: "Name or organisation",
+      licEmail: "Holder email",
+      licSites: "Max sites",
+      licExpiresLabel: "Expires on",
+      licIssue: "Issue key",
+      licIssuing: "Issuing…",
+      licIssued: "Key issued: {key}",
+      licIssueFail: "Could not issue the key: ",
+      licListTitle: "Issued licenses",
+      licListEmpty: "No license has been issued yet.",
+      licRefresh: "Reload list",
+      licLoading: "Loading licenses…",
+      licCopy: "Copy key",
+      licCopied: "License key copied.",
+      licRevoke: "Revoke",
+      licRestore: "Restore",
+      licStatusActive: "Active",
+      licStatusExpired: "Expired",
+      licStatusRevoked: "Revoked",
+      licChanged: "“{key}” is now {status}.",
+      licChangeFail: "Could not change the status: ",
+      licNeedSql: "Run 31_v1010 SQL to keep licenses on the server (plugin_licenses). Until then they stay in this browser only.",
+      licLocalOnly: "Saved in this browser only",
+      licPlanFree: "Free",
+      licNoPlugin: "No plugin to issue a license for — load the market list first."
     }
   };
 
@@ -906,7 +1070,10 @@
     "css:inject": { ko: "사이트에 스타일(CSS)을 더합니다.", en: "Adds style rules (CSS) to the site." },
     "nav:menu": { ko: "헤더 메뉴에 항목을 더합니다.", en: "Adds an item to the header menu." },
     "ui:block": { ko: "hunmin 페이지에 블록을 그립니다.", en: "Draws a block on hunmin pages." },
-    "read:block-data": { ko: "관리자가 입력한 블록 값을 읽습니다.", en: "Reads the block values the admin entered." }
+    "read:block-data": { ko: "관리자가 입력한 블록 값을 읽습니다.", en: "Reads the block values the admin entered." },
+    "ui:home-bottom": { ko: "홈 아래에 패널을 그립니다.", en: "Draws a panel at the bottom of home." },
+    "read:admin": { ko: "관리자 화면의 목록을 읽습니다.", en: "Reads admin lists." },
+    "ui:admin": { ko: "관리자 화면에 탭을 더합니다.", en: "Adds a tab to the admin screen." }
   };
 
   var CAT_FALLBACK = {
@@ -1193,7 +1360,16 @@
         marketName: (meta && meta.name) || "",
         marketOfficial: !!(meta && meta.official),
         integrity: String(item.integrity || (item.sri || "") || ""),
-        sandbox_mode: (String(item.sandbox_mode || "") === "standard") ? "standard" : "strict"
+        sandbox_mode: (String(item.sandbox_mode || "") === "standard") ? "standard" : "strict",
+        /* v10.10 — 유료 · 라이선스 */
+        pricing: (String(item.pricing || "") === "paid") ? "paid" : "free",
+        license_required: item.license_required === true || String(item.pricing || "") === "paid",
+        plan_type: (function (pl) {
+          pl = String(pl || "").toLowerCase();
+          return ["free", "pro", "team", "enterprise"].indexOf(pl) >= 0 ? pl : "pro";
+        })(item.plan_type || (item.license && item.license.plan) || "pro"),
+        price_label: String(item.price_label || ""),
+        price_label_en: String(item.price_label_en || item.priceLabelEn || "")
       });
     });
     /* 카테고리 목록에 없는 분류도 빠뜨리지 않습니다. */
@@ -1485,6 +1661,9 @@
     if (st.hook && p.hooks.indexOf(st.hook) < 0) return false;
     if (st.tag && p.tags.indexOf(st.tag) < 0) return false;
     if (st.market && p.marketId !== st.market) return false;
+    /* v10.10 — 가격 칩(무료 / 유료·라이선스) */
+    if (st.price === "free" && p.pricing === "paid") return false;
+    if (st.price === "paid" && p.pricing !== "paid") return false;
     var q = String(st.q || "").trim().toLowerCase();
     if (!q) return true;
     var d = disp(inst, p);
@@ -2270,6 +2449,47 @@
     return abs(shot.src, inst.url);
   }
 
+  /* ---------------- v10.10 — 가격 · 라이선스 표시 ---------------- */
+  function isPaid(p) {
+    return !!(p && (p.pricing === "paid" || p.license_required === true));
+  }
+
+  function priceLabelOf(inst, p) {
+    if (!isPaid(p)) return tr(inst.lang, "priceFree");
+    var lbl = inst.lang === "en" ? (p.price_label_en || p.price_label) : (p.price_label || p.price_label_en);
+    return String(lbl || "").trim() || tr(inst.lang, "pricePaid");
+  }
+
+  function planLabel(inst, plan) {
+    var p = String(plan || "").toLowerCase();
+    if (!p) return "";
+    if (p === "free") return tr(inst.lang, "licPlanFree");
+    return p.charAt(0).toUpperCase() + p.slice(1);
+  }
+
+  function priceBadge(inst, p, short) {
+    if (!p) return "";
+    if (!isPaid(p)) {
+      return '<span class="mkt-price is-free" data-mkt-price-badge="' + esc(p.id) + '">' +
+        esc(tr(inst.lang, "priceFreeTag")) + "</span>";
+    }
+    return '<span class="mkt-price is-paid" data-mkt-price-badge="' + esc(p.id) + '" title="' +
+      esc(tr(inst.lang, "licTag") + " · " + planLabel(inst, p.plan_type)) + '">' +
+      esc(short ? tr(inst.lang, "pricePaid") : priceLabelOf(inst, p)) +
+      ' <i class="mkt-plan">' + esc(planLabel(inst, p.plan_type)) + "</i></span>";
+  }
+
+  function priceChipsHtml(inst) {
+    var lang = inst.lang, cur = inst.state.price || "";
+    function chip(val, label) {
+      var on = cur === val;
+      return '<button type="button" class="mkt-chip' + (on ? " on" : "") + '" data-mkt-price="' + esc(val) +
+        '" aria-pressed="' + (on ? "true" : "false") + '">' + esc(label) + "</button>";
+    }
+    return '<span class="mkt-chip-label">' + esc(tr(lang, "fPrice")) + "</span>" +
+      chip("", tr(lang, "all")) + chip("free", tr(lang, "priceFree")) + chip("paid", tr(lang, "pricePaid") + " · " + tr(lang, "licTag"));
+  }
+
   function actionButtons(inst, p, place) {
     var lang = inst.lang;
     var row = installedRow(inst, p.id);
@@ -2328,6 +2548,7 @@
     var upd = row ? updBadge(inst, p, false) : "";
     var sri = integrityBadge(inst, p, true);
     var grant = grantedBadge(inst, p);
+    var price = priceBadge(inst, p, false);
     var shot = p.screenshots[0] || null;
     var thumb = shot
       ? '<img src="' + esc(shotUrl(inst, shot)) + '" alt="' + esc(lang === "en" ? (shot.alt_en || shot.alt || tr(lang, "screenshotAlt", { name: d.name })) : (shot.alt || tr(lang, "screenshotAlt", { name: d.name }))) + '" width="720" height="405" loading="lazy" decoding="async">'
@@ -2338,7 +2559,7 @@
     }).join("");
     return '<article class="plug-card mkt-card" data-market-id="' + esc(p.id) + '" data-mkt-card="' + esc(p.id) + '">' +
       '<div class="mkt-thumb">' + thumb + "</div>" +
-      "<h3>" + esc(d.name) + " " + badge + (upd ? " " + upd : "") + " " + src + (sri ? " " + sri : "") + "</h3>" +
+      "<h3>" + esc(d.name) + " " + badge + (upd ? " " + upd : "") + " " + price + " " + src + (sri ? " " + sri : "") + "</h3>" +
       '<p class="plug-desc">' + esc(d.desc) + "</p>" +
       '<div class="plug-meta mkt-meta">' +
         '<span class="plug-tag ver">v' + esc(p.version) + "</span>" +
@@ -2426,6 +2647,17 @@
       if (go) { doRollback(MODAL.inst, go.getAttribute("data-mkt-rb-go"), go); return; }
       var rc = e.target.closest ? e.target.closest("[data-mkt-recheck]") : null;
       if (rc) { recheckIntegrity(MODAL.inst, rc.getAttribute("data-mkt-recheck"), rc); return; }
+      /* v10.10 — 상세에서 라이선스 키를 (다시) 확인합니다. */
+      var lo = e.target.closest ? e.target.closest("[data-mkt-lic-open]") : null;
+      if (lo && MODAL.inst) {
+        var lid = lo.getAttribute("data-mkt-lic-open");
+        var lp = byId(MODAL.inst, lid);
+        if (lp) openLicense(MODAL.inst, lp, function () {
+          if (MODAL.el && !MODAL.el.hidden) openDetail(MODAL.inst, lid, true);
+          if (MODAL.inst && MODAL.inst.data) { paintTools(MODAL.inst); render(MODAL.inst); }
+        });
+        return;
+      }
     });
     document.addEventListener("keydown", function (e) {
       if (!MODAL.el || MODAL.el.hidden) return;
@@ -2482,6 +2714,9 @@
           (cmp.min ? ' <span class="muted">' + esc(tr(lang, "compatMin")) + " v" + esc(cmp.min) + "</span>" : "") +
           (cmp.max ? ' <span class="muted">· ' + esc(tr(lang, "compatMax")) + " v" + esc(cmp.max) + "</span>" : "") + "</dd></div>" +
         (p.updated ? "<div><dt>" + esc(tr(lang, "updated")) + "</dt><dd>" + esc(p.updated) + "</dd></div>" : "") +
+        /* v10.10 — 가격 · 플랜 */
+        "<div><dt>" + esc(tr(lang, "priceLabel")) + "</dt><dd>" + priceBadge(inst, p, false) +
+          (isPaid(p) ? ' <span class="muted">' + esc(tr(lang, "planLabel")) + " " + esc(planLabel(inst, p.plan_type)) + "</span>" : "") + "</dd></div>" +
         (d.category ? "<div><dt>" + esc(tr(lang, "category")) + "</dt><dd>" + esc(d.category) + "</dd></div>" : "") +
         (p.hooks.length ? "<div><dt>" + esc(tr(lang, "hooks")) + "</dt><dd>" + p.hooks.map(function (h) {
           return '<i class="plug-tag hook">' + esc(hookLabel(h, lang)) + "</i>";
@@ -2515,6 +2750,20 @@
           esc(tr(lang, "integrityRecheck")) + "</button></div>"
         : "") +
       "</section>";
+    /* v10.10 — 유료 플러그인의 라이선스 상태 — 설치 전/후 모두 보여 줍니다. */
+    var licSec = "";
+    if (isPaid(p)) {
+      var ls = licenseStateOf(inst, p);
+      licSec = '<section class="mkt-sec mkt-licsec" id="mkt-licsec"><h3>' + esc(tr(lang, "licStateLabel")) + "</h3>" +
+        '<p class="mkt-note mkt-lic-state">' + (ls.ok
+          ? esc(tr(lang, "licStateOk", { plan: planLabel(inst, ls.plan) })) + ' · <code>' + esc(ls.key) + "</code>"
+          : esc(tr(lang, "licStateNone"))) + "</p>" +
+        (inst.mode === "admin"
+          ? '<div class="mkt-licsec-acts"><button type="button" class="btn btn-ghost btn-sm" data-mkt-lic-open="' + esc(p.id) + '">' +
+            esc(tr(lang, ls.ok ? "licChange" : "licOpen")) + "</button></div>"
+          : "") +
+        "</section>";
+    }
     var log = p.changelog.length
       ? '<ol class="mkt-log">' + p.changelog.map(function (c) {
           return "<li>" + (c.version ? "<b>v" + esc(c.version) + "</b>" : "") +
@@ -2567,6 +2816,7 @@
       shots +
       (d.desc ? '<p class="mkt-desc-full">' + esc(d.desc) + "</p>" : "") +
       facts +
+      licSec +
       trustSec +
       '<section class="mkt-sec mkt-revsec" id="mkt-revsec"><h3>' + esc(tr(lang, "reviewTitle")) +
         '</h3><div id="mkt-reviews"></div></section>' +
@@ -2692,6 +2942,16 @@
     if (name === "onInstall" || name === "onUpdate") {
       var p = byId(inst, id);
       var mode = name === "onUpdate" ? "update" : "install";
+      /* v10.10 — 유료 플러그인은 설치 전에 라이선스 키를 먼저 확인합니다. */
+      if (mode === "install" && p) {
+        var lic = licenseStateOf(inst, p);
+        if (lic.required && !lic.ok) {
+          openLicense(inst, p, function () {
+            runAction(inst, name, id, btn, inModal);
+          });
+          return;
+        }
+      }
       var need = p ? consentNeeded(inst, p, mode) : { ok: true };
       if (!need.ok) {
         if (need.reason === "integrity") { flash(inst, tr(inst.lang, "integrityBlocked"), "err"); return; }
@@ -2710,6 +2970,13 @@
     var fn = inst[name];
     if (typeof fn !== "function") return;
     var lang = inst.lang;
+    /* v10.10 — 확인된 라이선스를 설치 호출에 함께 넘깁니다(관리자 화면이 기록에 남깁니다). */
+    var license = null;
+    if (name === "onInstall") {
+      var lp = byId(inst, id);
+      var ls = lp ? licenseStateOf(inst, lp) : null;
+      if (ls && ls.required && ls.ok) license = ls.info || { key: ls.key, plan: ls.plan };
+    }
     if (btn && btn.tagName === "BUTTON") {
       btn.disabled = true;
       if (name === "onInstall" && !btn.getAttribute("data-busy")) {
@@ -2728,7 +2995,7 @@
       if (err) flash(inst, tr(lang, "updateFailed") + err, "err");
       else flash(inst, tr(lang, "updatedDone", { v: v }), "ok");
     };
-    try { fn(id, btn, after, consent); } catch (e) { after(e && e.message ? e.message : String(e)); }
+    try { fn(id, btn, after, consent, license); } catch (e) { after(e && e.message ? e.message : String(e)); }
     /* 동의·설치 뒤에는 무결성·권한 배지를 새로 그립니다. */
     if (consent) {
       setTimeout(function () {
@@ -2965,6 +3232,14 @@
   function missingRpc(e) {
     var code = String((e && e.code) || ""), m = String((e && e.message) || "");
     return code === "42883" || code === "PGRST202" || /Could not find the function|function .* does not exist/i.test(m);
+  }
+
+  /* 31_v1010 이 없을 때만 폴백합니다 — RPC 가 “라이선스를 찾지 못했습니다”(P0002) 같은
+     404 를 돌려주는 경우는 표가 없는 것이 아닙니다. */
+  function licRpcMissing(e) {
+    if (!e) return false;
+    if (String(e.code || "") === "P0002") return false;
+    return missingRpc(e) || missingTable(e);
   }
 
   function subUser(cb) {
@@ -3922,7 +4197,7 @@
      ============================================================================ */
   /* v10.9 — 「스튜디오」는 관리자 화면에만 있습니다(공개 마켓은 3탭). */
   var TABS = [["plugins", "tabPlugins"], ["themes", "tabThemes"], ["bundles", "tabBundles"],
-              ["studio", "tabStudio", "admin"]];
+              ["studio", "tabStudio", "admin"], ["licenses", "tabLicenses", "admin"]];
   var CATALOG = {
     themes: { url: "/themes-market.json", items: null, industries: [], loading: false, error: "", tableMissing: false, inst: null, loaded: false },
     bundles: { url: "/bundles-market.json", items: null, industries: [], loading: false, error: "", tableMissing: false, inst: null, loaded: false }
@@ -4654,7 +4929,8 @@
       var tab = e.target.closest("[data-mkt-tab]");
       if (tab) {
         var v = tab.getAttribute("data-mkt-tab");
-        inst2.tab = (v === "themes" || v === "bundles" || (v === "studio" && inst2.mode === "admin")) ? v : "plugins";
+        inst2.tab = (v === "themes" || v === "bundles" ||
+                   ((v === "studio" || v === "licenses") && inst2.mode === "admin")) ? v : "plugins";
         if (inst2.tab === "themes" || inst2.tab === "bundles") loadCatalog(inst2.tab, inst2, false);
         paintTools(inst2);
         render(inst2);
@@ -4699,6 +4975,577 @@
         var slug = card.getAttribute("data-theme-slug");
         if (slug === PREVIEW.slug) stopPreview(inst2);
         else startPreview(inst2, slug);
+      }
+    });
+  }
+
+  /* ======================================================================
+     v10.10 — 유료 라이선스 · 중앙 마켓 허브
+     ----------------------------------------------------------------------
+     라이선스는 plugin_licenses(31_v1010)에 있고 anon 은 읽지 못합니다(관리자 전용).
+     화면은 verify_plugin_license RPC 로 키만 확인하고, 목록은 관리자 화면에서만 읽습니다.
+     31_v1010 을 실행하지 않은 사이트는 발급·확인을 이 브라우저(localStorage:
+     sbpress-licenses)에만 남기고 “31_v1010 SQL 을 실행하면 서버에 남습니다” 로 안내합니다. */
+  var LIC = { rows: null, loading: false, tableMissing: false, loaded: false, msg: "", msgKind: "",
+              busy: false, verified: {}, origin: "", local: false };
+  var LIC_LS = "sbpress-licenses";
+  var LIC_KEY_RE = /^SBP-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+
+  function licLocal() {
+    var v = readLS(LIC_LS, null);
+    if (!v || typeof v !== "object") v = {};
+    if (!Array.isArray(v.rows)) v.rows = [];
+    if (!v.verified || typeof v.verified !== "object") v.verified = {};
+    return v;
+  }
+
+  function licStore(mutate) {
+    var v = licLocal();
+    if (mutate) { try { mutate(v); } catch (e) { /* noop */ } }
+    writeLS(LIC_LS, v);
+    if (v.verified) LIC.verified = v.verified;
+    if (Array.isArray(v.rows) && LIC.tableMissing) LIC.rows = v.rows;
+    return v;
+  }
+
+  function licSiteOrigin() {
+    try { return String(location.origin || "").replace(/\/+$/, ""); } catch (e) { return ""; }
+  }
+
+  function licKeyRandom() {
+    var A = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    var arr = new Uint8Array(16), i;
+    try { window.crypto.getRandomValues(arr); }
+    catch (e) { for (i = 0; i < 16; i++) arr[i] = Math.floor(Math.random() * 256); }
+    var out = "SBP";
+    for (var g = 0; g < 4; g++) {
+      var s = "";
+      for (i = 0; i < 4; i++) s += A.charAt(arr[g * 4 + i] % 36);
+      out += "-" + s;
+    }
+    return out;
+  }
+
+  /* 이 플러그인의 라이선스 상태 — 확인된 키가 있으면 ok 입니다. */
+  function licenseStateOf(inst, p) {
+    var id = p && p.id ? String(p.id) : "";
+    var need = !!(p && (p.license_required === true || p.pricing === "paid"));
+    var v = (LIC.verified && LIC.verified[id]) || (licLocal().verified || {})[id] || null;
+    if (!need) return { required: false, ok: true, plan: "", key: "", info: null };
+    var ok = !!(v && v.key && (!v.expires_at || Date.parse(v.expires_at) > Date.now()));
+    return { required: true, ok: ok, plan: (v && v.plan) || p.plan_type || "pro",
+             key: ok ? v.key : "", info: ok ? v : null, at: (v && v.at) || "" };
+  }
+
+  function licRemember(inst, slug, info) {
+    LIC.verified = LIC.verified || {};
+    LIC.verified[slug] = info;
+    inst.licensed = inst.licensed || {};
+    inst.licensed[slug] = info;
+    licStore(function (v) { v.verified[slug] = info; });
+  }
+
+  function licStatusText(inst, s) {
+    var k = String(s || "").toLowerCase();
+    return tr(inst.lang, k === "revoked" ? "licStatusRevoked" : (k === "expired" ? "licStatusExpired" : "licStatusActive"));
+  }
+
+  function licStatusClass(s) {
+    var k = String(s || "").toLowerCase();
+    return k === "revoked" ? "is-revoked" : (k === "expired" ? "is-expired" : "is-active");
+  }
+
+  /* ---------------- 목록 읽기 ---------------- */
+  function loadLicenses(inst, force) {
+    if (LIC.loading) return;
+    if (LIC.loaded && !force) return;
+    LIC.loading = true;
+    LIC.inst = inst;
+    var local = licLocal();
+    if (!sbCfg().url) {
+      LIC.loading = false;
+      LIC.loaded = true;
+      LIC.tableMissing = true;
+      LIC.local = true;
+      LIC.rows = local.rows.slice();
+      if (inst && inst.tab === "licenses") paintTools(inst);
+      return;
+    }
+    sbRequest("/rest/v1/plugin_licenses?select=*&order=created_at.desc")
+      .then(function (rows) {
+        LIC.loading = false;
+        LIC.loaded = true;
+        LIC.tableMissing = false;
+        LIC.local = false;
+        LIC.rows = Array.isArray(rows) ? rows.map(function (r) {
+          return { id: r.id, license_key: String(r.license_key || ""), plugin_slug: r.plugin_slug,
+                   plan_type: r.plan_type, status: r.status, holder_name: r.holder_name,
+                   holder_email: r.holder_email, max_sites: Number(r.max_sites || 1),
+                   activated_sites: Array.isArray(r.activated_sites) ? r.activated_sites : [],
+                   expires_at: r.expires_at, created_at: r.created_at };
+        }) : [];
+        licStore(function (v) { v.rows = LIC.rows.slice(0, 200); });
+        if (inst && inst.tab === "licenses") paintTools(inst);
+      }, function (e) {
+        LIC.loading = false;
+        LIC.loaded = true;
+        if (missingTable(e) || missingRpc(e)) {
+          LIC.tableMissing = true;
+          LIC.local = true;
+          LIC.rows = local.rows.slice();
+        } else {
+          LIC.msg = tr((inst && inst.lang) || "ko", "licFail") + (e && e.message ? e.message : e) + " 31_v1010";
+          LIC.msgKind = "err";
+          LIC.rows = [];
+        }
+        if (inst && inst.tab === "licenses") paintTools(inst);
+      });
+  }
+
+  /* ---------------- 키 확인(설치하는 사이트) ---------------- */
+  function licVerify(inst, p, key, cb) {
+    var done = typeof cb === "function" ? cb : function () {};
+    var lang = inst.lang;
+    var k = String(key || "").trim().toUpperCase();
+    if (!k) { done(tr(lang, "licNeedKey")); return; }
+    if (!LIC_KEY_RE.test(k)) { done(tr(lang, "licBadFormat")); return; }
+    var slug = String(p.id || "").trim().toLowerCase();
+    var origin = licSiteOrigin();
+
+    function accept(info, local) {
+      licRemember(inst, slug, { key: k, plan: info.plan_type || p.plan_type || "pro",
+        at: new Date().toISOString(), expires_at: info.expires_at || null, local: !!local,
+        used_sites: info.used_sites, max_sites: info.max_sites });
+      done(null, info);
+    }
+
+    function localCheck() {
+      var rows = licLocal().rows || [];
+      var row = null;
+      for (var i = 0; i < rows.length; i++) if (String(rows[i].license_key || "").toUpperCase() === k) row = rows[i];
+      if (!row) { done(tr(lang, "licFail") + "not-found"); return; }
+      if (String(row.plugin_slug || "") !== slug) { done(tr(lang, "licFail") + "plugin-mismatch"); return; }
+      if (String(row.status || "active") === "revoked") { done(tr(lang, "licFail") + "revoked"); return; }
+      if (row.expires_at && Date.parse(row.expires_at) <= Date.now()) { done(tr(lang, "licFail") + "expired"); return; }
+      var sites = Array.isArray(row.activated_sites) ? row.activated_sites.slice() : [];
+      var max = Number(row.max_sites || 1) || 1;
+      if (origin && sites.indexOf(origin) < 0) {
+        if (sites.length >= max) { done(tr(lang, "licFail") + "site-limit"); return; }
+        sites.push(origin);
+        licStore(function (v) {
+          (v.rows || []).forEach(function (r) {
+            if (String(r.license_key || "").toUpperCase() === k) { r.activated_sites = sites; r.status = "active"; }
+          });
+        });
+      }
+      accept({ ok: true, local: true, plugin_slug: slug, plan_type: row.plan_type,
+               status: "active", max_sites: max, used_sites: sites.length, expires_at: row.expires_at || null }, true);
+    }
+
+    if (!sbCfg().url) { localCheck(); return; }
+    sbRequest("/rest/v1/rpc/verify_plugin_license", {
+      method: "POST", body: { p_slug: slug, p_key: k, p_site_origin: origin }
+    }).then(function (res) {
+      if (!res || res.ok !== true) { done(tr(lang, "licFail") + "verify"); return; }
+      accept(res, false);
+    }, function (e) {
+      if (licRpcMissing(e)) { localCheck(); return; }
+      var m = String((e && e.message) || "");
+      done(tr(lang, "licFail") + m);
+    });
+  }
+
+  /* ---------------- 라이선스 키 모달 ---------------- */
+  var LICM = { el: null, inst: null, id: "", next: null, lastFocus: null };
+
+  function ensureLicenseModal() {
+    if (LICM.el && document.body.contains(LICM.el)) return LICM.el;
+    var el = document.createElement("div");
+    el.className = "mkt-modal mkt-license";
+    el.id = "mkt-license";
+    el.hidden = true;
+    el.innerHTML =
+      '<div class="mkt-modal-backdrop" data-mkt-licc-cancel="1"></div>' +
+      '<div class="mkt-modal-card" role="dialog" aria-modal="true" aria-labelledby="mkt-license-title">' +
+        '<header class="mkt-modal-head"><h2 id="mkt-license-title"></h2>' +
+          '<button type="button" class="mkt-modal-x" data-mkt-licc-cancel="1" aria-label="">×</button></header>' +
+        '<div class="mkt-modal-body">' +
+          '<p class="mkt-consent-lead" id="mkt-license-lead"></p>' +
+          '<label class="mkt-lic-field"><span id="mkt-license-lab"></span>' +
+            '<input type="text" id="mkt-lic-key" class="admin-input" maxlength="24" spellcheck="false"' +
+            ' autocomplete="off" placeholder="SBP-XXXX-XXXX-XXXX-XXXX" aria-label="SBP-XXXX-XXXX-XXXX-XXXX"></label>' +
+          '<p class="mkt-note mkt-license-note" id="mkt-license-note"></p>' +
+          '<p class="mkt-lic-msg" id="mkt-license-msg" role="status" aria-live="polite"></p>' +
+        '</div>' +
+        '<footer class="mkt-modal-foot">' +
+          '<button type="button" class="btn btn-ghost btn-sm" data-mkt-licc-cancel="1" id="mkt-license-cancel"></button>' +
+          '<button type="button" class="btn btn-primary btn-sm" data-mkt-licc-go="1" id="mkt-license-go"></button>' +
+        '</footer>' +
+      '</div>';
+    document.body.appendChild(el);
+    el.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-mkt-licc-cancel]")) { closeLicense(); return; }
+      var go = e.target.closest ? e.target.closest("[data-mkt-licc-go]") : null;
+      if (!go) return;
+      var inst = LICM.inst, p = inst ? byId(inst, LICM.id) : null;
+      if (!inst || !p) { closeLicense(); return; }
+      var input = el.querySelector("#mkt-lic-key");
+      var msg = el.querySelector("#mkt-license-msg");
+      var key = input ? input.value : "";
+      go.disabled = true;
+      go.textContent = tr(inst.lang, "licChecking");
+      licVerify(inst, p, key, function (err, info) {
+        go.disabled = false;
+        go.textContent = tr(inst.lang, "licVerify");
+        if (err) { if (msg) { msg.textContent = err; msg.className = "mkt-lic-msg err"; } return; }
+        if (msg) { msg.textContent = tr(inst.lang, "licOk", { plan: planLabel(inst, info.plan_type) }); msg.className = "mkt-lic-msg ok"; }
+        var next = LICM.next;
+        setTimeout(function () {
+          closeLicense();
+          if (typeof next === "function") { try { next(info); } catch (e2) { /* noop */ } }
+        }, 420);
+      });
+    });
+    el.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter") return;
+      var t = e.target;
+      if (!t || t.id !== "mkt-lic-key") return;
+      e.preventDefault();
+      var go = el.querySelector("[data-mkt-licc-go]");
+      if (go) go.click();
+    });
+    document.addEventListener("keydown", function (e) {
+      if (!LICM.el || LICM.el.hidden) return;
+      if (e.key === "Escape") { e.preventDefault(); closeLicense(); }
+    });
+    LICM.el = el;
+    return el;
+  }
+
+  function openLicense(inst, p, next) {
+    if (!p || inst.mode !== "admin") return;
+    var el = ensureLicenseModal();
+    var lang = inst.lang, d = disp(inst, p);
+    LICM.inst = inst; LICM.id = p.id; LICM.next = next || null; LICM.lastFocus = document.activeElement;
+    el.querySelector("#mkt-license-title").textContent = tr(lang, "licTitle");
+    el.querySelector("#mkt-license-lead").textContent = tr(lang, "licLead", { name: d.name });
+    el.querySelector("#mkt-license-lab").textContent = tr(lang, "licKeyLabel");
+    el.querySelector("#mkt-license-note").textContent = tr(lang, "licNote") +
+      " " + tr(lang, "planLabel") + ": " + planLabel(inst, p.plan_type) + " · " + priceLabelOf(inst, p);
+    el.querySelector("#mkt-license-cancel").textContent = tr(lang, "licCancel");
+    el.querySelector("#mkt-license-go").textContent = tr(lang, "licVerify");
+    el.querySelector(".mkt-modal-x").setAttribute("aria-label", tr(lang, "close"));
+    var msg = el.querySelector("#mkt-license-msg");
+    msg.textContent = ""; msg.className = "mkt-lic-msg";
+    var input = el.querySelector("#mkt-lic-key");
+    input.value = (licenseStateOf(inst, p).key || "");
+    input.placeholder = tr(lang, "licKeyPh");
+    input.setAttribute("aria-label", tr(lang, "licKeyLabel"));
+    el.hidden = false;
+    document.documentElement.classList.add("mkt-modal-open");
+    try { input.focus(); } catch (e) { /* noop */ }
+  }
+
+  function closeLicense() {
+    if (!LICM.el) return;
+    LICM.el.hidden = true;
+    LICM.inst = null; LICM.id = ""; LICM.next = null;
+    document.documentElement.classList.remove("mkt-modal-open");
+    try { if (LICM.lastFocus && LICM.lastFocus.focus) LICM.lastFocus.focus(); } catch (e) { /* noop */ }
+  }
+
+  /* ---------------- 발급 · 폐기 ---------------- */
+  function licIssueFields(inst) {
+    var box = inst.tools && inst.tools.querySelector("#mkt-licenses");
+    if (!box) return null;
+    function val(id) { var n = box.querySelector("#" + id); return n ? String(n.value || "").trim() : ""; }
+    var sites = parseInt(val("mkt-lic-sites"), 10);
+    var exp = val("mkt-lic-expires");
+    return {
+      slug: val("mkt-lic-slug"), plan: val("mkt-lic-plan") || "pro",
+      name: val("mkt-lic-name").slice(0, 80), email: val("mkt-lic-email").slice(0, 160),
+      sites: isFinite(sites) ? Math.max(1, Math.min(500, sites)) : 1,
+      expires: exp ? (exp.length === 10 ? exp + "T23:59:59Z" : exp) : null
+    };
+  }
+
+  function licIssueLocal(f) {
+    var rows = licLocal().rows || [];
+    var key = licKeyRandom();
+    var row = { id: "local-" + Date.now().toString(36), license_key: key, plugin_slug: f.slug,
+      plan_type: f.plan, status: "active", holder_name: f.name || null, holder_email: f.email || null,
+      max_sites: f.sites, activated_sites: [], expires_at: f.expires, created_at: new Date().toISOString(),
+      local: true };
+    rows.unshift(row);
+    licStore(function (v) { v.rows = rows.slice(0, 200); });
+    LIC.tableMissing = true;
+    LIC.local = true;
+    LIC.rows = rows.slice(0, 200);
+    return row;
+  }
+
+  function issueLicense(inst, btn) {
+    var lang = inst.lang;
+    var f = licIssueFields(inst);
+    if (!f) return;
+    var msg = inst.tools && inst.tools.querySelector("#mkt-lic-msg");
+    function say(text, kind) {
+      LIC.msg = text; LIC.msgKind = kind || "";
+      if (!msg) { paintTools(inst); return; }
+      msg.textContent = text;
+      msg.className = "mkt-lic-msg" + (kind ? " " + kind : "");
+    }
+    if (!f.slug) { say(tr(lang, "licNoPlugin"), "err"); return; }
+    var old = btn ? btn.textContent : "";
+    if (btn) { btn.disabled = true; btn.textContent = tr(lang, "licIssuing"); }
+    function after(err, row) {
+      if (btn) { btn.disabled = false; btn.textContent = old || tr(lang, "licIssue"); }
+      if (err) { say(tr(lang, "licIssueFail") + err, "err"); return; }
+      say(tr(lang, "licIssued", { key: row.license_key }), "ok");
+      paintTools(inst);
+    }
+    if (!sbCfg().url) { after(null, licIssueLocal(f)); return; }
+    sbRequest("/rest/v1/rpc/issue_plugin_license", { method: "POST", body: {
+      p_slug: f.slug, p_plan: f.plan, p_holder_name: f.name || null, p_holder_email: f.email || null,
+      p_max_sites: f.sites, p_expires_at: f.expires
+    } }).then(function (res) {
+      if (!res || !res.license_key) { after("issue"); return; }
+      LIC.loaded = false;
+      var row = { id: res.id, license_key: res.license_key, plugin_slug: res.plugin_slug || f.slug,
+        plan_type: res.plan_type || f.plan, status: res.status || "active", holder_name: f.name || null,
+        holder_email: f.email || null, max_sites: Number(res.max_sites || f.sites),
+        activated_sites: [], expires_at: res.expires_at || f.expires, created_at: new Date().toISOString() };
+      LIC.rows = [row].concat(LIC.rows || []);
+      licStore(function (v) { v.rows = (LIC.rows || []).slice(0, 200); });
+      after(null, row);
+    }, function (e) {
+      if (licRpcMissing(e)) { after(null, licIssueLocal(f)); return; }
+      after(String((e && e.message) || ""));
+    });
+  }
+
+  function revokeLicense(inst, id, next, btn) {
+    var lang = inst.lang;
+    var rows = LIC.rows || [];
+    var row = null;
+    for (var i = 0; i < rows.length; i++) if (String(rows[i].id) === String(id)) row = rows[i];
+    if (!row) return;
+    var want = String(next || (String(row.status) === "revoked" ? "active" : "revoked"));
+    function msg(text, kind) {
+      LIC.msg = text; LIC.msgKind = kind || "";
+      var box = inst.tools && inst.tools.querySelector("#mkt-lic-msg");
+      if (box) { box.textContent = text; box.className = "mkt-lic-msg" + (kind ? " " + kind : ""); }
+    }
+    function apply() {
+      row.status = want;
+      licStore(function (v) {
+        (v.rows || []).forEach(function (r) { if (String(r.id) === String(id)) r.status = want; });
+      });
+      msg(tr(lang, "licChanged", { key: row.license_key, status: licStatusText(inst, want) }), "ok");
+      paintTools(inst);
+    }
+    if (!sbCfg().url || String(id).indexOf("local-") === 0) { apply(); return; }
+    if (btn) btn.disabled = true;
+    sbRequest("/rest/v1/rpc/revoke_plugin_license", { method: "POST", body: { p_id: id, p_status: want } })
+      .then(function (res) {
+        if (btn) btn.disabled = false;
+        if (!res || res.ok !== true) { msg(tr(lang, "licChangeFail") + "revoke", "err"); return; }
+        apply();
+      }, function (e) {
+        if (btn) btn.disabled = false;
+        if (licRpcMissing(e)) { apply(); return; }
+        msg(tr(lang, "licChangeFail") + String((e && e.message) || ""), "err");
+      });
+  }
+
+  /* ---------------- 중앙 마켓 허브 ---------------- */
+  function hubStats(inst) {
+    var markets = (inst && inst.markets) || [];
+    var plugins = (inst && inst.data && inst.data.plugins) || [];
+    var themes = (cat("themes").items || []);
+    var bundles = (cat("bundles").items || []);
+    var pending = subList().filter(function (s) { return subStatus(s) === "pending"; }).length;
+    var licenses = LIC.rows || [];
+    var active = licenses.filter(function (r) { return String(r.status || "active") === "active"; }).length;
+    return { markets: markets.length, plugins: plugins.length, themes: themes.length,
+             bundles: bundles.length, pending: pending, licenses: licenses.length, active: active,
+             paid: plugins.filter(isPaid).length };
+  }
+
+  function hubManifest(inst) {
+    var st = hubStats(inst);
+    var list = (inst && inst.data && inst.data.plugins) || [];
+    return {
+      kind: "sbpress-hub-manifest",
+      v: 1,
+      generatedAt: new Date().toISOString(),
+      sbpress: (inst && inst.data && inst.data.sbpress) || "",
+      site: (inst && inst.meta && inst.meta.name) || "",
+      markets: ((inst && inst.markets) || []).map(function (m) {
+        return { id: m.id, name: m.name, url: m.url, official: !!m.is_official, enabled: m.enabled !== false };
+      }),
+      plugins: list.map(function (p) {
+        return { id: p.id, name: p.name, version: p.version, pricing: p.pricing,
+                 plan_type: isPaid(p) ? p.plan_type : "", license_required: !!p.license_required,
+                 category: p.category, integrity: p.integrity };
+      }),
+      themes: (cat("themes").items || []).map(function (t) { return t.slug; }),
+      bundles: (cat("bundles").items || []).map(function (b) { return b.slug; }),
+      licenses: { total: st.licenses, active: st.active },
+      counts: { markets: st.markets, plugins: st.plugins, themes: st.themes, bundles: st.bundles,
+                pending: st.pending, paid: st.paid }
+    };
+  }
+
+  function hubManifestText(inst) { return JSON.stringify(hubManifest(inst), null, 2); }
+
+  function licRowHtml(inst, r) {
+    var lang = inst.lang;
+    var status = String(r.status || "active");
+    var sites = Array.isArray(r.activated_sites) ? r.activated_sites : [];
+    var max = Number(r.max_sites || 1) || 1;
+    var id = String(r.id || "");
+    var next = status === "revoked" ? "active" : "revoked";
+    var exp = r.expires_at ? String(r.expires_at).slice(0, 10) : tr(lang, "licNoExpire");
+    return '<li class="mkt-lic-row" data-mkt-lic-id="' + esc(id) + '">' +
+      '<div class="mkt-lic-main">' +
+        '<code class="mkt-lic-key" id="mkt-lic-key-' + esc(id) + '">' + esc(r.license_key) + "</code>" +
+        '<span class="mkt-lic-badges">' +
+          '<span class="mkt-plan">' + esc(planLabel(inst, r.plan_type)) + "</span>" +
+          '<span class="mkt-lic-status ' + esc(licStatusClass(status)) + '">' + esc(licStatusText(inst, status)) + "</span>" +
+          (r.local ? '<span class="mkt-lic-local">' + esc(tr(lang, "licLocalOnly")) + "</span>" : "") +
+        "</span>" +
+        '<span class="mkt-lic-meta">' +
+          '<span data-no-i18n>' + esc(String(r.plugin_slug || "")) +
+            (r.holder_name ? " · " + esc(r.holder_name) : "") +
+            (r.holder_email ? " · " + esc(r.holder_email) : "") + "</span>" +
+          " · " + esc(tr(lang, "licUsed", { n: sites.length, m: max })) +
+          " · " + esc(tr(lang, "licExpires")) + " " + esc(exp) + "</span>" +
+      "</div>" +
+      '<div class="mkt-lic-acts">' +
+        '<button type="button" class="btn btn-ghost btn-sm" data-mkt-lic-copy="' + esc(id) + '">' + esc(tr(lang, "licCopy")) + "</button>" +
+        '<button type="button" class="btn btn-ghost btn-sm' + (next === "revoked" ? " danger" : "") + '"' +
+          ' data-mkt-lic-toggle="' + esc(id) + '" data-mkt-lic-next="' + esc(next) + '">' +
+          esc(tr(lang, next === "revoked" ? "licRevoke" : "licRestore")) + "</button>" +
+      "</div></li>";
+  }
+
+  function licenseToolsHtml(inst) {
+    var lang = inst.lang;
+    var st = hubStats(inst);
+    var plugins = (inst.data && inst.data.plugins) || [];
+    var paid = plugins.filter(isPaid);
+    var opts = (paid.length ? paid : plugins);
+    var rows = LIC.rows || [];
+    function card(key, label, n) {
+      return '<div class="mkt-hub-card" data-mkt-hub="' + esc(key) + '"><b id="mkt-hub-' + esc(key) + '">' + esc(String(n)) +
+        "</b><span>" + esc(label) + "</span></div>";
+    }
+    return '<section class="mkt-licenses" id="mkt-licenses" aria-labelledby="mkt-lic-title">' +
+      '<div class="mkt-licenses-head"><div><h3 id="mkt-lic-title">' + esc(tr(lang, "hubTitle")) + "</h3>" +
+        '<p class="mkt-licenses-note">' + esc(tr(lang, "hubNote")) + "</p></div>" +
+        '<div class="mkt-licenses-acts">' +
+          '<button type="button" class="btn btn-ghost btn-sm" data-mkt-lic-refresh="1">' + esc(tr(lang, "licRefresh")) + "</button>" +
+        "</div></div>" +
+      '<div class="mkt-hub-cards">' +
+        card("markets", tr(lang, "hubMarkets"), st.markets) +
+        card("plugins", tr(lang, "hubPlugins"), st.plugins) +
+        card("themes", tr(lang, "hubThemes"), st.themes) +
+        card("bundles", tr(lang, "hubBundles"), st.bundles) +
+        card("pending", tr(lang, "hubPending"), st.pending) +
+        card("active", tr(lang, "hubActive"), st.active) +
+      "</div>" +
+      '<div class="mkt-hub-acts">' +
+        '<button type="button" class="btn btn-primary btn-sm" data-mkt-hub-copy="1">' + esc(tr(lang, "hubCopy")) + "</button>" +
+        '<button type="button" class="btn btn-ghost btn-sm" data-mkt-hub-download="1">' + esc(tr(lang, "hubDownload")) + "</button>" +
+        '<span class="muted mkt-hub-version">' + esc(tr(lang, "hubVersion")) + " " + esc((inst.data && inst.data.sbpress) || "") + "</span>" +
+      "</div>" +
+      '<p class="mkt-lic-msg' + (LIC.msgKind ? " " + esc(LIC.msgKind) : "") + '" id="mkt-lic-msg" role="status" aria-live="polite">' + esc(LIC.msg || "") + "</p>" +
+      (LIC.tableMissing ? '<p class="mkt-note mkt-warn" id="mkt-lic-missing">' + esc(tr(lang, "licNeedSql")) + "</p>" : "") +
+      '<div class="mkt-lic-grid">' +
+        '<section class="mkt-lic-issue" id="mkt-lic-issue">' +
+          '<h4>' + esc(tr(lang, "licIssueTitle")) + "</h4>" +
+          '<p class="mkt-note">' + esc(tr(lang, "licIssueNote")) + "</p>" +
+          '<label class="mkt-lic-f"><span>' + esc(tr(lang, "licSlug")) + '</span>' +
+            '<select class="admin-input" id="mkt-lic-slug" aria-label="' + esc(tr(lang, "licSlug")) + '">' +
+              (opts.length ? opts.map(function (p) {
+                return '<option value="' + esc(p.id) + '">' + esc(disp(inst, p).name) + " (" + esc(p.id) + ")</option>";
+              }).join("") : '<option value="">' + esc(tr(lang, "licNoPlugin")) + "</option>") +
+            "</select></label>" +
+          '<label class="mkt-lic-f"><span>' + esc(tr(lang, "licPlan")) + '</span>' +
+            '<select class="admin-input" id="mkt-lic-plan" aria-label="' + esc(tr(lang, "licPlan")) + '">' +
+              ["pro", "team", "enterprise", "free"].map(function (pl) {
+                return '<option value="' + esc(pl) + '"' + (pl === "pro" ? " selected" : "") + ">" + esc(planLabel(inst, pl)) + "</option>";
+              }).join("") + "</select></label>" +
+          '<label class="mkt-lic-f"><span>' + esc(tr(lang, "licHolder")) + '</span>' +
+            '<input class="admin-input" id="mkt-lic-name" maxlength="80" placeholder="' + esc(tr(lang, "licHolderPh")) + '" aria-label="' + esc(tr(lang, "licHolder")) + '"></label>' +
+          '<label class="mkt-lic-f"><span>' + esc(tr(lang, "licEmail")) + '</span>' +
+            '<input class="admin-input" id="mkt-lic-email" type="email" maxlength="160" spellcheck="false" aria-label="' + esc(tr(lang, "licEmail")) + '"></label>' +
+          '<label class="mkt-lic-f"><span>' + esc(tr(lang, "licSites")) + '</span>' +
+            '<input class="admin-input" id="mkt-lic-sites" type="number" min="1" max="500" step="1" value="1" aria-label="' + esc(tr(lang, "licSites")) + '"></label>' +
+          '<label class="mkt-lic-f"><span>' + esc(tr(lang, "licExpiresLabel")) + '</span>' +
+            '<input class="admin-input" id="mkt-lic-expires" type="date" aria-label="' + esc(tr(lang, "licExpiresLabel")) + '"></label>' +
+          '<div class="mkt-lic-issue-act"><button type="button" class="btn btn-primary btn-sm" data-mkt-lic-issue="1">' + esc(tr(lang, "licIssue")) + "</button></div>" +
+        "</section>" +
+        '<section class="mkt-lic-list" id="mkt-lic-list">' +
+          '<h4>' + esc(tr(lang, "licListTitle")) + "</h4>" +
+          (LIC.loading ? '<p class="mkt-note">' + esc(tr(lang, "licLoading")) + "</p>" :
+            (rows.length ? '<ul class="mkt-lic-rows">' + rows.map(function (r) { return licRowHtml(inst, r); }).join("") + "</ul>"
+                         : '<p class="mkt-note mkt-lic-empty">' + esc(tr(lang, "licListEmpty")) + "</p>")) +
+        "</section>" +
+      "</div></section>";
+  }
+
+  /* ---------------- 라이선스 · 허브 화면 버튼 (한 번만 위임) ---------------- */
+  function licRowById(id) {
+    var rows = LIC.rows || [];
+    for (var i = 0; i < rows.length; i++) if (String(rows[i].id) === String(id)) return rows[i];
+    return null;
+  }
+
+  function licDelegation(host) {
+    if (!host || host.getAttribute("data-mkt-lic-bound")) return;
+    host.setAttribute("data-mkt-lic-bound", "1");
+    host.addEventListener("click", function (e) {
+      var inst = host.__mktInst;
+      if (!inst || !e.target.closest) return;
+      var lang = inst.lang;
+      var box = host.querySelector("#mkt-lic-msg");
+      function say(text, kind) {
+        LIC.msg = text; LIC.msgKind = kind || "";
+        if (box) { box.textContent = text; box.className = "mkt-lic-msg" + (kind ? " " + kind : ""); }
+      }
+      var ref = e.target.closest("[data-mkt-lic-refresh]");
+      if (ref) { loadLicenses(inst, true); return; }
+      var cp = e.target.closest("[data-mkt-hub-copy]");
+      if (cp) {
+        copyText(hubManifestText(inst), function (ok) {
+          say(tr(lang, ok ? "hubCopied" : "hubCopyFail"), ok ? "ok" : "err");
+        });
+        return;
+      }
+      var dl = e.target.closest("[data-mkt-hub-download]");
+      if (dl) {
+        downloadJson("hub-manifest.json", hubManifestText(inst));
+        say(tr(lang, "hubDownloaded"), "ok");
+        return;
+      }
+      var is = e.target.closest("[data-mkt-lic-issue]");
+      if (is) { issueLicense(inst, is); return; }
+      var cpy = e.target.closest("[data-mkt-lic-copy]");
+      if (cpy) {
+        var row = licRowById(cpy.getAttribute("data-mkt-lic-copy"));
+        if (!row) return;
+        copyText(String(row.license_key || ""), function (ok) {
+          say(tr(lang, ok ? "licCopied" : "hubCopyFail"), ok ? "ok" : "err");
+        });
+        return;
+      }
+      var tg = e.target.closest("[data-mkt-lic-toggle]");
+      if (tg) {
+        revokeLicense(inst, tg.getAttribute("data-mkt-lic-toggle"),
+          tg.getAttribute("data-mkt-lic-next") || "revoked", tg);
+        return;
       }
     });
   }
@@ -4793,6 +5640,14 @@
     if (!STATS.loaded && !STATS.loading) {
       setTimeout(function () { loadStats(inst); }, 0);
     }
+    /* v10.10 — 「라이선스 · 허브」 탭은 허브 숫자를 위해 카탈로그·제출·라이선스를 한 번 읽습니다. */
+    if (inst.mode === "admin" && inst.tab === "licenses") {
+      setTimeout(function () {
+        if (!cat("themes").loaded) loadCatalog("themes", inst, false);
+        if (!cat("bundles").loaded) loadCatalog("bundles", inst, false);
+        loadLicenses(inst, false);
+      }, 0);
+    }
     var pluginBody =
       (inst.mode === "admin" ? submissionPanelHtml(inst) : "") +
       (inst.mode === "admin" ? compatPanelHtml(inst) : "") +
@@ -4818,6 +5673,8 @@
         ((facetValues(inst).markets.length > 1)
           ? '<div class="mkt-chips" data-group="market">' + chipRow(inst, "market", tr(lang, "fMarket"), facetValues(inst).markets, inst.state.market) + "</div>"
           : "") +
+        /* v10.10 — 전체 / 무료 / 유료·라이선스 */
+        '<div class="mkt-chips" data-group="price">' + priceChipsHtml(inst) + "</div>" +
         '<div class="mkt-chips" data-group="category">' + chipRow(inst, "category", tr(lang, "fCategory"), facetValues(inst).cats, inst.state.cat) + "</div>" +
         '<div class="mkt-chips" data-group="hook">' + chipRow(inst, "hook", tr(lang, "fHook"), facetValues(inst).hooks, inst.state.hook) + "</div>" +
         '<div class="mkt-chips" data-group="tag">' + chipRow(inst, "tag", tr(lang, "fTag"), facetValues(inst).tags, inst.state.tag) + "</div>" +
@@ -4830,12 +5687,21 @@
     var tab = inst.tab || "plugins";
     var body = tab === "themes" ? themeToolsHtml(inst)
       : tab === "bundles" ? bundleToolsHtml(inst)
+      : tab === "licenses" ? licenseToolsHtml(inst)
       : tab === "studio" ? '<div class="studio-wrap" id="studio-host"></div>' : pluginBody;
     host.innerHTML = tabsHtml(inst) + body;
     if (tab === "studio") {
       /* v10.9 — studio.js·studio.css 는 이 탭에 처음 들어갈 때만 받아옵니다. */
       tabsDelegation(host);
       ensureStudio(inst);
+      setBusy(inst, false);
+      return;
+    }
+    if (tab === "licenses") {
+      /* v10.10 — 라이선스 · 허브는 자체 위임으로 그립니다. */
+      tabsDelegation(host);
+      licDelegation(host);
+      if (!LIC.loaded && !LIC.loading) loadLicenses(inst, false);
       setBusy(inst, false);
       return;
     }
@@ -4869,11 +5735,12 @@
       host.addEventListener("click", function (e) {
         var inst2 = host.__mktInst;
         if (!inst2) return;
-        var chip = e.target.closest ? e.target.closest("[data-mkt-category],[data-mkt-hook],[data-mkt-tag],[data-mkt-market]") : null;
+        var chip = e.target.closest ? e.target.closest("[data-mkt-category],[data-mkt-hook],[data-mkt-tag],[data-mkt-market],[data-mkt-price]") : null;
         if (!chip) return;
         if (chip.hasAttribute("data-mkt-category")) inst2.state.cat = chip.getAttribute("data-mkt-category");
         else if (chip.hasAttribute("data-mkt-hook")) inst2.state.hook = chip.getAttribute("data-mkt-hook");
         else if (chip.hasAttribute("data-mkt-market")) inst2.state.market = chip.getAttribute("data-mkt-market");
+        else if (chip.hasAttribute("data-mkt-price")) inst2.state.price = chip.getAttribute("data-mkt-price");
         else inst2.state.tag = chip.getAttribute("data-mkt-tag");
         paintTools(inst2);
         render(inst2);
@@ -5024,6 +5891,7 @@
   function render(inst) {
     var tab = inst.tab || "plugins";
     if (tab === "studio") { inst.root.innerHTML = ""; setBusy(inst, false); return; }
+    if (tab === "licenses") { inst.root.innerHTML = ""; setBusy(inst, false); return; }
     if (tab === "themes") { renderThemes(inst); setBusy(inst, false); return; }
     if (tab === "bundles") { renderBundles(inst); setBusy(inst, false); return; }
     if (!inst.data) return;
@@ -5231,9 +6099,10 @@
       meta: null,
       state: (root.__mktState && root.__mktState.url === (opts.url || "/plugins-market.json"))
         ? root.__mktState
-        : { q: "", cat: "", hook: "", tag: "", market: "", sort: "recommend", url: opts.url || "/plugins-market.json" }
+        : { q: "", cat: "", hook: "", tag: "", market: "", price: "", sort: "recommend", url: opts.url || "/plugins-market.json" }
     };
     if (inst.state.market === undefined) inst.state.market = "";
+    if (inst.state.price === undefined) inst.state.price = "";
     root.__mktState = inst.state;
     root.__sbpMarket = inst;
     root.classList.add("mkt-grid");
@@ -5364,8 +6233,8 @@
   }
 
   window.SBP_MARKET = {
-    __v: 109,
-    version: "10.9.0",
+    __v: 110,
+    version: "10.10.0",
     mount: mount,
     update: update,
     normalize: normalize,
@@ -5497,7 +6366,8 @@
     showTab: function (tab) {
       var inst = adminInst() || INSTANCES[0] || null;
       if (!inst) return false;
-      inst.tab = (tab === "themes" || tab === "bundles" || (tab === "studio" && inst.mode === "admin")) ? tab : "plugins";
+      inst.tab = (tab === "themes" || tab === "bundles" ||
+                  ((tab === "studio" || tab === "licenses") && inst.mode === "admin")) ? tab : "plugins";
       if (inst.tab === "themes" || inst.tab === "bundles") loadCatalog(inst.tab, inst, false);
       paintTools(inst);
       render(inst);
@@ -5536,6 +6406,50 @@
     appliedTheme: function () {
       var raw = (window.CRAFT_CMS && window.CRAFT_CMS.contents) ? window.CRAFT_CMS.contents()["theme.tokens"] : null;
       return raw ? String(raw.value || "") : "";
+    },
+    /* v10.10 — 유료 · 라이선스 · 중앙 마켓 허브(시험·다른 화면에서 쓰는 표면) */
+    licenses: function () { return (LIC.rows || []).slice(); },
+    licensesLocal: licLocal,
+    licensesTableMissing: function () { return !!LIC.tableMissing; },
+    reloadLicenses: function () {
+      var inst = adminInst() || INSTANCES[0] || null;
+      if (!inst) return false;
+      loadLicenses(inst, true);
+      return true;
+    },
+    licenseState: function (id) {
+      var inst = adminInst() || INSTANCES[0] || null;
+      var p = inst ? byId(inst, id) : null;
+      return p ? licenseStateOf(inst, p) : null;
+    },
+    openLicense: function (id) {
+      var inst = adminInst() || INSTANCES[0] || null;
+      var p = inst ? byId(inst, id) : null;
+      if (!p) return false;
+      openLicense(inst, p, null);
+      return true;
+    },
+    verifyLicense: function (id, key) {
+      var inst = adminInst() || INSTANCES[0] || null;
+      var p = inst ? byId(inst, id) : null;
+      if (!p) return Promise.reject(new Error("no-plugin"));
+      return new Promise(function (resolve, reject) {
+        licVerify(inst, p, key, function (err, info) {
+          if (err) reject(new Error(err)); else resolve(info);
+        });
+      });
+    },
+    hubManifest: function () {
+      var inst = adminInst() || INSTANCES[0] || null;
+      return inst ? hubManifest(inst) : null;
+    },
+    hubJson: function () {
+      var inst = adminInst() || INSTANCES[0] || null;
+      return inst ? hubManifestText(inst) : "";
+    },
+    hubStats: function () {
+      var inst = adminInst() || INSTANCES[0] || null;
+      return inst ? hubStats(inst) : null;
     }
   };
 
