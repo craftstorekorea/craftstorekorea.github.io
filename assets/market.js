@@ -32,6 +32,9 @@
    LAZY_ROUTES), 관리자 화면은 플러그인 탭을 처음 열 때 admin.js 가 SBP.loadScript 로
    받아옵니다 — 300KB 첫 화면 예산을 지키기 위해서입니다.
 
+   v10.9 — 관리자 마켓에 「스튜디오」 서브탭. 이 탭을 처음 열 때만 assets/studio.js ·
+   assets/studio.css 를 따로 받아옵니다(노코드 플러그인 스튜디오 · 초안은 supabase/30_v109).
+
    보안: 화면에 넣는 모든 값은 esc() 로 이스케이프하고, 인라인 이벤트·eval 을 쓰지 않습니다(CSP).
    설치·제거 같은 쓰기는 이 파일이 하지 않습니다. 관리자 화면이 넘겨준 콜백에 맡깁니다. */
 (function () {
@@ -416,6 +419,8 @@
       tabPlugins: "플러그인",
       tabThemes: "테마 마켓",
       tabBundles: "업종별 번들 팩",
+      tabStudio: "스튜디오",
+      studioLoadFailed: "스튜디오 화면(assets/studio.js)을 불러오지 못했습니다. 새로고침해 주세요.",
       fIndustry: "업종",
       themesLead: "색·모서리·글꼴을 한 번에 바꾸는 테마입니다. 「미리보기」는 이 브라우저에만 잠시 보여 주고, 「테마 적용」은 관리자가 사이트 설정(테마 토큰)에 저장해 방문자 화면에도 바로 반영합니다.",
       bundlesLead: "업종별로 테마·플러그인·홈 블록 구성을 묶었습니다. 「번들 일괄 적용」에서 적용할 항목을 고르면 테마 저장과 플러그인 설치(권한 동의 포함), 홈 블록 프리셋 적용을 한 번에 합니다.",
@@ -837,6 +842,8 @@
       tabPlugins: "Plugins",
       tabThemes: "Theme market",
       tabBundles: "Bundle packs",
+      tabStudio: "Studio",
+      studioLoadFailed: "Could not load the studio (assets/studio.js). Please reload.",
       fIndustry: "Industry",
       themesLead: "Themes that change colours, corners and type at once. “Preview” shows them in this browser only; “Apply theme” saves them to the site's theme tokens so visitors see them too.",
       bundlesLead: "Industry packs that group a theme, plugins and a home block layout. In “Apply bundle” pick what to apply and the site saves the theme, installs the plugins (with permission consent) and applies the home block preset in one step.",
@@ -3913,7 +3920,9 @@
      · 번들 = 테마 + 플러그인 + hunmin 홈 블록 프리셋. 「번들 일괄 적용」은 항목을 골라
        테마 적용 · (v10.5 권한 동의를 거친) 플러그인 설치 · 홈 블록 프리셋 순서로 진행합니다.
      ============================================================================ */
-  var TABS = [["plugins", "tabPlugins"], ["themes", "tabThemes"], ["bundles", "tabBundles"]];
+  /* v10.9 — 「스튜디오」는 관리자 화면에만 있습니다(공개 마켓은 3탭). */
+  var TABS = [["plugins", "tabPlugins"], ["themes", "tabThemes"], ["bundles", "tabBundles"],
+              ["studio", "tabStudio", "admin"]];
   var CATALOG = {
     themes: { url: "/themes-market.json", items: null, industries: [], loading: false, error: "", tableMissing: false, inst: null, loaded: false },
     bundles: { url: "/bundles-market.json", items: null, industries: [], loading: false, error: "", tableMissing: false, inst: null, loaded: false }
@@ -4194,7 +4203,7 @@
     var lang = inst.lang;
     var cur = inst.tab || "plugins";
     return '<div class="mkt-tabs" role="tablist" aria-label="' + esc(tr(lang, "tabsAria")) + '">' +
-      TABS.map(function (t) {
+      TABS.filter(function (t) { return t[2] !== "admin" || inst.mode === "admin"; }).map(function (t) {
         var on = cur === t[0];
         return '<button type="button" role="tab" class="mkt-tab' + (on ? " is-on" : "") + '"' +
           ' aria-selected="' + (on ? "true" : "false") + '" data-mkt-tab="' + t[0] + '">' +
@@ -4645,8 +4654,8 @@
       var tab = e.target.closest("[data-mkt-tab]");
       if (tab) {
         var v = tab.getAttribute("data-mkt-tab");
-        inst2.tab = v === "themes" || v === "bundles" ? v : "plugins";
-        if (inst2.tab !== "plugins") loadCatalog(inst2.tab, inst2, false);
+        inst2.tab = (v === "themes" || v === "bundles" || (v === "studio" && inst2.mode === "admin")) ? v : "plugins";
+        if (inst2.tab === "themes" || inst2.tab === "bundles") loadCatalog(inst2.tab, inst2, false);
         paintTools(inst2);
         render(inst2);
         return;
@@ -4820,8 +4829,16 @@
     /* v10.8 — 서브탭(플러그인 · 테마 마켓 · 업종별 번들 팩) */
     var tab = inst.tab || "plugins";
     var body = tab === "themes" ? themeToolsHtml(inst)
-      : tab === "bundles" ? bundleToolsHtml(inst) : pluginBody;
+      : tab === "bundles" ? bundleToolsHtml(inst)
+      : tab === "studio" ? '<div class="studio-wrap" id="studio-host"></div>' : pluginBody;
     host.innerHTML = tabsHtml(inst) + body;
+    if (tab === "studio") {
+      /* v10.9 — studio.js·studio.css 는 이 탭에 처음 들어갈 때만 받아옵니다. */
+      tabsDelegation(host);
+      ensureStudio(inst);
+      setBusy(inst, false);
+      return;
+    }
     if (tab !== "plugins") {
       /* 테마·번들 탭은 카드만 그립니다(플러그인 검색·칩은 쓰지 않음). */
       if (typeof tabsDelegation === "function") tabsDelegation(host);
@@ -5006,6 +5023,7 @@
 
   function render(inst) {
     var tab = inst.tab || "plugins";
+    if (tab === "studio") { inst.root.innerHTML = ""; setBusy(inst, false); return; }
     if (tab === "themes") { renderThemes(inst); setBusy(inst, false); return; }
     if (tab === "bundles") { renderBundles(inst); setBusy(inst, false); return; }
     if (!inst.data) return;
@@ -5067,6 +5085,65 @@
     }
     return normalize({ name: opts.name || "SBPress", sbpress: opts.sbpress || "",
       categories: opts.categories || [], plugins: items }, url);
+  }
+
+  /* ---------------- v10.9 — 스튜디오 지연 로딩 ----------------
+     studio.js · studio.css 는 첫 화면에도, 마켓 탭 진입에도 넣지 않습니다.
+     관리자가 「스튜디오」 탭을 처음 열 때 이 함수가 한 번만 받아옵니다. */
+  var STUDIO_PROMISE = null;
+
+  function ensureStudioStyles() {
+    if (document.getElementById("studio-style")) return;
+    var l = document.createElement("link");
+    l.id = "studio-style";
+    l.rel = "stylesheet";
+    l.href = "assets/studio.css";
+    document.head.appendChild(l);
+  }
+
+  function mountStudio(inst) {
+    if (!window.SBP_STUDIO || !inst || !inst.tools) return;
+    var host = inst.tools.querySelector("#studio-host");
+    if (!host) return;
+    try {
+      window.SBP_STUDIO.mount(host, {
+        lang: inst.lang,
+        onInstalled: function () {
+          try { if (typeof inst.onRefresh === "function") inst.onRefresh(); } catch (e) { /* noop */ }
+        }
+      });
+    } catch (e) {
+      host.innerHTML = '<p class="mkt-note mkt-error">' + esc(String(e && e.message ? e.message : e)) + "</p>";
+    }
+  }
+
+  function ensureStudio(inst) {
+    ensureStudioStyles();
+    if (window.SBP_STUDIO) { mountStudio(inst); return Promise.resolve(window.SBP_STUDIO); }
+    if (!STUDIO_PROMISE) {
+      STUDIO_PROMISE = new Promise(function (resolve) {
+        var done = false;
+        function finish() {
+          if (done) return;
+          done = true;
+          resolve(window.SBP_STUDIO || null);
+        }
+        try {
+          if (window.SBP && window.SBP.loadScript) window.SBP.loadScript("assets/studio.js").then(finish, finish);
+          else finish();
+        } catch (e) { finish(); }
+        setTimeout(finish, 8000);
+      });
+    }
+    return STUDIO_PROMISE.then(function (S) {
+      if (S) mountStudio(inst);
+      else if (inst && inst.tools) {
+        var host = inst.tools.querySelector("#studio-host");
+        if (host) host.innerHTML = '<p class="mkt-note mkt-error">' +
+          esc(tr(inst.lang, "studioLoadFailed")) + "</p>";
+      }
+      return S;
+    });
   }
 
   function mount(opts) {
@@ -5287,8 +5364,8 @@
   }
 
   window.SBP_MARKET = {
-    __v: 108,
-    version: "10.8.0",
+    __v: 109,
+    version: "10.9.0",
     mount: mount,
     update: update,
     normalize: normalize,
@@ -5420,8 +5497,8 @@
     showTab: function (tab) {
       var inst = adminInst() || INSTANCES[0] || null;
       if (!inst) return false;
-      inst.tab = tab === "themes" || tab === "bundles" ? tab : "plugins";
-      if (inst.tab !== "plugins") loadCatalog(inst.tab, inst, false);
+      inst.tab = (tab === "themes" || tab === "bundles" || (tab === "studio" && inst.mode === "admin")) ? tab : "plugins";
+      if (inst.tab === "themes" || inst.tab === "bundles") loadCatalog(inst.tab, inst, false);
       paintTools(inst);
       render(inst);
       return true;

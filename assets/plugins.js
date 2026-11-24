@@ -1,13 +1,7 @@
 /* ===== SBPress 플러그인 엔진 (assets/plugins.js) — API 문서: README.md
-   플러그인: SBPress.registerPlugin({id, name, version, setup(ctx)})
-   훅: decorateCard · addWidget · addMenuItem · addAdminTab · addCss · addBlock (v10.4)
-   설정: ctx.getSettings() · ctx.onSettingsChange(fn)  (v10.2)
-   버전: 관리자 화면의 원클릭 업데이트 · 이전 버전 롤백 (v10.3, supabase/24_v103)
-   블록: ctx.addBlock({id, name_ko, fields, defaultData, render}) → hunmin 블록 (v10.4)
-   마켓: 관리자의 구독 마켓 여러 곳을 합쳐 보여 줍니다 (v10.4, supabase/25_v104)
-   무결성: 행의 integrity(sha256-…)로 받은 파일 바이트를 다시 해시해 비교하고, 다르면 실행을 막습니다 (v10.5)
-   샌드박스: 매니페스트에 선언·동의된 권한 밖의 훅 호출을 막고 state.notices 에 남깁니다 (v10.5, supabase/26_v105)
-   목록: public.plugins_public 뷰(예전 DB 는 public.plugins) · 의존: auth-config.js */
+   registerPlugin({id, name, version, setup(ctx)}) · 훅 decorateCard·addWidget·addMenuItem·addAdminTab·addCss·addBlock
+   설정 getSettings·onSettingsChange(v10.2) · 업데이트·롤백(v10.3) · 마켓(v10.4) · 무결성·샌드박스(v10.5)
+   스튜디오 인라인 코드(v10.9) · 목록 public.plugins_public(예전 DB 는 public.plugins) · 의존 auth-config.js */
 (function () {
   "use strict";
   if (window.SBPress && window.SBPress.__engine) return;
@@ -85,6 +79,17 @@
     if (/^https:\/\//i.test(s)) return s;
     if (s.charAt(0) === "/" && s.charAt(1) !== "/") return s;      // 사이트 안 경로
     return "";
+  }
+
+  /* v10.9 — 스튜디오 인라인 코드: script_url="inline:base64:…" — 정적 검사 후 SHA-256 대조·실행 */
+  function inlineBuf(raw) {
+    var s = String(raw == null ? "" : raw).trim();
+    if (s.indexOf("inline:base64:") !== 0) return null;
+    try {
+      var b = atob(s.slice(14)), o = new Uint8Array(b.length), i;
+      for (i = 0; i < b.length; i++) o[i] = b.charCodeAt(i);
+      return o;
+    } catch (e) { return null; }
   }
 
   function scanSource(text) {
@@ -859,6 +864,12 @@
         resolve();
         return;
       }
+      if (String(row.script_url || "").trim().indexOf("inline:") === 0) {
+        var buf = inlineBuf(row.script_url);
+        if (!buf) { state.skipped[row.id] = "inline-broken"; fail(row.id, "스튜디오 인라인 코드를 읽지 못했습니다(형식 오류)."); resolve(); return; }
+        loadInline(row, buf, resolve);
+        return;
+      }
       var safe = safeScriptUrl(row.script_url);
       if (!safe) {
         state.skipped[row.id] = "insecure-url";
@@ -900,6 +911,36 @@
         injectScript(row, src, resolve);
       });
     });
+  }
+
+  /* v10.9 — 인라인 코드: 정적 검사 → SHA-256 대조 → <script> 실행(등록은 동기). */
+  function loadInline(row, buf, resolve) {
+    var code = bytesToText(buf), scan = scanSource(code), want = String(row.integrity || "").trim();
+    var st = { state: "none", expected: want, computed: "", checkedAt: new Date().toISOString(), reason: "" };
+    state.integrity[row.id] = st;
+    function run() {
+      var s = document.createElement("script");
+      s.setAttribute("data-sbp-script", row.id);
+      s.text = code;
+      try { document.head.appendChild(s); } catch (e) { fail(row.id, "인라인 코드를 실행하지 못했습니다: " + e.message); resolve(); return; }
+      setTimeout(function () {
+        if (!state.defs[row.id] && !state.failed[row.id]) fail(row.id, "스튜디오 코드가 SBPress.register 를 호출하지 않았습니다.");
+        resolve();
+      }, 0);
+    }
+    if (!scan.ok) { state.skipped[row.id] = "unsafe-code"; fail(row.id, "위험한 코드: " + scan.reasons.join(", ")); resolve(); return; }
+    if (!sriOk(want)) { run(); return; }
+    sha256Base64(buf).then(function (c) {
+      st.computed = c || "";
+      if (!c) { st.state = "unchecked"; run(); return; }
+      state.security.checked += 1;
+      if (sriTokens(want).indexOf(c) >= 0) { st.state = "ok"; run(); return; }
+      st.state = "bad"; st.reason = "mismatch"; state.security.bad += 1;
+      state.skipped[row.id] = "integrity";
+      fail(row.id, "무결성 검사에 실패해 실행하지 않았습니다: " + row.id);
+      try { paintSecurityAlert(); } catch (e) { /* noop */ }
+      resolve();
+    }, function () { st.state = "unchecked"; run(); });
   }
 
   function injectScript(row, src, resolve) {

@@ -1,7 +1,5 @@
 /* ===== SBPress v6.0 · PWA (assets/pwa.js) — 설치 · 오프라인 · 최근 본 글 =====
-   · sw.js 등록(정적 캐시·콘텐츠 네트워크 우선·/admin 제외)
-   · 오프라인 배너 → 최근 본 글(#/offline) · beforeinstallprompt → [설치]
-   최근 본 글은 app.js 가 localStorage('sbpress-recent-posts')에 남깁니다. */
+   sw.js 등록 · 오프라인 배너(#/offline) · beforeinstallprompt → [설치] · 최근 본 글은 app.js 가 남깁니다 */
 (function () {
   "use strict";
 

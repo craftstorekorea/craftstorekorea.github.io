@@ -2,7 +2,7 @@
   "name": "SBPress 테마 마켓",
   "manifest": 1,
   "schema": 1,
-  "sbpress": "10.8",
+  "sbpress": "10.9",
   "description": "SBPress 사이트의 색·모서리·글꼴을 한 번에 바꾸는 테마 프리셋입니다. 토큰(CSS 변수)만 담아 CSS 를 직접 넣지 않으므로 안전하고, 관리자는 「테마 적용」으로 site_contents 의 테마 토큰에 저장해 사이트에 바로 반영합니다. v10.8 부터 테마 마켓과 업종별 번들 팩을 함께 제공합니다.",
   "description_en": "Theme presets that change a SBPress site's colours, corners and type in one step. They carry tokens (CSS variables) only — no raw CSS — and an admin applies one to the site's theme tokens in site_contents. v10.8 adds the theme market and industry bundle packs.",
   "updated": "2026-11-25",

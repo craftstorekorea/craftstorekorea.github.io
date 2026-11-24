@@ -2,7 +2,7 @@
   "name": "SBPress 업종별 번들 팩",
   "manifest": 1,
   "schema": 1,
-  "sbpress": "10.8",
+  "sbpress": "10.9",
   "description": "업종별로 테마·플러그인·홈 블록 구성을 묶은 번들 팩입니다. 관리자가 「번들 일괄 적용」에서 적용할 항목(테마·플러그인·홈 블록 프리셋)을 골라 한 번에 설치·적용합니다. 플러그인은 v10.5 권한 동의를 거쳐 설치되고, 적용 결과는 29_v108 SQL 을 실행한 DB 에서는 audit_logs(bundle_apply)에 남습니다.",
   "description_en": "Bundle packs that group a theme, plugins and a home block layout by industry. In “Apply bundle” an admin picks what to apply (theme, plugins, home block preset) and the site installs and applies them at once. Plugins go through the v10.5 permission consent, and the result is recorded in audit_logs(bundle_apply) when 29_v108 is installed.",
   "updated": "2026-11-25",

@@ -1,6 +1,6 @@
 {
-  "version": "10.8",
-  "generatedAt": "2026-11-25T06:02:12+09:00",
+  "version": "10.9",
+  "generatedAt": "2026-11-25T06:48:51+09:00",
   "limits": {
     "budgetBytes": 307200,
     "budgetLabel": "300 KB",
@@ -10,7 +10,7 @@
   },
   "after": {
     "index": "index.html",
-    "totalBytes": 257938,
+    "totalBytes": 258278,
     "resources": [
       {
         "kind": "html",
@@ -106,15 +106,15 @@
       {
         "kind": "js",
         "path": "assets/plugins.js",
-        "rawBytes": 52295,
-        "bytes": 15107,
+        "rawBytes": 54248,
+        "bytes": 15524,
         "counted": true
       },
       {
         "kind": "js",
         "path": "assets/pwa.js",
-        "rawBytes": 5435,
-        "bytes": 1913,
+        "rawBytes": 5308,
+        "bytes": 1836,
         "counted": true
       }
     ],
@@ -324,21 +324,21 @@
       }
     ]
   },
-  "reductionPercent": 30.1,
+  "reductionPercent": 30.0,
   "monthly": {
     "pvPerMonth": 30000,
     "assumedFirstLoads": 1.0,
     "extraPageViews": 2.5,
     "extraPageBytes": 30720,
-    "bytesPerMonth": 10042140000.0,
-    "gbPerMonth": 9.35,
-    "percentOfCap": 9.35,
+    "bytesPerMonth": 10052340000.0,
+    "gbPerMonth": 9.36,
+    "percentOfCap": 9.36,
     "roomGbPerMonth": 100.0
   },
   "gate": {
     "ok": true,
     "budgetBytes": 307200,
-    "usedPercent": 84.0
+    "usedPercent": 84.1
   },
   "note": "텍스트는 gzip -9(= GitHub Pages 전송량), 이미지·폰트는 원본 크기. 첫 방문 1회 기준."
 }

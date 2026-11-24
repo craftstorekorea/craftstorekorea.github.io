@@ -1,0 +1,131 @@
+/* ============================================================================
+   SBPress v10.9 · 노코드 플러그인 스튜디오 (assets/studio.css)
+   관리자 > 플러그인 · 마켓 > 「스튜디오」에서만 씁니다. studio.js 가 이 화면에 들어갈 때
+   <link> 로 한 번만 받아옵니다(첫 화면 300KB 예산). 색·모서리는 사이트 테마 변수를 씁니다.
+   ============================================================================ */
+.studio{display:grid;gap:16px;margin:10px 0 4px}
+.studio-head{display:grid;gap:6px;padding:16px 18px;border:1px solid var(--line);border-radius:16px;
+  background:linear-gradient(180deg,var(--card),var(--card) 60%,rgba(0,0,0,.02))}
+.studio-eyebrow{margin:0;font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.studio-head h2{margin:0;font-size:1.18rem}
+.studio-lead{margin:0;max-width:60rem;color:var(--ink-2);font-size:.9rem;line-height:1.75}
+.studio-sec{padding:16px 18px;border:1px solid var(--line);border-radius:16px;background:var(--card)}
+.studio-sec h3{margin:0 0 4px;font-size:.98rem}
+.studio-hint{margin:0 0 10px;font-size:.8rem;color:var(--ink-3);line-height:1.6}
+em.studio-hint{margin:4px 0 0;font-style:normal;display:block;font-size:.72rem;color:var(--ink-3)}
+
+/* ---------- 프리셋 ---------- */
+.studio-presets{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.studio-preset{display:grid;gap:4px;text-align:left;padding:13px 14px;border:1px solid var(--line);
+  border-radius:14px;background:var(--bg-2,var(--card));color:var(--ink);cursor:pointer;font:inherit;
+  transition:transform .14s ease,border-color .14s ease,box-shadow .14s ease}
+.studio-preset:hover{transform:translateY(-2px);border-color:var(--line-2);box-shadow:0 14px 24px -20px rgba(62,47,38,.55)}
+.studio-preset.is-on{border-color:var(--accent);box-shadow:0 0 0 2px rgba(200,109,68,.18)}
+.studio-preset-icon{font-size:1.1rem;line-height:1}
+.studio-preset-name{font-weight:800;font-size:.9rem}
+.studio-preset-hook{font-size:.7rem;font-weight:700;color:var(--accent-dark,var(--accent))}
+.studio-preset-note{font-size:.76rem;color:var(--ink-3);line-height:1.5}
+
+/* ---------- 폼 ---------- */
+.studio-form{display:grid;gap:12px}
+.studio-grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.studio-field{display:grid;gap:5px;font-size:.78rem;font-weight:700;color:var(--ink-2);min-width:0}
+.studio-field.is-wide{grid-column:1 / -1}
+.studio-field .admin-input,.studio-field select,.studio-field textarea{width:100%;min-width:0;font-weight:400;font-size:.86rem}
+.studio-field textarea{resize:vertical;line-height:1.6}
+.studio-colors{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;grid-column:1 / -1}
+.studio-colors .studio-field{grid-template-columns:auto 1fr;align-items:center;gap:8px}
+.studio-colors .studio-field > span{grid-column:1 / -1}
+.studio-color{width:38px;height:34px;padding:2px;border:1px solid var(--line);border-radius:9px;background:var(--card);cursor:pointer}
+.studio-hex{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.02em}
+.studio-perms{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-top:4px;border-top:1px dashed var(--line)}
+.studio-perms-label{font-size:.74rem;font-weight:800;color:var(--ink-3)}
+.studio-perm{padding:3px 8px;border:1px solid var(--line);border-radius:999px;background:var(--bg-2,var(--card));
+  font-size:.72rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.studio-problems{margin:0;padding:10px 12px 10px 28px;border:1px solid rgba(176,74,52,.35);border-radius:12px;
+  background:rgba(176,74,52,.06);color:var(--accent-dark,#8d3a26);font-size:.79rem;line-height:1.6}
+.studio-problems b{display:block}
+
+/* ---------- 작업 공간 ---------- */
+.studio-workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:16px}
+.studio-pane{min-width:0}
+.studio-pv-wrap{padding:14px;border:1px dashed var(--line);border-radius:12px;background:var(--bg-2,var(--bg))}
+.studio-pv{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:14px 16px;border-radius:12px;
+  font-size:.88rem;line-height:1.6;background:#FFF4E6;color:#3E2F26}
+.studio-pv strong{flex:1 1 200px}
+.studio-pv-body{margin:0;flex:1 1 240px;font-size:.82rem;color:#7a6f66}
+.studio-pv-btn{display:inline-block;padding:7px 14px;border-radius:999px;color:#fff;font-size:.8rem;font-weight:800}
+.studio-pv-card{display:grid;gap:8px;align-content:start;background:var(--card)}
+.studio-pv-line{height:9px;width:82%;border-radius:999px;background:var(--line-2,rgba(62,47,38,.14))}
+.studio-pv-line.short{width:52%}
+.studio-pv-badge{display:inline-block;justify-self:start;padding:2px 9px;border-radius:999px;border:1px solid;
+  font-size:11.5px;font-weight:800}
+.studio-pv-menu{background:var(--card);gap:18px}
+.studio-pv-nav{font-weight:800;font-size:.86rem;padding-bottom:2px;border-bottom:2px solid var(--accent)}
+.studio-pv-nav.muted{font-weight:600;color:var(--ink-3);border-bottom-color:transparent}
+.studio-code{margin:8px 0 0;padding:12px 14px;max-height:340px;overflow:auto;border:1px solid var(--line);
+  border-radius:12px;background:#22201d;color:#f2ece4;font:12px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;
+  white-space:pre;tab-size:2}
+.studio-hash{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0;padding:8px 10px;
+  border:1px solid var(--line);border-radius:10px;background:var(--bg-2,var(--card));font-size:.74rem}
+.studio-hash.is-none{color:var(--ink-3);font-size:.78rem;border-style:dashed;background:transparent}
+.studio-hash-label{font-weight:800;letter-spacing:.04em;color:var(--ink-3)}
+.studio-hash code{font:11.5px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;color:var(--ink)}
+.studio-hash-sri{font:11px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink-3);word-break:break-all}
+.studio-scan{margin:6px 0;font-size:.78rem;line-height:1.5;padding:8px 10px;border-radius:10px;border:1px solid var(--line)}
+.studio-scan.is-ok{border-color:rgba(47,122,77,.35);background:rgba(47,122,77,.07);color:#2f6b46}
+.studio-scan.is-bad{border-color:rgba(176,74,52,.4);background:rgba(176,74,52,.07);color:#8d3a26}
+.studio-scan.is-none{color:var(--ink-3);border-style:dashed}
+
+/* ---------- 동작 ---------- */
+.studio-actions{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 8px}
+.studio-note{margin:0;font-size:.78rem;color:var(--ink-3);line-height:1.6}
+.studio-flash{margin:8px 0 0;font-size:.82rem;font-weight:700;min-height:1.2em}
+.studio-flash.ok{color:#2f6b46}
+.studio-flash.err{color:#8d3a26}
+.studio-drafts-head{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;justify-content:space-between}
+.studio-source{font-size:.72rem;font-weight:700;color:var(--ink-3)}
+.studio-drafts{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}
+.studio-draft{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;
+  padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg-2,var(--card))}
+.studio-draft.is-on{border-color:var(--accent)}
+.studio-draft-name{font-weight:800;font-size:.86rem}
+.studio-draft-name em{font-style:normal;font-weight:600;color:var(--ink-3);font-size:.74rem}
+.studio-draft-meta{grid-column:1;font-size:.74rem;color:var(--ink-3);word-break:break-all}
+.studio-draft-actions{grid-row:1 / span 2;grid-column:2;display:flex;gap:6px;flex-wrap:wrap}
+
+/* ---------- 동의 모달 ---------- */
+.studio-modal{position:fixed;inset:0;z-index:1200;display:flex;align-items:center;justify-content:center;padding:18px}
+.studio-modal[hidden]{display:none}
+.studio-modal-backdrop{position:absolute;inset:0;background:rgba(30,24,20,.55)}
+.studio-modal-card{position:relative;width:min(560px,100%);max-height:88vh;overflow:auto;display:flex;flex-direction:column;
+  border-radius:18px;background:var(--card);border:1px solid var(--line);box-shadow:0 40px 80px -40px rgba(0,0,0,.6)}
+.studio-modal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 18px 8px}
+.studio-modal-head h2{margin:0;font-size:1.02rem}
+.studio-modal-x{border:0;background:transparent;font-size:1.3rem;line-height:1;color:var(--ink-3);cursor:pointer;padding:4px 8px;border-radius:8px}
+.studio-modal-x:hover{background:var(--bg-2,var(--bg));color:var(--ink)}
+.studio-modal-body{padding:4px 18px 12px;display:grid;gap:10px}
+.studio-modal-body h3{margin:0;font-size:.86rem}
+.studio-consent-lead{margin:0;font-size:.86rem;line-height:1.7;color:var(--ink-2)}
+.studio-perm-list{margin:0;padding-left:18px;display:grid;gap:6px;font-size:.8rem;line-height:1.6;color:var(--ink-2)}
+.studio-perm-list code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.74rem;color:var(--accent-dark,var(--accent))}
+.studio-facts{margin:0;display:grid;gap:6px;font-size:.78rem}
+.studio-facts div{display:grid;gap:2px}
+.studio-facts dt{font-weight:800;color:var(--ink-3);font-size:.72rem}
+.studio-facts dd{margin:0;word-break:break-all}
+.studio-facts code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.72rem}
+.studio-modal-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px 16px;border-top:1px solid var(--line)}
+html.studio-modal-open{overflow:hidden}
+
+/* ---------- 좁은 화면 ---------- */
+@media (max-width:900px){
+  .studio-workspace{grid-template-columns:1fr}
+  .studio-grid2,.studio-colors{grid-template-columns:1fr}
+  .studio-presets{grid-template-columns:1fr 1fr}
+}
+@media (max-width:560px){
+  .studio-presets{grid-template-columns:1fr}
+  .studio-sec{padding:14px}
+  .studio-draft{grid-template-columns:1fr}
+  .studio-draft-actions{grid-row:auto;grid-column:1}
+}
