@@ -26,7 +26,7 @@ from datetime import datetime, timedelta, timezone
 HERE = os.path.dirname(os.path.abspath(__file__))
 SITE = os.path.dirname(HERE) if os.path.basename(HERE) == "scripts" else HERE
 
-VERSION = "10.2"
+VERSION = "10.3"
 KST = timezone(timedelta(hours=9))
 BUDGET_BYTES = 300 * 1024                # 로드맵 8단계 — 첫 화면 300KB 이하
 MONTHLY_CAP_BYTES = 100 * 1024 ** 3      # GitHub Pages 월 100GB soft 한도

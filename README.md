@@ -270,9 +270,31 @@ scripts/build_static_seo.py | build_feeds.py | check_repo_budget.py | measure_tr
 - **대댓글(답글)**: 댓글의 `답글` 을 누르면 부모 댓글 아래에 들여쓰기로 달립니다(`comments.parent_id`).
   회원과 비회원(캡차) 모두 쓸 수 있고 **한 단계**만 허용합니다(답글에 다시 답글 금지 — 서버 트리거가 거부).
 - 설정·검증 기록: `../supabase/07_cms.md` · `../supabase/08_grades_lang_tasks.md` · `../supabase/09_plugins_market.md` · `../supabase/10_v12_editor_community.md`, DB 파일 `../supabase/03_cms_comments.sql` · `../supabase/04_header_footer_head.sql` · `../supabase/05_cms_plus.sql` · `../supabase/06_pages_boards_captcha.sql` · `../supabase/07_grades_lang_tasks.sql` · `../supabase/08_themes_hunmin_trash_revisions.sql` · `../supabase/10_v12_editor_community.sql`,
-  테스트 `cd .. && CMS_TEST_MODE=user|admin|brand|plus|v2|v3|v3admin|v4|plugins|v6|v7|v8|v9|v10|v101 python3 cms_test.py`,
+  테스트 `cd .. && CMS_TEST_MODE=user|admin|brand|plus|v2|v3|v3admin|v4|plugins|v6|v7|v8|v9|v10|v101|v102|v103 python3 cms_test.py`,
   정적 SEO `cd .. && python3 build_static_seo.py` (검사 `--check`, 비우기 `--clean`),
   서버 검증 `cd ../supabase && SUPABASE_MGMT_TOKEN=… python3 06_check.py` · `07_check.py` · `08_check.py` · `09_check.py` · `10_check.py`.
+
+## v10.3 기능 (플러그인 마켓 3단계 — 원클릭 업데이트 · 버전 비교 · 롤백)
+
+- **버전 비교** — 설치된 버전과 마켓 최신 버전을 숫자 세 칸(`1.2.0 > 1.1.0`)으로 견줍니다.
+  업데이트가 필요하면 카드·설치 목록에 **「업데이트 가능 (vX → vY)」** 배지가 붙고,
+  상단에 **「업데이트 가능 N개 · 전체 업데이트」** 바가 뜹니다(버전을 고정한 플러그인은 빠집니다).
+- **원클릭 업데이트** — 카드·상세 모달의 **업데이트** 버튼(또는 전체 업데이트)을 누르면
+  설치와 같은 코드 검사(주소·`eval`·`registerPlugin`)를 거쳐 버전·스크립트·매니페스트·설정 스키마를 바꿉니다.
+  상세 모달에는 **이번 업데이트의 변경 이력**(설치된 버전 이후 변경만)이 함께 보입니다.
+- **롤백** — 업데이트 전 상태(버전·스크립트·매니페스트·설정 스키마·설정 값)를 스냅샷으로 보관하고(최근 5개),
+  **「이전 버전으로 되돌리기」** 버튼 → 확인 UI(`v현재 → v이전`)를 거쳐 직전 버전으로 돌아갑니다.
+  설치 목록에도 `롤백 v1.0.0` 표시와 되돌리기 버튼이 있습니다.
+- **DB** `supabase/24_v103_plugin_versions.sql` — `public.plugins` 에 `previous_version`·`previous_script_url`·
+  `previous_manifest`·`previous_settings_schema`·`version_history`(최근 5개 JSON 배열)를 멱등 추가하고,
+  관리자 전용 RPC `plugin_update_from_market(...)` · `plugin_rollback(p_id)` 를 만듭니다.
+  두 RPC 는 `audit_logs` 에 `plugin_update` / `plugin_rollback` 을 남기고 anon 은 실행할 수 없습니다.
+- **SQL 미실행 폴백** — 함수가 없으면 표를 직접 갱신(이력은 화면이 만듬), 그 열도 없으면 보관 없이 갱신하며
+  화면이 24_v103 SQL 실행을 안내합니다. 어느 쪽이든 콘솔·CSP 오류 없이 동작합니다.
+- **첫 화면 여유 확보** — `share.js`(글 공유)와 `notify.js`(알림함)를 첫 화면에서 빼고,
+  글 화면(`#/post`)·로그인한 사람(·`#/mypage`)에게 필요할 때 받습니다. 첫 화면은 **251,304 B**
+  (300KB 예산의 81.8% · v5.1 대비 **31.9% 감소**)로 30% 감축선 아래에 7KB 여유가 생겼습니다.
+- 테스트 `cd .. && CMS_TEST_MODE=v103 python3 cms_test.py` (v103 130개 + 회귀 v102·v101·v100·v90·v80·v70·v60).
 
 ## v10.2 기능 (플러그인별 설정 UI · 영구 저장)
 

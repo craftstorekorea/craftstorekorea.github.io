@@ -1450,7 +1450,30 @@
   "설정 화면을 불러오지 못했습니다. 새로고침해 주세요.": "Could not load the settings screen. Please reload.",
   "플러그인 마켓을 먼저 불러와야 설정을 열 수 있습니다.": "Load the plugin market first to open settings.",
   "설정할 수 있는 항목 수": "Number of settings you can change",
-  "꺼진 플러그인은 켜야 사이트에 적용됩니다.": "A plugin that is off is applied to the site only after you turn it on."
+  "꺼진 플러그인은 켜야 사이트에 적용됩니다.": "A plugin that is off is applied to the site only after you turn it on.",
+  "업데이트": "Update",
+  "업데이트하는 중…": "Updating…",
+  "업데이트 가능": "Update available",
+  "업데이트하려면 고정 해제": "Unpin to update",
+  "업데이트하려면 고정을 풀어 주세요.": "Unpin the version to update.",
+  "설치된 버전과 마켓 최신 버전": "Installed version against the latest market version",
+  "이전 버전으로 되돌릴 수 있습니다.": "You can roll back to the previous version.",
+  "이전 버전으로 되돌리기": "Roll back to previous version",
+  "이전 버전으로 되돌리기(롤백)": "Roll back to the previous version",
+  "버전 이력": "Version history",
+  "되돌릴 이전 버전이 없습니다.": "There is no earlier version to roll back to.",
+  "되돌릴 이전 버전이 없습니다: ": "No earlier version to roll back: ",
+  "플러그인을 찾지 못했습니다: ": "Could not find the plugin: ",
+  "이전 버전 보관은 24_v103 SQL 을 실행하면 켜집니다": "Earlier-version snapshots turn on once 24_v103 SQL is run",
+  "이전 버전을 보관하지 않는 DB 입니다. Supabase 에 supabase/24_v103_plugin_versions.sql 을 실행한 뒤 다시 시도해 주세요.": "This database keeps no earlier versions. Run supabase/24_v103_plugin_versions.sql in Supabase, then try again.",
+  " 사이트를 새로고침하면 반영됩니다.": " Reload the site to see it.",
+  "버전 번호가 올바르지 않습니다: ": "Invalid version number: ",
+  "스크립트 주소는 https:// 또는 / 로 시작해야 합니다: ": "The script URL must start with https:// or /: ",
+  "마켓에 더 새 버전이 없습니다.": "The market has no newer version.",
+  "고정을 풀고 다시 시도해 주세요.": "Unpin it and try again.",
+  "플러그인 마켓을 먼저 불러와야 이전 버전으로 되돌릴 수 있습니다.": "Load the plugin market first to roll back.",
+  "업데이트하지 못했습니다: ": "Could not update: ",
+  "되돌리지 못했습니다: ": "Could not roll back: "
 };
   var RULES = ([
   [
@@ -2168,6 +2191,30 @@
   [
     "^설정 (\\d+)$",
     "\\1 settings"
+  ],
+  [
+    "^업데이트 가능 \\(v(.+?) → v(.+?)\\)$",
+    "Update available (v\\1 → v\\2)"
+  ],
+  [
+    "^롤백 v(.+)$",
+    "Rollback: v\\1"
+  ],
+  [
+    "^‘(.+?)’ 을 v(.+?) 에서 v(.+?) 으로 업데이트했습니다\\.( \\(이전 버전 보관은 24_v103 SQL 을 실행하면 켜집니다\\))? 사이트를 새로고침하면 반영됩니다\\.$",
+    "Updated “\\1” from v\\2 to v\\3. Reload the site to see it."
+  ],
+  [
+    "^‘(.+?)’ 을 v(.+?) 에서 v(.+?) 로 되돌렸습니다\\. 사이트를 새로고침하면 반영됩니다\\.$",
+    "Rolled “\\1” back to v\\3. Reload the site to see it."
+  ],
+  [
+    "^‘(.+?)’ 은 이미 v(.+?) 입니다\\. 마켓에 더 새 버전이 없습니다\\.$",
+    "“\\1” is already v\\2 — the market has no newer version."
+  ],
+  [
+    "^‘(.+?)’ 은 v(.+?) 으로 고정되어 있습니다\\. 고정을 풀고 다시 시도해 주세요\\.$",
+    "“\\1” is pinned to v\\2. Unpin it and try again."
   ]
 ]).map(function (r) {
     /* 파이썬 쪽 규칙은 \1 로 그룹을 가리킵니다 — JS replace 는 $1 을 씁니다. */

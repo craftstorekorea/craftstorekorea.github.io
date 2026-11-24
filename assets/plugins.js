@@ -2,6 +2,7 @@
    플러그인: SBPress.registerPlugin({id, name, version, setup(ctx)})
    훅: decorateCard · addWidget · addMenuItem · addAdminTab · addCss
    설정: ctx.getSettings() · ctx.onSettingsChange(fn)  (v10.2)
+   버전: 관리자 화면의 원클릭 업데이트 · 이전 버전 롤백 (v10.3, supabase/24_v103)
    목록: public.plugins_public 뷰(예전 DB 는 public.plugins) · 의존: auth-config.js */
 (function () {
   "use strict";
@@ -668,9 +669,10 @@
   /* ---------------- 공개 API ---------------- */
   var SBPress = {
     __engine: true,
-    version: "10.2.0",          // SBPress 엔진(사이트) 버전 — v10.2 부터 같은 번호를 씁니다.
+    version: "10.3.0",          // SBPress 엔진(사이트) 버전 — v10.2 부터 같은 번호를 씁니다.
     api: 2,                     // 플러그인이 기대는 엔진 API 판
     settingsApi: 1,             // getSettings · onSettingsChange · applySettings 가 있는 판
+    versionsApi: 1,             // v10.3 — 원클릭 업데이트 · 버전 비교 · 롤백이 있는 판
     getSettings: function (id) { return mergedSettings(String(id || "")); },
     applySettings: function (id, settings, opts) {
       var pid = String(id || "");

@@ -4646,6 +4646,49 @@
     return null;
   }
 
+  /* v10.3 — 버전 비교(1.2.0 > 1.1.0). 같으면 0, 앞이 크면 1, 뒤가 크면 -1. */
+  function plugCmpVer(a, b) {
+    function parts(v) {
+      var out = [];
+      String(v == null ? "" : v).replace(/^v/i, "").split(".").forEach(function (x) {
+        var n = parseInt(String(x).replace(/[^0-9].*$/, ""), 10);
+        out.push(isFinite(n) ? n : 0);
+      });
+      while (out.length < 3) out.push(0);
+      return out;
+    }
+    var x = parts(a), y = parts(b);
+    for (var i = 0; i < Math.max(x.length, y.length); i++) {
+      if ((x[i] || 0) > (y[i] || 0)) return 1;
+      if ((x[i] || 0) < (y[i] || 0)) return -1;
+    }
+    return 0;
+  }
+
+  /* 설치본의 지금 상태를 스냅샷으로 — 24_v103 SQL 이 없는 DB 에서 직접 갱신할 때
+     서버 함수 plugin_version_snapshot 과 같은 칸을 만듭니다. */
+  function pluginSnapshot(p) {
+    return {
+      version: String((p && p.version) || ""),
+      script_url: String((p && p.script_url) || ""),
+      manifest: (p && p.manifest && typeof p.manifest === "object") ? p.manifest : {},
+      settings_schema: (p && Array.isArray(p.settings_schema)) ? p.settings_schema : [],
+      settings: (p && p.settings && typeof p.settings === "object") ? p.settings : {},
+      at: new Date().toISOString()
+    };
+  }
+
+  function pluginHistory(p) {
+    return (p && Array.isArray(p.version_history)) ? p.version_history.slice(0, 5) : [];
+  }
+
+  function versionColumnsMissing(err) {
+    var code = String((err && err.code) || "");
+    var msg = String((err && err.message) || "");
+    return code === "42703" || code === "PGRST204"
+      || /previous_version|previous_script_url|previous_manifest|previous_settings_schema|version_history/i.test(msg);
+  }
+
   function loadPlugins(force) {
     var body = $("#plugin-table tbody");
     if (!sb || !body) return Promise.resolve();
@@ -4689,9 +4732,10 @@
       var hooks = Array.isArray(man.hooks) ? man.hooks : [];
       var perms = Array.isArray(man.permissions) ? man.permissions : [];
       var item = marketItem(p.id);
-      var newer = !!(item && item.version && String(item.version) !== String(p.version || ""));
+      var newer = !!(item && item.version && plugCmpVer(item.version, p.version || "") > 0);
       var pinned = !!p.pinned_version;
       var schema = pluginSchema(p);
+      var prevVer = p.previous_version || (pluginHistory(p)[0] && pluginHistory(p)[0].version) || "";
       return "<tr data-id=\"" + esc(p.id) + "\">" +
         '<td data-th="상태"><label class="plug-switch"><input type="checkbox" data-plug-toggle="' + esc(p.id) + '"' +
           (p.enabled ? " checked" : "") + ' aria-label="' + esc(p.name) + ' 켜기"><span class="plug-slider"></span><em>' +
@@ -4705,7 +4749,11 @@
             : "") + "</td>" +
         '<td data-th="버전" class="muted"><span class="plug-ver">' + esc(p.version || "1.0.0") + "</span>" +
           (pinned ? ' <span class="plug-tag" title="고정된 버전 — 마켓 새 버전이 와도 바꾸지 않습니다.">고정 ' + esc(p.pinned_version) + "</span>" : "") +
-          (newer ? ' <button type="button" class="mini plug-upd" data-plug-update="' + esc(p.id) + '">→ v' + esc(item.version) + "</button>" : "") +
+          (newer && !pinned ? ' <span class="plug-tag upd" data-plug-updbadge="' + esc(p.id) + '" title="설치된 버전과 마켓 최신 버전">' +
+            "업데이트 가능 (v" + esc(p.version) + " → v" + esc(item.version) + ")</span>" : "") +
+          (newer && !pinned ? ' <button type="button" class="mini plug-upd" data-plug-update="' + esc(p.id) + '">업데이트</button>' : "") +
+          (newer && pinned ? ' <span class="plug-tag" title="버전 고정을 풀어야 업데이트합니다.">업데이트하려면 고정 해제</span>' : "") +
+          (prevVer ? ' <span class="plug-tag rb" title="이전 버전으로 되돌릴 수 있습니다.">롤백 v' + esc(prevVer) + "</span>" : "") +
           (schema.length ? ' <span class="plug-tag" title="설정할 수 있는 항목 수">설정 ' + schema.length + "</span>" : "") +
           '</td>' +
         '<td data-th="출처"><span class="plug-badge b-' + cls + '">' + esc(src) + "</span></td>" +
@@ -4713,6 +4761,7 @@
         '<td data-th="설치일" class="muted">' + esc(fmtDate(p.installed_at)) + "</td>" +
         '<td class="plug-act">' +
           (schema.length ? '<button type="button" class="rowlink plug-set" data-plug-settings="' + esc(p.id) + '">설정</button> ' : "") +
+          (prevVer ? '<button type="button" class="rowlink plug-roll" data-plug-rollback="' + esc(p.id) + '">이전 버전으로 되돌리기</button> ' : "") +
           '<button type="button" class="rowlink plug-pin" data-plug-pin="' + esc(p.id) + '" aria-pressed="' + (pinned ? "true" : "false") + '">' +
             (pinned ? "고정 해제" : "버전 고정") + "</button> " +
           '<button type="button" class="rowlink plug-del" data-id="' + esc(p.id) + '">삭제</button></td>' +
@@ -4732,6 +4781,9 @@
     });
     [].forEach.call(body.querySelectorAll("[data-plug-update]"), function (b) {
       b.addEventListener("click", function () { updatePlugin(b.getAttribute("data-plug-update"), b); });
+    });
+    [].forEach.call(body.querySelectorAll("[data-plug-rollback]"), function (b) {
+      b.addEventListener("click", function () { openPluginRollback(b.getAttribute("data-plug-rollback")); });
     });
     [].forEach.call(body.querySelectorAll("[data-plug-settings]"), function (b) {
       b.addEventListener("click", function () { openPluginSettings(b.getAttribute("data-plug-settings")); });
@@ -4842,36 +4894,221 @@
     });
   }
 
-  /* 마켓 새 버전으로 업데이트 — 설치 때와 같은 검사(주소·코드)를 거칩니다. */
-  function updatePlugin(id, btn) {
+  /* 마켓 새 버전으로 업데이트 — 설치 때와 같은 검사(주소·코드)를 거칩니다.
+     · ① 24_v103 SQL 의 plugin_update_from_market RPC — 지금 버전을 스냅샷에 보관합니다.
+     · ② 함수가 없는 예전 DB 면 표를 직접 갱신하며 이력(version_history)을 화면에서 만듭니다.
+     · ③ previous_*·version_history 열도 없는 DB 면 그 열만 빼고 갱신합니다(보관 없이, 롤백 불가). */
+  function updatePlugin(id, btn, cb) {
     var p = plugById(id), item = marketItem(id);
-    if (!p || !item || !sb) return;
+    var done = function (err, res) { if (typeof cb === "function") cb(err || null, res || null); };
+    if (!p || !item) { done("플러그인을 찾지 못했습니다: " + id); return; }
+    if (!sb) { done("Supabase 연결이 없습니다."); return; }
     if (p.pinned_version) {
-      plugMsg("‘" + p.name + "’ 은 v" + p.pinned_version + " 으로 고정되어 있습니다. 고정을 풀고 다시 시도해 주세요.", "err");
+      var pinText = "‘" + p.name + "’ 은 v" + p.pinned_version + " 으로 고정되어 있습니다. 고정을 풀고 다시 시도해 주세요.";
+      plugMsg(pinText, "err");
+      done(pinText);
+      return;
+    }
+    var target = String(item.version || p.version || "1.0.0");
+    if (plugCmpVer(target, p.version || "") <= 0) {
+      plugMsg("‘" + p.name + "’ 은 이미 v" + (p.version || target) + " 입니다. 마켓에 더 새 버전이 없습니다.", "ok");
+      done(null, { version: p.version || target, unchanged: true });
       return;
     }
     var url = marketAbs(item.script_url);
     var safe = (window.SBPress && window.SBPress.safeScriptUrl) ? window.SBPress.safeScriptUrl(url) : url;
-    if (!safe) { plugMsg("이 플러그인의 주소가 https:// 또는 / 가 아니어서 업데이트하지 않았습니다.", "err"); return; }
-    if (btn) btn.disabled = true;
+    if (!safe) { done("이 플러그인의 주소가 https:// 또는 / 가 아니어서 업데이트하지 않았습니다."); return; }
+    if (btn) { btn.disabled = true; btn.textContent = "업데이트하는 중…"; }
     verifyPluginFile(url, function (scan) {
       if (!scan.ok) {
-        if (btn) btn.disabled = false;
-        plugMsg("위험한 코드가 있어 업데이트하지 않았습니다: " + scan.reasons.join(", "), "err");
+        if (btn) { btn.disabled = false; btn.textContent = "업데이트"; }
+        var bad = "위험한 코드가 있어 업데이트하지 않았습니다: " + scan.reasons.join(", ");
+        plugMsg(bad, "err");
+        done(bad);
         return;
       }
-      sb.from("plugins").update({
-        version: item.version || p.version, script_url: url,
+      var patch = {
+        version: target, script_url: url,
         manifest: manifestPayload(item), description: item.description || p.description || null,
         author: item.author || p.author || null,
         settings_schema: settingsSchemaPayload(item)
-      }).eq("id", id).then(function (r) {
-        if (btn) btn.disabled = false;
-        if (r.error) { plugMsg("업데이트하지 못했습니다: " + r.error.message, "err"); return; }
+      };
+      var before = String(p.version || "");
+      function settle(res, noHistory) {
+        if (btn) { btn.disabled = false; btn.textContent = "업데이트"; }
+        var v = (res && res.version) ? res.version : target;
+        if (p) {
+          p.version = v;
+          p.script_url = url;
+          p.manifest = patch.manifest;
+          if (res && res.previous_version) p.previous_version = res.previous_version;
+          if (res && Array.isArray(res.version_history)) p.version_history = res.version_history;
+        }
         reloadEngine();
         loadPlugins(false);
-        plugMsg("‘" + p.name + "’ 을 v" + (item.version || p.version) + " 으로 업데이트했습니다.", "ok");
+        plugMsg("‘" + p.name + "’ 을 v" + before + " 에서 v" + v + " 으로 업데이트했습니다." +
+                (noHistory ? " (이전 버전 보관은 24_v103 SQL 을 실행하면 켜집니다)" : "") +
+                " 사이트를 새로고침하면 반영됩니다.", "ok");
+        done(null, res || { version: v });
+      }
+      function fail(err) {
+        if (btn) { btn.disabled = false; btn.textContent = "업데이트"; }
+        var text = settingsErrorText(err);
+        plugMsg("업데이트하지 못했습니다: " + text, "err");
+        done(text);
+      }
+      function fallback() {
+        var snap = pluginSnapshot(p);
+        var hist = [snap].concat(pluginHistory(p)).slice(0, 5);
+        var full = {};
+        Object.keys(patch).forEach(function (k) { full[k] = patch[k]; });
+        full.previous_version = before || null;
+        full.previous_script_url = p.script_url || null;
+        full.previous_manifest = snap.manifest;
+        full.previous_settings_schema = snap.settings_schema;
+        full.version_history = hist;
+        sb.from("plugins").update(full).eq("id", id).then(function (r) {
+          if (!r.error) {
+            settle({ version: target, previous_version: before, version_history: hist }, false);
+            return;
+          }
+          if (!versionColumnsMissing(r.error)) { fail(r.error); return; }
+          /* ③ 버전 열이 아예 없는 DB — 보관 없이 업데이트만 합니다. */
+          sb.from("plugins").update(patch).eq("id", id).then(function (r2) {
+            if (r2.error) { fail(r2.error); return; }
+            p.previous_version = null;
+            p.version_history = [];
+            settle({ version: target }, true);
+          });
+        });
+      }
+      var rpc = (typeof sb.rpc === "function")
+        ? sb.rpc("plugin_update_from_market", {
+            p_id: id, p_version: target, p_script_url: url,
+            p_manifest: patch.manifest, p_settings_schema: patch.settings_schema
+          })
+        : Promise.resolve({ error: { code: "42883", message: "plugin_update_from_market 없음" } });
+      rpc.then(function (r) {
+        if (!r.error) {
+          var res = (r.data && typeof r.data === "object") ? r.data : {};
+          if (!res.version) res.version = target;
+          if (!res.previous_version) res.previous_version = before;
+          settle(res, false);
+          return;
+        }
+        if (isMissingFn(r.error)) { fallback(); return; }
+        fail(r.error);
       });
+    });
+  }
+
+  /* 여러 플러그인을 차례로 업데이트합니다(마켓 상단 「전체 업데이트」). */
+  function updateAllPlugins(ids, cb) {
+    var list = (ids || []).slice();
+    var i = 0, okCount = 0, failed = 0;
+    function step() {
+      if (i >= list.length) {
+        if (typeof cb === "function") cb(null, { updated: okCount, failed: failed, ids: list });
+        return;
+      }
+      var id = list[i++];
+      updatePlugin(id, null, function (err) {
+        if (err) failed += 1; else okCount += 1;
+        setTimeout(step, 150);
+      });
+    }
+    if (!list.length) { if (typeof cb === "function") cb(null, { updated: 0, failed: 0, ids: [] }); return; }
+    step();
+  }
+
+  /* 직전 스냅샷으로 되돌리기 — 확인 UI 는 마켓 상세 모달(market.js)이 그립니다. */
+  function rollbackPlugin(id, cb) {
+    var p = plugById(id);
+    var done = function (err, res) { if (typeof cb === "function") cb(err || null, res || null); };
+    if (!p) { done("플러그인을 찾지 못했습니다: " + id); return; }
+    if (!sb) { done("Supabase 연결이 없습니다."); return; }
+    var hist = pluginHistory(p);
+    var prev = String(p.previous_version || (hist[0] && hist[0].version) || "");
+    if (!prev) { done("되돌릴 이전 버전이 없습니다."); return; }
+    var before = String(p.version || "");
+    function settle(res) {
+      var v = (res && res.version) ? res.version : prev;
+      if (p) {
+        p.version = v;
+        if (res && res.script_url) p.script_url = res.script_url;
+        if (res && Array.isArray(res.version_history)) {
+          p.version_history = res.version_history;
+          p.previous_version = (res.version_history[0] && res.version_history[0].version) || null;
+        } else {
+          p.version_history = hist.slice(1);
+          p.previous_version = (hist[1] && hist[1].version) || null;
+        }
+      }
+      reloadEngine();
+      loadPlugins(false);
+      plugMsg("‘" + p.name + "’ 을 v" + before + " 에서 v" + v + " 로 되돌렸습니다. 사이트를 새로고침하면 반영됩니다.", "ok");
+      done(null, res || { version: v });
+    }
+    function fail(err) { done(settingsErrorText(err)); }
+    function fallback() {
+      var snap = hist[0] || {
+        version: p.previous_version, script_url: p.previous_script_url,
+        manifest: p.previous_manifest, settings_schema: p.previous_settings_schema,
+        settings: p.settings
+      };
+      var rest = hist.slice(1);
+      var head = rest[0] || {};
+      var patch = {
+        version: snap.version || prev,
+        script_url: snap.script_url || p.script_url,
+        manifest: snap.manifest || {},
+        settings_schema: Array.isArray(snap.settings_schema) ? snap.settings_schema : [],
+        version_history: rest,
+        previous_version: head.version || null,
+        previous_script_url: head.script_url || null,
+        previous_manifest: head.manifest || null,
+        previous_settings_schema: head.settings_schema || null
+      };
+      sb.from("plugins").update(patch).eq("id", id).then(function (r) {
+        if (r.error) {
+          if (versionColumnsMissing(r.error)) {
+            done("이전 버전을 보관하지 않는 DB 입니다. Supabase 에 supabase/24_v103_plugin_versions.sql 을 실행한 뒤 다시 시도해 주세요.");
+            return;
+          }
+          fail(r.error);
+          return;
+        }
+        settle({ version: patch.version, script_url: patch.script_url, version_history: rest });
+      });
+    }
+    var rpc = (typeof sb.rpc === "function")
+      ? sb.rpc("plugin_rollback", { p_id: id })
+      : Promise.resolve({ error: { code: "42883", message: "plugin_rollback 없음" } });
+    rpc.then(function (r) {
+      if (!r.error) {
+        var res = (r.data && typeof r.data === "object") ? r.data : {};
+        if (!res.version) res.version = prev;
+        settle(res);
+        return;
+      }
+      if (isMissingFn(r.error)) { fallback(); return; }
+      fail(r.error);
+    });
+  }
+
+  /* 설치 목록의 「이전 버전으로 되돌리기」 — 확인 UI 는 마켓 상세 모달에서 엽니다. */
+  function openPluginRollback(id) {
+    var box = $("#plug-market");
+    if (box && box.__sbpMarket) {
+      try { window.SBP_MARKET.openRollback(id); } catch (e) { /* 아래에서 다시 시도 */ }
+      return;
+    }
+    ensureMarketUi().then(function (UI) {
+      if (!UI || !UI.openRollback) {
+        plugMsg("플러그인 마켓을 먼저 불러와야 이전 버전으로 되돌릴 수 있습니다.", "err");
+        return;
+      }
+      UI.openRollback(id);
     });
   }
 
@@ -5052,7 +5289,8 @@
       var list = Array.isArray(data) ? data : (data && Array.isArray(data.plugins) ? data.plugins : []);
       plugMarket = { base: marketAbs(plugMarketUrl), list: list, meta: (data && typeof data === "object" && !Array.isArray(data)) ? data : {} };
       if (msg) msg.textContent = "마켓 목록 " + list.length + "개 · " + plugMarket.base;
-      renderMarket();
+      /* v10.3 — 마켓 목록을 받은 뒤 표도 다시 그려 「업데이트 가능」 배지를 붙입니다. */
+      renderPlugins();
     }).catch(function (e) {
       plugMarket = { base: marketAbs(plugMarketUrl), list: [], meta: {} };
       box.innerHTML = '<p class="plug-empty">마켓 목록을 불러오지 못했습니다: ' + esc(e.message) + "</p>";
@@ -5122,7 +5360,10 @@
         installed: plugById,
         onInstall: function (id, btn) { installFromMarket(id, btn); },
         onToggle: function (id) { var p = plugById(id); setPluginEnabled(id, !(p && p.enabled)); },
-        onUpdate: function (id, btn) { updatePlugin(id, btn); },
+        onUpdate: function (id, btn, cb) { updatePlugin(id, btn, cb); },
+        onUpdateAll: function (ids, cb) { updateAllPlugins(ids, cb); },
+        onRollback: function (id, cb) { rollbackPlugin(id, cb); },
+        onRefresh: function () { loadPlugins(false); },
         onRemove: function (id) { deletePlugin(id); },
         onSaveSettings: function (id, values, cb) { savePluginSettings(id, values, cb); }
       });

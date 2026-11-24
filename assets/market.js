@@ -1,6 +1,9 @@
-/* ===== SBPress v10.0 · 플러그인 마켓 탐색기 (assets/market.js) =====
+/* ===== SBPress v10.3 · 플러그인 마켓 탐색기 (assets/market.js) =====
    관리자(/admin · 플러그인 · 마켓)와 공개 화면(#/market)이 함께 쓰는 마켓 화면입니다.
 
+   · v10.3 버전 비교 — 설치된 버전과 마켓 최신 버전을 숫자 세 칸(1.2.0)으로 비교해
+     「업데이트 가능 (vX → vY)」 배지 · 상단 「업데이트 가능 N개 · 전체 업데이트」 바 ·
+     상세 모달의 「업데이트」 · 「이전 버전으로 되돌리기(롤백)」 확인 UI 를 그립니다.
    · 실시간 검색 — 이름·설명·태그·작성자 (한국어·영어 이름 모두)
    · 필터 칩 — 카테고리 · 훅(menu/card/widget/admin-tab/css) · 태그
    · 정렬 — 추천순(order) · 최신 업데이트(updated) · 이름순
@@ -52,6 +55,41 @@
       version: "버전",
       author: "작성자",
       updated: "업데이트",
+      /* v10.3 — 버전 비교 · 업데이트 · 롤백 */
+      updAvail: "업데이트 가능 (v{x} → v{y})",
+      updNow: "업데이트 가능",
+      updBar: "업데이트 가능 {n}개",
+      updBarNote: "설치된 플러그인 중 마켓 최신 버전보다 낮은 것이 있습니다.",
+      updAll: "전체 업데이트",
+      updAllBusy: "업데이트하는 중… ({i}/{n})",
+      updAllDone: "{n}개를 업데이트했습니다.",
+      updAllFailed: "{n}개를 업데이트하지 못했습니다.",
+      updateNow: "업데이트",
+      updating: "업데이트하는 중…",
+      updatedDone: "v{v} 으로 업데이트했습니다.",
+      updateFailed: "업데이트하지 못했습니다: ",
+      latestTag: "최신",
+      olderTag: "설치본이 더 새로움 (v{x})",
+      changesTitle: "이번 업데이트의 변경 이력",
+      changesNone: "v{v} 이후로 기록된 변경 내용이 없습니다.",
+      historyTitle: "버전 이력",
+      historyEmpty: "보관된 이전 버전이 없습니다.",
+      historyLeft: "보관된 이전 버전 {n}개",
+      rollback: "이전 버전으로 되돌리기",
+      rollbackShort: "되돌리기",
+      rollbackTitle: "이전 버전으로 되돌리기(롤백)",
+      rollbackLead: "‘{name}’ 을 지금 v{cur} 에서 v{prev} 로 되돌립니다. 플러그인 코드·매니페스트·설정 스키마가 함께 돌아갑니다.",
+      rollbackKeep: "글·사진·설정 값은 그대로 두고 플러그인만 되돌립니다.",
+      rollbackGo: "v{prev} 로 되돌리기",
+      rollbackCancel: "취소",
+      rollbackBusy: "되돌리는 중…",
+      rollbackDone: "v{prev} 으로 되돌렸습니다.",
+      rollbackFailed: "되돌리지 못했습니다: ",
+      rollbackNone: "되돌릴 이전 버전이 없습니다.",
+      pinnedNote: "버전 고정(v{v}) — 고정을 풀어야 업데이트할 수 있습니다.",
+      pinnedTag: "버전 고정됨",
+      needSqlVersions: "Supabase 에 supabase/24_v103_plugin_versions.sql 을 실행하면 이전 버전을 보관하고 롤백할 수 있습니다. 지금은 보관 없이 업데이트합니다.",
+      versionHint: "버전은 1.2.0 처럼 숫자 세 칸으로 비교합니다.",
       minVersion: "최소 SBPress",
       currentVersion: "현재 {v}",
       compatOk: "호환",
@@ -130,6 +168,41 @@
       version: "Version",
       author: "Author",
       updated: "Updated",
+      /* v10.3 — version compare, update, rollback */
+      updAvail: "Update available (v{x} → v{y})",
+      updNow: "Update available",
+      updBar: "{n} update available",
+      updBarNote: "Installed plugins below the latest market version are listed here.",
+      updAll: "Update all",
+      updAllBusy: "Updating… ({i}/{n})",
+      updAllDone: "Updated {n} plugins.",
+      updAllFailed: "Could not update {n} plugins.",
+      updateNow: "Update",
+      updating: "Updating…",
+      updatedDone: "Updated to v{v}.",
+      updateFailed: "Could not update: ",
+      latestTag: "Latest",
+      olderTag: "Installed copy is newer (v{x})",
+      changesTitle: "What this update changes",
+      changesNone: "No release notes are recorded after v{v}.",
+      historyTitle: "Version history",
+      historyEmpty: "No earlier version is kept yet.",
+      historyLeft: "{n} earlier versions kept",
+      rollback: "Roll back to the previous version",
+      rollbackShort: "Roll back",
+      rollbackTitle: "Roll back to the previous version",
+      rollbackLead: "Rolls “{name}” back from v{cur} to v{prev}, together with its code, manifest and settings schema.",
+      rollbackKeep: "Posts, photos and saved settings stay as they are; only the plugin rolls back.",
+      rollbackGo: "Roll back to v{prev}",
+      rollbackCancel: "Cancel",
+      rollbackBusy: "Rolling back…",
+      rollbackDone: "Rolled back to v{prev}.",
+      rollbackFailed: "Could not roll back: ",
+      rollbackNone: "No earlier version to roll back to.",
+      pinnedNote: "Version pinned (v{v}) — unpin it to update.",
+      pinnedTag: "Pinned",
+      needSqlVersions: "Run supabase/24_v103_plugin_versions.sql in Supabase to keep earlier versions and roll back. For now the update is applied without a snapshot.",
+      versionHint: "Versions compare as three numbers, such as 1.2.0.",
       minVersion: "Minimum SBPress",
       currentVersion: "current {v}",
       compatOk: "Compatible",
@@ -242,6 +315,88 @@
   function verNum(v) {
     var p = String(v == null ? "" : v).replace(/^v/i, "").split(".");
     return (parseInt(p[0], 10) || 0) * 10000 + (parseInt(p[1], 10) || 0) * 100 + (parseInt(p[2], 10) || 0);
+  }
+
+  /* v10.3 — 버전 비교 유틸. "1.2.0" 처럼 숫자를 점으로 나눈 버전을 칸별로 비교합니다.
+     1.2.0 > 1.1.0, 1.10.0 > 1.9.9, 2.0 > 1.9.9 (빠진 칸은 0). 앞의 v 는 무시합니다.
+     같은 번호면 0, a 가 크면 1, b 가 크면 -1 을 돌려줍니다. */
+  function verParts(v) {
+    var raw = String(v == null ? "" : v).replace(/^v/i, "").trim();
+    if (!raw) return [0, 0, 0];
+    var out = [];
+    raw.split(".").forEach(function (x) {
+      var n = parseInt(String(x).replace(/[^0-9].*$/, ""), 10);
+      out.push(isFinite(n) ? n : 0);
+    });
+    while (out.length < 3) out.push(0);
+    return out.slice(0, 4);
+  }
+
+  function cmpVer(a, b) {
+    var x = verParts(a), y = verParts(b);
+    for (var i = 0; i < Math.max(x.length, y.length); i++) {
+      var p = x[i] || 0, q = y[i] || 0;
+      if (p > q) return 1;
+      if (p < q) return -1;
+    }
+    return 0;
+  }
+
+  function vtag(v) {
+    var s = String(v == null ? "" : v).trim();
+    if (!s) return "";
+    return /^v/i.test(s) ? s : "v" + s;
+  }
+
+  /* 설치된 행과 마켓 항목의 버전을 견줍니다. 설치하지 않았으면 null. */
+  function updInfo(inst, p) {
+    var row = installedRow(inst, p ? p.id : "");
+    if (!row) return null;
+    var cur = String(row.version == null ? "" : row.version).trim();
+    var next = String(p && p.version != null ? p.version : "").trim();
+    var c = cmpVer(next, cur);
+    var hist = Array.isArray(row.version_history) ? row.version_history : [];
+    var prev = String(row.previous_version == null ? "" : row.previous_version).trim();
+    if (!prev && hist.length && hist[0] && hist[0].version) prev = String(hist[0].version);
+    return {
+      cur: cur, next: next, cmp: c, newer: c > 0, older: c < 0, same: c === 0,
+      prev: prev, history: hist, pinned: String(row.pinned_version || ""),
+      canRollback: !!prev
+    };
+  }
+
+  /* 업데이트가 필요한 설치본(켜짐·꺼짐 모두) — 고정된 버전은 빼고 셉니다. */
+  function updIds(inst) {
+    var out = [];
+    (inst.data && inst.data.plugins || []).forEach(function (p) {
+      var u = updInfo(inst, p);
+      if (u && u.newer && !u.pinned) out.push(p.id);
+    });
+    return out;
+  }
+
+  /* 설치된 버전 뒤에 나온 변경 이력만 골라 봅니다. */
+  function changesSince(p, cur) {
+    return (p.changelog || []).filter(function (c) {
+      if (!c || !c.version) return false;
+      return cmpVer(c.version, cur) > 0;
+    });
+  }
+
+  function updBadge(inst, p, short) {
+    var u = updInfo(inst, p);
+    if (!u) return "";
+    /* 버전을 고정한 설치는 「업데이트 가능」이 아니라 「고정」으로 보여 줍니다(고정을 풀어야 바뀝니다). */
+    if (u.pinned) {
+      return '<span class="mkt-pin" title="' + esc(tr(inst.lang, "pinnedNote", { v: u.pinned })) + '">' +
+        esc("v" + u.pinned + " · " + tr(inst.lang, "pinnedTag")) + "</span>";
+    }
+    if (u.newer) {
+      var text = short ? tr(inst.lang, "updNow") : tr(inst.lang, "updAvail", { x: u.cur, y: u.next });
+      return '<span class="mkt-upd" data-mkt-upd-badge="' + esc(p.id) + '" title="' +
+        esc(tr(inst.lang, "updAvail", { x: u.cur, y: u.next })) + '">' + esc(text) + "</span>";
+    }
+    return "";
   }
 
   function dateText(v) {
@@ -523,7 +678,8 @@
     var lang = inst.lang;
     var row = installedRow(inst, p.id);
     var installed = !!row, on = !!(row && row.enabled);
-    var newer = !!(installed && p.version && String(p.version) !== String(row.version || ""));
+    var u = updInfo(inst, p);
+    var newer = !!(u && u.newer && !u.pinned);
     var attrs = ' data-mkt-place="' + esc(place) + '"';
     if (inst.mode !== "admin") {
       return '<button type="button" class="btn btn-ghost btn-sm" data-mkt-open="' + esc(p.id) + '"' + attrs + ">" +
@@ -540,8 +696,14 @@
         esc(tr(lang, "settings")) + "</button>";
     }
     if (newer) {
-      html += '<button type="button" class="btn btn-ghost btn-sm" data-mplug-update="' + esc(p.id) + '"' + attrs + ">" +
-        esc(tr(lang, "update", { v: p.version })) + "</button>";
+      html += '<button type="button" class="btn btn-primary btn-sm mkt-upd-btn" data-mplug-update="' + esc(p.id) + '"' + attrs +
+        ' title="' + esc(tr(lang, "updAvail", { x: u.cur, y: u.next })) + '">' +
+        esc(tr(lang, "updateNow")) + " v" + esc(u.next) + "</button>";
+    }
+    if (u && u.canRollback) {
+      html += '<button type="button" class="btn btn-ghost btn-sm mkt-rb-btn" data-mplug-rollback="' + esc(p.id) + '"' + attrs +
+        ' title="' + esc(tr(lang, "rollbackLead", { name: disp(inst, p).name, cur: u.cur, prev: u.prev })) + '">' +
+        esc(tr(lang, place === "modal" ? "rollback" : "rollbackShort")) + "</button>";
     }
     html += '<button type="button" class="btn btn-ghost btn-sm danger" data-mplug-remove="' + esc(p.id) + '"' + attrs + ">" +
       esc(tr(lang, "remove")) + "</button>";
@@ -560,6 +722,7 @@
     var badge = row
       ? '<span class="plug-badge ' + (on ? "b-on" : "b-off") + '">' + esc(tr(lang, on ? "installedOn" : "installedOff")) + "</span>"
       : "";
+    var upd = row ? updBadge(inst, p, false) : "";
     var shot = p.screenshots[0] || null;
     var thumb = shot
       ? '<img src="' + esc(shotUrl(inst, shot)) + '" alt="' + esc(lang === "en" ? (shot.alt_en || shot.alt || tr(lang, "screenshotAlt", { name: d.name })) : (shot.alt || tr(lang, "screenshotAlt", { name: d.name }))) + '" width="720" height="405" loading="lazy" decoding="async">'
@@ -570,7 +733,7 @@
     }).join("");
     return '<article class="plug-card mkt-card" data-market-id="' + esc(p.id) + '" data-mkt-card="' + esc(p.id) + '">' +
       '<div class="mkt-thumb">' + thumb + "</div>" +
-      "<h3>" + esc(d.name) + " " + badge + "</h3>" +
+      "<h3>" + esc(d.name) + " " + badge + (upd ? " " + upd : "") + "</h3>" +
       '<p class="plug-desc">' + esc(d.desc) + "</p>" +
       '<div class="plug-meta mkt-meta">' +
         '<span class="plug-tag ver">v' + esc(p.version) + "</span>" +
@@ -584,6 +747,9 @@
 
   /* ---------------- 상세 모달 ---------------- */
   var MODAL = { el: null, lastFocus: null, inst: null, id: "" };
+  /* v10.3 — 롤백 확인 UI 상태(지금 확인 창을 열어 둔 플러그인)와 잠시 보이는 안내 문구 */
+  var RB = { id: "", busy: false };
+  var FLASH = { text: "", kind: "" };
 
   function ensureModal() {
     if (MODAL.el && document.body.contains(MODAL.el)) return MODAL.el;
@@ -605,7 +771,7 @@
     el.addEventListener("click", function (e) {
       var closer = e.target.closest ? e.target.closest("[data-mkt-close]") : null;
       if (closer) { closeDetail(); return; }
-      var action = e.target.closest ? e.target.closest("[data-mplug-install],[data-mplug-toggle],[data-mplug-update],[data-mplug-remove],[data-mplug-settings]") : null;
+      var action = e.target.closest ? e.target.closest("[data-mplug-install],[data-mplug-toggle],[data-mplug-update],[data-mplug-rollback],[data-mplug-remove],[data-mplug-settings]") : null;
       if (action) {
         var inst = MODAL.inst;
         if (!inst) return;
@@ -613,8 +779,17 @@
         else if (action.hasAttribute("data-mplug-install")) runAction(inst, "onInstall", action.getAttribute("data-mplug-install"), action, true);
         else if (action.hasAttribute("data-mplug-toggle")) runAction(inst, "onToggle", action.getAttribute("data-mplug-toggle"), action, true);
         else if (action.hasAttribute("data-mplug-update")) runAction(inst, "onUpdate", action.getAttribute("data-mplug-update"), action, true);
+        else if (action.hasAttribute("data-mplug-rollback")) openRollback(inst, action.getAttribute("data-mplug-rollback"));
         else if (action.hasAttribute("data-mplug-remove")) runAction(inst, "onRemove", action.getAttribute("data-mplug-remove"), action, true);
       }
+      var cancel = e.target.closest ? e.target.closest("[data-mkt-rb-cancel]") : null;
+      if (cancel) {
+        RB.id = "";
+        if (MODAL.inst && MODAL.id) openDetail(MODAL.inst, MODAL.id, true);
+        return;
+      }
+      var go = e.target.closest ? e.target.closest("[data-mkt-rb-go]") : null;
+      if (go) { doRollback(MODAL.inst, go.getAttribute("data-mkt-rb-go"), go); return; }
     });
     document.addEventListener("keydown", function (e) {
       if (!MODAL.el || MODAL.el.hidden) return;
@@ -634,6 +809,7 @@
     var lang = inst.lang;
     var d = disp(inst, p);
     var row = installedRow(inst, p.id);
+    var u = updInfo(inst, p);
     var cur = String((inst.data && inst.data.sbpress) || "");
     var minV = p.min_sbpress_version;
     var compat = !minV || !cur || verNum(minV) <= verNum(cur);
@@ -649,7 +825,11 @@
       '<dl class="mkt-facts">' +
         "<div><dt>" + esc(tr(lang, "version")) + "</dt><dd><b>v" + esc(p.version) + "</b> " +
           (row ? '<span class="plug-badge ' + (row.enabled ? "b-on" : "b-off") + '">' +
-            esc(tr(lang, row.enabled ? "installedOn" : "installedOff")) + "</span>" : "") + "</dd></div>" +
+            esc(tr(lang, row.enabled ? "installedOn" : "installedOff")) + "</span>" : "") +
+          (u && u.newer ? " " + updBadge(inst, p, false) : "") +
+          (u && u.older ? ' <span class="mkt-warn">' + esc(tr(lang, "olderTag", { x: u.cur })) + "</span>" : "") +
+          (u && u.same && row ? ' <span class="mkt-ok">' + esc(tr(lang, "latestTag")) + "</span>" : "") +
+          (u && u.pinned ? " " + updBadge(inst, p, true) : "") + "</dd></div>" +
         (d.author ? "<div><dt>" + esc(tr(lang, "author")) + "</dt><dd>" + esc(d.author) + "</dd></div>" : "") +
         "<div><dt>" + esc(tr(lang, "minVersion")) + "</dt><dd>v" + esc(minV || "1.0") + " " +
           (cur ? '<span class="muted">· ' + esc(tr(lang, "currentVersion", { v: "v" + cur })) + "</span>" : "") + " " +
@@ -676,10 +856,53 @@
             "<p>" + esc(lang === "en" ? (c.notes_en || c.notes) : c.notes) + "</p></li>";
         }).join("") + "</ol>"
       : '<p class="mkt-note">' + esc(tr(lang, "noChangelog")) + "</p>";
+    /* v10.3 — 설치된 버전 뒤에 나온 변경만 따로 보여 줍니다(업데이트 전에 무엇이 바뀌는지). */
+    var updSec = "";
+    if (u && u.newer) {
+      var since = changesSince(p, u.cur);
+      updSec = '<section class="mkt-sec mkt-updsec" id="mkt-updsec"><h3>' + esc(tr(lang, "changesTitle")) + "</h3>" +
+        '<p class="mkt-updnote">' + esc(tr(lang, "updAvail", { x: u.cur, y: u.next })) + "</p>" +
+        (since.length
+          ? '<ol class="mkt-log mkt-log-new">' + since.map(function (c) {
+              return "<li>" + (c.version ? "<b>v" + esc(c.version) + "</b>" : "") +
+                (c.date ? '<time datetime="' + esc(c.date) + '">' + esc(c.date) + "</time>" : "") +
+                "<p>" + esc(lang === "en" ? (c.notes_en || c.notes) : c.notes) + "</p></li>";
+            }).join("") + "</ol>"
+          : '<p class="mkt-note">' + esc(tr(lang, "changesNone", { v: u.cur })) + "</p>") +
+        "</section>";
+    }
+    /* v10.3 — 직전 스냅샷이 있으면 버전 이력과 롤백 확인 UI 를 보여 줍니다. */
+    var rbSec = "";
+    if (u && (u.canRollback || u.history.length)) {
+      var hist = u.history.slice(0, 5).map(function (h) {
+        if (!h || typeof h !== "object") return "";
+        return "<li><b>v" + esc(h.version || "?") + "</b>" +
+          (h.at ? '<time datetime="' + esc(dateText(h.at)) + '">' + esc(dateText(h.at)) + "</time>" : "") + "</li>";
+      }).join("");
+      rbSec = '<section class="mkt-sec mkt-rbsec" id="mkt-history"><h3>' + esc(tr(lang, "historyTitle")) + "</h3>" +
+        (hist ? '<ol class="mkt-hist">' + hist + "</ol>"
+              : '<p class="mkt-note">' + esc(tr(lang, "historyEmpty")) + "</p>");
+      if (u.canRollback && RB.id === p.id && inst.mode === "admin") {
+        rbSec += '<div class="mkt-rb" id="mkt-rollback">' +
+          '<h4>' + esc(tr(lang, "rollbackTitle")) + "</h4>" +
+          "<p>" + esc(tr(lang, "rollbackLead", { name: d.name, cur: u.cur, prev: u.prev })) + "</p>" +
+          '<p class="mkt-note">' + esc(tr(lang, "rollbackKeep")) + "</p>" +
+          (u.history.length ? '<p class="mkt-note">' + esc(tr(lang, "historyLeft", { n: u.history.length })) + "</p>" : "") +
+          '<p class="mkt-rb-msg" id="mkt-rb-msg" role="status" aria-live="polite"></p>' +
+          '<div class="mkt-rb-actions">' +
+            '<button type="button" class="btn btn-ghost btn-sm" data-mkt-rb-cancel="1">' + esc(tr(lang, "rollbackCancel")) + "</button>" +
+            '<button type="button" class="btn btn-primary btn-sm danger" data-mkt-rb-go="' + esc(p.id) + '">' +
+              esc(tr(lang, "rollbackGo", { prev: u.prev })) + "</button>" +
+          "</div></div>";
+      }
+      rbSec += "</section>";
+    }
     el.querySelector("#mkt-modal-body").innerHTML =
       shots +
       (d.desc ? '<p class="mkt-desc-full">' + esc(d.desc) + "</p>" : "") +
       facts +
+      updSec +
+      rbSec +
       '<section class="mkt-sec"><h3>' + esc(tr(lang, "permissions")) + "</h3>" + perms + "</section>" +
       '<section class="mkt-sec"><h3>' + esc(tr(lang, "changelog")) + "</h3>" + log + "</section>";
     var foot = "";
@@ -701,6 +924,7 @@
 
   function closeDetail() {
     if (!MODAL.el) return;
+    RB.id = "";
     MODAL.el.hidden = true;
     MODAL.el.querySelector("#mkt-modal-body").innerHTML = "";
     MODAL.el.querySelector("#mkt-modal-foot").innerHTML = "";
@@ -710,20 +934,109 @@
     try { if (MODAL.lastFocus && MODAL.lastFocus.focus) MODAL.lastFocus.focus(); } catch (e) { /* noop */ }
   }
 
+  /* ---------------- v10.3 — 업데이트 · 롤백 동작 ---------------- */
+  /* 화면 위쪽에 잠시 남는 안내 — 다시 그려도 사라지지 않게 FLASH 에도 담아 둡니다. */
+  function flash(inst, text, kind) {
+    FLASH = { text: String(text || ""), kind: kind || "" };
+    var box = inst && inst.tools ? inst.tools.querySelector("#mkt-flash") : null;
+    if (!box) box = document.getElementById("mkt-flash");
+    if (box) { box.textContent = FLASH.text; box.className = "mkt-flash" + (FLASH.kind ? " " + FLASH.kind : ""); }
+  }
+
+  function openRollback(inst, id) {
+    var p = byId(inst, id);
+    if (!p || inst.mode !== "admin") return;
+    var u = updInfo(inst, p);
+    if (!u || !u.canRollback) { flash(inst, tr(inst.lang, "rollbackNone"), "err"); return; }
+    RB.id = id;
+    openDetail(inst, id);
+    var box = MODAL.el ? MODAL.el.querySelector("#mkt-rollback") : null;
+    if (box && box.scrollIntoView) { try { box.scrollIntoView({ block: "center" }); } catch (e) { /* noop */ } }
+  }
+
+  function doRollback(inst, id, btn) {
+    if (!inst || !id || typeof inst.onRollback !== "function" || RB.busy) return;
+    var p = byId(inst, id);
+    var u = p ? updInfo(inst, p) : null;
+    var lang = inst.lang;
+    var prev = u ? u.prev : "";
+    if (btn) { btn.disabled = true; btn.textContent = tr(lang, "rollbackBusy"); }
+    RB.busy = true;
+    inst.onRollback(id, function (err, res) {
+      RB.busy = false;
+      var got = res && res.version ? String(res.version) : prev;
+      if (err) {
+        var msg = MODAL.el ? MODAL.el.querySelector("#mkt-rb-msg") : null;
+        if (msg) { msg.textContent = tr(lang, "rollbackFailed") + err; msg.className = "mkt-rb-msg err"; }
+        if (btn) { btn.disabled = false; btn.textContent = tr(lang, "rollbackGo", { prev: prev }); }
+        return;
+      }
+      RB.id = "";
+      closeDetail();
+      flash(inst, tr(lang, "rollbackDone", { prev: got }), "ok");
+    });
+  }
+
+  /* 상단 「전체 업데이트」 — 관리자 화면이 넘긴 onUpdateAll(목록) 로 차례차례 처리하고,
+     그 콜백이 없으면 onUpdate 를 하나씩 부릅니다. */
+  function runUpdateAll(inst, btn) {
+    if (!inst || inst.mode !== "admin") return;
+    var ids = updIds(inst);
+    var lang = inst.lang;
+    if (!ids.length) { flash(inst, tr(lang, "updAllDone", { n: 0 }), "ok"); return; }
+    var total = ids.length, okCount = 0, failed = 0;
+    if (btn) { btn.disabled = true; btn.textContent = tr(lang, "updAllBusy", { i: 1, n: total }); }
+    function finish(err, res) {
+      if (btn) { btn.disabled = false; btn.textContent = tr(lang, "updAll"); }
+      var bad = err ? total : (res && res.failed) || 0;
+      var good = (res && res.updated != null) ? res.updated : Math.max(0, total - bad);
+      flash(inst, bad ? tr(lang, "updAllFailed", { n: bad }) : tr(lang, "updAllDone", { n: good }), bad ? "err" : "ok");
+      if (typeof inst.onRefresh === "function") { try { inst.onRefresh(); } catch (e) { /* noop */ } }
+    }
+    if (typeof inst.onUpdateAll === "function") {
+      try { inst.onUpdateAll(ids, finish); } catch (e) { finish(e && e.message ? e.message : "error"); }
+      return;
+    }
+    var i = 0;
+    next();
+    function next() {
+      if (i >= ids.length) { finish(null, { updated: okCount, failed: failed }); return; }
+      if (btn) btn.textContent = tr(lang, "updAllBusy", { i: i + 1, n: total });
+      var id = ids[i++];
+      if (typeof inst.onUpdate !== "function") { failed += 1; next(); return; }
+      inst.onUpdate(id, null, function (err) {
+        if (err) failed += 1; else okCount += 1;
+        setTimeout(next, 120);
+      });
+    }
+  }
+
   function runAction(inst, name, id, btn, inModal) {
     var fn = inst[name];
     if (typeof fn !== "function") return;
+    var lang = inst.lang;
     if (btn && btn.tagName === "BUTTON") {
       btn.disabled = true;
       if (name === "onInstall" && !btn.getAttribute("data-busy")) {
         btn.setAttribute("data-busy", "1");
-        btn.textContent = tr(inst.lang, "installing");
+        btn.textContent = tr(lang, "installing");
+      }
+      if (name === "onUpdate") {
+        btn.setAttribute("data-busy", "1");
+        btn.textContent = tr(lang, "updating");
       }
     }
-    try { fn(id, btn, inst); } catch (e) { /* 관리자 콜백 오류는 admin.js 가 알립니다 */ }
+    /* v10.3 — 업데이트는 끝난 뒤 안내 문구를 남깁니다(관리자 화면이 결과를 콜백으로 돌려줍니다). */
+    var after = function (err, res) {
+      if (name !== "onUpdate") return;
+      var v = (res && res.version) ? String(res.version).replace(/^v/i, "") : "";
+      if (err) flash(inst, tr(lang, "updateFailed") + err, "err");
+      else flash(inst, tr(lang, "updatedDone", { v: v }), "ok");
+    };
+    try { fn(id, btn, after); } catch (e) { after(e && e.message ? e.message : String(e)); }
     /* 콜백이 화면을 다시 그리면 버튼도 새로 만들어집니다. 상세 모달이 열려 있으면 함께 갱신합니다. */
     if (inModal) {
-      [80, 700].forEach(function (ms) {
+      [80, 700, 1500].forEach(function (ms) {
         setTimeout(function () {
           if (MODAL.el && !MODAL.el.hidden && MODAL.inst === inst) openDetail(inst, id, true);
         }, ms);
@@ -1010,6 +1323,7 @@
     var lang = inst.lang;
     var q = inst.state.q;
     host.innerHTML =
+      (inst.mode === "admin" ? updBarHtml(inst) : "") +
       '<div class="mkt-bar">' +
         '<label class="mkt-search"><span class="sr-only">' + esc(tr(lang, "searchAria")) + "</span>" +
           '<input type="search" class="mkt-q" placeholder="' + esc(tr(lang, "search")) + '" autocomplete="off" spellcheck="false" aria-label="' + esc(tr(lang, "searchAria")) + '">' +
@@ -1027,7 +1341,11 @@
         '<div class="mkt-chips" data-group="tag">' + chipRow(inst, "tag", tr(lang, "fTag"), facetValues(inst).tags, inst.state.tag) + "</div>" +
       "</div>" +
       '<p class="mkt-count" role="status" aria-live="polite"></p>' +
-      '<p class="mkt-empty" hidden>' + esc(tr(lang, "empty")) + "</p>";
+      '<p class="mkt-empty" hidden>' + esc(tr(lang, "empty")) + "</p>" +
+      '<p class="mkt-flash' + (FLASH.kind ? " " + esc(FLASH.kind) : "") + '" id="mkt-flash" role="status" aria-live="polite">' +
+        esc(FLASH.text) + "</p>";
+    var all = host.querySelector("[data-mkt-updall]");
+    if (all) all.addEventListener("click", function () { runUpdateAll(inst, all); });
     var input = host.querySelector(".mkt-q");
     if (input) {
       input.value = q;
@@ -1059,6 +1377,19 @@
         render(inst2);
       });
     }
+  }
+
+  /* v10.3 — 업데이트가 필요한 플러그인이 있으면 맨 위에 바를 그립니다(관리자 화면만). */
+  function updBarHtml(inst) {
+    var ids = updIds(inst);
+    if (!ids.length) return "";
+    var lang = inst.lang;
+    return '<div class="mkt-updbar" id="mkt-updbar" role="status">' +
+      '<span class="mkt-updbar-text"><b>' + esc(tr(lang, "updBar", { n: ids.length })) + "</b> " +
+        '<span class="muted">' + esc(tr(lang, "updBarNote")) + "</span></span>" +
+      '<button type="button" class="btn btn-primary btn-sm" data-mkt-updall="' + esc(ids.join(",")) + '">' +
+        esc(tr(lang, "updAll")) + "</button>" +
+      "</div>";
   }
 
   function paintHeader(inst, page) {
@@ -1136,6 +1467,9 @@
       prev.onInstall = opts.onInstall || prev.onInstall;
       prev.onToggle = opts.onToggle || prev.onToggle;
       prev.onUpdate = opts.onUpdate || prev.onUpdate;
+      prev.onUpdateAll = opts.onUpdateAll || prev.onUpdateAll;
+      prev.onRollback = opts.onRollback || prev.onRollback;
+      prev.onRefresh = opts.onRefresh || prev.onRefresh;
       prev.onRemove = opts.onRemove || prev.onRemove;
       prev.onSaveSettings = opts.onSaveSettings || prev.onSaveSettings;
       if (opts.tools) prev.tools = opts.tools;
@@ -1162,6 +1496,9 @@
       onInstall: opts.onInstall || null,
       onToggle: opts.onToggle || null,
       onUpdate: opts.onUpdate || null,
+      onUpdateAll: opts.onUpdateAll || null,
+      onRollback: opts.onRollback || null,
+      onRefresh: opts.onRefresh || null,
       onRemove: opts.onRemove || null,
       onSaveSettings: opts.onSaveSettings || null,
       data: null,
@@ -1189,12 +1526,13 @@
       root.addEventListener("click", function (e) {
         var inst2 = root.__sbpMarket;
         if (!inst2) return;
-        var btn = e.target.closest ? e.target.closest("[data-mplug-install],[data-mplug-toggle],[data-mplug-update],[data-mplug-remove],[data-mplug-settings]") : null;
+        var btn = e.target.closest ? e.target.closest("[data-mplug-install],[data-mplug-toggle],[data-mplug-update],[data-mplug-rollback],[data-mplug-remove],[data-mplug-settings]") : null;
         if (btn) {
           if (btn.hasAttribute("data-mplug-settings")) { openSettings(inst2, btn.getAttribute("data-mplug-settings")); return; }
           if (btn.hasAttribute("data-mplug-install")) runAction(inst2, "onInstall", btn.getAttribute("data-mplug-install"), btn, false);
           else if (btn.hasAttribute("data-mplug-toggle")) runAction(inst2, "onToggle", btn.getAttribute("data-mplug-toggle"), btn, false);
           else if (btn.hasAttribute("data-mplug-update")) runAction(inst2, "onUpdate", btn.getAttribute("data-mplug-update"), btn, false);
+          else if (btn.hasAttribute("data-mplug-rollback")) openRollback(inst2, btn.getAttribute("data-mplug-rollback"));
           else runAction(inst2, "onRemove", btn.getAttribute("data-mplug-remove"), btn, false);
           return;
         }
@@ -1302,13 +1640,32 @@
     update: update,
     normalize: normalize,
     openDetail: openDetail,
+    /* 화면 밖(시험·다른 스크립트)에서 아이디로 상세를 엽니다. */
+    openDetailById: function (id) {
+      var box = document.getElementById("plug-market");
+      var inst = box && box.__sbpMarket;
+      if (inst) openDetail(inst, id);
+    },
     closeDetail: closeDetail,
     openSettings: function (id) {
       var box = document.getElementById("plug-market");
       var inst = box && box.__sbpMarket;
       if (inst) openSettings(inst, id);
     },
+    openRollback: function (id) {
+      var box = document.getElementById("plug-market");
+      var inst = box && box.__sbpMarket;
+      if (inst) openRollback(inst, id);
+    },
     settingsOf: settingsOf,
+    compareVersions: cmpVer,
+    versionState: function (id) {
+      var box = document.getElementById("plug-market");
+      var inst = box && box.__sbpMarket;
+      if (!inst) return null;
+      var p = byId(inst, id);
+      return p ? updInfo(inst, p) : null;
+    },
     currentLang: currentLang
   };
 

@@ -2,7 +2,7 @@
   "name": "전국공방 플러그인 마켓",
   "manifest": 1,
   "schema": 2,
-  "sbpress": "10.2",
+  "sbpress": "10.3",
   "description": "SBPress 사이트·관리자에 기능을 더하는 브라우저 JS 플러그인 목록입니다. 관리자 > 플러그인 · 마켓에서 한 번에 설치하고 켜고 끌 수 있습니다.",
   "homepage": "https://craftstorekorea.github.io/",
   "updated": "2026-11-24",

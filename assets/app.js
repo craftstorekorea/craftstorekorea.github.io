@@ -1858,7 +1858,9 @@
   }
 
   /* ---------------- routing ---------------- */
-  /* v6.0 코드 분할 — 첫 화면에서 빼 둔 스크립트는 그 화면에 처음 들어갈 때 한 번 받습니다. */
+  /* v6.0 코드 분할 — 첫 화면에서 빼 둔 스크립트는 그 화면에 처음 들어갈 때 한 번 받습니다.
+     v10.3 — share.js(글 공유 버튼)도 여기로 옮겨 첫 화면 300KB·30% 감축선에 여유를 두었습니다.
+     버튼은 [data-sbp-copy]·[data-sbp-share] 위임 리스너라, 스크립트가 늦게 와도 그 뒤 클릭부터 동작합니다. */
   var LAZY_ROUTES = {
     tasks: ["assets/tasks.js", "assets/drive.js"],
     approvals: ["assets/approvals.js", "assets/drive.js"],
@@ -1870,9 +1872,34 @@
     lookup: ["assets/reserve.js"],
     sign: ["assets/esign.js"],
     market: ["assets/market.js"],
+    post: ["assets/share.js"],
     offline: []
   };
   var lazyState = {};
+
+  /* v10.3 — 알림함(notify.js)은 첫 화면 필수 렌더가 아닙니다.
+     로그인한 사람에게만(🔔·드로어·마이페이지 수신 설정) 필요할 때 받습니다. */
+  function ensureNotify(cb) {
+    var waiters = [];
+    function fire() {
+      while (waiters.length) { try { waiters.shift()(); } catch (e) { /* noop */ } }
+      if (typeof cb === "function") { try { cb(); } catch (e2) { /* noop */ } }
+    }
+    if (window.CRAFT_NOTIFY) { fire(); return; }
+    if (ensureNotify.busy) { ensureNotify.busy.push(fire); return; }
+    ensureNotify.busy = [fire];
+    var S = window.SBP;
+    var done = function () {
+      var list = ensureNotify.busy || [];
+      ensureNotify.busy = null;
+      list.forEach(function (fn) { try { fn(); } catch (e) { /* noop */ } });
+    };
+    try {
+      if (S && S.loadScript) S.loadScript("assets/notify.js").then(done, done);
+      else done();
+    } catch (e) { done(); }
+  }
+
   function ensureRouteScripts(name) {
     var list = LAZY_ROUTES[name];
     if (!list || !list.length) return false;
@@ -1884,6 +1911,10 @@
     S.loadScripts(need).then(function () {
       paintArchiveLinks();
       if (name === "archive") initArc();
+      if (name === "mypage") {
+        /* 마이페이지의 「알림 수신 설정」 칸은 notify.js 가 그립니다 — 늦게 와도 다시 그립니다. */
+        ensureNotify(function () { if (window.CRAFT_MYPAGE && window.CRAFT_MYPAGE.refresh) window.CRAFT_MYPAGE.refresh(); });
+      }
       route(false);                        // 스크립트가 준비됐으니 그 화면을 다시 그립니다.
     }).catch(function (e) { console.warn("[lazy]", e && e.message ? e.message : e); });
     return true;
@@ -2037,6 +2068,8 @@
   if (window.CRAFT_AUTH && window.CRAFT_AUTH.onChange) {
     window.CRAFT_AUTH.onChange(function () {
       renderHeader();
+      /* v10.3 — 로그인한 사람에게만 알림함(notify.js)을 받아 🔔 을 붙입니다. */
+      if (window.CRAFT_AUTH.user && window.CRAFT_AUTH.user()) ensureNotify();
     });
   }
 

@@ -150,3 +150,45 @@ html.mkt-modal-open{overflow:hidden}
   .mkt-set-card{width:100%}
   .mkt-field{padding:10px 12px}
 }
+
+/* ============================================================================
+   v10.3 — 버전 비교 · 업데이트 · 롤백
+   「업데이트 가능 (vX → vY)」 배지 · 상단 업데이트 바 · 버전 이력 · 롤백 확인 UI
+   ============================================================================ */
+.mkt-upd{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border-radius:999px;
+  background:#EEF3E8;color:#3F6B36;border:1px solid #CFE0C4;font-size:.7rem;font-weight:800;letter-spacing:-.01em;white-space:nowrap}
+.mkt-upd::before{content:"↑";font-weight:900;line-height:1}
+.mkt-pin{display:inline-flex;align-items:center;padding:1px 8px;border-radius:999px;
+  background:var(--bg-2);color:var(--ink-2);border:1px solid var(--line);font-size:.7rem;font-weight:800;white-space:nowrap}
+.mkt-updbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between;
+  margin:0 0 12px;padding:11px 14px;border:1px solid #CFE0C4;border-radius:12px;background:#F4F8EF}
+.mkt-updbar-text{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;font-size:.84rem;color:var(--ink)}
+.mkt-updbar-text b{font-weight:900;color:#3F6B36}
+.mkt-updbar-text .muted{font-size:.76rem;color:var(--ink-3)}
+.mkt-updbar .btn{white-space:nowrap}
+.mkt-flash{margin:8px 0 0;font-size:.8rem;font-weight:800;color:var(--ink-3);min-height:1.2em}
+.mkt-flash.ok{color:#3F6B36}
+.mkt-flash.err{color:#A8542F}
+.mkt-updsec{border-top:2px solid #CFE0C4;padding-top:12px}
+.mkt-updnote{margin:0 0 8px;font-size:.82rem;font-weight:800;color:#3F6B36}
+.mkt-log-new li:first-child{border-left-color:#3F6B36}
+.mkt-hist{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.mkt-hist li{display:flex;align-items:baseline;gap:10px;padding:7px 10px;border:1px solid var(--line);
+  border-radius:9px;background:var(--card);font-size:.82rem}
+.mkt-hist li b{font-weight:900;color:var(--ink)}
+.mkt-hist li time{margin-left:auto;font-size:.74rem;font-weight:700;color:var(--ink-3)}
+.mkt-rb{margin-top:12px;padding:14px;border:1px solid #E7C3AF;border-radius:12px;background:#FDF3EE}
+.mkt-rb h4{margin:0 0 6px;font-size:.86rem;font-weight:900;color:#A8542F}
+.mkt-rb p{margin:0 0 6px;font-size:.82rem;line-height:1.7;color:var(--ink-2)}
+.mkt-rb-msg{margin:6px 0 0;font-size:.78rem;font-weight:800;color:var(--ink-3);min-height:1.1em}
+.mkt-rb-msg.err{color:#A8542F}
+.mkt-rb-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:10px}
+.plug-tag.upd{background:#EEF3E8;color:#3F6B36;border:1px solid #CFE0C4;font-weight:800}
+.plug-tag.rb{background:#FDF3EE;color:#A8542F;border:1px solid #E7C3AF;font-weight:800}
+@media (max-width:640px){
+  .mkt-updbar{align-items:flex-start}
+  .mkt-updbar .btn{width:100%}
+  .mkt-hist li{flex-wrap:wrap}
+  .mkt-hist li time{margin-left:0}
+  .mkt-rb-actions .btn{flex:1 1 auto}
+}
