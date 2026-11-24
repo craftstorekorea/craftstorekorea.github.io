@@ -1907,7 +1907,8 @@
     mypage: "마이페이지 — " + BRAND,
     reserve: "예약 · 신청 — " + BRAND,
     lookup: "접수 조회 — " + BRAND,
-    sign: "전자서명 · 동의서 — " + BRAND
+    sign: "전자서명 · 동의서 — " + BRAND,
+    market: "플러그인 마켓 — " + BRAND
   };
   function route(scroll) {
     var r = parseRoute();

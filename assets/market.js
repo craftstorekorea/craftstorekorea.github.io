@@ -900,7 +900,6 @@
     ensureStyles();
     var S = window.SBP || {};
     if (S.feature && !S.feature("plugins")) return;     // 이 사이트에서 플러그인을 쓰지 않으면 열지 않습니다
-    if (S.brandName) document.title = tr(currentLang(), "title") + " — " + S.brandName();
     var page = document.getElementById("market-page");
     if (!page) {
       var view = ensurePublicView();
