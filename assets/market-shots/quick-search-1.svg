@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 405" width="720" height="405" role="img" aria-label="통합 검색 바로가기">
+<title>통합 검색 바로가기</title>
+<rect width="720" height="405" fill="#F7F5F2"/>
+<rect x="0" y="0" width="720" height="44" fill="#FFFDFB"/>
+<line x1="0" y1="44.5" x2="720" y2="44.5" stroke="#E6DCD1"/>
+<circle cx="30" cy="22" r="8" fill="#3E2F26"/>
+<rect x="46" y="16" width="86" height="11" rx="5.5" fill="#3E2F26"/>
+<rect x="530" y="17" width="44" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="584" y="17" width="44" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="638" y="17" width="44" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="40" y="76" width="640" height="86" rx="14" fill="#FFFDFB" stroke="#E6DCD1"/>
+<rect x="60" y="98" width="120" height="12" rx="6" fill="#3E2F26"/>
+<rect x="196" y="98" width="54" height="12" rx="6" fill="#E6DCD1"/>
+<rect x="262" y="98" width="54" height="12" rx="6" fill="#E6DCD1"/>
+<rect x="328" y="98" width="54" height="12" rx="6" fill="#E6DCD1"/>
+<rect x="394" y="98" width="54" height="12" rx="6" fill="#E6DCD1"/>
+<rect x="470" y="86" width="104" height="34" rx="17" fill="#3E2F26"/>
+<circle cx="492" cy="103" r="6" stroke="#F8E9E0" stroke-width="2" fill="none"/>
+<path d="M497 108 l5 5" stroke="#F8E9E0" stroke-width="2" stroke-linecap="round"/>
+<text x="548" y="108" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="12" font-weight="800" fill="#FFF8F3" text-anchor="middle">통합 검색</text>
+<rect x="470" y="132" width="104" height="18" rx="9" fill="#F8E9E0"/>
+<text x="522" y="145" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="9" font-weight="800" fill="#C86D44" text-anchor="middle">새로 더해진 메뉴</text>
+<rect x="40" y="182" width="640" height="124" rx="14" fill="#FFFDFB" stroke="#E6DCD1"/>
+<rect x="64" y="204" width="300" height="13" rx="6" fill="#3E2F26"/>
+<rect x="64" y="230" width="592" height="28" rx="14" fill="#F7F5F2" stroke="#E6DCD1"/>
+<text x="84" y="249" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11" font-weight="600" fill="#8A7565" text-anchor="start">검색어를 입력하세요</text>
+<rect x="64" y="270" width="180" height="18" rx="9" fill="#F8E9E0"/>
+<text x="154" y="283" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="9" font-weight="700" fill="#C86D44" text-anchor="middle">글 24건 · 페이지 3개</text><text x="40" y="379" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="13" font-weight="800" fill="#3E2F26">통합 검색 바로가기</text>
+<text x="40" y="395" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11" fill="#8A7565">어느 화면에서든 헤더 메뉴에서 바로 검색합니다.</text>
+</svg>

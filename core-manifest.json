@@ -1,13 +1,13 @@
 {
   "name": "SBPress",
   "kind": "core-manifest",
-  "version": "9.0",
-  "generatedAt": "2026-11-23T10:54:06+09:00",
+  "version": "10.0",
+  "generatedAt": "2026-11-24T23:06:59+09:00",
   "generator": "craftstore_site/sync_template.py --manifest",
   "engine": {
     "html": {
       "index.html": {
-        "sha256": "4fb72a8407d125359a1c4def589b4fc64c47f58ba6f3a5b19572f715b969e6af",
+        "sha256": "12f91c52056e0cc795f70ba7cdf885585708943cb8bb7160a1969194caa55deb",
         "strategy": "structural"
       },
       "admin.html": {
@@ -29,15 +29,15 @@
     },
     "js": {
       "assets/app.js": {
-        "sha256": "17dff9e88d6a9aa5d27c6e5f5714a44642e71c4aaedfe366b67f770aff5e9073",
+        "sha256": "6dc200c4508ab4ec8eb5f12968f5c48531ed823408081ec573c3909ec48838ce",
         "strategy": "copy"
       },
       "assets/admin.js": {
-        "sha256": "fc97fb183353fb3606f180f946417aecaa98ba8872c782d17ba6946b6b3f815d",
+        "sha256": "f0a56be2fad822cbc5859c74877c34219223cc22c448442d15df6c1b73bf0edd",
         "strategy": "copy"
       },
       "assets/admin-i18n.js": {
-        "sha256": "ed3f7c2ce2ab9335386a35dd1ef14e3b0240e5fa84b560fc86ce4bb1960bfd34",
+        "sha256": "112a4e1fd72f147d6bc5c52c1a21574990a040901e7eb81077ff5247cd36c949",
         "strategy": "copy"
       },
       "assets/archive.js": {
@@ -73,7 +73,7 @@
         "strategy": "copy"
       },
       "assets/i18n.js": {
-        "sha256": "8b8c0202fe7130bb413a5a620f560aa4419d50530c8e1f93022d5bec7e7f9e3b",
+        "sha256": "d8957ed8bbf0ae32710fb43a4cc36ab94942e5a587dce3d5f155239870b8bd94",
         "strategy": "copy"
       },
       "assets/korea-paths.js": {
@@ -137,7 +137,7 @@
         "strategy": "copy"
       },
       "sw.js": {
-        "sha256": "6f85fe3cf82c8c10ee54c2c8b126dce494902d6376fe3ee6c06c9add2c0044ca",
+        "sha256": "796d2b0d759512fed73d300ca6eb920200fc5df15520938f22f2cf85d2302cec",
         "strategy": "copy"
       },
       "assets/plugins/admin-json-export.js": {
@@ -155,19 +155,35 @@
       "assets/plugins/workshop-spotlight.js": {
         "sha256": "953899d64ca87baf04fa5b2f69baf5133e466f7069b5c3b5695adacb972feb3e",
         "strategy": "copy"
+      },
+      "assets/plugins/print-friendly.js": {
+        "sha256": "c0ca58eb12629218cfc21f4f25d434d851aa0bb1dba0d6f68b2c58da7d0431b2",
+        "strategy": "copy"
+      },
+      "assets/plugins/quick-search.js": {
+        "sha256": "aea4a2f47c4d1db671624de888f709afc621eb033d1449cb0d3de123287c6964",
+        "strategy": "copy"
+      },
+      "assets/market.js": {
+        "sha256": "ea120bfe4e3decab459e7c7874860f1cd472f3fb2d9069dc25dbcdc761be9f7c",
+        "strategy": "copy"
       }
     },
     "css": {
       "assets/styles.css": {
-        "sha256": "d11c548cfb015275af1ac32e04a8e591fa12a73188641559ef950093e91f27d2",
+        "sha256": "e5da1314fc86f6e85f7575471af77f5ae7e8995c0c901c61658615b9c716f390",
         "strategy": "copy"
       },
       "assets/admin.css": {
-        "sha256": "32c84cad2e7f7012a4f52d910d3a4642679f2210d9ce9a525c2b4ef06272d545",
+        "sha256": "6d853cebdb5e21581d3a5fd04c2a18ab640628df6d1cdd3e17599963d7421355",
         "strategy": "copy"
       },
       "assets/static-post.css": {
         "sha256": "74caf2ea6c60d62f70b44313ff53b7c0e91932ced362aaa8250eca7f63182066",
+        "strategy": "copy"
+      },
+      "assets/market.css": {
+        "sha256": "0167f4363a5142c5f75bd93a7d8db6c64e0422852721ec183424c3807ca97610",
         "strategy": "copy"
       }
     },
@@ -193,6 +209,30 @@
       "assets/fonts/nanum-gothic-400.woff2": {
         "sha256": "aaf5b48f1e192ef08fc7fc770d5341ce570ccda9cae001ed00c42357a968dcd9",
         "strategy": "copy"
+      },
+      "assets/market-shots/reading-time-1.svg": {
+        "sha256": "0dba677fbe7d97bc552132effde877ac162ca0ae4578eccc68301f6ea509d3e6",
+        "strategy": "copy"
+      },
+      "assets/market-shots/scroll-top-1.svg": {
+        "sha256": "e5c39c343f13bc2ea6b0516e2ae6e0df05ad85b7be5e40ac3b37c67e8ec1a087",
+        "strategy": "copy"
+      },
+      "assets/market-shots/workshop-spotlight-1.svg": {
+        "sha256": "9735b03336db7231ef920d3ccdc26799e169152d4eb41385b67c58b4986034bf",
+        "strategy": "copy"
+      },
+      "assets/market-shots/admin-json-export-1.svg": {
+        "sha256": "ac7e40bc4bc94cc331f50c2d9332df707c9425492f6a367761062f3e5fcd427a",
+        "strategy": "copy"
+      },
+      "assets/market-shots/print-friendly-1.svg": {
+        "sha256": "455cff7af47fe9af6c6ca430a4774c2a1fe784d97f5f6f935912e63366f11417",
+        "strategy": "copy"
+      },
+      "assets/market-shots/quick-search-1.svg": {
+        "sha256": "947d0b67509c6a343669586547eed5e089a9524b6c7383621be1491d0948db7b",
+        "strategy": "copy"
       }
     },
     "scripts": {
@@ -209,7 +249,7 @@
         "strategy": "copy"
       },
       "scripts/measure_traffic.py": {
-        "sha256": "874f6ceff95bfd641ce5bd8035017700aac38e2dcf1f12e80e538b8bd0a83faf",
+        "sha256": "d6714d6ceb5d7d6a03861eb92c1e5211f00048c8599937de73b602f8d931f64b",
         "strategy": "copy"
       },
       "scripts/clone_site.py": {

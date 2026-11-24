@@ -1,0 +1,108 @@
+/* ============================================================================
+   SBPress v10.0 · 플러그인 마켓 화면 (assets/market.css)
+   #/market(공개)과 /admin 플러그인 탭이 함께 씁니다. market.js 가 이 화면에 들어갈 때
+   <link> 로 한 번만 불러옵니다 — 첫 화면 300KB 예산을 지키기 위해서입니다.
+   ============================================================================ */
+.mkt-lead{margin:14px 0 4px;max-width:44rem;color:var(--ink-2);font-size:.98rem;line-height:1.8}
+.mkt-tools{margin:18px 0 2px}
+.mkt-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0 12px}
+.mkt-search{flex:1 1 300px;min-width:220px;display:flex;align-items:center;position:relative}
+.mkt-search input{
+  width:100%;padding:11px 15px;border:1px solid var(--line);border-radius:999px;background:var(--card);
+  font:inherit;font-size:.9rem;color:var(--ink);box-shadow:var(--shadow-s,0 1px 2px rgba(62,47,38,.06));
+}
+.mkt-search input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,109,68,.16)}
+.mkt-sortwrap{display:inline-flex;align-items:center;gap:8px;font-size:.78rem;font-weight:700;color:var(--ink-3)}
+.mkt-sort{
+  padding:9px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);
+  font:inherit;font-size:.84rem;font-weight:700;color:var(--ink);cursor:pointer;
+}
+.mkt-chipset{display:grid;gap:6px;margin:0 0 10px}
+.mkt-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.mkt-chip-label{min-width:56px;font-size:.72rem;font-weight:800;letter-spacing:.01em;color:var(--ink-3)}
+.mkt-chip{
+  border:1px solid var(--line);background:var(--card);color:var(--ink-2);border-radius:999px;
+  padding:5px 11px;font:700 .76rem/1.5 inherit;cursor:pointer;transition:background .12s ease,color .12s ease,border-color .12s ease;
+}
+.mkt-chip:hover{border-color:var(--ink-3);color:var(--ink)}
+.mkt-chip.on{background:var(--ink);border-color:var(--ink);color:#FBF8F4}
+.mkt-count{margin:2px 0 0;font-size:.78rem;font-weight:700;color:var(--ink-3)}
+.mkt-empty{margin:14px 0 0;padding:18px 16px;border:1px dashed var(--line);border-radius:12px;background:var(--card);color:var(--ink-2);font-size:.88rem}
+.mkt-note{margin:12px 0;font-size:.85rem;line-height:1.7;color:var(--ink-2)}
+.mkt-note.mkt-error{color:var(--accent-d)}
+.mkt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:16px;margin-top:14px}
+.mkt-card{
+  display:flex;flex-direction:column;gap:8px;padding:14px;border:1px solid var(--line);border-radius:16px;
+  background:var(--card);cursor:pointer;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;
+}
+.mkt-card:hover{transform:translateY(-3px);border-color:var(--line-2);box-shadow:0 18px 30px -22px rgba(62,47,38,.5)}
+.mkt-card h3{font-size:.98rem;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 2px}
+.mkt-card .plug-desc{margin:0;font-size:.82rem;line-height:1.65;color:var(--ink-3);min-height:2.6em}
+.plug-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font:800 .68rem/1.5 'Nanum Gothic',sans-serif;letter-spacing:.02em}
+.plug-badge.b-on{background:#EAF2E6;color:#3F6B36}
+.plug-badge.b-off{background:#F2EEEA;color:#8A7A6D}
+.plug-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.72rem;color:var(--ink-3)}
+.plug-meta .plug-tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;background:var(--bg-2);color:var(--ink-2);font-weight:700;font-size:.72rem;line-height:1.6;font-style:normal;white-space:nowrap}
+.plug-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.mkt-thumb{
+  position:relative;aspect-ratio:16/9;border-radius:11px;overflow:hidden;background:linear-gradient(135deg,#F1EAE2,#E7DDD1);
+  display:grid;place-items:center;
+}
+.mkt-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.mkt-noshot{font-size:.72rem;font-weight:700;color:var(--ink-3);padding:0 10px;text-align:center}
+.mkt-meta .plug-tag.ver{background:#EEF3F8;color:#2F5A78;font-weight:800}
+.mkt-meta .plug-tag.hook{background:#F3EFEA;color:var(--ink-2);font-style:normal}
+.mkt-author{font-size:.74rem;color:var(--ink-3);font-weight:700}
+.mkt-actions{margin-top:auto;padding-top:6px}
+.mkt-actions .btn{font-size:.78rem;padding:7px 11px}
+.mkt-actions .rowlink{font-size:.76rem;font-weight:700;color:var(--accent-d);background:none;border:0;padding:7px 4px;cursor:pointer}
+.mkt-actions .rowlink:hover{text-decoration:underline}
+
+/* ---- 상세 모달 ---- */
+html.mkt-modal-open{overflow:hidden}
+.mkt-modal{position:fixed;inset:0;z-index:240;display:grid;place-items:center;padding:20px}
+.mkt-modal[hidden]{display:none}
+.mkt-modal-backdrop{position:absolute;inset:0;background:rgba(46,34,26,.52);backdrop-filter:blur(2px)}
+.mkt-modal-card{
+  position:relative;width:min(860px,100%);max-height:min(88vh,900px);display:flex;flex-direction:column;
+  background:var(--card);border-radius:20px;box-shadow:0 40px 80px -40px rgba(30,20,14,.7);overflow:hidden;
+}
+.mkt-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:20px 22px 12px;border-bottom:1px solid var(--line)}
+.mkt-modal-head h2{margin:0;font-size:1.15rem;letter-spacing:-.02em;font-weight:800}
+.mkt-modal-x{
+  flex:none;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--card);
+  font-size:1.15rem;line-height:1;color:var(--ink-2);cursor:pointer;
+}
+.mkt-modal-x:hover{border-color:var(--ink);color:var(--ink)}
+.mkt-modal-body{padding:18px 22px 8px;overflow:auto;display:grid;gap:14px}
+.mkt-shots{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
+.mkt-shot{margin:0;flex:0 0 auto;width:min(420px,86vw);border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#F4EEE7}
+.mkt-shot img{display:block;width:100%;height:auto}
+.mkt-desc-full{margin:0;font-size:.9rem;line-height:1.75;color:var(--ink-2)}
+.mkt-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(198px,1fr));gap:10px 18px;margin:0;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--bg-2)}
+.mkt-facts>div{display:flex;flex-direction:column;gap:4px}
+.mkt-facts dt{font-size:.7rem;font-weight:800;letter-spacing:.02em;color:var(--ink-3)}
+.mkt-facts dd{margin:0;font-size:.85rem;color:var(--ink);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.mkt-facts .muted{color:var(--ink-3);font-size:.78rem}
+.mkt-ok{padding:1px 8px;border-radius:999px;background:#EAF2E6;color:#3F6B36;font-size:.7rem;font-weight:800}
+.mkt-warn{padding:1px 8px;border-radius:999px;background:#FBE9E1;color:#A8542F;font-size:.7rem;font-weight:800}
+.mkt-sec h3{margin:4px 0 8px;font-size:.86rem;font-weight:800;letter-spacing:-.01em}
+.mkt-perms{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.mkt-perms li{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;font-size:.84rem;color:var(--ink-2)}
+.mkt-perms code{padding:2px 7px;border-radius:6px;background:#EEF3F8;color:#2F5A78;font-size:.76rem;font-family:inherit;font-weight:800}
+.mkt-log{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.mkt-log li{position:relative;padding-left:14px;border-left:2px solid var(--line)}
+.mkt-log li:first-child{border-left-color:var(--accent)}
+.mkt-log b{font-size:.84rem;color:var(--ink)}
+.mkt-log time{margin-left:8px;font-size:.74rem;font-weight:700;color:var(--ink-3)}
+.mkt-log p{margin:3px 0 0;font-size:.84rem;line-height:1.65;color:var(--ink-2)}
+.mkt-modal-foot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:14px 22px 18px;border-top:1px solid var(--line);background:var(--bg)}
+.mkt-modal-foot .mkt-note{margin:0;flex:1 1 240px}
+.mkt-foot-id{margin-right:auto;font-size:.72rem;color:var(--ink-3);letter-spacing:.02em}
+@media (max-width:640px){
+  .mkt-grid{grid-template-columns:1fr}
+  .mkt-modal{padding:0}
+  .mkt-modal-card{border-radius:0;max-height:100%;height:100%}
+  .mkt-modal-head,.mkt-modal-body,.mkt-modal-foot{padding-left:16px;padding-right:16px}
+  .mkt-chip-label{min-width:100%}
+}

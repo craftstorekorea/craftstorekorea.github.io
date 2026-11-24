@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 405" width="720" height="405" role="img" aria-label="추천 공방 스포트라이트">
+<title>추천 공방 스포트라이트</title>
+<rect width="720" height="405" fill="#F7F5F2"/>
+<rect x="0" y="0" width="720" height="44" fill="#FFFDFB"/>
+<line x1="0" y1="44.5" x2="720" y2="44.5" stroke="#E6DCD1"/>
+<circle cx="30" cy="22" r="8" fill="#3E2F26"/>
+<rect x="46" y="16" width="86" height="11" rx="5.5" fill="#3E2F26"/>
+<rect x="530" y="17" width="44" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="584" y="17" width="44" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="638" y="17" width="44" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="40" y="76" width="640" height="150" rx="18" fill="#3E2F26"/>
+<rect x="66" y="100" width="104" height="24" rx="12" fill="#C86D44"/>
+<text x="118" y="117" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11" font-weight="800" fill="#FFF8F3" text-anchor="middle">이번 주 추천</text>
+<text x="66" y="158" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="20" font-weight="800" fill="#FBF8F4" text-anchor="start">모래골 도자기 공방</text>
+<text x="66" y="186" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="12" font-weight="600" fill="#D8C9BA" text-anchor="start">흙과 유약, 두 번의 불을 지나 완성되는 그릇</text>
+<rect x="66" y="198" width="128" height="18" rx="9" fill="#4B3A30"/>
+<text x="130" y="211" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="10" font-weight="700" fill="#F8E9E0" text-anchor="middle">체험 마감 D-3</text>
+<rect x="470" y="100" width="184" height="102" rx="12" fill="#4B3A30"/>
+<circle cx="562" cy="140" r="18" fill="#6A5344"/>
+<path d="M520 196 q42 -46 84 0" stroke="#C86D44" stroke-width="3" fill="none"/>
+<text x="40" y="379" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="13" font-weight="800" fill="#3E2F26">추천 공방 스포트라이트</text>
+<text x="40" y="395" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11" fill="#8A7565">홈 맨 위에 추천 공방과 마감 임박 체험을 모읍니다.</text>
+</svg>

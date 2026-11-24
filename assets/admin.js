@@ -4916,69 +4916,81 @@
       return r.json();
     }).then(function (data) {
       var list = Array.isArray(data) ? data : (data && Array.isArray(data.plugins) ? data.plugins : []);
-      plugMarket = { base: marketAbs(plugMarketUrl), list: list };
+      plugMarket = { base: marketAbs(plugMarketUrl), list: list, meta: (data && typeof data === "object" && !Array.isArray(data)) ? data : {} };
       if (msg) msg.textContent = "마켓 목록 " + list.length + "개 · " + plugMarket.base;
       renderMarket();
     }).catch(function (e) {
-      plugMarket = { base: marketAbs(plugMarketUrl), list: [] };
+      plugMarket = { base: marketAbs(plugMarketUrl), list: [], meta: {} };
       box.innerHTML = '<p class="plug-empty">마켓 목록을 불러오지 못했습니다: ' + esc(e.message) + "</p>";
       if (msg) msg.textContent = "주소를 확인해 주세요: " + plugMarketUrl;
     });
+  }
+
+  /* ---------- v10.0 마켓 탐색기 (assets/market.js — 플러그인 탭을 처음 열 때 지연 로딩) ----------
+     검색·필터·정렬·상세 모달은 assets/market.js 가 그리고, 설치·켜기·업데이트·제거 같은
+     쓰기는 이 파일의 함수(installFromMarket·setPluginEnabled·updatePlugin·deletePlugin)가 합니다. */
+  var marketUiPromise = null;
+
+  function ensureMarketUi() {
+    if (window.SBP_MARKET) return Promise.resolve(window.SBP_MARKET);
+    if (marketUiPromise) return marketUiPromise;
+    marketUiPromise = new Promise(function (resolve) {
+      var done = false;
+      function finish() {
+        if (done) return;
+        done = true;
+        resolve(window.SBP_MARKET || null);
+      }
+      try {
+        if (window.SBP && window.SBP.loadScript) window.SBP.loadScript("assets/market.js").then(finish, finish);
+        else finish();
+      } catch (e) { finish(); }
+      setTimeout(finish, 6000);
+    });
+    return marketUiPromise;
+  }
+
+  function marketToolsHost(box) {
+    var host = $("#plug-market-tools");
+    if (host) return host;
+    host = document.createElement("div");
+    host.className = "mkt-tools plug-market-tools";
+    host.id = "plug-market-tools";
+    box.parentNode.insertBefore(host, box);
+    return host;
   }
 
   function renderMarket() {
     var box = $("#plug-market");
     if (!box) return;
     var list = plugMarket.list || [];
+    var host = marketToolsHost(box);
     if (!list.length) {
-      if (!box.querySelector(".plug-empty")) {
-        box.innerHTML = '<p class="plug-empty">마켓에 표시할 플러그인이 없습니다. 위 주소를 확인하거나 새로고침해 보세요.</p>';
-      }
+      host.innerHTML = "";
+      box.innerHTML = '<p class="plug-empty">마켓에 표시할 플러그인이 없습니다. 위 주소를 확인하거나 새로고침해 보세요.</p>';
       return;
     }
-    box.innerHTML = list.map(function (item) {
-      var own = plugById(item.id);
-      var installed = !!own;
-      var on = !!(own && own.enabled);
-      var tags = (item.tags || []).map(function (t) { return '<span class="plug-tag">' + esc(t) + "</span>"; }).join("");
-      var m = (item.manifest && typeof item.manifest === "object") ? item.manifest : {};
-      var hooks = (Array.isArray(m.hooks) ? m.hooks : []).slice(0, 4)
-        .map(function (h) { return '<i class="plug-tag">hook · ' + esc(h) + "</i>"; }).join("");
-      var perms = (Array.isArray(m.permissions) ? m.permissions : []).slice(0, 3)
-        .map(function (x) { return '<i class="plug-tag perm">' + esc(x) + "</i>"; }).join("");
-      var newer = !!(installed && item.version && String(item.version) !== String(own.version || ""));
-      var action;
-      if (!installed) {
-        action = '<button type="button" class="btn btn-primary btn-sm" data-mplug-install="' + esc(item.id) + '">설치 및 켜기</button>';
-      } else {
-        action = '<button type="button" class="btn btn-ghost btn-sm" data-mplug-toggle="' + esc(item.id) + '">' +
-          (on ? "끄기" : "켜기") + "</button>" +
-          (newer ? '<button type="button" class="btn btn-ghost btn-sm" data-mplug-update="' + esc(item.id) + '">v' + esc(item.version) + " 으로 업데이트</button>" : "") +
-          '<button type="button" class="btn btn-ghost btn-sm" data-mplug-remove="' + esc(item.id) + '">제거</button>';
+    ensureMarketUi().then(function (UI) {
+      if (!UI) {
+        box.innerHTML = '<p class="plug-empty">마켓 화면(assets/market.js)을 불러오지 못했습니다. 새로고침해 주세요.</p>';
+        return;
       }
-      return '<article class="plug-card" data-market-id="' + esc(item.id) + '">' +
-        "<h3>" + esc(item.name || item.id) + " " +
-          (installed ? '<span class="plug-badge ' + (on ? "b-on" : "b-off") + '">' + (on ? "설치됨 · 켜짐" : "설치됨 · 꺼짐") + "</span>" : "") + "</h3>" +
-        '<p class="plug-desc">' + esc(item.description || "") + "</p>" +
-        '<div class="plug-meta">' + (item.version ? "<span class=\"plug-tag\">v" + esc(item.version) + "</span>" : "") +
-          (item.author ? "<span>" + esc(item.author) + "</span>" : "") + tags + hooks + perms + "</div>" +
-        '<div class="plug-actions">' + action + "</div></article>";
-    }).join("");
-
-    [].forEach.call(box.querySelectorAll("[data-mplug-install]"), function (b) {
-      b.addEventListener("click", function () { installFromMarket(b.getAttribute("data-mplug-install"), b); });
-    });
-    [].forEach.call(box.querySelectorAll("[data-mplug-toggle]"), function (b) {
-      b.addEventListener("click", function () {
-        var id = b.getAttribute("data-mplug-toggle"), p = plugById(id);
-        setPluginEnabled(id, !(p && p.enabled));
+      var meta = plugMarket.meta || {};
+      UI.mount({
+        root: box,
+        tools: host,
+        mode: "admin",
+        items: list,
+        url: plugMarketUrl,
+        categories: meta.categories || [],
+        sbpress: meta.sbpress || "",
+        name: meta.name || "",
+        installed: plugById,
+        onInstall: function (id, btn) { installFromMarket(id, btn); },
+        onToggle: function (id) { var p = plugById(id); setPluginEnabled(id, !(p && p.enabled)); },
+        onUpdate: function (id, btn) { updatePlugin(id, btn); },
+        onRemove: function (id) { deletePlugin(id); }
       });
-    });
-    [].forEach.call(box.querySelectorAll("[data-mplug-update]"), function (b) {
-      b.addEventListener("click", function () { updatePlugin(b.getAttribute("data-mplug-update"), b); });
-    });
-    [].forEach.call(box.querySelectorAll("[data-mplug-remove]"), function (b) {
-      b.addEventListener("click", function () { deletePlugin(b.getAttribute("data-mplug-remove")); });
     });
   }
 

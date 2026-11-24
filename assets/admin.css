@@ -1045,3 +1045,12 @@ tr.owner-row td{background:#FFFAF6}
 .esg-req{font-style:normal;font-size:.72rem;color:var(--accent-d);font-weight:800}
 .esg-d-sig img{max-width:320px;width:100%;border:1px solid var(--line);border-radius:10px;background:#fff}
 .esg-d-sigmeta{font-size:.8rem;color:var(--ink-2);display:flex;gap:12px;flex-wrap:wrap}
+
+/* ---- v10.0 플러그인 · 마켓 탐색기(관리자) ---- */
+.plug-market-tools{margin:12px 0 0}
+.plug-market-tools .mkt-bar{margin-top:2px}
+.plug-market-tools .mkt-chip-label{min-width:52px}
+#plug-market.mkt-grid{margin-top:16px}
+#plug-market .mkt-card h3{font-size:.95rem}
+#plug-market .mkt-actions .rowlink{font-size:.74rem}
+#plug-market ~ .plug-empty{margin-top:12px}

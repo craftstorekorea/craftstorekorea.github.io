@@ -1,19 +1,57 @@
 {
   "name": "전국공방 플러그인 마켓",
   "manifest": 1,
+  "schema": 2,
+  "sbpress": "10.0",
   "description": "SBPress 사이트·관리자에 기능을 더하는 브라우저 JS 플러그인 목록입니다. 관리자 > 플러그인 · 마켓에서 한 번에 설치하고 켜고 끌 수 있습니다.",
   "homepage": "https://craftstorekorea.github.io/",
-  "updated": "2026-11-23",
+  "updated": "2026-11-24",
+  "categories": [
+    { "id": "content", "ko": "콘텐츠 꾸미기", "en": "Content" },
+    { "id": "navigation", "ko": "내비게이션", "en": "Navigation" },
+    { "id": "widget", "ko": "위젯·홈", "en": "Widgets & home" },
+    { "id": "admin", "ko": "관리자 도구", "en": "Admin tools" },
+    { "id": "accessibility", "ko": "읽기·접근성", "en": "Reading & accessibility" }
+  ],
   "plugins": [
     {
       "id": "reading-time",
       "name": "읽기 시간 배지",
+      "name_en": "Reading time badge",
       "version": "1.1.0",
       "description": "글·공방 카드에「약 N분 · N자」배지를 붙여, 긴 글을 고르기 쉽게 합니다.",
+      "description_en": "Adds an “about N min · N chars” badge to post and workshop cards so longer pieces are easier to choose.",
       "author": "전국공방",
+      "author_en": "Craft Store Korea",
+      "category": "content",
+      "order": 1,
+      "updated": "2026-11-23",
+      "min_sbpress_version": "1.0",
       "script_url": "/assets/plugins/reading-time.js",
       "source": "builtin",
       "tags": ["카드 꾸미기", "읽기"],
+      "tags_en": ["Card decoration", "Reading"],
+      "screenshots": [
+        {
+          "src": "assets/market-shots/reading-time-1.svg",
+          "alt": "공방 카드 옆에 ‘약 2분 · 980자’ 배지가 붙은 모습",
+          "alt_en": "A workshop card with an “about 2 min · 980 chars” badge"
+        }
+      ],
+      "changelog": [
+        {
+          "version": "1.1.0",
+          "date": "2026-11-23",
+          "notes": "공방 카드·인터뷰 카드에도 배지가 붙도록 넓혔습니다. 60자 미만 카드는 건너뜁니다.",
+          "notes_en": "Badges now appear on workshop and interview cards as well; cards under 60 characters are skipped."
+        },
+        {
+          "version": "1.0.0",
+          "date": "2026-11-21",
+          "notes": "처음 선보였습니다. 분당 500자 기준으로 읽기 시간과 글자 수를 계산합니다.",
+          "notes_en": "First release. Estimates reading time and character count at 500 characters per minute."
+        }
+      ],
       "manifest": {
         "v": 1,
         "name": "읽기 시간 배지",
@@ -26,12 +64,35 @@
     {
       "id": "scroll-top",
       "name": "맨 위로 버튼",
+      "name_en": "Back to top button",
       "version": "1.0.0",
       "description": "오른쪽 아래에 '맨 위로' 버튼을 띄웁니다. 400px 이상 스크롤하면 나타납니다.",
+      "description_en": "Shows a “Back to top” button at the bottom right once the page is scrolled 400 px.",
       "author": "전국공방",
+      "author_en": "Craft Store Korea",
+      "category": "navigation",
+      "order": 2,
+      "updated": "2026-11-21",
+      "min_sbpress_version": "1.0",
       "script_url": "/assets/plugins/scroll-top.js",
       "source": "builtin",
       "tags": ["위젯", "내비게이션"],
+      "tags_en": ["Widget", "Navigation"],
+      "screenshots": [
+        {
+          "src": "assets/market-shots/scroll-top-1.svg",
+          "alt": "오른쪽 아래에 떠 있는 ‘맨 위로’ 버튼",
+          "alt_en": "A floating “Back to top” button at the bottom right"
+        }
+      ],
+      "changelog": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-21",
+          "notes": "처음 선보였습니다. 400px 이상 스크롤하면 버튼이 나타나고 부드럽게 올라갑니다.",
+          "notes_en": "First release. The button appears after 400 px of scrolling and scrolls smoothly to the top."
+        }
+      ],
       "manifest": {
         "v": 1,
         "name": "맨 위로 버튼",
@@ -44,12 +105,35 @@
     {
       "id": "workshop-spotlight",
       "name": "추천 공방 스포트라이트",
+      "name_en": "Workshop spotlight",
       "version": "1.0.0",
       "description": "홈 맨 위에 이번 주 추천 공방과 마감 임박 공모·체험을 모은 배너를 보여 줍니다.",
+      "description_en": "Adds a banner at the top of home with this week’s featured workshop and grants or classes closing soon.",
       "author": "전국공방",
+      "author_en": "Craft Store Korea",
+      "category": "widget",
+      "order": 3,
+      "updated": "2026-11-22",
+      "min_sbpress_version": "1.0",
       "script_url": "/assets/plugins/workshop-spotlight.js",
       "source": "builtin",
       "tags": ["위젯", "홈"],
+      "tags_en": ["Widget", "Home"],
+      "screenshots": [
+        {
+          "src": "assets/market-shots/workshop-spotlight-1.svg",
+          "alt": "홈 맨 위 추천 공방 배너",
+          "alt_en": "The featured workshop banner at the top of home"
+        }
+      ],
+      "changelog": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-22",
+          "notes": "처음 선보였습니다. 추천 공방과 마감 임박 공모를 한 줄 배너로 묶습니다.",
+          "notes_en": "First release. Groups the featured workshop and grants closing soon into one banner."
+        }
+      ],
       "manifest": {
         "v": 1,
         "name": "추천 공방 스포트라이트",
@@ -62,12 +146,35 @@
     {
       "id": "admin-json-export",
       "name": "데이터 내보내기",
+      "name_en": "Data export",
       "version": "1.0.0",
       "description": "관리자 화면에 게시글·페이지를 JSON으로 내려받는 탭을 추가합니다.",
+      "description_en": "Adds an admin tab that downloads posts and pages as JSON.",
       "author": "전국공방",
+      "author_en": "Craft Store Korea",
+      "category": "admin",
+      "order": 4,
+      "updated": "2026-11-22",
+      "min_sbpress_version": "1.0",
       "script_url": "/assets/plugins/admin-json-export.js",
       "source": "builtin",
       "tags": ["관리자", "백업"],
+      "tags_en": ["Admin", "Backup"],
+      "screenshots": [
+        {
+          "src": "assets/market-shots/admin-json-export-1.svg",
+          "alt": "관리자에 생긴 ‘데이터 내보내기’ 탭과 내려받기 버튼",
+          "alt_en": "The data export tab with a download button in the admin screen"
+        }
+      ],
+      "changelog": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-22",
+          "notes": "처음 선보였습니다. 글·페이지 목록을 JSON 한 파일로 내려받습니다.",
+          "notes_en": "First release. Downloads the post and page lists as a single JSON file."
+        }
+      ],
       "manifest": {
         "v": 1,
         "name": "데이터 내보내기",
@@ -75,6 +182,88 @@
         "author": "전국공방",
         "hooks": ["admin-tab"],
         "permissions": ["read:admin-lists"]
+      }
+    },
+    {
+      "id": "print-friendly",
+      "name": "인쇄용 스타일",
+      "name_en": "Print-friendly styles",
+      "version": "1.0.0",
+      "description": "글을 인쇄하거나 PDF로 저장할 때 메뉴·버튼을 숨기고 본문만 또렷하게 남깁니다.",
+      "description_en": "Hides menus and buttons when a post is printed or saved as PDF, leaving a clean body.",
+      "author": "전국공방",
+      "author_en": "Craft Store Korea",
+      "category": "accessibility",
+      "order": 5,
+      "updated": "2026-11-24",
+      "min_sbpress_version": "1.0",
+      "script_url": "/assets/plugins/print-friendly.js",
+      "source": "builtin",
+      "tags": ["인쇄", "읽기"],
+      "tags_en": ["Print", "Reading"],
+      "screenshots": [
+        {
+          "src": "assets/market-shots/print-friendly-1.svg",
+          "alt": "인쇄 미리보기에서 머리글·메뉴가 사라지고 본문만 남은 모습",
+          "alt_en": "A print preview with the header and menu hidden and only the body left"
+        }
+      ],
+      "changelog": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-24",
+          "notes": "처음 선보였습니다. 인쇄·PDF 저장 때 머리글·메뉴·버튼·댓글을 숨기고 본문 여백을 넓힙니다.",
+          "notes_en": "First release. Hides the header, menu, buttons and comments when printing or saving to PDF, and widens the body margins."
+        }
+      ],
+      "manifest": {
+        "v": 1,
+        "name": "인쇄용 스타일",
+        "version": "1.0.0",
+        "author": "전국공방",
+        "hooks": ["css"],
+        "permissions": ["css:inject"]
+      }
+    },
+    {
+      "id": "quick-search",
+      "name": "통합 검색 바로가기",
+      "name_en": "Search shortcut",
+      "version": "1.0.0",
+      "description": "헤더 메뉴에 ‘통합 검색’을 더해, 어느 화면에서든 글·페이지를 바로 찾게 합니다.",
+      "description_en": "Adds “Search” to the header menu so posts and pages are one click away from any screen.",
+      "author": "전국공방",
+      "author_en": "Craft Store Korea",
+      "category": "navigation",
+      "order": 6,
+      "updated": "2026-11-24",
+      "min_sbpress_version": "2.0",
+      "script_url": "/assets/plugins/quick-search.js",
+      "source": "builtin",
+      "tags": ["메뉴", "검색"],
+      "tags_en": ["Menu", "Search"],
+      "screenshots": [
+        {
+          "src": "assets/market-shots/quick-search-1.svg",
+          "alt": "헤더 메뉴 끝에 더해진 ‘통합 검색’ 항목",
+          "alt_en": "A “Search” item added at the end of the header menu"
+        }
+      ],
+      "changelog": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-24",
+          "notes": "처음 선보였습니다. 헤더 메뉴에 통합 검색(#/search)을 더합니다.",
+          "notes_en": "First release. Adds the site-wide search (#/search) to the header menu."
+        }
+      ],
+      "manifest": {
+        "v": 1,
+        "name": "통합 검색 바로가기",
+        "version": "1.0.0",
+        "author": "전국공방",
+        "hooks": ["menu"],
+        "permissions": ["nav:menu"]
       }
     }
   ]

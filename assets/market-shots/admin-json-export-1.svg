@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 405" width="720" height="405" role="img" aria-label="데이터 내보내기">
+<title>데이터 내보내기</title>
+<rect width="720" height="405" fill="#F7F5F2"/>
+<rect x="0" y="0" width="720" height="44" fill="#FFFDFB"/>
+<line x1="0" y1="44.5" x2="720" y2="44.5" stroke="#E6DCD1"/>
+<circle cx="30" cy="22" r="8" fill="#3E2F26"/>
+<rect x="46" y="16" width="86" height="11" rx="5.5" fill="#3E2F26"/>
+<rect x="530" y="17" width="44" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="584" y="17" width="44" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="638" y="17" width="44" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="40" y="76" width="150" height="240" rx="14" fill="#FFFDFB" stroke="#E6DCD1"/>
+<rect x="56" y="94" width="118" height="26" rx="8" fill="#F7F5F2"/>
+<text x="66" y="112" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="12" font-weight="700" fill="#6E5C4F" text-anchor="start">대시보드</text>
+<rect x="56" y="128" width="118" height="26" rx="8" fill="#F7F5F2"/>
+<text x="66" y="146" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="12" font-weight="700" fill="#6E5C4F" text-anchor="start">게시판 관리</text>
+<rect x="56" y="162" width="118" height="26" rx="8" fill="#F8E9E0" stroke="#C86D44"/>
+<text x="66" y="180" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="12" font-weight="800" fill="#C86D44" text-anchor="start">데이터 내보내기</text>
+<rect x="56" y="196" width="118" height="26" rx="8" fill="#F7F5F2"/>
+<text x="66" y="214" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="12" font-weight="700" fill="#6E5C4F" text-anchor="start">백업 · 복원</text>
+<rect x="208" y="76" width="472" height="240" rx="14" fill="#FFFDFB" stroke="#E6DCD1"/>
+<text x="232" y="110" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="15" font-weight="800" fill="#3E2F26" text-anchor="start">데이터 내보내기</text>
+<text x="232" y="134" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11" font-weight="600" fill="#8A7565" text-anchor="start">글 151건 · 페이지 12개를 JSON 한 파일로 내려받습니다.</text>
+<rect x="232" y="152" width="424" height="34" rx="9" fill="#F7F5F2" stroke="#E6DCD1"/>
+<text x="248" y="174" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11" font-weight="700" fill="#6E5C4F" text-anchor="start">posts.json</text>
+<rect x="232" y="194" width="424" height="34" rx="9" fill="#F7F5F2" stroke="#E6DCD1"/>
+<text x="248" y="216" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11" font-weight="700" fill="#6E5C4F" text-anchor="start">pages.json</text>
+<rect x="232" y="248" width="140" height="36" rx="18" fill="#C86D44"/>
+<text x="302" y="271" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="12" font-weight="800" fill="#FFF8F3" text-anchor="middle">JSON 내려받기</text>
+<rect x="386" y="248" width="120" height="36" rx="18" fill="#FFFDFB" stroke="#E6DCD1"/>
+<text x="446" y="271" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="12" font-weight="700" fill="#6E5C4F" text-anchor="middle">미리보기</text><text x="40" y="379" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="13" font-weight="800" fill="#3E2F26">데이터 내보내기</text>
+<text x="40" y="395" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11" fill="#8A7565">관리자에 백업용 JSON 탭을 더합니다.</text>
+</svg>

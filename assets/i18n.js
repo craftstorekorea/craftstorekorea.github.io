@@ -47,6 +47,7 @@
       "share.copy": "링크 복사",
       "share.share": "공유하기",
 
+      "market.footer": "플러그인 마켓",
       "pwa.offline.banner": "오프라인입니다 · 최근 본 글 {n}건은 그대로 읽을 수 있습니다.",
       "pwa.offline.bannerZero": "오프라인입니다 · 온라인일 때 연 글은 자동으로 저장됩니다.",
       "pwa.offline.open": "최근 본 글",
@@ -609,6 +610,7 @@
       "share.copy": "Copy link",
       "share.share": "Share",
 
+      "market.footer": "Plugin market",
       "pwa.offline.banner": "You're offline · {n} recently viewed post(s) are still readable.",
       "pwa.offline.bannerZero": "You're offline · posts you open while online are saved automatically.",
       "pwa.offline.open": "Recent posts",

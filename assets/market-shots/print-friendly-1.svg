@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 405" width="720" height="405" role="img" aria-label="인쇄용 스타일">
+<title>인쇄용 스타일</title>
+<rect width="720" height="405" fill="#F7F5F2"/>
+<rect x="0" y="0" width="720" height="44" fill="#FFFDFB"/>
+<line x1="0" y1="44.5" x2="720" y2="44.5" stroke="#E6DCD1"/>
+<circle cx="30" cy="22" r="8" fill="#3E2F26"/>
+<rect x="46" y="16" width="86" height="11" rx="5.5" fill="#3E2F26"/>
+<rect x="530" y="17" width="44" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="584" y="17" width="44" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="638" y="17" width="44" height="9" rx="4.5" fill="#E6DCD1"/>
+<rect x="40" y="76" width="300" height="230" rx="14" fill="#FFFDFB" stroke="#E6DCD1"/>
+<text x="58" y="100" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11" font-weight="800" fill="#8A7565" text-anchor="start">화면</text>
+<rect x="58" y="112" width="264" height="18" rx="6" fill="#F7F5F2"/>
+<rect x="66" y="116" width="30" height="10" rx="5" fill="#E6DCD1"/>
+<rect x="104" y="116" width="30" height="10" rx="5" fill="#E6DCD1"/>
+<rect x="142" y="116" width="30" height="10" rx="5" fill="#E6DCD1"/>
+<rect x="58" y="144" width="180" height="12" rx="6" fill="#3E2F26"/>
+<rect x="58" y="166" width="240" height="8" rx="4" fill="#E6DCD1"/>
+<rect x="58" y="182" width="220" height="8" rx="4" fill="#E6DCD1"/>
+<rect x="58" y="198" width="236" height="8" rx="4" fill="#E6DCD1"/>
+<rect x="58" y="220" width="90" height="22" rx="11" fill="#F8E9E0"/>
+<rect x="58" y="254" width="238" height="34" rx="8" fill="#F7F5F2" stroke="#E6DCD1"/>
+<text x="70" y="276" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="10" font-weight="700" fill="#8A7565" text-anchor="start">댓글 3</text>
+<path d="M356 190 l26 0 m-9 -9 l9 9 -9 9" stroke="#C86D44" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="398" y="76" width="282" height="230" rx="14" fill="#FFFFFF" stroke="#E6DCD1"/>
+<text x="416" y="100" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11" font-weight="800" fill="#C86D44" text-anchor="start">인쇄 미리보기</text>
+<rect x="416" y="118" width="182" height="14" rx="7" fill="#3E2F26"/>
+<rect x="416" y="146" width="246" height="8" rx="4" fill="#DAD2C9"/>
+<rect x="416" y="162" width="230" height="8" rx="4" fill="#DAD2C9"/>
+<rect x="416" y="178" width="242" height="8" rx="4" fill="#DAD2C9"/>
+<rect x="416" y="194" width="200" height="8" rx="4" fill="#DAD2C9"/>
+<rect x="416" y="222" width="246" height="8" rx="4" fill="#DAD2C9"/>
+<rect x="416" y="238" width="216" height="8" rx="4" fill="#DAD2C9"/>
+<rect x="416" y="266" width="150" height="22" rx="6" fill="#F7F5F2"/>
+<text x="424" y="282" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="9" font-weight="700" fill="#8A7565" text-anchor="start">메뉴·버튼·댓글 숨김</text><text x="40" y="379" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="13" font-weight="800" fill="#3E2F26">인쇄용 스타일</text>
+<text x="40" y="395" font-family="Nanum Gothic, Apple SD Gothic Neo, sans-serif" font-size="11" fill="#8A7565">인쇄·PDF 저장 때 본문만 또렷하게 남깁니다.</text>
+</svg>

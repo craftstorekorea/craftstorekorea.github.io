@@ -1,5 +1,5 @@
 /* ============================================================================
-   SBPress v9.0 · Service Worker (PWA)
+   SBPress v10.0 · Service Worker (PWA)
    ----------------------------------------------------------------------------
    · 정적 자산(CSS·JS·아이콘·폰트)  → 캐시 우선 (버전 키가 바뀌면 새로 받습니다)
    · 문서·콘텐츠(/, #/…, post/<slug>/) → 네트워크 우선 + 캐시 폴백 (오프라인이면 캐시)
@@ -9,7 +9,7 @@
    ============================================================================ */
 "use strict";
 
-var VERSION = "v9.0.0";
+var VERSION = "v10.0.0";
 var CORE = "sbpress-core-" + VERSION;
 var ASSETS = "sbpress-assets-" + VERSION;
 var CONTENT = "sbpress-content-" + VERSION;
