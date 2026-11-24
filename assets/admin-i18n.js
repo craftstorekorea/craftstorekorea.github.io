@@ -1544,7 +1544,15 @@
   "구독 목록은 Supabase": "The subscription list is stored in Supabase",
   "실행 전에는 이 브라우저에만 기억합니다.": "Before that it is remembered in this browser only.",
   "사이트·관리자에 기능을 더하는 브라우저 JS 플러그인을 설치하고 켜고 끕니다. 설치 전에 요청 권한을 확인하고 SRI 무결성(sha256-…)으로 파일이 바뀌지 않았는지 검사합니다.": "Install, turn on and off browser JS plugins that add features to the site and admin. Before installing, review the requested permissions; an SRI hash (sha256-…) checks whether the file changed.",
-  "권한 동의 · 무결성": "Permission consent · integrity"
+  "권한 동의 · 무결성": "Permission consent · integrity",
+  "제출 · 심사 — 회원이 올린 플러그인을 관리자가 승인하거나 반려합니다. 승인된 항목만 마켓에 오르고, 심사 결과는 감사 로그에 남습니다. Supabase plugin_submissions · 27_v106 SQL": "Submissions · review — an admin approves or rejects plugins members submit. Only approved items reach the market, and each review is recorded in the audit log. Supabase plugin_submissions · 27_v106 SQL",
+  "제출 · 심사": "Submissions · review",
+  "승인된 제출 플러그인의 파일 해시가 제출 때와 달라 설치를 막았습니다. 파일을 확인한 뒤 다시 승인해 주세요.": "The file hash of the approved submission differs from the time of submission, so the install was blocked. Check the file and approve it again.",
+  "제출 플러그인을 설치하지 못했습니다": "Could not install the submitted plugin",
+  "27_v106 SQL 을 실행하면 제출·심사가 서버에 저장됩니다.": "Run the 27_v106 SQL to store submissions and reviews on the server.",
+  "제출 · 심사 큐": "Submissions · review queue",
+  "마켓 JSON 복사": "Copy market JSON",
+  "JSON 내보내기": "Export JSON"
 };
   var RULES = ([
   [

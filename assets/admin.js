@@ -5812,6 +5812,7 @@
         onUpdateAll: function (ids, cb) { updateAllPlugins(ids, cb); },
         onRollback: function (id, cb) { rollbackPlugin(id, cb); },
         onRecheck: function (id, rec, cb) { recheckPlugin(id, rec, cb); },
+        onInstallSubmission: function (item, btn, consent) { installSubmission(item, btn, consent); },
         onRefresh: function () { loadPlugins(false); },
         onRemove: function (id) { deletePlugin(id); },
         onSaveSettings: function (id, values, cb) { savePluginSettings(id, values, cb); },
@@ -5897,6 +5898,43 @@
         var doneMsg = "‘" + (item.name || item.id) + "’ 플러그인을 설치하고 켰습니다. 사이트를 새로고침해 확인하세요.";
         plugMsg(doneMsg, "ok");
         recordConsent(id, consent, item, function (msg) {
+          if (msg) plugMsg(doneMsg + " " + msg, "ok");
+        });
+        reloadEngine();
+        loadPlugins(false);
+      });
+    });
+  }
+
+  /* v10.6 — 심사에서 승인된 제출을 바로 설치합니다.
+     마켓 설치(installFromMarket)와 같은 검사·저장 경로를 지나고, 출처만 제출 건으로 남깁니다. */
+  function installSubmission(item, btn, consent) {
+    if (!item) return;
+    if (btn) { btn.disabled = true; btn.textContent = "설치하는 중…"; }
+    var url = marketAbs(item.script_url);
+    verifyPluginFile(url, function (scan) {
+      if (!scan.ok) {
+        if (btn) { btn.disabled = false; btn.textContent = "바로 설치"; }
+        plugMsg("‘" + (item.name || item.id) + "’ 을 설치하지 않았습니다 — " + scan.reasons.join(", "), "err");
+        return;
+      }
+      var payload = {
+        id: item.id, name: item.name || item.id, version: item.version || "1.0.0",
+        description: item.description || null, author: item.author || null,
+        script_url: url, source: "market", enabled: true,
+        manifest: manifestPayload(item), settings_schema: settingsSchemaPayload(item)
+      };
+      var extra = consentPayload(consent, item);
+      Object.keys(extra).forEach(function (k) { payload[k] = extra[k]; });
+      savePluginRow(payload).then(function (r) {
+        if (btn) { btn.disabled = false; btn.textContent = "바로 설치"; }
+        if (r && r.error) {
+          plugMsg("설치하지 못했습니다: " + r.error.message, "err");
+          return;
+        }
+        var doneMsg = "‘" + (item.name || item.id) + "’ 제출 플러그인을 승인 목록에서 설치하고 켰습니다. 사이트를 새로고침해 확인하세요.";
+        plugMsg(doneMsg, "ok");
+        recordConsent(item.id, consent, item, function (msg) {
           if (msg) plugMsg(doneMsg + " " + msg, "ok");
         });
         reloadEngine();

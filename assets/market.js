@@ -1,4 +1,4 @@
-/* ===== SBPress v10.5 · 플러그인 마켓 탐색기 (assets/market.js) =====
+/* ===== SBPress v10.6 · 플러그인 마켓 탐색기 (assets/market.js) =====
    관리자(/admin · 플러그인 · 마켓)와 공개 화면(#/market)이 함께 쓰는 마켓 화면입니다.
 
    · v10.5 권한 동의 · 무결성 — 설치·업데이트 전에 「권한을 확인해 주세요」 모달로
@@ -13,6 +13,12 @@
    · 정렬 — 추천순(order) · 최신 업데이트(updated) · 이름순
    · 카드를 누르면 상세 모달 — 미리보기 그림 · 버전 · 작성자 · 최소 SBPress 버전 ·
      필요 권한 설명 · 변경 이력(changelog) · 설치/켜기/끄기/업데이트/제거(관리자만)
+
+   · v10.6 제출 · 심사 — 「플러그인 제출」 모달(이름·슬러그·버전·요약·작성자·스크립트 URL·
+     카테고리·훅·권한)이 자동 사전 점검(HTTPS · 정적 코드 검사 · SHA-256)을 거쳐
+     plugin_submissions 에 들어가고, 관리자 마켓의 「제출 · 심사 큐」에서 승인/반려(사유)합니다.
+     승인된 항목은 v10.5 동의 모달로 바로 설치하거나 마켓 JSON 으로 복사·내보냅니다.
+     (supabase/27_v106_plugin_submissions.sql · 표가 없으면 이 브라우저에만 저장)
 
    이 파일은 첫 화면에 넣지 않습니다. 공개 사이트는 #/market 에 들어갈 때(app.js 의
    LAZY_ROUTES), 관리자 화면은 플러그인 탭을 처음 열 때 admin.js 가 SBP.loadScript 로
@@ -233,7 +239,98 @@
       areaNav: "메뉴",
       areaOther: "기타",
       installedIntegrity: "설치본 무결성",
-      sandboxMode: "샌드박스 모드"
+      sandboxMode: "샌드박스 모드",
+      /* v10.6 — 플러그인 제출 · 자동 사전 점검 · 심사 큐 */
+      subOpen: "플러그인 제출",
+      subTitle: "플러그인 제출",
+      subLead: "만든 플러그인을 마켓에 올려 달라고 요청합니다. 제출하면 자동 사전 점검(HTTPS·정적 코드 검사·SHA-256)을 거쳐 관리자 심사 큐에 들어갑니다.",
+      subGate: "제출하려면 로그인이 필요합니다.",
+      subGateLink: "로그인",
+      subName: "이름",
+      subSlug: "슬러그",
+      subSlugHint: "영문 소문자·숫자·- _ . (플러그인 ID 로 씁니다)",
+      subVersion: "버전",
+      subSummary: "요약",
+      subAuthor: "작성자",
+      subEmail: "이메일(선택)",
+      subUrl: "스크립트 URL",
+      subUrlHint: "https:// 또는 사이트 안 경로(/)",
+      subCategory: "카테고리",
+      subHooks: "훅",
+      subPerms: "요청 권한",
+      subPermsHint: "다른 권한 이름은 쉼표로 이어 적습니다.",
+      subCheck: "사전 점검만",
+      subCheckRun: "점검 중…",
+      subSubmit: "점검 후 제출",
+      subSubmitting: "제출 중…",
+      subCancel: "취소",
+      subNeedName: "이름을 2자 이상 적어 주세요.",
+      subNeedSlug: "슬러그는 영문 소문자·숫자·- _ . 로 2~60자입니다.",
+      subNeedVersion: "버전은 1.0.0 처럼 숫자 세 칸으로 적어 주세요.",
+      subNeedUrl: "스크립트 URL 은 https:// 또는 / 로 시작해야 합니다.",
+      subNeedEmail: "이메일 주소 형식을 확인해 주세요.",
+      subNeedLogin: "로그인 후 제출할 수 있습니다.",
+      subDone: "제출했습니다. 관리자 심사 뒤 마켓에 올라갑니다.",
+      subDoneLocal: "27_v106 SQL 을 실행하기 전이라 이 브라우저에만 저장했습니다. SQL 실행 뒤 다시 제출해 주세요.",
+      subFail: "제출하지 못했습니다: ",
+      subNeedSql: "supabase/27_v106_plugin_submissions.sql 을 실행하면 제출·심사를 서버에 저장합니다.",
+      subCheckTitle: "자동 사전 점검",
+      checkHttps: "HTTPS 주소",
+      checkHttpsOk: "예",
+      checkHttpsNo: "아니요",
+      checkScan: "정적 코드 검사",
+      checkScanClean: "위험한 호출 없음",
+      checkScanWarn: "확인 필요 {n}건",
+      checkScanNone: "파일을 읽지 못해 검사하지 못했습니다",
+      checkSha: "SHA-256",
+      checkShaNone: "계산하지 못함",
+      checkShaCors: "외부 URL — 관리자 수동/로딩 시 검증",
+      checkBytes: "크기",
+      checkCors: "외부 주소라 브라우저에서 읽지 못했습니다(CORS). 관리자가 설치할 때 다시 검증합니다.",
+      checkNoCrypto: "이 브라우저에서는 해시를 계산할 수 없습니다(HTTPS 필요).",
+      finding1: "낮음",
+      finding2: "중간",
+      finding3: "높음",
+      queueTitle: "제출 · 심사 큐",
+      queueNote: "제출된 플러그인을 승인하면 마켓 항목으로 내보내고 바로 설치할 수 있습니다. 심사 결과는 audit_logs 에 plugin_submission_review 로 남습니다.",
+      queueFilterPending: "대기",
+      queueFilterApproved: "승인",
+      queueFilterRejected: "반려",
+      queueEmpty: "이 상태의 제출이 없습니다.",
+      queueLoad: "불러오는 중…",
+      queueMissing: "27_v106 SQL 을 실행하기 전입니다. 지금은 이 브라우저에서 제출한 것만 보입니다.",
+      queueLocalBadge: "이 브라우저",
+      queueBy: "제출",
+      queueReviewed: "심사",
+      queueApprove: "승인",
+      queueReject: "반려",
+      queueRejectGo: "반려 확정",
+      queueRejectNote: "반려 사유(필수)",
+      queueInstall: "바로 설치",
+      queueCopy: "마켓 JSON 복사",
+      queueExport: "JSON 내보내기",
+      queueCopied: "마켓 JSON 항목을 복사했습니다.",
+      queueCopiedFail: "복사하지 못했습니다 — 내보내기를 써 주세요.",
+      queueApproved: "승인했습니다.",
+      queueRejected: "반려했습니다.",
+      queueRefresh: "새로고침",
+      queueNeedNote: "반려 사유를 적어 주세요.",
+      queueBad: "파일 해시가 제출 때와 다릅니다 — 설치를 막았습니다.",
+      queueNeedSql: "27_v106 SQL 실행 전에는 서버 심사를 할 수 없습니다.",
+      subPermNone: "요청 권한 없음",
+      subIntegrity: "제출 시 무결성",
+      subHooksNone: "선언한 훅 없음",
+      subLocalNote: "이 브라우저에 저장됨",
+      subDetailTitle: "제출 내용",
+      scanEval: "동적 코드 실행(eval 호출)",
+      scanNewFunction: "동적 코드 생성(Function 생성자)",
+      scanCookie: "document.cookie 접근",
+      scanScriptTag: "<script> 삽입",
+      scanDocWrite: "문서 직접 쓰기(write 호출)",
+      scanHttp: "http:// 주소",
+      scanInnerHtml: "innerHTML 대입",
+      scanStorage: "localStorage 사용",
+      scanExternal: "외부 주소로 요청"
     },
     en: {
       eyebrow: "PLUGIN MARKET",
@@ -437,7 +534,98 @@
       areaNav: "Menu",
       areaOther: "Other",
       installedIntegrity: "Installed integrity",
-      sandboxMode: "Sandbox mode"
+      sandboxMode: "Sandbox mode",
+      /* v10.6 — plugin submission · auto pre-check · review queue */
+      subOpen: "Submit a plugin",
+      subTitle: "Submit a plugin",
+      subLead: "Ask for your plugin to be listed in the market. Submitting runs an automatic pre-check (HTTPS, static code scan, SHA-256) and puts it in the admin review queue.",
+      subGate: "Sign in to submit a plugin.",
+      subGateLink: "Sign in",
+      subName: "Name",
+      subSlug: "Slug",
+      subSlugHint: "lowercase letters, digits, - _ . (used as the plugin ID)",
+      subVersion: "Version",
+      subSummary: "Summary",
+      subAuthor: "Author",
+      subEmail: "Email (optional)",
+      subUrl: "Script URL",
+      subUrlHint: "https:// or a site path (/)",
+      subCategory: "Category",
+      subHooks: "Hooks",
+      subPerms: "Requested permissions",
+      subPermsHint: "Add other permission names separated by commas.",
+      subCheck: "Pre-check only",
+      subCheckRun: "Checking…",
+      subSubmit: "Pre-check and submit",
+      subSubmitting: "Submitting…",
+      subCancel: "Cancel",
+      subNeedName: "Enter a name of at least 2 characters.",
+      subNeedSlug: "The slug is 2-60 lowercase letters, digits or - _ .",
+      subNeedVersion: "Write the version as three numbers, such as 1.0.0.",
+      subNeedUrl: "The script URL must start with https:// or /.",
+      subNeedEmail: "Check the email address format.",
+      subNeedLogin: "Sign in before submitting.",
+      subDone: "Submitted. It goes into the market after an admin review.",
+      subDoneLocal: "Saved in this browser only — run the 27_v106 SQL, then submit again to store it on the server.",
+      subFail: "Could not submit: ",
+      subNeedSql: "Run supabase/27_v106_plugin_submissions.sql to store submissions and reviews on the server.",
+      subCheckTitle: "Automatic pre-check",
+      checkHttps: "HTTPS address",
+      checkHttpsOk: "Yes",
+      checkHttpsNo: "No",
+      checkScan: "Static code scan",
+      checkScanClean: "No risky calls found",
+      checkScanWarn: "{n} to review",
+      checkScanNone: "Not run — the file could not be read",
+      checkSha: "SHA-256",
+      checkShaNone: "Not computed",
+      checkShaCors: "External URL — verified manually or when loaded",
+      checkBytes: "Size",
+      checkCors: "An external address could not be read in the browser (CORS). The admin re-checks it at install time.",
+      checkNoCrypto: "This browser cannot compute a hash (HTTPS is required).",
+      finding1: "Low",
+      finding2: "Medium",
+      finding3: "High",
+      queueTitle: "Submissions · review queue",
+      queueNote: "Approve a submission to export it as a market item and install it right away. Every review is recorded in audit_logs as plugin_submission_review.",
+      queueFilterPending: "Pending",
+      queueFilterApproved: "Approved",
+      queueFilterRejected: "Rejected",
+      queueEmpty: "No submissions in this state.",
+      queueLoad: "Loading…",
+      queueMissing: "The 27_v106 SQL has not been run yet. Only what this browser submitted is shown.",
+      queueLocalBadge: "This browser",
+      queueBy: "Submitted by",
+      queueReviewed: "Reviewed",
+      queueApprove: "Approve",
+      queueReject: "Reject",
+      queueRejectGo: "Confirm rejection",
+      queueRejectNote: "Reason for rejection (required)",
+      queueInstall: "Install now",
+      queueCopy: "Copy market JSON",
+      queueExport: "Export JSON",
+      queueCopied: "Copied the market JSON item.",
+      queueCopiedFail: "Could not copy — use Export JSON instead.",
+      queueApproved: "Approved.",
+      queueRejected: "Rejected.",
+      queueRefresh: "Refresh",
+      queueNeedNote: "Write a reason for the rejection.",
+      queueBad: "The file hash differs from the submission — the install is blocked.",
+      queueNeedSql: "Reviews need the 27_v106 SQL on the server.",
+      subPermNone: "No permissions requested",
+      subIntegrity: "Integrity at submission",
+      subHooksNone: "No hooks declared",
+      subLocalNote: "Saved in this browser",
+      subDetailTitle: "Submission",
+      scanEval: "dynamic code execution (eval call)",
+      scanNewFunction: "dynamic code (Function constructor)",
+      scanCookie: "document.cookie access",
+      scanScriptTag: "<script> injection",
+      scanDocWrite: "direct document write call",
+      scanHttp: "http:// address",
+      scanInnerHtml: "innerHTML assignment",
+      scanStorage: "localStorage use",
+      scanExternal: "fetch to another host"
     }
   };
 
@@ -1517,7 +1705,7 @@
   }
 
   /* ---------------- v10.5 — 권한 동의 모달 ---------------- */
-  var CNS = { el: null, inst: null, id: "", mode: "install", perms: [], next: null, lastFocus: null };
+  var CNS = { el: null, inst: null, id: "", mode: "install", perms: [], next: null, lastFocus: null, item: null };
 
   function ensureConsentModal() {
     if (CNS.el && document.body.contains(CNS.el)) return CNS.el;
@@ -1540,7 +1728,8 @@
       if (e.target.closest && e.target.closest("[data-mkt-consent-cancel]")) { closeConsent(); return; }
       var go = e.target.closest ? e.target.closest("[data-mkt-consent-go]") : null;
       if (!go) return;
-      var inst = CNS.inst, next = CNS.next, p = CNS.inst && byId(CNS.inst, CNS.id);
+      var inst = CNS.inst, next = CNS.next;
+      var p = CNS.item || (CNS.inst && byId(CNS.inst, CNS.id));
       var info = {
         granted: (CNS.perms || []).slice(),
         integrity: (p && p.integrity) || "",
@@ -1578,6 +1767,8 @@
     var el = ensureConsentModal();
     var lang = inst.lang;
     CNS.inst = inst; CNS.id = p.id; CNS.mode = mode; CNS.perms = (perms || []).slice(0, 12); CNS.next = next;
+    /* v10.6 — 마켓 목록에 없는 제출 항목은 byId 로 찾지 못하므로 항목 자체를 기억합니다. */
+    CNS.item = (p && p.__submission) ? p : null;
     CNS.lastFocus = document.activeElement;
     var d = disp(inst, p);
     var isUpdate = mode === "update";
@@ -1626,7 +1817,7 @@
     CNS.el.hidden = true;
     CNS.el.querySelector("#mkt-consent-body").innerHTML = "";
     CNS.el.querySelector("#mkt-consent-foot").innerHTML = "";
-    CNS.inst = null; CNS.id = ""; CNS.next = null; CNS.perms = [];
+    CNS.inst = null; CNS.id = ""; CNS.next = null; CNS.perms = []; CNS.item = null;
     document.documentElement.classList.remove("mkt-modal-open");
     try { if (CNS.lastFocus && CNS.lastFocus.focus) CNS.lastFocus.focus(); } catch (e) { /* noop */ }
   }
@@ -1648,6 +1839,783 @@
       }
       if (inst.data) { try { render(inst); } catch (e) { /* noop */ } }
       if (MODAL.el && !MODAL.el.hidden && MODAL.id === id) openDetail(inst, id, true);
+    });
+  }
+
+
+  /* ============================================================================
+     v10.6 — 플러그인 제출 · 자동 사전 점검 · 심사(검토) 큐
+     ----------------------------------------------------------------------------
+     · #/market 상단과 /admin 마켓의 「플러그인 제출」 모달 — 이름·슬러그·버전·요약·
+       작성자·스크립트 URL·카테고리·훅·권한을 받습니다.
+     · 자동 사전 점검 — URL 형식(https:// 또는 /), 파일을 읽어 SHA-256(crypto.subtle)을
+       계산해 integrity 로 적고, eval·Function 생성자·document.cookie·script 태그 같은 위험한
+       호출을 정적 검사합니다. CORS 로 읽지 못하는 외부 URL 은 "관리자 수동/로딩 시 검증"으로
+       남기고 정상 진행합니다.
+     · 저장 — supabase/27_v106_plugin_submissions.sql 을 실행했으면 plugin_submissions 표에,
+       아직이면 이 브라우저(localStorage)에 저장하고 안내합니다(콘솔·CSP 오류 0).
+     · 심사 큐(관리자) — 대기·승인·반려 필터와 건수 배지, 자동 점검 카드, 승인/반려(사유),
+       승인된 항목의 「바로 설치」(v10.5 동의 모달) · 「마켓 JSON 복사/내보내기」.
+     · 쓰기는 이 화면이 직접 REST 로 합니다(제출=회원 토큰, 심사=관리자 RPC).
+       설치는 관리자 화면(admin.js)에 맡깁니다 — DB 쓰기 규칙이 한 곳에 모이게.
+     ========================================================================== */
+  var SUB_LS = "sbpress-plugin-submissions";
+  var SUB = {
+    el: null, inst: null, items: null, loaded: false, loading: false, tableMissing: false,
+    filter: "pending", msg: "", msgKind: "", reject: "", busy: false,
+    user: null, userChecked: false, verify: {}, lastCheck: null, lastUrl: "", lastFocus: null
+  };
+
+  /* ---------------- REST 도우미 (공개 화면의 cms.js 와 같은 방식) ---------------- */
+  function sbCfg() {
+    var C = window.CRAFT_SUPABASE || {};
+    return { url: String(C.url || "").replace(/\/+$/, ""), key: String(C.anonKey || "") };
+  }
+  function sbRef() {
+    return String(sbCfg().url || "").replace(/^https?:\/\//, "").split(".")[0];
+  }
+  /* 로그인 세션은 auth.js 와 같은 저장소(sb-<ref>-auth-token)를 읽습니다. */
+  function sbToken() {
+    try {
+      var raw = localStorage.getItem("sb-" + sbRef() + "-auth-token");
+      if (!raw) return "";
+      var o = JSON.parse(raw);
+      if (o && o.access_token) return String(o.access_token);
+      if (o && o.currentSession && o.currentSession.access_token) return String(o.currentSession.access_token);
+      return "";
+    } catch (e) { return ""; }
+  }
+  function sbRequest(path, opts) {
+    var c = sbCfg();
+    if (!c.url || !c.key) return Promise.reject(new Error("supabase-missing"));
+    opts = opts || {};
+    var headers = { apikey: c.key, Accept: "application/json" };
+    if (opts.body != null) headers["Content-Type"] = "application/json";
+    var tok = opts.token != null ? opts.token : sbToken();
+    headers.Authorization = "Bearer " + (tok || c.key);
+    if (opts.prefer) headers.Prefer = opts.prefer;
+    return fetch(c.url + path, {
+      method: opts.method || "GET",
+      headers: headers,
+      body: opts.body != null ? JSON.stringify(opts.body) : undefined,
+      cache: "no-store"
+    }).then(function (r) {
+      return r.text().then(function (t) {
+        var data = null;
+        try { data = t ? JSON.parse(t) : null; } catch (e) { data = t; }
+        if (r.ok) return data;
+        var msg = (data && (data.message || data.hint || data.error_description)) || ("HTTP " + r.status);
+        var err = new Error(String(msg));
+        err.status = r.status;
+        err.code = (data && data.code) || "";
+        return Promise.reject(err);
+      });
+    });
+  }
+  function missingTable(e) {
+    if (!e) return false;
+    var code = String(e.code || ""), m = String(e.message || "");
+    return e.status === 404 || code === "42P01" || code === "PGRST205"
+      || /does not exist|Could not find the table|schema cache|not find the table/i.test(m);
+  }
+  function missingRpc(e) {
+    var code = String((e && e.code) || ""), m = String((e && e.message) || "");
+    return code === "42883" || code === "PGRST202" || /Could not find the function|function .* does not exist/i.test(m);
+  }
+
+  function subUser(cb) {
+    if (SUB.userChecked) { cb(SUB.user); return; }
+    var tok = sbToken();
+    if (!tok) { SUB.userChecked = true; SUB.user = null; cb(null); return; }
+    sbRequest("/auth/v1/user", { token: tok }).then(function (u) {
+      SUB.user = (u && u.id && u.id !== "anon") ? u : null;
+    }, function () { SUB.user = null; }).then(function () {
+      SUB.userChecked = true;
+      cb(SUB.user);
+    });
+  }
+
+  /* ---------------- 자동 사전 점검 ---------------- */
+  /* 정적 코드 검사 규칙 — 수준 1(참고) · 2(주의) · 3(위험). */
+  var SCAN_RULES = [
+    { id: "eval", re: /(^|[^\w$.])eval\s*\(/, level: 3 },
+    { id: "new-function", re: /new\s+Function\s*\(/, level: 3 },
+    { id: "cookie", re: /document\s*\.\s*cookie/, level: 3 },
+    { id: "script-tag", re: /<\s*script/i, level: 3 },
+    { id: "document-write", re: /document\s*\.\s*write\s*\(/, level: 2 },
+    { id: "http", re: /http:\/\//i, level: 2 },
+    { id: "innerhtml", re: /\.innerHTML\s*=/, level: 1 },
+    { id: "storage", re: /localStorage/, level: 1 },
+    { id: "external-fetch", re: /fetch\s*\(\s*["']https?:\/\//, level: 1 }
+  ];
+  var SCAN_KEY = {
+    "eval": "scanEval", "new-function": "scanNewFunction", "cookie": "scanCookie",
+    "script-tag": "scanScriptTag", "document-write": "scanDocWrite", "http": "scanHttp",
+    "innerhtml": "scanInnerHtml", "storage": "scanStorage", "external-fetch": "scanExternal"
+  };
+  function scanLabel(lang, id) { return tr(lang, SCAN_KEY[id] || "checkScan"); }
+  function fmtBytes(n) {
+    n = Number(n) || 0;
+    if (n < 1024) return n + " B";
+    if (n < 1048576) return (n / 1024).toFixed(1) + " KB";
+    return (n / 1048576).toFixed(2) + " MB";
+  }
+  function b64FromBytes(bytes) {
+    var out = "", i, chunk;
+    for (i = 0; i < bytes.length; i += 0x8000) {
+      chunk = bytes.subarray ? bytes.subarray(i, i + 0x8000) : bytes.slice(i, i + 0x8000);
+      out += String.fromCharCode.apply(null, chunk);
+    }
+    return btoa(out);
+  }
+  function sriOf(buf) {
+    var cr = window.crypto || null;
+    var subtle = cr ? (cr.subtle || cr.webkitSubtle) : null;
+    if (!subtle || !subtle.digest) return Promise.reject(new Error("no-crypto"));
+    return subtle.digest("SHA-256", buf).then(function (d) {
+      return "sha256-" + b64FromBytes(new Uint8Array(d));
+    });
+  }
+  /* URL 을 읽어 해시·정적 검사 결과를 돌려줍니다. 읽지 못하면(CORS·404) 그 사실만 남기고
+     제출은 그대로 진행합니다(관리자가 설치할 때 엔진이 다시 검증). */
+  function autoCheck(url) {
+    var rep = { checked_at: new Date().toISOString(), url: String(url || ""), https: false,
+                same_origin: false, fetched: false, cors: false, bytes: 0, integrity: "",
+                findings: [], level: 0, note: "" };
+    var u;
+    try { u = new URL(String(url || ""), location.href); } catch (e) { rep.note = "bad-url"; return Promise.resolve(rep); }
+    rep.same_origin = (u.origin === location.origin);
+    rep.https = /^https:$/i.test(u.protocol);
+    if (!rep.https && !rep.same_origin) { rep.note = "scheme"; return Promise.resolve(rep); }
+    return fetch(u.href, { cache: "no-store", credentials: "omit", mode: "cors" }).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.arrayBuffer();
+    }).then(function (buf) {
+      rep.fetched = true; rep.cors = true; rep.bytes = buf.byteLength;
+      var text = "";
+      try { text = new TextDecoder("utf-8").decode(buf); } catch (e) { text = ""; }
+      rep.findings = SCAN_RULES.filter(function (r) { return r.re.test(text); })
+        .map(function (r) { return { id: r.id, level: r.level }; });
+      rep.level = rep.findings.reduce(function (m, f) { return Math.max(m, f.level); }, 0);
+      return sriOf(buf).then(function (v) { rep.integrity = v; return rep; },
+        function () { rep.note = "no-crypto"; return rep; });
+    }).catch(function () {
+      rep.cors = false; rep.fetched = false; rep.note = "cors";
+      return rep;
+    });
+  }
+
+  /* ---------------- 제출 모달 ---------------- */
+  function subMsg(inst, text, kind) {
+    var el = SUB.el || document.getElementById("mkt-submit");
+    var box = el ? el.querySelector("#mkt-sub-msg") : null;
+    if (box) {
+      box.textContent = text || "";
+      box.className = "mkt-sub-msg" + (kind ? " " + kind : "");
+    }
+  }
+
+  function subCategoryOptions(inst, cur) {
+    var cats = (inst && inst.data && Array.isArray(inst.data.categories)) ? inst.data.categories : [];
+    if (!cats.length) {
+      cats = Object.keys(CAT_FALLBACK).map(function (k) {
+        return { id: k, ko: CAT_FALLBACK[k].ko, en: CAT_FALLBACK[k].en };
+      });
+    }
+    return cats.map(function (c) {
+      var label = inst && inst.lang === "en" ? (c.en || c.ko || c.id) : (c.ko || c.en || c.id);
+      return '<option value="' + esc(c.id) + '"' + (c.id === cur ? " selected" : "") + ">" + esc(label) + "</option>";
+    }).join("");
+  }
+
+  function ensureSubmitModal() {
+    if (SUB.el && document.body.contains(SUB.el)) return SUB.el;
+    var el = document.createElement("div");
+    el.className = "mkt-modal mkt-sub-modal";
+    el.id = "mkt-submit";
+    el.hidden = true;
+    el.innerHTML =
+      '<div class="mkt-modal-backdrop" data-mkt-sub-cancel="1"></div>' +
+      '<div class="mkt-modal-card mkt-sub-card" role="dialog" aria-modal="true" aria-labelledby="mkt-sub-title">' +
+        '<header class="mkt-modal-head">' +
+          '<h2 id="mkt-sub-title"></h2>' +
+          '<button type="button" class="mkt-modal-x" data-mkt-sub-cancel="1" aria-label="">×</button>' +
+        "</header>" +
+        '<div class="mkt-modal-body" id="mkt-sub-body"></div>' +
+        '<footer class="mkt-modal-foot">' +
+          '<span class="mkt-foot-id muted" id="mkt-sub-foot"></span>' +
+          '<button type="button" class="btn btn-ghost btn-sm" data-mkt-sub-cancel="1" data-mkt-sub-cancel-label="1"></button>' +
+          '<button type="button" class="btn btn-ghost btn-sm" data-mkt-sub-checkonly="1"></button>' +
+          '<button type="button" class="btn btn-primary btn-sm" data-mkt-sub-go="1"></button>' +
+        "</footer>" +
+      "</div>";
+    document.body.appendChild(el);
+    el.addEventListener("click", function (e) {
+      if (!e.target.closest) return;
+      if (e.target.closest("[data-mkt-sub-cancel]")) { closeSubmit(); return; }
+      if (e.target.closest("[data-mkt-sub-checkonly]")) { runSubmit(SUB.inst, "check"); return; }
+      if (e.target.closest("[data-mkt-sub-go]")) { runSubmit(SUB.inst, "submit"); return; }
+    });
+    el.addEventListener("input", function (e) {
+      var t = e.target;
+      if (!t || t.id !== "mkt-sub-name") return;
+      var slugEl = el.querySelector("#mkt-sub-slug");
+      if (!slugEl || slugEl.value.trim()) return;
+      var guess = String(t.value || "").toLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
+      if (/^[a-z0-9]/.test(guess)) slugEl.value = guess;
+    });
+    document.addEventListener("keydown", function (e) {
+      if (!SUB.el || SUB.el.hidden) return;
+      if (e.key === "Escape") { e.preventDefault(); closeSubmit(); }
+    });
+    SUB.el = el;
+    return el;
+  }
+
+  function paintSubmit(inst) {
+    var el = ensureSubmitModal();
+    var lang = inst ? inst.lang : currentLang();
+    el.querySelector("#mkt-sub-title").textContent = tr(lang, "subTitle");
+    el.querySelector(".mkt-modal-x").setAttribute("aria-label", tr(lang, "subCancel"));
+    var cancel = el.querySelector("[data-mkt-sub-cancel-label]");
+    if (cancel) cancel.textContent = tr(lang, "subCancel");
+    var chk = el.querySelector("[data-mkt-sub-checkonly]");
+    if (chk) { chk.textContent = tr(lang, "subCheck"); chk.disabled = false; }
+    var go = el.querySelector("[data-mkt-sub-go]");
+    if (go) { go.textContent = tr(lang, "subSubmit"); go.disabled = false; }
+    el.querySelector("#mkt-sub-foot").textContent = "v10.6";
+    el.querySelector("#mkt-sub-body").innerHTML =
+      '<p class="mkt-sub-lead">' + esc(tr(lang, "subLead")) + "</p>" +
+      '<p class="mkt-sub-gate" id="mkt-sub-gate" hidden>' + esc(tr(lang, "subGate")) +
+        ' <a class="rowlink" href="#/sign">' + esc(tr(lang, "subGateLink")) + "</a></p>" +
+      '<div class="mkt-sub-form">' +
+        '<label class="cms-field"><span>' + esc(tr(lang, "subName")) + " *</span>" +
+          '<input id="mkt-sub-name" maxlength="80" autocomplete="off"></label>' +
+        '<label class="cms-field"><span>' + esc(tr(lang, "subSlug")) + " *</span>" +
+          '<input id="mkt-sub-slug" maxlength="60" spellcheck="false" autocomplete="off" placeholder="my-plugin">' +
+          '<em class="mkt-hint">' + esc(tr(lang, "subSlugHint")) + "</em></label>" +
+        '<label class="cms-field"><span>' + esc(tr(lang, "subVersion")) + " *</span>" +
+          '<input id="mkt-sub-version" maxlength="24" spellcheck="false" value="1.0.0"></label>' +
+        '<label class="cms-field"><span>' + esc(tr(lang, "subCategory")) + "</span>" +
+          '<select id="mkt-sub-cat" class="admin-input">' + subCategoryOptions(inst, "") + "</select></label>" +
+        '<label class="cms-field mkt-sub-wide"><span>' + esc(tr(lang, "subSummary")) + "</span>" +
+          '<input id="mkt-sub-summary" maxlength="500"></label>' +
+        '<label class="cms-field"><span>' + esc(tr(lang, "subAuthor")) + "</span>" +
+          '<input id="mkt-sub-author" maxlength="80" autocomplete="off"></label>' +
+        '<label class="cms-field"><span>' + esc(tr(lang, "subEmail")) + "</span>" +
+          '<input id="mkt-sub-email" type="email" maxlength="160" autocomplete="off"></label>' +
+        '<label class="cms-field mkt-sub-wide"><span>' + esc(tr(lang, "subUrl")) + " *</span>" +
+          '<input id="mkt-sub-url" maxlength="500" spellcheck="false" placeholder="https://cdn.jsdelivr.net/gh/.../plugin.js">' +
+          '<em class="mkt-hint">' + esc(tr(lang, "subUrlHint")) + "</em></label>" +
+      "</div>" +
+      '<fieldset class="mkt-sub-group"><legend>' + esc(tr(lang, "subHooks")) + "</legend>" +
+        HOOK_ORDER.map(function (h) {
+          return '<label class="mkt-chk"><input type="checkbox" name="mkt-sub-hook" value="' + esc(h) + '"><span>' +
+            esc(hookLabel(h, lang)) + "</span></label>";
+        }).join("") + "</fieldset>" +
+      '<fieldset class="mkt-sub-group"><legend>' + esc(tr(lang, "subPerms")) + "</legend>" +
+        Object.keys(PERM).map(function (p) {
+          return '<label class="mkt-chk"><input type="checkbox" name="mkt-sub-perm" value="' + esc(p) + '"><span><code>' +
+            esc(p) + "</code></span></label>";
+        }).join("") +
+        '<label class="mkt-sub-extra"><span>' + esc(tr(lang, "subPermsHint")) + "</span>" +
+          '<input id="mkt-sub-perm-extra" maxlength="200" spellcheck="false" placeholder="read:posts, css:inject"></label>' +
+      "</fieldset>" +
+      '<div id="mkt-sub-check"></div>' +
+      '<p class="mkt-sub-msg" id="mkt-sub-msg" role="status" aria-live="polite"></p>';
+    return el;
+  }
+
+  function openSubmit(inst) {
+    if (!inst) return;
+    SUB.inst = inst;
+    SUB.lastFocus = document.activeElement;
+    SUB.lastCheck = null;
+    SUB.lastUrl = "";
+    SUB.busy = false;
+    var el = paintSubmit(inst);
+    el.hidden = false;
+    document.documentElement.classList.add("mkt-modal-open");
+    var gate = el.querySelector("#mkt-sub-gate");
+    if (gate) gate.hidden = true;
+    subUser(function (u) {
+      var g = el.querySelector("#mkt-sub-gate");
+      if (g) g.hidden = !!u;
+    });
+    try { el.querySelector("#mkt-sub-name").focus(); } catch (e) { /* noop */ }
+  }
+
+  function closeSubmit() {
+    if (!SUB.el) return;
+    SUB.el.hidden = true;
+    var body = SUB.el.querySelector("#mkt-sub-body");
+    if (body) body.innerHTML = "";
+    SUB.inst = null; SUB.busy = false; SUB.lastCheck = null; SUB.lastUrl = "";
+    document.documentElement.classList.remove("mkt-modal-open");
+    try { if (SUB.lastFocus && SUB.lastFocus.focus) SUB.lastFocus.focus(); } catch (e) { /* noop */ }
+  }
+
+  function subFields(el) {
+    function val(id) { var n = el.querySelector("#" + id); return n ? String(n.value || "").trim() : ""; }
+    var hooks = [], perms = [];
+    [].forEach.call(el.querySelectorAll('input[name="mkt-sub-hook"]:checked'), function (n) { hooks.push(n.value); });
+    [].forEach.call(el.querySelectorAll('input[name="mkt-sub-perm"]:checked'), function (n) { perms.push(n.value); });
+    val("mkt-sub-perm-extra").split(",").forEach(function (x) {
+      var p = String(x || "").trim().toLowerCase();
+      if (p && perms.indexOf(p) < 0) perms.push(p);
+    });
+    return {
+      name: val("mkt-sub-name"), slug: val("mkt-sub-slug").toLowerCase(), version: val("mkt-sub-version"),
+      summary: val("mkt-sub-summary"), author_name: val("mkt-sub-author"),
+      author_email: val("mkt-sub-email"), script_url: val("mkt-sub-url"), category: val("mkt-sub-cat"),
+      hooks: hooks.slice(0, 12), permissions: perms.slice(0, 12)
+    };
+  }
+
+  function subValidate(inst, f) {
+    var lang = (inst && inst.lang) || currentLang();
+    if (f.name.length < 2 || f.name.length > 80) return tr(lang, "subNeedName");
+    if (!/^[a-z0-9][a-z0-9._-]{1,59}$/.test(f.slug)) return tr(lang, "subNeedSlug");
+    if (!/^[0-9]+\.[0-9]+\.[0-9]+([-+][0-9A-Za-z.-]+)?$/.test(f.version)) return tr(lang, "subNeedVersion");
+    if (!/^(https:\/\/|\/)/i.test(f.script_url)) return tr(lang, "subNeedUrl");
+    if (f.author_email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.author_email)) return tr(lang, "subNeedEmail");
+    return "";
+  }
+
+  function checkCardHtml(inst, rep) {
+    var lang = (inst && inst.lang) || currentLang();
+    var scan = (rep.findings && rep.findings.length)
+      ? '<ul class="mkt-scan-list">' + rep.findings.map(function (f) {
+          return '<li class="lv' + f.level + '">' + esc(scanLabel(lang, f.id)) +
+            " <em>" + esc(tr(lang, "finding" + f.level)) + "</em></li>";
+        }).join("") + "</ul>"
+      : '<span class="mkt-ok">' + esc(rep.fetched ? tr(lang, "checkScanClean") : tr(lang, "checkScanNone")) + "</span>";
+    var sha = rep.integrity
+      ? '<code class="mkt-sha">' + esc(rep.integrity) + "</code>"
+      : '<span class="mkt-warn">' + esc(rep.note === "cors" ? tr(lang, "checkShaCors")
+          : (rep.note === "no-crypto" ? tr(lang, "checkNoCrypto") : tr(lang, "checkShaNone"))) + "</span>";
+    return '<section class="mkt-sub-report" id="mkt-sub-report">' +
+      "<h3>" + esc(tr(lang, "subCheckTitle")) + "</h3>" +
+      '<dl class="mkt-facts">' +
+        "<div><dt>" + esc(tr(lang, "checkHttps")) + '</dt><dd class="' +
+          (rep.https || rep.same_origin ? "ok" : "warn") + '">' +
+          esc(rep.https || rep.same_origin ? tr(lang, "checkHttpsOk") : tr(lang, "checkHttpsNo")) + "</dd></div>" +
+        "<div><dt>" + esc(tr(lang, "checkScan")) + "</dt><dd>" + scan + "</dd></div>" +
+        "<div><dt>" + esc(tr(lang, "checkSha")) + "</dt><dd>" + sha + "</dd></div>" +
+        (rep.bytes ? "<div><dt>" + esc(tr(lang, "checkBytes")) + "</dt><dd>" + esc(fmtBytes(rep.bytes)) + "</dd></div>" : "") +
+      "</dl>" +
+      (rep.note === "cors" ? '<p class="mkt-note">' + esc(tr(lang, "checkCors")) + "</p>" : "") +
+      "</section>";
+  }
+
+  function runSubmit(inst, mode) {
+    if (!inst || SUB.busy) return;
+    var el = ensureSubmitModal();
+    var lang = inst.lang;
+    var f = subFields(el);
+    var bad = subValidate(inst, f);
+    if (bad) { subMsg(inst, bad, "err"); return; }
+    var go = el.querySelector("[data-mkt-sub-go]");
+    var chk = el.querySelector("[data-mkt-sub-checkonly]");
+    SUB.busy = true;
+    if (go) { go.disabled = true; go.textContent = tr(lang, "subCheckRun"); }
+    if (chk) chk.disabled = true;
+    subMsg(inst, tr(lang, "subCheckRun"), "");
+    var run = (SUB.lastCheck && SUB.lastUrl === f.script_url && mode === "submit")
+      ? Promise.resolve(SUB.lastCheck) : autoCheck(f.script_url);
+    run.then(function (rep) {
+      SUB.lastCheck = rep;
+      SUB.lastUrl = f.script_url;
+      var host = el.querySelector("#mkt-sub-check");
+      if (host) host.innerHTML = checkCardHtml(inst, rep);
+      SUB.busy = false;
+      if (go) { go.disabled = false; go.textContent = tr(lang, "subSubmit"); }
+      if (chk) chk.disabled = false;
+      if (mode === "check") { subMsg(inst, "", ""); return; }
+      saveSubmission(inst, f, rep, go);
+    });
+  }
+
+  function readLocalSubs() {
+    try {
+      var a = JSON.parse(localStorage.getItem(SUB_LS) || "[]");
+      return Array.isArray(a) ? a : [];
+    } catch (e) { return []; }
+  }
+  function addLocalSub(row) {
+    try {
+      var a = readLocalSubs();
+      a.unshift(row);
+      localStorage.setItem(SUB_LS, JSON.stringify(a.slice(0, 50)));
+      return true;
+    } catch (e) { return false; }
+  }
+
+  function saveSubmission(inst, f, rep, btn) {
+    var lang = inst.lang;
+    if (btn) { btn.disabled = true; btn.textContent = tr(lang, "subSubmitting"); }
+    SUB.userChecked = false;
+    subUser(function (u) {
+      if (!u) {
+        if (btn) { btn.disabled = false; btn.textContent = tr(lang, "subSubmit"); }
+        subMsg(inst, tr(lang, "subNeedLogin"), "err");
+        var gate = SUB.el ? SUB.el.querySelector("#mkt-sub-gate") : null;
+        if (gate) gate.hidden = false;
+        return;
+      }
+      var row = {
+        slug: f.slug, name: f.name, version: f.version, summary: f.summary || null,
+        author_name: f.author_name || null, author_email: f.author_email || null,
+        script_url: f.script_url, integrity: rep.integrity || null, category: f.category || null,
+        hooks: f.hooks, permissions: f.permissions, settings_schema: [],
+        status: "pending", submitted_by: u.id,
+        auto_check_report: {
+          checked_at: rep.checked_at, url: rep.url, https: rep.https, same_origin: rep.same_origin,
+          fetched: rep.fetched, cors: rep.cors, bytes: rep.bytes,
+          integrity: rep.integrity || null, findings: rep.findings || [], level: rep.level || 0,
+          note: rep.note || ""
+        }
+      };
+      sbRequest("/rest/v1/plugin_submissions", {
+        method: "POST", token: sbToken(), body: row, prefer: "return=representation"
+      }).then(function (data) {
+        var saved = (data && data[0]) || row;
+        if (btn) { btn.disabled = false; btn.textContent = tr(lang, "subSubmit"); }
+        var done = tr(lang, "subDone");
+        closeSubmit();
+        flash(inst, done, "ok");
+        if (inst.mode === "admin") {
+          SUB.loaded = false;
+          loadSubmissions(inst);
+        }
+        return saved;
+      }, function (e) {
+        if (btn) { btn.disabled = false; btn.textContent = tr(lang, "subSubmit"); }
+        if (missingTable(e)) {
+          row.id = "local-" + Date.now();
+          row.__local = true;
+          row.created_at = new Date().toISOString();
+          addLocalSub(row);
+          var msg = tr(lang, "subDoneLocal");
+          closeSubmit();
+          flash(inst, msg, "ok");
+          if (inst.mode === "admin") { SUB.loaded = false; loadSubmissions(inst); }
+          return;
+        }
+        if (e.status === 401 || e.status === 403) {
+          subMsg(inst, tr(lang, "subNeedLogin") + " (" + (e.message || "") + ")", "err");
+          return;
+        }
+        subMsg(inst, tr(lang, "subFail") + (e.message || e), "err");
+      });
+    });
+  }
+
+  /* ---------------- 심사 큐 (관리자) ---------------- */
+  function subList() { return Array.isArray(SUB.items) ? SUB.items : []; }
+  function subById(id) {
+    var out = null;
+    subList().forEach(function (s) { if (String(s.id) === String(id)) out = s; });
+    return out;
+  }
+  function subStatus(s) {
+    var st = String((s && s.status) || "pending");
+    return (st === "approved" || st === "rejected") ? st : "pending";
+  }
+  function subCount(st) {
+    return subList().filter(function (s) { return subStatus(s) === st; }).length;
+  }
+  function subStateKey(st) {
+    return st === "approved" ? "queueFilterApproved" : (st === "rejected" ? "queueFilterRejected" : "queueFilterPending");
+  }
+  function subQueueMsg(inst, text, kind) {
+    SUB.msg = text || "";
+    SUB.msgKind = kind || "";
+    if (SUB.inst || inst) paintTools(SUB.inst || inst);
+  }
+
+  function loadSubmissions(inst, force) {
+    if (!inst) return;
+    if (SUB.loading) return;
+    if (SUB.loaded && !force) return;
+    SUB.inst = inst;
+    SUB.loading = true;
+    if (force) { SUB.loaded = false; SUB.items = null; }
+    paintTools(inst);
+    function finish() {
+      SUB.loading = false;
+      SUB.loaded = true;
+      if (SUB.inst) paintTools(SUB.inst);
+      verifyQueue(inst);
+    }
+    if (!sbCfg().url) {
+      SUB.tableMissing = true;
+      SUB.items = readLocalSubs();
+      finish();
+      return;
+    }
+    sbRequest("/rest/v1/plugin_submissions?select=*&order=created_at.desc&limit=200", { token: sbToken() })
+      .then(function (rows) {
+        SUB.tableMissing = false;
+        SUB.items = Array.isArray(rows) ? rows : [];
+        finish();
+      }, function (e) {
+        SUB.tableMissing = missingTable(e);
+        SUB.items = readLocalSubs();
+        SUB.msg = SUB.tableMissing ? "" : (tr(inst.lang, "subFail") + (e.message || e));
+        SUB.msgKind = SUB.tableMissing ? "" : "err";
+        finish();
+      });
+  }
+
+  /* 승인된 제출의 파일을 지금 다시 해시해, 제출 때와 다르면 설치를 막습니다. */
+  function verifyQueue(inst) {
+    var S = window.SBPress;
+    var list = subList().filter(function (s) {
+      return subStatus(s) === "approved" && s.integrity && !SUB.verify[s.id];
+    }).slice(0, 8);
+    list.forEach(function (s) {
+      if (!S || typeof S.verifyIntegrity !== "function") { SUB.verify[s.id] = { state: "unchecked" }; return; }
+      SUB.verify[s.id] = { state: "checking" };
+      S.verifyIntegrity(s.script_url, s.integrity).then(function (r) {
+        SUB.verify[s.id] = { state: (r && r.ok) ? "ok" : "bad", computed: (r && r.computed) || "" };
+      }, function () {
+        SUB.verify[s.id] = { state: "unchecked" };
+      }).then(function () {
+        if (SUB.inst) paintTools(SUB.inst);
+      });
+    });
+  }
+
+  function subCardHtml(inst, s) {
+    var lang = inst.lang;
+    var st = subStatus(s);
+    var auto = s.auto_check_report || {};
+    var hooks = Array.isArray(s.hooks) ? s.hooks : [];
+    var perms = Array.isArray(s.permissions) ? s.permissions : [];
+    var ver = SUB.verify[s.id] || {};
+    var chips = (hooks.length
+      ? hooks.map(function (h) { return '<span class="plug-tag hook">' + esc(h) + "</span>"; }).join("")
+      : '<span class="mkt-note">' + esc(tr(lang, "subHooksNone")) + "</span>") +
+      perms.map(function (p) { return '<span class="plug-tag perm">' + esc(p) + "</span>"; }).join("");
+    var scan = (auto.findings && auto.findings.length)
+      ? auto.findings.map(function (f) {
+          return '<span class="mkt-scan lv' + (f.level || 1) + '">' + esc(scanLabel(lang, f.id)) + "</span>";
+        }).join(" ")
+      : '<span class="mkt-ok">' + esc(auto.fetched ? tr(lang, "checkScanClean") : tr(lang, "checkScanNone")) + "</span>";
+    var sha = s.integrity
+      ? '<code class="mkt-sha">' + esc(String(s.integrity)) + "</code>" +
+        (ver.state === "bad" ? ' <span class="plug-tag sri-bad">' + esc(tr(lang, "queueBad")) + "</span>" : "")
+      : '<span class="mkt-warn">' + esc(auto.cors === false ? tr(lang, "checkShaCors") : tr(lang, "checkShaNone")) + "</span>";
+    var acts = [];
+    if (st !== "approved") {
+      acts.push('<button type="button" class="btn btn-primary btn-sm" data-mkt-sub-approve="' + esc(s.id) + '">' +
+        esc(tr(lang, "queueApprove")) + "</button>");
+    }
+    if (st !== "rejected") {
+      acts.push('<button type="button" class="btn btn-ghost btn-sm danger" data-mkt-sub-reject="' + esc(s.id) + '">' +
+        esc(tr(lang, "queueReject")) + "</button>");
+    }
+    if (st === "approved") {
+      acts.push('<button type="button" class="btn btn-primary btn-sm" data-mkt-sub-install="' + esc(s.id) + '"' +
+        (ver.state === "bad" ? " disabled" : "") + ' title="' + esc(ver.state === "bad" ? tr(lang, "queueBad") : "") + '">' +
+        esc(tr(lang, "queueInstall")) + "</button>");
+      acts.push('<button type="button" class="btn btn-ghost btn-sm" data-mkt-sub-copy="' + esc(s.id) + '">' +
+        esc(tr(lang, "queueCopy")) + "</button>");
+      acts.push('<button type="button" class="btn btn-ghost btn-sm" data-mkt-sub-export="' + esc(s.id) + '">' +
+        esc(tr(lang, "queueExport")) + "</button>");
+    }
+    return '<article class="mkt-subcard is-' + st + '" data-sub-id="' + esc(s.id) + '" data-sub-status="' + st + '">' +
+      '<header class="mkt-subcard-head">' +
+        "<h4>" + esc(s.name || s.slug) + ' <span class="plug-tag ver">v' + esc(s.version) + "</span> " +
+          '<span class="mkt-substate is-' + st + '">' + esc(tr(lang, subStateKey(st))) + "</span>" +
+          (s.__local ? ' <span class="mkt-substate is-local">' + esc(tr(lang, "queueLocalBadge")) + "</span>" : "") +
+        "</h4>" +
+        '<p class="mkt-subcard-meta"><code>' + esc(s.slug) + "</code> · " + esc(s.category || "—") +
+          " · " + esc(dateText(s.created_at)) + "</p>" +
+      "</header>" +
+      (s.summary ? '<p class="mkt-subcard-sum">' + esc(s.summary) + "</p>" : "") +
+      '<p class="mkt-subcard-who">' + esc(tr(lang, "queueBy")) + " " + esc(s.author_name || "—") +
+        (s.author_email ? " &lt;" + esc(s.author_email) + "&gt;" : "") + "</p>" +
+      '<div class="mkt-subcard-chips">' + chips + "</div>" +
+      '<dl class="mkt-facts mkt-subcard-check">' +
+        "<div><dt>" + esc(tr(lang, "checkHttps")) + '</dt><dd class="' +
+          (auto.https || auto.same_origin ? "ok" : "warn") + '">' +
+          esc(auto.https || auto.same_origin ? tr(lang, "checkHttpsOk") : tr(lang, "checkHttpsNo")) + "</dd></div>" +
+        "<div><dt>" + esc(tr(lang, "checkScan")) + "</dt><dd>" + scan + "</dd></div>" +
+        "<div><dt>" + esc(tr(lang, "checkSha")) + "</dt><dd>" + sha + "</dd></div>" +
+        (auto.bytes ? "<div><dt>" + esc(tr(lang, "checkBytes")) + "</dt><dd>" + esc(fmtBytes(auto.bytes)) + "</dd></div>" : "") +
+      "</dl>" +
+      '<p class="mkt-subcard-url"><code>' + esc(s.script_url) + "</code></p>" +
+      (s.review_note ? '<p class="mkt-subnote">' + esc(s.review_note) + "</p>" : "") +
+      (s.reviewed_at ? '<p class="mkt-subnote muted">' + esc(tr(lang, "queueReviewed")) + " " + esc(dateText(s.reviewed_at)) + "</p>" : "") +
+      '<div class="mkt-subcard-acts">' + acts.join("") + "</div>" +
+      (SUB.reject === String(s.id)
+        ? '<div class="mkt-sub-rejectbox">' +
+            '<textarea class="admin-input" id="mkt-sub-note-' + esc(s.id) + '" rows="2" maxlength="1000" placeholder="' +
+              esc(tr(lang, "queueRejectNote")) + '"></textarea>' +
+            '<button type="button" class="btn btn-ghost btn-sm danger" data-mkt-sub-reject-go="' + esc(s.id) + '">' +
+              esc(tr(lang, "queueRejectGo")) + "</button>" +
+          "</div>"
+        : "") +
+      "</article>";
+  }
+
+  function submissionPanelHtml(inst) {
+    var lang = inst.lang;
+    var filters = ["pending", "approved", "rejected"];
+    var rows = subList().filter(function (s) { return subStatus(s) === SUB.filter; });
+    var head = '<div class="mkt-subpanel-head">' +
+      '<div><h3 id="mkt-subqueue-title">' + esc(tr(lang, "queueTitle")) + "</h3>" +
+      '<p class="mkt-subpanel-note">' + esc(tr(lang, "queueNote")) + "</p></div>" +
+      '<div class="mkt-subpanel-acts">' +
+        '<button type="button" class="btn btn-primary btn-sm" data-mkt-sub-open="1">' + esc(tr(lang, "subOpen")) + "</button>" +
+        '<button type="button" class="btn btn-ghost btn-sm" data-mkt-sub-refresh="1">' + esc(tr(lang, "queueRefresh")) + "</button>" +
+      "</div></div>";
+    return '<section class="mkt-subpanel" id="mkt-subqueue" aria-labelledby="mkt-subqueue-title">' +
+      head +
+      '<div class="mkt-subs" role="tablist">' + filters.map(function (f) {
+        return '<button type="button" class="mkt-subtab' + (SUB.filter === f ? " is-on" : "") +
+          '" role="tab" aria-selected="' + (SUB.filter === f ? "true" : "false") + '" data-mkt-sub-filter="' + f + '">' +
+          esc(tr(lang, subStateKey(f))) + ' <b class="mkt-subcount">' + subCount(f) + "</b></button>";
+      }).join("") + "</div>" +
+      '<p class="mkt-submsg' + (SUB.msgKind ? " " + esc(SUB.msgKind) : "") + '" id="mkt-submsg" role="status" aria-live="polite">' +
+        esc(SUB.msg || "") + "</p>" +
+      (SUB.tableMissing
+        ? '<p class="mkt-note mkt-warn" id="mkt-sub-missing">' + esc(tr(lang, "queueMissing")) + " " + esc(tr(lang, "subNeedSql")) + "</p>"
+        : "") +
+      (SUB.loading
+        ? '<p class="mkt-note">' + esc(tr(lang, "queueLoad")) + "</p>"
+        : (rows.length
+            ? '<div class="mkt-sublist">' + rows.map(function (s) { return subCardHtml(inst, s); }).join("") + "</div>"
+            : '<p class="mkt-note mkt-sub-empty">' + esc(tr(lang, "queueEmpty")) + "</p>")) +
+      "</section>";
+  }
+
+  function applyReview(inst, id, status, note, res) {
+    var s = subById(id);
+    if (s) {
+      s.status = status;
+      s.review_note = note || (res && res.review_note) || null;
+      s.reviewed_at = (res && res.reviewed_at) || new Date().toISOString();
+      if (res && res.reviewed_by) s.reviewed_by = res.reviewed_by;
+    }
+    SUB.reject = "";
+    SUB.msg = tr(inst.lang, status === "rejected" ? "queueRejected" : "queueApproved");
+    SUB.msgKind = "ok";
+    if (SUB.inst) paintTools(SUB.inst);
+  }
+
+  function reviewSubmission(inst, id, status, note, btn) {
+    if (!sbCfg().url) { subQueueMsg(inst, tr(inst.lang, "queueNeedSql"), "err"); return; }
+    if (btn) btn.disabled = true;
+    sbRequest("/rest/v1/rpc/review_plugin_submission", {
+      method: "POST", token: sbToken(),
+      body: { p_id: id, p_status: status, p_note: note || null }
+    }).then(function (res) {
+      if (btn) btn.disabled = false;
+      applyReview(inst, id, status, note, res);
+    }, function (e) {
+      if (btn) btn.disabled = false;
+      if (!missingRpc(e) && !missingTable(e)) {
+        subQueueMsg(inst, tr(inst.lang, "subFail") + (e.message || e), "err");
+        return;
+      }
+      /* RPC 가 없는 DB(27_v106 이전) — 관리자 RLS 로 직접 갱신합니다. */
+      sbRequest("/rest/v1/plugin_submissions?id=eq." + encodeURIComponent(id), {
+        method: "PATCH", token: sbToken(),
+        body: { status: status, review_note: note || null, reviewed_at: new Date().toISOString() },
+        prefer: "return=representation"
+      }).then(function (rows) {
+        applyReview(inst, id, status, note, (rows && rows[0]) || null);
+      }, function (e2) {
+        subQueueMsg(inst, missingTable(e2) ? tr(inst.lang, "queueNeedSql")
+          : (tr(inst.lang, "subFail") + (e2.message || e2)), "err");
+      });
+    });
+  }
+
+  function approveSubmission(inst, id, btn) { reviewSubmission(inst, id, "approved", "", btn); }
+
+  function subMarketItem(s) {
+    var day = String(s.reviewed_at || s.created_at || "").slice(0, 10) || new Date().toISOString().slice(0, 10);
+    var item = {
+      id: s.slug, name: s.name || s.slug, version: s.version,
+      description: s.summary || "", author: s.author_name || "",
+      category: s.category || "content", order: 50, updated: day,
+      min_sbpress_version: "10.6", script_url: s.script_url, source: "market",
+      hooks: Array.isArray(s.hooks) ? s.hooks : [],
+      permissions: Array.isArray(s.permissions) ? s.permissions : [],
+      tags: [], screenshots: [],
+      settings_schema: Array.isArray(s.settings_schema) ? s.settings_schema : [],
+      changelog: [{ version: s.version, date: day, notes: s.summary || "" }]
+    };
+    if (s.integrity) item.integrity = s.integrity;
+    item.sandbox_mode = "strict";
+    return item;
+  }
+  function subJsonText(s) { return JSON.stringify(subMarketItem(s), null, 2); }
+
+  function itemFromSubmission(s) {
+    var it = subMarketItem(s);
+    it.sandbox_mode = "strict";
+    /* 동의 모달이 마켓 목록 대신 이 항목을 그대로 쓰도록 표시합니다. */
+    it.__submission = true;
+    return it;
+  }
+
+  function copyText(text, cb) {
+    function fallback() {
+      var ok = false;
+      try {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.top = "-1000px";
+        document.body.appendChild(ta);
+        ta.select();
+        ok = !!(document.execCommand && document.execCommand("copy"));
+        document.body.removeChild(ta);
+      } catch (e) { ok = false; }
+      cb(ok);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { cb(true); }, fallback);
+    } else fallback();
+  }
+
+  function downloadJson(name, text) {
+    try {
+      var blob = new Blob([text], { type: "application/json" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function () {
+        try { URL.revokeObjectURL(url); } catch (e) { /* noop */ }
+        if (a.parentNode) a.parentNode.removeChild(a);
+      }, 800);
+      return true;
+    } catch (e) { return false; }
+  }
+
+  /* 승인된 제출을 v10.5 동의 모달로 넘겨 바로 설치합니다. */
+  function installSubmission(inst, id, btn) {
+    var s = subById(id);
+    if (!s) return;
+    var ver = SUB.verify[s.id] || {};
+    if (ver.state === "bad") { subQueueMsg(inst, tr(inst.lang, "queueBad"), "err"); return; }
+    var item = itemFromSubmission(s);
+    if (ver.state === "ok") inst.verify[item.id] = { state: "ok", computed: ver.computed || "" };
+    openConsent(inst, item, "install", item.permissions, function (info) {
+      if (typeof inst.onInstallSubmission === "function") {
+        inst.onInstallSubmission(item, btn, info);
+      } else {
+        flash(inst, tr(inst.lang, "queueNeedSql"), "err");
+      }
     });
   }
 
@@ -1980,9 +2948,17 @@
     if (!host) return;
     var lang = inst.lang;
     var q = inst.state.q;
+    /* v10.6 — 관리자 마켓을 열면 제출·심사 큐를 한 번 불러옵니다. */
+    if (inst.mode === "admin" && !SUB.loaded && !SUB.loading) {
+      setTimeout(function () { loadSubmissions(inst); }, 0);
+    }
     host.innerHTML =
+      (inst.mode === "admin" ? submissionPanelHtml(inst) : "") +
       (inst.mode === "admin" && inst.markets ? marketPanelHtml(inst) : "") +
       (inst.mode === "admin" ? updBarHtml(inst) : "") +
+      (inst.mode === "admin" ? "" :
+        '<div class="mkt-subbar"><button type="button" class="btn btn-ghost btn-sm" data-mkt-sub-open="1">+ ' +
+        esc(tr(lang, "subOpen")) + "</button></div>") +
       '<div class="mkt-bar">' +
         '<label class="mkt-search"><span class="sr-only">' + esc(tr(lang, "searchAria")) + "</span>" +
           '<input type="search" class="mkt-q" placeholder="' + esc(tr(lang, "search")) + '" autocomplete="off" spellcheck="false" aria-label="' + esc(tr(lang, "searchAria")) + '">' +
@@ -2038,6 +3014,53 @@
         else inst2.state.tag = chip.getAttribute("data-mkt-tag");
         paintTools(inst2);
         render(inst2);
+      });
+    }
+    /* v10.6 — 제출·심사 큐 버튼도 한 번만 위임합니다(다시 그려도 리스너가 쌓이지 않게). */
+    if (!host.getAttribute("data-mkt-sub-bound")) {
+      host.setAttribute("data-mkt-sub-bound", "1");
+      host.addEventListener("click", function (e) {
+        var inst2 = host.__mktInst;
+        if (!inst2 || !e.target.closest) return;
+        var t = e.target.closest("[data-mkt-sub-open],[data-mkt-sub-filter],[data-mkt-sub-refresh]," +
+          "[data-mkt-sub-approve],[data-mkt-sub-reject],[data-mkt-sub-reject-go]," +
+          "[data-mkt-sub-install],[data-mkt-sub-copy],[data-mkt-sub-export]");
+        if (!t) return;
+        if (t.hasAttribute("data-mkt-sub-open")) { openSubmit(inst2); return; }
+        if (t.hasAttribute("data-mkt-sub-refresh")) { loadSubmissions(inst2, true); return; }
+        if (t.hasAttribute("data-mkt-sub-filter")) {
+          SUB.filter = t.getAttribute("data-mkt-sub-filter") || "pending";
+          SUB.reject = "";
+          paintTools(inst2);
+          return;
+        }
+        if (t.hasAttribute("data-mkt-sub-approve")) { approveSubmission(inst2, t.getAttribute("data-mkt-sub-approve"), t); return; }
+        if (t.hasAttribute("data-mkt-sub-reject")) {
+          SUB.reject = t.getAttribute("data-mkt-sub-reject");
+          paintTools(inst2);
+          var box = host.querySelector("#mkt-sub-note-" + SUB.reject);
+          if (box) box.focus();
+          return;
+        }
+        if (t.hasAttribute("data-mkt-sub-reject-go")) {
+          var id = t.getAttribute("data-mkt-sub-reject-go");
+          var noteEl = host.querySelector("#mkt-sub-note-" + id);
+          var note = noteEl ? String(noteEl.value || "").trim() : "";
+          if (!note) { subQueueMsg(inst2, tr(inst2.lang, "queueNeedNote"), "err"); return; }
+          reviewSubmission(inst2, id, "rejected", note, t);
+          return;
+        }
+        if (t.hasAttribute("data-mkt-sub-install")) { installSubmission(inst2, t.getAttribute("data-mkt-sub-install"), t); return; }
+        var row = subById(t.getAttribute("data-mkt-sub-copy") || t.getAttribute("data-mkt-sub-export") || "");
+        if (!row) return;
+        if (t.hasAttribute("data-mkt-sub-copy")) {
+          copyText(subJsonText(row), function (ok) {
+            subQueueMsg(inst2, tr(inst2.lang, ok ? "queueCopied" : "queueCopiedFail"), ok ? "ok" : "err");
+          });
+          return;
+        }
+        downloadJson("plugin-" + String(row.slug || "plugin") + ".json", subJsonText(row));
+        subQueueMsg(inst2, tr(inst2.lang, "queueCopied"), "ok");
       });
     }
     /* v10.4 — 구독 마켓 추가·켜기/끄기·동기화·삭제 버튼도 한 번만 위임합니다. */
@@ -2210,6 +3233,7 @@
       prev.onMarketRemove = opts.onMarketRemove || prev.onMarketRemove;
       prev.onRecheck = opts.onRecheck || prev.onRecheck;
       prev.onConsent = opts.onConsent || prev.onConsent;
+      prev.onInstallSubmission = opts.onInstallSubmission || prev.onInstallSubmission;
       if (Array.isArray(opts.markets)) {
         prev.markets = opts.markets;
         prev.marketCount = opts.markets.length;
@@ -2248,6 +3272,7 @@
       onMarketRemove: opts.onMarketRemove || null,
       onRecheck: opts.onRecheck || null,
       onConsent: opts.onConsent || null,
+      onInstallSubmission: opts.onInstallSubmission || null,
       verify: {},
       verifyRun: 0,
       consented: {},
@@ -2391,8 +3416,8 @@
   }
 
   window.SBP_MARKET = {
-    __v: 104,
-    version: "10.4.0",
+    __v: 106,
+    version: "10.6.0",
     mount: mount,
     update: update,
     normalize: normalize,
@@ -2449,7 +3474,36 @@
     marketRows: function () {
       var inst = adminInst();
       return inst ? (inst.markets || []) : [];
-    }
+    },
+    /* v10.6 — 플러그인 제출 · 사전 점검 · 심사 큐(시험·다른 화면에서 쓰는 표면) */
+    openSubmit: function () {
+      var inst = adminInst() || INSTANCES[0];
+      if (!inst) return false;
+      openSubmit(inst);
+      return true;
+    },
+    submissions: function () { return subList(); },
+    reloadSubmissions: function () {
+      var inst = adminInst();
+      if (!inst) return false;
+      loadSubmissions(inst, true);
+      return true;
+    },
+    reviewSubmission: reviewSubmission,
+    submissionApproved: function (id) {
+      var s = subById(id);
+      return s ? subStatus(s) === "approved" : false;
+    },
+    submissionJson: function (id) {
+      var s = subById(id);
+      return s ? subJsonText(s) : "";
+    },
+    autoCheck: autoCheck,
+    sha256Integrity: function (text) {
+      var bytes = new TextEncoder().encode(String(text || ""));
+      return sriOf(bytes.buffer);
+    },
+    submissionsTableMissing: function () { return !!SUB.tableMissing; }
   };
 
   function adminInst() {
