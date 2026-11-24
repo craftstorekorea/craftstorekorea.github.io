@@ -818,8 +818,11 @@
   }
 
   /* ---------------- 불러오기 ---------------- */
-  function fetchRows(table, select) {
-    return fetch(CFG.url + "/rest/v1/" + table + "?select=" + select + "&enabled=eq.true&order=installed_at.asc", {
+  function fetchRows(table, select, filter) {
+    var qs = "?select=" + select;
+    if (filter !== "") qs += (filter || "&enabled=eq.true");
+    qs += "&order=installed_at.asc";
+    return fetch(CFG.url + "/rest/v1/" + table + qs, {
       headers: { apikey: CFG.anonKey, Authorization: "Bearer " + CFG.anonKey }
     }).then(function (r) {
       if (!r.ok) throw new Error("플러그인 목록 HTTP " + r.status);
@@ -828,25 +831,20 @@
   }
 
   /* v10.2 — 뷰(plugins_public)를 먼저, 없는 예전 DB 는 표를 읽습니다.
-     v10.5 — integrity·동의 권한·샌드박스 칸을 먼저 청하고, 없으면(26_v105 미실행) 그 칸만 빼고 다시 읽습니다. */
-  var COLS_V105 = "id,name,version,script_url,source,settings,settings_schema,integrity,granted_permissions,consent_at,sandbox_mode";
-  var COLS_V102 = "id,name,version,script_url,source,settings,settings_schema";
-  var COLS_OLD = "id,name,version,script_url,source,settings";
-
-  function noticeNoV105() {
-    recordNotice("engine", "무결성·권한 동의 칸이 없어 코드 검사만 합니다(26_v105_plugin_security.sql 미실행).");
-  }
-
+     v10.5 — 칸 이름을 나열하지 않고 *(있는 칸만) 로 받습니다. 26_v105 를 실행하지 않은 DB 에서도
+     400 응답 없이 그대로 동작하고, 무결성·동의 칸이 있을 때만 검사합니다.
+     뷰는 이미 켜진 플러그인만 보이므로 enabled 조건은 표에만 붙입니다. */
   function enabledRows() {
     if (!CFG.url || !CFG.anonKey) return Promise.resolve([]);
-    return fetchRows("plugins_public", COLS_V105).catch(function () {
-      return fetchRows("plugins_public", COLS_V102).then(function (rows) {
-        noticeNoV105();
-        return rows;
-      }).catch(function () {
-        recordNotice("engine", "plugins_public 뷰가 없어 public.plugins 를 읽습니다(23_v102_plugin_settings.sql 미실행).");
-        return fetchRows("plugins", COLS_V105).catch(function () { return fetchRows("plugins", COLS_OLD); });
-      });
+    return fetchRows("plugins_public", "*", "").then(function (rows) {
+      var any = rows.some(function (r) { return r && ("sandbox_mode" in r || "integrity" in r); });
+      if (rows.length && !any) {
+        recordNotice("engine", "무결성·권한 동의 칸이 없어 코드 검사만 합니다(26_v105_plugin_security.sql 미실행).");
+      }
+      return rows;
+    }).catch(function () {
+      recordNotice("engine", "plugins_public 뷰가 없어 public.plugins 를 읽습니다(23_v102_plugin_settings.sql 미실행).");
+      return fetchRows("plugins", "*");
     });
   }
 
