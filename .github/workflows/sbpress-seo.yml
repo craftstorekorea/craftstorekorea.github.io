@@ -1,0 +1,67 @@
+# SBPress v2.1 — 글을 발행하면 sitemap.xml · rss.xml · 정적 글 페이지를 자동으로 다시 만듭니다.
+#
+#   · main 에 푸시되면(또는 Actions 화면에서 ‘Run workflow’) 아래 두 스크립트를 실행합니다.
+#   · 스크립트는 저장소의 sbpress.config.json(supabase url·anon key·siteUrl)으로 공개 글을 읽습니다.
+#   · 결과(post/ · p/ · sitemap.xml · rss.xml)가 바뀌었을 때만 봇이 커밋·푸시합니다.
+#   · 봇 커밋이 다시 이 워크플로를 부르지 않도록 GITHUB_TOKEN 커밋은 새 실행을 만들지 않습니다.
+name: SBPress SEO (sitemap · rss · static pages)
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "post/**"
+      - "p/**"
+      - "sitemap.xml"
+      - "rss.xml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sbpress-seo
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Skip when the site is not configured yet
+        id: configured
+        run: |
+          if [ -f sbpress.config.json ] && grep -q '"anonKey"' sbpress.config.json; then
+            echo "run=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=no" >> "$GITHUB_OUTPUT"
+            echo "sbpress.config.json 이 없거나 예시값이라 건너뜁니다."
+          fi
+
+      - name: Build static post pages
+        if: steps.configured.outputs.run == 'yes'
+        run: python3 scripts/build_static_seo.py
+
+      - name: Build sitemap.xml · rss.xml
+        if: steps.configured.outputs.run == 'yes'
+        run: python3 scripts/build_feeds.py
+
+      - name: Commit changed files
+        if: steps.configured.outputs.run == 'yes'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A post p sitemap.xml rss.xml
+          if git diff --cached --quiet; then
+            echo "바뀐 파일이 없습니다."
+          else
+            git commit -m "chore(seo): sitemap · rss · 정적 글 페이지 자동 갱신"
+            git push
+          fi
