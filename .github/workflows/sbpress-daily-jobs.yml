@@ -1,0 +1,84 @@
+name: SBPress daily jobs
+
+# 매일 08:30 KST(23:30 UTC 전날)에 ① 마감 D-3/D-1/지연 점검 ② next_run_at 이 도래한 반복 일감 생성을
+# 실행하고, 이어서 notify Edge Function 으로 메일 큐를 발송합니다.
+# Actions 탭에서 "Run workflow" 로 직접 돌릴 수도 있습니다(workflow_dispatch).
+#
+# 필요한 Repository secrets (Settings → Secrets and variables → Actions)
+#   · SBPRESS_JOB_TOKEN   — Supabase site_contents 의 automation.job_token 과 같은 값
+#   · SBPRESS_CRON_SECRET — Edge Function notify 의 CRON_SECRET 과 같은 값(없으면 메일 발송 단계는 건너뜀)
+# SUPABASE_URL · SUPABASE_KEY 는 사이트에 공개된 값(publishable key)이라 그대로 둡니다.
+
+on:
+  schedule:
+    - cron: "30 23 * * *"   # 08:30 Asia/Seoul
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sbpress-daily-jobs
+  cancel-in-progress: false
+
+jobs:
+  daily:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_URL: https://haaikrynfrrwcpyuvrrr.supabase.co
+      SUPABASE_KEY: sb_publishable_h_LulYLMWm80M6ZfqMdc9w_jncYNhDe
+      JOB_TOKEN: ${{ secrets.SBPRESS_JOB_TOKEN }}
+      CRON_SECRET: ${{ secrets.SBPRESS_CRON_SECRET }}
+    steps:
+      - name: 마감 점검 · 반복 일감 생성 (sbpress_daily_jobs)
+        run: |
+          set -euo pipefail
+          if [ -z "${JOB_TOKEN}" ]; then
+            echo "::error::SBPRESS_JOB_TOKEN secret is not set. Add it in Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          resp=$(curl -sS -w '\n%{http_code}' -X POST "$SUPABASE_URL/rest/v1/rpc/sbpress_daily_jobs" \
+            -H "apikey: $SUPABASE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_KEY" \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/json" \
+            -d "{\"p_token\":\"$JOB_TOKEN\",\"p_source\":\"github-actions\"}")
+          body=$(printf '%s' "$resp" | sed '$d')
+          code=$(printf '%s' "$resp" | tail -n 1)
+          echo "$body"
+          echo "HTTP $code"
+          if [ "$code" != "200" ]; then echo "::error::sbpress_daily_jobs returned HTTP $code"; exit 1; fi
+          echo "$body" | jq -e '.ok == true' >/dev/null || { echo "::error::batch reported ok=false"; exit 1; }
+          {
+            echo "### SBPress daily jobs"
+            echo "- 마감 알림: $(echo "$body" | jq -r '.deadline.notified // 0')건 (이미 알림 $(echo "$body" | jq -r '.deadline.already // 0')건)"
+            echo "- 반복 일감 생성: $(echo "$body" | jq -r '.recur.created // 0')건 (실패 $(echo "$body" | jq -r '.recur.failed // 0')건)"
+            echo "- 실행 시각: $(echo "$body" | jq -r '.ran_at // ""')"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 메일 큐 발송 (notify)
+        run: |
+          set -euo pipefail
+          if [ -z "${CRON_SECRET}" ]; then
+            echo "SBPRESS_CRON_SECRET 이 없어 메일 발송 단계를 건너뜁니다. (인앱 알림은 DB 가 이미 넣었습니다)"
+            exit 0
+          fi
+          resp=$(curl -sS -w '\n%{http_code}' -X POST "$SUPABASE_URL/functions/v1/notify" \
+            -H "x-cron-secret: $CRON_SECRET" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+          body=$(printf '%s' "$resp" | sed '$d')
+          code=$(printf '%s' "$resp" | tail -n 1)
+          echo "$body"
+          echo "HTTP $code"
+          if [ "$code" = "404" ]; then
+            echo "::warning::notify Edge Function 이 아직 배포되지 않았습니다."
+            exit 0
+          fi
+          if [ "$code" != "200" ]; then echo "::error::notify returned HTTP $code"; exit 1; fi
+          {
+            echo "### 메일 발송"
+            echo "- 발송 $(echo "$body" | jq -r '.sent // 0')건 · 건너뜀 $(echo "$body" | jq -r '.skipped // 0')건 · 실패 $(echo "$body" | jq -r '.failed // 0')건"
+            echo "- 발송 수단: $(echo "$body" | jq -r '.provider // ""')"
+          } >> "$GITHUB_STEP_SUMMARY"
