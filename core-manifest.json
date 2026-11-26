@@ -2,7 +2,7 @@
   "name": "SBPress",
   "kind": "core-manifest",
   "version": "10.12",
-  "generatedAt": "2026-11-26T21:56:40+09:00",
+  "generatedAt": "2026-11-26T21:59:28+09:00",
   "generator": "craftstore_site/sync_template.py --manifest",
   "engine": {
     "html": {
@@ -97,7 +97,7 @@
         "strategy": "copy"
       },
       "assets/tasks.js": {
-        "sha256": "54797592b874de1a93fa7740eab9f87c0c7851fe6cbdbbde60d1d6648abe23ee",
+        "sha256": "7317acfcd35155bfcad25e01bd7aaafd5498bfa3976c3560fb6d6f22b17a713d",
         "strategy": "copy"
       },
       "assets/approvals.js": {
@@ -137,7 +137,7 @@
         "strategy": "copy"
       },
       "sw.js": {
-        "sha256": "168af0d1f2bcce9bd6b5c50be16b29ff6ba56058391436c2b33423deb3d4443c",
+        "sha256": "5900b93eb9a91185812238911711aba3d738dfea374f87b6b8c9d4de411ff7cc",
         "strategy": "copy"
       },
       "assets/plugins/admin-json-export.js": {

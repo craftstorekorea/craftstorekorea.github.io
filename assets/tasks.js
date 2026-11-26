@@ -1578,8 +1578,8 @@
     var list = rmAttachList(it).slice();
     if (att && att.fileId && !list.some(function (a) { return a && a.fileId === att.fileId; })) list.push(att);
     body.attachments = list;
-    /* 체크리스트가 있으면 진행률은 체크리스트가 정합니다 — 저장할 때 덮어쓰지 않습니다. */
-    if (rmChecklistOf(it.id).length) delete body.progress;
+    /* 체크리스트가 있으면 진행률은 체크리스트가 정합니다(화면의 오래된 값 대신 계산값을 보냅니다). */
+    if (rmChecklistOf(it.id).length) body.progress = rmProgressPct(it);
     /* v10.12 — 상태 전이 정리: 완료면 진행률 100, 100%면 해결로 올립니다. */
     if (body.status === "closed") {
       body.progress = 100;
