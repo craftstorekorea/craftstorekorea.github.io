@@ -1734,6 +1734,16 @@ body[data-theme="craft"] .hm-prov{fill:#F1E0CB}
 }
 #appr-issue,#appr-issue-target{max-width:100%}
 #appr-issue:disabled,#appr-issue-target:disabled{opacity:.55}
+/* 관련 일감 줄 — 양식 칸 아래에 두 칸(일감 · 목표 상태)으로 놓고, 좁은 화면에서는 한 칸씩 */
+#appr-compose .appr-issue-row{
+  grid-column:1 / -1;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);
+  gap:10px 12px;align-items:end;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);
+}
+#appr-compose .appr-issue-row .appr-f{display:flex;flex-direction:column;gap:4px;min-width:0}
+#appr-compose .appr-issue-row .appr-hint{grid-column:1 / -1;margin:0}
+@media (max-width:560px){
+  #appr-compose .appr-issue-row{grid-template-columns:1fr}
+}
 .appr-list{display:flex;flex-direction:column;gap:10px}
 .appr-card{
   background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;

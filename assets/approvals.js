@@ -964,7 +964,7 @@
     for (var i = 0; i < state.forms.length; i++) if (state.forms[i].id === sel.value) form = state.forms[i];
     var defs = (form && Array.isArray(form.fields)) ? form.fields : [];
     box.innerHTML = defs.length ? defs.map(fieldInput).join("") :
-      '<p class="appr-hint">' + esc(I("appr.form.noFields")) + "</p>";
+      '<p class="appr-hint appr-f-wide">' + esc(I("appr.form.noFields")) + "</p>";
     paintRuleHint(form);
   }
 
@@ -1340,11 +1340,13 @@
             '<input id="appr-doc-title" maxlength="200" data-i18n-ph="appr.form.titlePh"></label>' +
           '<div class="appr-fieldset" id="appr-fields"></div>' +
           '<div class="appr-rule-hint" id="appr-rule-hint" hidden></div>' +
-          '<label class="appr-f"><span class="appr-f-label" data-i18n="appr.link.title"></span>' +
-            '<select id="appr-issue"></select></label>' +
-          '<label class="appr-f"><span class="appr-f-label" data-i18n="appr.link.target"></span>' +
-            '<select id="appr-issue-target"></select></label>' +
-          '<p class="appr-hint appr-f-wide" id="appr-issue-hint"></p>' +
+          '<div class="appr-issue-row" id="appr-issue-row">' +
+            '<label class="appr-f"><span class="appr-f-label" data-i18n="appr.link.title"></span>' +
+              '<select id="appr-issue"></select></label>' +
+            '<label class="appr-f"><span class="appr-f-label" data-i18n="appr.link.target"></span>' +
+              '<select id="appr-issue-target"></select></label>' +
+            '<p class="appr-hint" id="appr-issue-hint"></p>' +
+          "</div>" +
           '<label class="appr-f appr-f-wide"><span class="appr-f-label" data-i18n="appr.form.attach"></span>' +
             '<input id="appr-attach" type="url" data-i18n-ph="appr.form.attachPh"></label>' +
           '<label class="appr-f appr-f-wide"><span class="appr-f-label" data-i18n="appr.form.body"></span>' +
