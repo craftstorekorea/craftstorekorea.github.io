@@ -1651,7 +1651,13 @@
   "큐를 보내는 중…": "Sending the queue…",
   "로그인 세션이 없습니다.": "No signed-in session.",
   "실행 중…": "Running…",
-  "배치": "Batch"
+  "배치": "Batch",
+  "메일은 Edge Function notify 가 보냅니다. 시크릿이 없으면 큐는 skipped(no_secret) 로 안전하게 남고, 인앱 알림은 그대로 동작합니다.": "Email is sent by the Edge Function notify. Without secrets the queue stays skipped(no_secret) and in-app notifications keep working.",
+  "메일 발송 키가 없습니다. 큐는 skipped(no_secret) 으로 남고 인앱 알림은 정상 동작합니다. Supabase 대시보드 → Edge Functions → Secrets 에서 RESEND_API_KEY 또는 NOTIFY_WEBHOOK 을 넣어 주세요.": "No email sending key. The queue stays skipped(no_secret) and in-app notifications keep working. Add RESEND_API_KEY or NOTIFY_WEBHOOK in Supabase Dashboard → Edge Functions → Secrets.",
+  "최근 100건입니다. 실패 사유에는 발송 수단이 돌려준 상태·응답 앞부분이 남습니다. no_secret 은 발송 키가 없다는 뜻이고, no_email 은 받는 사람 메일이 없다는 뜻입니다.": "The latest 100 rows. The failure reason keeps the provider status and the start of its response. no_secret means no sending key is configured, and no_email means the recipient has no email address.",
+  "GitHub Actions 의 sbpress-daily-jobs.yml 이 매일 08:30(KST)에 ① 마감 D-3/D-1/지연 점검 ② next_run_at 이 도래한 반복 일감 생성을 실행합니다. GitHub 저장소의 Actions 탭에서 Run workflow 로 직접 돌릴 수도 있습니다.": "GitHub Actions (sbpress-daily-jobs.yml) runs every day at 08:30 KST: ① deadline check (D-3, D-1, overdue) ② recurring issues whose next_run_at has come. You can also run it yourself with Run workflow in the repository's Actions tab.",
+  "회원은 마이페이지에서 결재·일감·댓글·폼·마감·반복·시스템 알림을 종류별로 켜고 끄고, ‘하루 1회 요약’을 고를 수 있습니다. 관리자 계정도 같은 화면에서 바꿉니다.": "Members choose which kinds to receive on My page — approvals, issues, comments, forms, deadlines, recurring issues and system notices, each on or off — plus the one-a-day digest. Admins use the same screen.",
+  "시크릿을 넣으면 실제 발송": "Sends for real once a secret is set"
 };
   var RULES = ([
   [
@@ -2557,6 +2563,10 @@
   [
     "^알림 자료를 불러오지 못했습니다: (.+)$",
     "Could not load notification data: \\1"
+  ],
+  [
+    "^최근 실행 (.+?) · (성공|실패)$",
+    "Latest run \\1 · \\2"
   ]
 ]).map(function (r) {
     /* 파이썬 쪽 규칙은 \1 로 그룹을 가리킵니다 — JS replace 는 $1 을 씁니다. */

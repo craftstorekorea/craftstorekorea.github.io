@@ -1033,7 +1033,7 @@
       '<div class="ntf-secret-row"><b>함수 주소</b><code>' + esc(ntfFnUrl()) + '</code></div>' +
       (NTF.fnError ? '<p class="ntf-warn">' + esc(NTF.fnError) + '</p>' : "") +
       (!sec.resend && !sec.webhook && !NTF.fnError
-        ? '<p class="ntf-warn">메일 발송 키가 없습니다. 큐는 <b>skipped(no_secret)</b> 으로 남고 인앱 알림은 정상 동작합니다. Supabase 대시보드 → Edge Functions → Secrets 에서 <code>RESEND_API_KEY</code>(또는 <code>NOTIFY_WEBHOOK</code>)를 넣어 주세요.</p>'
+        ? '<p class="ntf-warn">메일 발송 키가 없습니다. 큐는 skipped(no_secret) 으로 남고 인앱 알림은 정상 동작합니다. Supabase 대시보드 → Edge Functions → Secrets 에서 RESEND_API_KEY 또는 NOTIFY_WEBHOOK 을 넣어 주세요.</p>'
         : "");
     var state = $("#ntf-secret-state");
     if (state) {
@@ -1095,7 +1095,7 @@
     }).join("");
     var last = NTF.runs[0];
     var el = $("#ntf-batch-state");
-    if (el) el.textContent = "최근 " + ntfWhen(last.started_at) + (last.ok ? " 성공" : " 실패");
+    if (el) el.textContent = "최근 실행 " + ntfWhen(last.started_at) + " · " + (last.ok ? "성공" : "실패");
   }
 
   function ntfSendNow() {
