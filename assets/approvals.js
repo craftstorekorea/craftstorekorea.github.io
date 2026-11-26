@@ -82,6 +82,7 @@
     logs: {},
     rules: [],
     delegates: [],
+    delegatesAll: [],
     tab: "inbox",
     q: "",
     fForm: "",
@@ -210,6 +211,7 @@
     return request("approval_delegates?select=*&active=is.true&order=starts_on.desc").then(function (r) {
       if (!r.ok) { state.delegates = []; return r; }
       var today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" });
+      state.delegatesAll = Array.isArray(r.data) ? r.data : [];
       state.delegates = (Array.isArray(r.data) ? r.data : []).filter(function (d) {
         return String(d.starts_on || "") <= today && (!d.ends_on || String(d.ends_on) >= today);
       });
@@ -266,6 +268,20 @@
       if (d.delegate_id === uid && d.original_id) out.push(d.original_id);
     });
     return out;
+  }
+  /* v10.11 — delegate_id 는 ‘대결’과 ‘관리자 대행’이 같이 씁니다. 대결 표에 짝이 있으면 대결,
+     없으면(관리자가 권한으로 대신 처리) 관리자 대행으로 라벨을 나눕니다. */
+  function delegationRecord(approverId, actorId) {
+    var list = state.delegatesAll || [];
+    for (var i = 0; i < list.length; i++) {
+      var d = list[i];
+      if (d.original_id === approverId && d.delegate_id === actorId) return d;
+    }
+    return null;
+  }
+  function isAdminAct(step) {
+    return !!(step && step.delegate_id && step.delegate_id !== step.approver_id &&
+              !delegationRecord(step.approver_id, step.delegate_id));
   }
   function myTurn(doc) {
     if (!doc || doc.status !== "pending") return null;
@@ -500,6 +516,7 @@
     var refs = list.filter(function (s) { return s.kind === "ref"; });
     function one(s) {
       var delegated = s.delegate_id && s.delegate_id !== s.approver_id;
+      var adminAct = isAdminAct(s);
       return '<li class="appr-step is-' + esc(s.status) + ' is-' + esc(s.kind || "approve") + '">' +
         '<span class="appr-step-dot" aria-hidden="true"></span>' +
         '<div class="appr-step-body">' +
@@ -507,14 +524,14 @@
             (s.kind === "ref" ? "" : "<b>" + esc(I("appr.step.n", { n: s.step_order })) + "</b>") +
             kindBadge(s) +
             "<span>" + esc(s.approver_name || "") + "</span>" +
-            (delegated ? '<span class="appr-kind-badge is-delegate">' + esc(I("appr.kind.delegate")) + "</span>" : "") +
+            (delegated ? '<span class="appr-kind-badge is-delegate">' + esc(adminAct ? I("appr.kind.adminAct") : I("appr.kind.delegate")) + "</span>" : "") +
             '<span class="pill st-' + esc(s.status) + '">' +
               esc(s.kind === "ref" ? (s.viewed_at ? I("appr.ref.viewed") : I("appr.ref.unread")) : I(stepKey(s.status))) +
             "</span>" +
           "</div>" +
           (s.acted_at ? '<p class="appr-step-when">' + esc(fmtTime(s.acted_at)) + "</p>" : "") +
           (s.viewed_at ? '<p class="appr-step-when">' + esc(I("appr.ref.viewedAt", { at: fmtTime(s.viewed_at) })) + "</p>" : "") +
-          (delegated ? '<p class="appr-step-when">' + esc(I("appr.delegate.doneBy", { name: s.delegate_name || "" })) + "</p>" : "") +
+          (delegated ? '<p class="appr-step-when">' + esc(I(adminAct ? "appr.adminAct.doneBy" : "appr.delegate.doneBy", { name: s.delegate_name || "" })) + "</p>" : "") +
           (s.comment ? '<p class="appr-step-note">' + esc(s.comment) + "</p>" : "") +
         "</div></li>";
     }
@@ -527,11 +544,20 @@
     var key = "appr.log." + l.action;
     var label = I(key);
     if (label === key) label = l.action;
+    var adminAct = false;
+    if (!(l.detail && l.detail.delegate_of) && state.doc &&
+        (l.action === "approve" || l.action === "reject" || l.action === "agree")) {
+      var same = stepsOf(state.doc).filter(function (s) {
+        return s.kind !== "ref" && s.step_order === l.step_order;
+      });
+      adminAct = same.some(function (s) { return s.delegate_id === l.actor_id && isAdminAct(s); });
+    }
     return "<li>" +
       '<span class="appr-log-t">' + esc(fmtTime(l.created_at)) + "</span>" +
       '<span class="appr-log-a">' + esc(l.actor_name || "") + "</span>" +
       '<span class="appr-log-x">' + esc(label) + "</span>" +
       (l.detail && l.detail.delegate_of ? '<span class="appr-log-c">' + esc(I("appr.kind.delegate")) + "</span>" : "") +
+      (adminAct ? '<span class="appr-log-c">' + esc(I("appr.log.adminAct")) + "</span>" : "") +
       (l.comment ? '<span class="appr-log-c">' + esc(l.comment) + "</span>" : "") +
       "</li>";
   }

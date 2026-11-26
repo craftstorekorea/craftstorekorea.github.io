@@ -83,7 +83,20 @@
   function fmtDate(v) { return v ? ymd(v) : ""; }
   function fmtWhen(v) {
     if (!v) return "";
-    return String(v).slice(0, 16).replace("T", " ");
+    var raw = String(v);
+    var d = new Date(raw);
+    if (!isNaN(d.getTime())) {
+      try {
+        /* v10.11 — 서버는 UTC(ISO)로 주므로 화면은 항상 KST(Asia/Seoul)로 맞춰 보입니다.
+           (예전에는 문자열을 그대로 잘라 다음 실행이 9시간 이르게 보였습니다.) */
+        var s = d.toLocaleString("sv-SE", {
+          timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit",
+          hour: "2-digit", minute: "2-digit", hour12: false
+        });
+        if (s) return s.replace("T", " ");
+      } catch (e) { /* 오래된 브라우저는 아래 문자열 처리로 */ }
+    }
+    return raw.slice(0, 16).replace("T", " ");
   }
   function fmtHours(h) {
     var n = Number(h || 0);

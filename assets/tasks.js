@@ -482,7 +482,7 @@
      SBPress v4.1 — 레드마인형 업무관리 (projects · issues · 간트 · 캘린더 · 결재 연동)
      ================================================================== */
   var RM = {
-    mode: null, built: false, booted: false, loading: false, missing: false,
+    mode: null, built: false, booted: false, loading: false, missing: false, probing: false,
     projects: [], project: null, members: [], people: [],
     issues: [], comments: {}, relations: {}, approvals: {},
     view: "list", q: "", fAssignee: "", fStatus: "", fPriority: "", fFrom: "", fTo: "",
@@ -1506,8 +1506,10 @@
         if (!m.ok) rmMsg(rmErr(m), "err");
         RM.project = row.id;
         $("#rm-project-form").hidden = true;
-        rmMsg(rmI("projectCreated"), "ok");
-        return rmLoadProjects().then(function () { rmFillSelects(); return rmLoad(); });
+        return rmLoadProjects().then(function () { rmFillSelects(); return rmLoad(); }).then(function () {
+          /* v10.11 — rmLoad() 가 시작할 때 rmMsg("") 로 지우므로 성공 안내는 목록을 그린 뒤에 띄웁니다. */
+          rmMsg(rmI("projectCreated"), "ok");
+        });
       });
     });
   }
@@ -1614,10 +1616,13 @@
     if (!signedIn()) return;
     if (myGrade() < minGrade()) { paintGate(); return; }
     if (RM.mode === null) {
+      if (RM.probing) return;
+      RM.probing = true;
       rmProbe().then(function (useRm) {
+        RM.probing = false;
         RM.mode = useRm;
         if (useRm) rmShow(); else legacyShow();
-      });
+      }).catch(function () { RM.probing = false; });
       return;
     }
     if (RM.mode) rmShow(); else legacyShow();
@@ -1655,11 +1660,13 @@
     if (window.CRAFT_AUTH && window.CRAFT_AUTH.onChange) {
       window.CRAFT_AUTH.onChange(function () {
         paintGate();
-        if (!signedIn()) { state.rows = []; paintBoard(); paintCounts(); }
-        else if (RM.mode !== null) {
-          if (RM.mode) { if (RM.built) rmShow(); }
-          else if (myGrade() >= minGrade()) load();
-        }
+        if (!signedIn()) { state.rows = []; paintBoard(); paintCounts(); return; }
+        if (myGrade() < minGrade()) { paintGate(); return; }
+        /* v10.11 — #/tasks 로 바로 들어오거나 새로고침하면 세션 복원 전에 show() 가 돌아
+           RM.mode 가 null 로 남았습니다. 복원(onChange) 시점에 모드 판별부터 다시 시작합니다. */
+        if (RM.mode === null) { show(); return; }
+        if (RM.mode) { if (RM.built) rmShow(); else show(); }
+        else load();
       });
     }
     if (window.CRAFT_I18N && window.CRAFT_I18N.onChange) {

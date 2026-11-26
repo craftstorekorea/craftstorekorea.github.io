@@ -698,6 +698,8 @@
   "문서번호·제목·기안자 검색": "Search document number, title or drafter",
   "결재 문서 검색": "Search approval documents",
   "결재 중": "In approval",
+  "일감 상태 변경": "Task status changed",
+  "관리자 대행": "Admin action",
   "승인 완료": "Approved",
   "반려": "Rejected",
   "회수": "Withdrawn",

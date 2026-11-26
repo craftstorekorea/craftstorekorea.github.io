@@ -7053,7 +7053,8 @@
     if (close) close.addEventListener("click", closeApprDoc);
   }
 
-  var APPR_LOG = { create: "기안 작성", submit: "상신", approve: "승인", reject: "반려", withdraw: "회수", view: "열람", comment: "의견" };
+  var APPR_LOG = { create: "기안 작성", submit: "상신", approve: "승인", reject: "반려", withdraw: "회수", view: "열람", comment: "의견",
+                   agree: "합의", delegate: "대결", task: "일감 상태 변경", print: "인쇄", export: "내보내기" };
 
   function closeApprDoc() {
     var modal = $("#appr-doc-modal");

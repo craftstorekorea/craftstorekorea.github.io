@@ -366,6 +366,8 @@
       "appr.log.withdraw": "회수",
       "appr.log.view": "열람",
       "appr.log.comment": "의견",
+      "appr.log.task": "일감 상태 변경",
+      "appr.log.adminAct": "관리자 대행",
 
       "appr.title": "합의·참조·전결까지 한 줄기로 결재합니다",
       "appr.desc": "양식을 골라 기안을 올리고 승인·합의·참조를 함께 세웁니다. 전결 규정과 대결을 적용하고, 인쇄본(서명란)과 CSV로 문서함을 남깁니다.",
@@ -418,6 +420,8 @@
       "appr.form.refHint": "참조는 처리 없이 열람만 하며, 열람 시각이 기록됩니다.",
       "appr.log.agree": "합의",
       "appr.log.delegate": "대결",
+      "appr.kind.adminAct": "관리자 대행",
+      "appr.adminAct.doneBy": "{name} 님이 관리자 권한으로 대행 처리",
 
       "tasks.title": "프로젝트 · 일감 · 간트로 일을 굴립니다",
       "tasks.desc": "프로젝트를 만들고 일감을 상위-하위로 나눠 번호(#1, #2…)로 관리합니다. 목록·간트·캘린더로 일정을 보고, 일감에서 바로 기안을 올립니다.",
@@ -929,6 +933,8 @@
       "appr.log.withdraw": "Withdrawn",
       "appr.log.view": "Viewed",
       "appr.log.comment": "Commented",
+      "appr.log.task": "Task status changed",
+      "appr.log.adminAct": "Admin action",
 
       "appr.title": "Approve in one flow — with agreement, reference and fast-track",
       "appr.desc": "Draft from a form and set approval, agreement and reference steps. Apply fast-track rules and delegation, then keep printed copies (with signature boxes) and CSV exports.",
@@ -981,6 +987,8 @@
       "appr.form.refHint": "References only read the document; the read time is recorded.",
       "appr.log.agree": "Agreed",
       "appr.log.delegate": "Delegated",
+      "appr.kind.adminAct": "Admin action",
+      "appr.adminAct.doneBy": "Handled by {name} with admin rights",
 
       "tasks.title": "Run work with projects, issues and Gantt",
       "tasks.desc": "Create projects and split issues into parent and child numbers (#1, #2…). See schedules as a list, Gantt or calendar, and raise an approval straight from an issue.",
