@@ -9,7 +9,7 @@
    ============================================================================ */
 "use strict";
 
-var VERSION = "v10.13.0";
+var VERSION = "v10.14.0";
 var CORE = "sbpress-core-" + VERSION;
 var ASSETS = "sbpress-assets-" + VERSION;
 var CONTENT = "sbpress-content-" + VERSION;

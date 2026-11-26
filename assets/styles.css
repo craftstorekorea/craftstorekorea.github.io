@@ -2167,6 +2167,9 @@ body[data-theme="craft"] .hm-prov{fill:#F1E0CB}
 .notify-kind.is-issue { background: #eaf7ee; color: #2c6b3f; }
 .notify-kind.is-comment { background: #fdf3e3; color: #8a5a13; }
 .notify-kind.is-form { background: #f3ecfb; color: #5b3a8a; }
+.notify-kind.is-deadline { background: #fdecec; color: #a13326; }
+.notify-kind.is-recur { background: #e8f5f7; color: #21606b; }
+.notify-kind.is-system { background: #eef0f3; color: #4a5260; }
 .notify-title { display: block; font-size: 14px; line-height: 1.4; }
 .notify-body { margin: 3px 0 0; font-size: 12.5px; color: var(--muted, #6f6259); line-height: 1.45; }
 .notify-go { color: var(--muted, #b3a79c); font-size: 20px; line-height: 1; }

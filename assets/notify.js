@@ -271,7 +271,7 @@
   }
 
   /* ---------------- 마이페이지 — 수신 설정 ---------------- */
-  var KINDS = ["approval", "issue", "comment", "form"];
+  var KINDS = ["approval", "issue", "comment", "deadline", "recur", "form", "system"];
 
   function prefsHtml() {
     return '<section class="mp-card mp-notify" id="mp-notify">' +

@@ -1111,3 +1111,26 @@ tr.owner-row td{background:#FFFAF6}
 .task-prog i{display:block;height:100%;background:var(--accent)}
 .task-issue-act .rowlink{margin-right:4px}
 .task-issue-act{white-space:nowrap}
+
+/* v10.14 — 알림 · 자동화 탭 */
+.ntf-secret{display:flex;flex-direction:column;gap:6px;margin:10px 0 14px}
+.ntf-secret-row{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;
+  padding:9px 12px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--card)}
+.ntf-secret-row b{min-width:170px;font-size:.82rem;letter-spacing:.01em}
+.ntf-secret-row span{font-size:.8rem;color:var(--ink-2)}
+.ntf-secret-row em{margin-left:auto;font-style:normal;font-size:.76rem;font-weight:700;
+  padding:3px 9px;border-radius:999px;background:var(--bg-2);color:var(--ink-2)}
+.ntf-secret-row em.is-on{background:#E7F3EC;color:#1F6B45}
+.ntf-secret-row em.is-off{background:#FBEAE7;color:#A33A28}
+.ntf-secret-row code{font-size:.78rem;word-break:break-all;color:var(--ink-2)}
+.ntf-warn{margin:8px 0 0;padding:10px 12px;border-left:3px solid #C9503A;background:#FDF3F1;
+  font-size:.84rem;line-height:1.65;color:var(--ink-2)}
+.ntf-st{display:inline-block;font-size:.74rem;font-weight:700;padding:2px 8px;border-radius:999px;
+  background:var(--bg-2);color:var(--ink-2);white-space:nowrap}
+.ntf-st.is-sent{background:#E7F3EC;color:#1F6B45}
+.ntf-st.is-failed{background:#FBEAE7;color:#A33A28}
+.ntf-st.is-skipped{background:#FDF1E3;color:#8A5316}
+.ntf-st.is-queued,.ntf-st.is-sending{background:#EAF0F7;color:#2C4E75}
+#ntf-queue-table .ntf-title{max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#ntf-secret-group code{font-size:.78rem}
+#ntf-batch-result{font-size:.8rem;color:var(--ink-2)}

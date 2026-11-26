@@ -879,6 +879,313 @@
     el.className = "cms-toast" + (kind === "ok" ? " ok" : kind === "err" ? " err" : "");
   }
 
+  /* ---------------- v10.14 알림 · 자동화 (notify_queue · automation_runs) ----------------
+     메일 큐는 관리자 RLS(notify_queue_select_self 의 is_admin)로 전체를 읽습니다.
+     Edge Function notify 의 상태(시크릿 유무)는 함수에 관리자 JWT 로 물어봅니다 —
+     함수가 아직 배포되지 않았으면 큐·배치 기록만 보여 주고 배포 안내를 띄웁니다. */
+  var NTF_KIND = { approval: "결재", issue: "일감", comment: "댓글", form: "폼", deadline: "마감", recur: "반복", system: "시스템" };
+  var NTF_ST = { queued: "대기", sending: "보내는 중", sent: "발송", failed: "실패", skipped: "건너뜀" };
+  var NTF = { loaded: false, queue: [], people: {}, runs: [], status: null, fnError: "", busy: false, bound: false };
+
+  function ntfMsg(text, kind) {
+    var el = $("#ntf-msg");
+    if (!el) return;
+    el.textContent = text || "";
+    el.className = "cms-toast" + (kind === "ok" ? " ok" : kind === "err" ? " err" : "");
+  }
+  function ntfWhen(iso) {
+    if (!iso) return "–";
+    try {
+      return new Date(iso).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+    } catch (e) { return "–"; }
+  }
+  function ntfDayStart() {
+    var kst = new Date(Date.now() + 9 * 3600 * 1000);
+    var y = kst.getUTCFullYear(), m = kst.getUTCMonth(), d = kst.getUTCDate();
+    return new Date(Date.UTC(y, m, d) - 9 * 3600 * 1000).toISOString();
+  }
+  function ntfFnUrl() { return String(CFG.url || "").replace(/\/+$/, "") + "/functions/v1/notify"; }
+  function ntfPerson(uid) {
+    var p = NTF.people[uid];
+    if (!p) return uid ? String(uid).slice(0, 8) : "–";
+    return p.name || p.email || String(uid).slice(0, 8);
+  }
+  function ntfStatus() { return NTF.status || {}; }
+
+  function loadNotifyAdmin(force) {
+    if (!sb) return Promise.resolve();
+    if (NTF.loaded && !force) return Promise.resolve();
+    ntfBind();
+    var stamp = $("#ntf-stamp");
+    if (stamp) stamp.textContent = "불러오는 중…";
+    if (!NTF.queue.length) {
+      var body = $("#ntf-queue-table tbody");
+      if (body) body.innerHTML = '<tr class="empty-row"><td colspan="7">불러오는 중…</td></tr>';
+    }
+    return Promise.all([
+      sb.from("notify_queue")
+        .select("id,user_id,channel,payload,status,retries,last_error,created_at,sent_at")
+        .order("created_at", { ascending: false }).limit(100),
+      sb.from("profiles").select("id,nickname,email").limit(500),
+      sb.from("automation_runs")
+        .select("id,job,source,ok,summary,error,started_at,finished_at")
+        .order("started_at", { ascending: false }).limit(10),
+      sb.from("notify_queue").select("id", { count: "exact", head: true })
+        .eq("status", "sent").gte("sent_at", ntfDayStart())
+    ]).then(function (res) {
+      var q = res[0], pf = res[1], runs = res[2], sentToday = res[3];
+      var err = q.error || runs.error;
+      if (err) {
+        NTF.loaded = false;
+        ntfMsg("알림 표를 읽지 못했습니다: " + (err.message || err) + " — supabase/17_v50_drive_social_notify.sql 과 35_v1014_notify_automation.sql 을 SQL Editor 에서 실행해 주세요.", "err");
+        if (stamp) stamp.textContent = "표 없음";
+        ntfPaintQueue();
+        ntfPaintRuns();
+        return;
+      }
+      NTF.queue = q.data || [];
+      NTF.runs = runs.data || [];
+      NTF.people = {};
+      ((pf && !pf.error && pf.data) || []).forEach(function (p) {
+        NTF.people[p.id] = { name: p.nickname || "", email: p.email || "" };
+      });
+      NTF.sentToday = (sentToday && typeof sentToday.count === "number") ? sentToday.count : null;
+      NTF.loaded = true;
+      ntfPaintQueue();
+      ntfPaintRuns();
+      ntfPaintBadge();
+      return ntfLoadStatus();
+    }).then(function () {
+      ntfPaintKpis();
+      if (stamp) stamp.textContent = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+    }).catch(function (e) {
+      if (stamp) stamp.textContent = "오류";
+      ntfMsg("알림 자료를 불러오지 못했습니다: " + (e && e.message ? e.message : e), "err");
+    });
+  }
+
+  function ntfLoadStatus() {
+    var token = window.CRAFT_ADMIN && window.CRAFT_ADMIN.token ? window.CRAFT_ADMIN.token() : null;
+    NTF.fnError = "";
+    NTF.status = null;
+    if (!token || !CFG.url) { NTF.fnError = "로그인 세션이 없습니다."; return Promise.resolve(); }
+    return fetch(ntfFnUrl(), {
+      method: "GET",
+      headers: { apikey: CFG.anonKey || "", Authorization: "Bearer " + token },
+      cache: "no-store"
+    }).then(function (r) {
+      return r.text().then(function (txt) {
+        var data = null;
+        try { data = txt ? JSON.parse(txt) : null; } catch (e) { data = null; }
+        if (!r.ok) {
+          NTF.fnError = r.status === 404
+            ? "Edge Function notify 가 아직 배포되지 않았습니다."
+            : "상태를 확인하지 못했습니다(HTTP " + r.status + ").";
+          return;
+        }
+        NTF.status = (data && data.status) || null;
+      });
+    }).catch(function () {
+      NTF.fnError = "Edge Function notify 에 연결하지 못했습니다(네트워크 또는 미배포).";
+    });
+  }
+
+  function ntfPaintKpis() {
+    var st = ntfStatus();
+    var q = st.queue || {};
+    var provider = st.provider || (NTF.fnError ? "확인 불가" : "–");
+    var pv = $("#ntf-provider");
+    if (pv) pv.textContent = provider === "resend" ? "Resend" : provider === "webhook" ? "웹훅" : provider === "none" ? "없음" : provider;
+    var pn = $("#ntf-provider-note");
+    if (pn) pn.textContent = provider === "none" ? "시크릿을 넣으면 실제 발송" : provider === "resend" || provider === "webhook" ? "발송 준비됨" : (NTF.fnError || "함수 상태를 확인합니다");
+    var queued = typeof q.queued === "number" ? q.queued : NTF.queue.filter(function (r) { return r.status === "queued"; }).length;
+    var qe = $("#ntf-queued"); if (qe) qe.textContent = num(queued);
+    var sentEl = $("#ntf-sent"); if (sentEl) sentEl.textContent = num(NTF.sentToday == null ? (q.sent || 0) : NTF.sentToday);
+    var sn = $("#ntf-sent-note"); if (sn) sn.textContent = "1일 상한 " + num(st.cap || 20) + "통/사용자";
+    var failed = (q.failed || 0) + (q.skipped || 0);
+    var fe = $("#ntf-failed"); if (fe) fe.textContent = num(failed);
+    var sk = $("#ntf-skip-note");
+    if (sk) sk.textContent = "실패 " + num(q.failed || 0) + " · 건너뜀 " + num(q.skipped || 0);
+    ntfPaintSecrets();
+  }
+
+  function ntfPaintBadge() {
+    var n = NTF.queue.filter(function (r) { return r.status === "queued"; }).length;
+    var el = $("#tab-ntf-count");
+    if (el) el.textContent = n ? String(n) : "";
+  }
+
+  function ntfPaintSecrets() {
+    var box = $("#ntf-secret-list");
+    if (!box) return;
+    var st = ntfStatus();
+    var sec = st.secrets || {};
+    var rows = [
+      ["RESEND_API_KEY", sec.resend ? "설정됨" : "없음", sec.resend, "메일 발송(권장)"],
+      ["NOTIFY_WEBHOOK", sec.webhook ? "설정됨" : "없음", sec.webhook, "슬랙·메일 중계로 보낼 때"],
+      ["CRON_SECRET", sec.cron ? "설정됨" : "없음", sec.cron, "GitHub Actions 가 함수를 부를 때"],
+      ["NOTIFY_FROM", sec.from || "–", !!sec.from, "보내는 사람 주소"]
+    ];
+    box.innerHTML = rows.map(function (r) {
+      return '<div class="ntf-secret-row"><b>' + esc(r[0]) + '</b><span>' + esc(r[3]) + '</span>' +
+        '<em class="' + (r[2] ? "is-on" : "is-off") + '">' + esc(r[1]) + '</em></div>';
+    }).join("") +
+      '<div class="ntf-secret-row"><b>함수 주소</b><code>' + esc(ntfFnUrl()) + '</code></div>' +
+      (NTF.fnError ? '<p class="ntf-warn">' + esc(NTF.fnError) + '</p>' : "") +
+      (!sec.resend && !sec.webhook && !NTF.fnError
+        ? '<p class="ntf-warn">메일 발송 키가 없습니다. 큐는 <b>skipped(no_secret)</b> 으로 남고 인앱 알림은 정상 동작합니다. Supabase 대시보드 → Edge Functions → Secrets 에서 <code>RESEND_API_KEY</code>(또는 <code>NOTIFY_WEBHOOK</code>)를 넣어 주세요.</p>'
+        : "");
+    var state = $("#ntf-secret-state");
+    if (state) {
+      state.textContent = NTF.fnError ? "함수 미배포/확인 불가" : (sec.resend || sec.webhook ? "발송 준비됨" : "키 없음");
+    }
+  }
+
+  function ntfPaintQueue() {
+    var body = $("#ntf-queue-table tbody");
+    if (!body) return;
+    var status = ($("#ntf-q-status") || {}).value || "";
+    var q = (($("#ntf-q-q") || {}).value || "").trim().toLowerCase();
+    var rows = NTF.queue.filter(function (r) {
+      if (status && r.status !== status) return false;
+      if (!q) return true;
+      var hay = [r.payload && r.payload.title, r.payload && r.payload.body, ntfPerson(r.user_id), r.last_error].join(" ").toLowerCase();
+      return hay.indexOf(q) >= 0;
+    });
+    var cnt = $("#ntf-queue-count");
+    if (cnt) cnt.textContent = "최근 " + num(NTF.queue.length) + "건 · 보기 " + num(rows.length) + "건";
+    if (!rows.length) {
+      body.innerHTML = '<tr class="empty-row"><td colspan="7">조건에 맞는 메일이 없습니다. 인앱 알림만 쌓였거나, 아직 보낼 메일이 없습니다.</td></tr>';
+      return;
+    }
+    body.innerHTML = rows.map(function (r) {
+      var p = r.payload || {};
+      return "<tr data-qid=" + esc(r.id) + ">" +
+        "<td>" + esc(ntfWhen(r.created_at)) + "</td>" +
+        "<td>" + esc(ntfPerson(r.user_id)) + "</td>" +
+        "<td>" + esc(NTF_KIND[p.kind] || p.kind || "–") + "</td>" +
+        "<td class=\"ntf-title\">" + esc(p.title || "–") + "</td>" +
+        "<td><span class=\"ntf-st is-" + esc(r.status) + "\">" + esc(NTF_ST[r.status] || r.status) + "</span></td>" +
+        "<td>" + esc(r.last_error || "") + "</td>" +
+        "<td class=\"right\">" + num(r.retries || 0) + "</td>" +
+        "</tr>";
+    }).join("");
+  }
+
+  function ntfPaintRuns() {
+    var body = $("#ntf-batch-table tbody");
+    if (!body) return;
+    if (!NTF.runs.length) {
+      body.innerHTML = '<tr class="empty-row"><td colspan="6">아직 자동 배치 기록이 없습니다. ‘지금 배치 실행’이나 GitHub Actions 의 Run workflow 로 한 번 돌려 보세요.</td></tr>';
+      var st = $("#ntf-batch-state");
+      if (st) st.textContent = "기록 없음";
+      return;
+    }
+    body.innerHTML = NTF.runs.map(function (r) {
+      var s = r.summary || {};
+      var dl = s.deadline || {}, rc = s.recur || {};
+      return "<tr>" +
+        "<td>" + esc(ntfWhen(r.started_at)) + "</td>" +
+        "<td>" + esc(r.source || "") + "</td>" +
+        "<td>" + (r.ok ? '<span class="ntf-st is-sent">성공</span>' : '<span class="ntf-st is-failed">실패</span>') + "</td>" +
+        "<td>" + num(dl.notified || 0) + "건</td>" +
+        "<td>" + num(rc.created || 0) + "건</td>" +
+        "<td>" + esc(r.error || "") + "</td>" +
+        "</tr>";
+    }).join("");
+    var last = NTF.runs[0];
+    var el = $("#ntf-batch-state");
+    if (el) el.textContent = "최근 " + ntfWhen(last.started_at) + (last.ok ? " 성공" : " 실패");
+  }
+
+  function ntfSendNow() {
+    if (NTF.busy) return;
+    var token = window.CRAFT_ADMIN && window.CRAFT_ADMIN.token ? window.CRAFT_ADMIN.token() : null;
+    if (!token) { ntfMsg("로그인 세션이 없습니다.", "err"); return; }
+    NTF.busy = true;
+    ntfMsg("큐를 보내는 중…");
+    fetch(ntfFnUrl(), {
+      method: "POST",
+      headers: { apikey: CFG.anonKey || "", Authorization: "Bearer " + token, "Content-Type": "application/json" },
+      body: "{}"
+    }).then(function (r) {
+      return r.text().then(function (txt) {
+        var d = null;
+        try { d = txt ? JSON.parse(txt) : null; } catch (e) { d = null; }
+        return { ok: r.ok, code: r.status, data: d || {} };
+      });
+    }).then(function (res) {
+      NTF.busy = false;
+      if (!res.ok) {
+        ntfMsg(res.code === 404 ? "Edge Function notify 가 아직 배포되지 않았습니다." : "발송하지 못했습니다(HTTP " + res.code + ").", "err");
+        return;
+      }
+      var d = res.data;
+      if (d.reason === "no_secret") {
+        ntfMsg("메일 발송 키가 없어 " + num(d.skipped || 0) + "건을 skipped(no_secret)로 남겼습니다. 인앱 알림은 정상입니다.", "err");
+      } else {
+        ntfMsg("발송 " + num(d.sent || 0) + "건 · 건너뜀 " + num(d.skipped || 0) + "건 · 실패 " + num(d.failed || 0) + "건", d.failed ? "err" : "ok");
+      }
+      loadNotifyAdmin(true);
+    }).catch(function (e) {
+      NTF.busy = false;
+      ntfMsg("발송 요청이 실패했습니다: " + (e && e.message ? e.message : e), "err");
+    });
+  }
+
+  function ntfRequeue() {
+    if (!sb) return;
+    var ids = NTF.queue.filter(function (r) { return r.status === "failed" || r.status === "skipped"; })
+      .map(function (r) { return r.id; });
+    if (!ids.length) { ntfMsg("다시 넣을 실패·건너뜀 메일이 없습니다."); return; }
+    sb.rpc("notify_queue_requeue", { p_ids: ids }).then(function (r) {
+      if (r.error) { ntfMsg("다시 넣지 못했습니다: " + r.error.message, "err"); return; }
+      ntfMsg(num(r.data || 0) + "건을 다시 대기로 돌렸습니다. ‘지금 큐 발송’으로 보내 보세요.", "ok");
+      loadNotifyAdmin(true);
+    });
+  }
+
+  function ntfRunBatch() {
+    if (!sb || NTF.busy) return;
+    NTF.busy = true;
+    var out = $("#ntf-batch-result");
+    if (out) out.textContent = "실행 중…";
+    sb.rpc("sbpress_daily_jobs", { p_source: "admin" }).then(function (r) {
+      NTF.busy = false;
+      if (r.error) {
+        if (out) out.textContent = "실패";
+        ntfMsg("배치를 실행하지 못했습니다: " + r.error.message, "err");
+        return;
+      }
+      var d = r.data || {};
+      var dl = d.deadline || {}, rc = d.recur || {};
+      if (out) out.textContent = (d.ok ? "성공" : "실패") + " · " + esc(d.ran_at || "");
+      ntfMsg("배치 " + (d.ok ? "완료" : "실패") + " — 마감 알림 " + num(dl.notified || 0) + "건 · 반복 생성 " + num(rc.created || 0) + "건", d.ok ? "ok" : "err");
+      loadNotifyAdmin(true);
+    }).catch(function (e) {
+      NTF.busy = false;
+      if (out) out.textContent = "실패";
+      ntfMsg("배치 요청이 실패했습니다: " + (e && e.message ? e.message : e), "err");
+    });
+  }
+
+  function ntfBind() {
+    if (NTF.bound) return;
+    NTF.bound = true;
+    var reload = $("#ntf-reload");
+    if (reload) reload.addEventListener("click", function () { loadNotifyAdmin(true); });
+    var send = $("#ntf-send-now");
+    if (send) send.addEventListener("click", ntfSendNow);
+    var rq = $("#ntf-requeue");
+    if (rq) rq.addEventListener("click", ntfRequeue);
+    var run = $("#ntf-batch-run");
+    if (run) run.addEventListener("click", ntfRunBatch);
+    var st = $("#ntf-q-status");
+    if (st) st.addEventListener("change", ntfPaintQueue);
+    var q = $("#ntf-q-q");
+    if (q) q.addEventListener("input", ntfPaintQueue);
+  }
+
   function activateTab(name) {
     CMS.tab = name;
     [].forEach.call(document.querySelectorAll(".admin-tab"), function (b) {
@@ -900,6 +1207,7 @@
     if (name === "posts") { if (!CMS.loaded.posts) loadPosts(); loadBoards(); }
     if (name === "tasks") loadTasksAdmin();
     if (name === "workpro") loadWorkPro();
+    if (name === "notify") loadNotifyAdmin();
     if (name === "approvals") loadApprovalsAdmin();
     if (name === "media") loadMedia();
     if (name === "comments" && !CMS.loaded.comments) loadComments();

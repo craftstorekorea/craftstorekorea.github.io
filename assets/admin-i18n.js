@@ -1599,7 +1599,59 @@
   "목록을 불러옵니다. 아래 「구독 마켓 관리」에서": "list. Under “Subscribed markets” below, add",
   "(https:// 또는 / 경로)을 더하면 여러 마켓의 플러그인을 한 목록으로 모아 보여 줍니다. 구독 목록은 Supabase": "(https:// or / path) to see plugins from several markets in one list. The subscription list is stored in Supabase",
   "에 저장되며(25_v104 SQL), 실행 전에는 이 브라우저에만 기억합니다. 플러그인의 무결성(sha256-…)과 권한 동의는 26_v105 SQL 을 실행하면 서버(audit_logs)에 남습니다.": "(25_v104 SQL); before that, subscriptions stay in this browser only. A plugin's integrity (sha256-…) and permission consent are recorded on the server (audit_logs) once 26_v105 SQL has been run.",
-  "유료/라이선스 키 · 중앙 마켓 허브 — 마켓 위쪽 「라이선스 · 허브」 탭에서 연결 마켓·플러그인·테마·번들·승인 대기·활성 라이선스 수를 보고 hub-manifest.json 을 내보냅니다. 유료 플러그인은 설치 전에 라이선스 키(SBP-XXXX-XXXX-XXXX-XXXX)를 확인하고, 관리자는 같은 탭에서 키 발급·폐기를 합니다. Supabase plugin_licenses · 31_v1010 SQL": "Paid / license keys & central market hub — in the “License · hub” tab above the market, see the markets you subscribe to and the plugin, theme, bundle, pending-review and active-license counts, then export hub-manifest.json. A paid plugin verifies its license key (SBP-XXXX-XXXX-XXXX-XXXX) before installing, and an admin issues or revokes keys in the same tab. Supabase plugin_licenses · 31_v1010 SQL"
+  "유료/라이선스 키 · 중앙 마켓 허브 — 마켓 위쪽 「라이선스 · 허브」 탭에서 연결 마켓·플러그인·테마·번들·승인 대기·활성 라이선스 수를 보고 hub-manifest.json 을 내보냅니다. 유료 플러그인은 설치 전에 라이선스 키(SBP-XXXX-XXXX-XXXX-XXXX)를 확인하고, 관리자는 같은 탭에서 키 발급·폐기를 합니다. Supabase plugin_licenses · 31_v1010 SQL": "Paid / license keys & central market hub — in the “License · hub” tab above the market, see the markets you subscribe to and the plugin, theme, bundle, pending-review and active-license counts, then export hub-manifest.json. A paid plugin verifies its license key (SBP-XXXX-XXXX-XXXX-XXXX) before installing, and an admin issues or revokes keys in the same tab. Supabase plugin_licenses · 31_v1010 SQL",
+  "알림 · 자동화": "Notifications · automation",
+  "인앱 알림과 메일 큐, 하루 1회 자동 배치(마감 점검 · 반복 일감 생성)를 한 화면에서 확인합니다.": "See in-app notifications, the email queue and the once-a-day batch (deadline check and recurring issues) in one place.",
+  "메일 발송 수단": "Email provider",
+  "대기 큐": "Queued",
+  "아직 보내지 않은 메일": "Emails not sent yet",
+  "오늘 발송": "Sent today",
+  "1일 상한 ": "Daily cap ",
+  "실패 · 건너뜀": "Failed · skipped",
+  "메일 시크릿 · 발송 상태": "Email secrets · delivery status",
+  "메일은 Edge Function ": "Email is sent by the Edge Function ",
+  " 가 보냅니다. 시크릿이 없으면 큐는 ": " . Without secrets the queue stays ",
+  " 으로 안전하게 남고, 인앱 알림은 그대로 동작합니다.": " safely and in-app notifications keep working.",
+  "함수 주소": "Function URL",
+  "메일 발송(권장)": "Email delivery (recommended)",
+  "슬랙·메일 중계로 보낼 때": "When relaying through Slack or mail",
+  "GitHub Actions 가 함수를 부를 때": "When GitHub Actions calls the function",
+  "없음": "None",
+  "발송 준비됨": "Ready to send",
+  "함수 미배포/확인 불가": "Not deployed / unavailable",
+  "지금 큐 발송": "Send the queue now",
+  "실패·건너뜀 다시 큐에 넣기": "Requeue failed and skipped",
+  "메일 큐": "Email queue",
+  "최근 100건입니다. 실패 사유에는 발송 수단이 돌려준 상태·응답 앞부분이 남습니다. ": "The latest 100 rows. The failure reason keeps the provider status and the start of its response. ",
+  " 은 발송 키가 없다는 뜻이고, ": " means no sending key is configured, and ",
+  " 은 받는 사람 메일이 없다는 뜻입니다.": " means the recipient has no email address.",
+  "대기(queued)": "Queued",
+  "발송(sent)": "Sent",
+  "실패(failed)": "Failed",
+  "건너뜀(skipped)": "Skipped",
+  "제목·받는 사람 검색": "Search subject or recipient",
+  "받는 사람": "Recipient",
+  "실패 사유": "Failure reason",
+  "재시도": "Retries",
+  "하루 1회 자동 배치": "Once-a-day batch",
+  " 이 매일 08:30(KST)에 ① 마감 D-3/D-1/지연 점검 ② ": " runs every day at 08:30 KST: ① deadline check (D-3, D-1, overdue) ② ",
+  " 이 도래한 반복 일감 생성을 실행합니다. GitHub 저장소의 ": " to create recurring issues whose time has come. In the GitHub repository's ",
+  " 로 직접 돌릴 수도 있습니다.": " you can also run it yourself.",
+  "지금 배치 실행": "Run the batch now",
+  "마감 알림": "Deadline notices",
+  "반복 생성": "Recurring created",
+  "수신 설정": "Notification settings",
+  "회원은 ": "Members choose which kinds to receive in ",
+  "에서 결재·일감·댓글·폼·마감·반복·시스템 알림을 종류별로 켜고 끄고, ‘하루 1회 요약’을 고를 수 있습니다. 관리자 계정도 같은 화면에서 바꿉니다.": " — approvals, issues, comments, forms, deadlines, recurring issues and system notices, each on or off, plus the one-a-day digest. Admins use the same screen.",
+  "결재": "Approval",
+  "폼": "Form",
+  "보내는 중": "Sending",
+  "발송": "Sent",
+  "건너뜀": "Skipped",
+  "큐를 보내는 중…": "Sending the queue…",
+  "로그인 세션이 없습니다.": "No signed-in session.",
+  "실행 중…": "Running…",
+  "배치": "Batch"
 };
   var RULES = ([
   [
@@ -2449,6 +2501,62 @@
   [
     "^‘(.+?)’ 설치 실패: (.+)$",
     "Could not install “\\1”: \\2"
+  ],
+  [
+    "^1일 상한 (\\d+)통/사용자$",
+    "Daily cap: \\1 per user"
+  ],
+  [
+    "^최근 (\\d+)건 · 보기 (\\d+)건$",
+    "Latest \\1 · showing \\2"
+  ],
+  [
+    "^실패 (\\d+) · 건너뜀 (\\d+)$",
+    "Failed \\1 · skipped \\2"
+  ],
+  [
+    "^발송 (\\d+)건 · 건너뜀 (\\d+)건 · 실패 (\\d+)건$",
+    "Sent \\1 · skipped \\2 · failed \\3"
+  ],
+  [
+    "^메일 발송 키가 없어 (\\d+)건을 skipped\\(no_secret\\)로 남겼습니다\\. 인앱 알림은 정상입니다\\.$",
+    "No sending key, so \\1 rows were left as skipped(no_secret). In-app notifications are fine."
+  ],
+  [
+    "^(\\d+)건을 다시 대기로 돌렸습니다\\. ‘지금 큐 발송’으로 보내 보세요\\.$",
+    "Moved \\1 rows back to queued. Use “Send the queue now” to send them."
+  ],
+  [
+    "^다시 넣지 못했습니다: (.+)$",
+    "Could not requeue: \\1"
+  ],
+  [
+    "^배치를 실행하지 못했습니다: (.+)$",
+    "Could not run the batch: \\1"
+  ],
+  [
+    "^배치 요청이 실패했습니다: (.+)$",
+    "The batch request failed: \\1"
+  ],
+  [
+    "^배치 (완료|실패) — 마감 알림 (\\d+)건 · 반복 생성 (\\d+)건$",
+    "Batch \\1 — \\2 deadline notices · \\3 recurring issues"
+  ],
+  [
+    "^최근 (.+?) (성공|실패)$",
+    "Latest \\1 \\2"
+  ],
+  [
+    "^발송 요청이 실패했습니다: (.+)$",
+    "The send request failed: \\1"
+  ],
+  [
+    "^알림 표를 읽지 못했습니다: (.+)$",
+    "Could not read the notification tables: \\1"
+  ],
+  [
+    "^알림 자료를 불러오지 못했습니다: (.+)$",
+    "Could not load notification data: \\1"
   ]
 ]).map(function (r) {
     /* 파이썬 쪽 규칙은 \1 로 그룹을 가리킵니다 — JS replace 는 $1 을 씁니다. */
