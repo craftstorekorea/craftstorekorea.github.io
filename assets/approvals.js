@@ -862,8 +862,10 @@
         var at = arr.indexOf(id);
         if (at >= 0) arr.splice(at, 1); else arr.push(id);
         pickList(kind);
+        paintLinePreview(currentForm(), ruleActive() ? currentRule() : null);
       });
     });
+    if (kind === "agree") setAgreeEnabled(!ruleActive());
   }
 
   function fieldInput(def) {
@@ -898,6 +900,7 @@
 
   function ruleFor(form, amount) {
     if (!form || !state.rules) return null;
+    if (String(amount == null ? "" : amount).trim() === "") return null;
     var n = Number(amount);
     if (!isFinite(n)) return null;
     var list = state.rules.filter(function (r) {
@@ -907,6 +910,55 @@
     return list[0] || null;
   }
 
+  function currentForm() {
+    var sel = $("#appr-form-select");
+    if (!sel) return null;
+    for (var i = 0; i < state.forms.length; i++) if (state.forms[i].id === sel.value) return state.forms[i];
+    return null;
+  }
+  function ruleName(rule) {
+    return (rule && (nameOf(rule.approver_id) || rule.approver_name)) || "";
+  }
+  function currentRule() {
+    var amt = $("#af-amount");
+    return ruleFor(currentForm(), amt ? amt.value : "");
+  }
+  function ruleActive() { return !!state.ruleOn && !!currentRule(); }
+
+  function setAgreeEnabled(on) {
+    var box = $("#appr-agree-pick");
+    if (!box) return;
+    box.classList.toggle("is-off", !on);
+    [].forEach.call(box.querySelectorAll("[data-pick]"), function (b) {
+      b.disabled = !on;
+      b.setAttribute("aria-disabled", on ? "false" : "true");
+    });
+  }
+
+  /* 실제로 만들어질 결재선 — 전결이 걸리면 ‘전결권자 단독’으로 바뀝니다. */
+  function paintLinePreview(form, rule) {
+    var box = $("#appr-line-preview");
+    if (!box) return;
+    var a1 = $("#appr-approver-1"), a2 = $("#appr-approver-2");
+    var parts = [];
+    if (rule) {
+      parts.push(ruleName(rule) + " " + I("appr.line.single"));
+    } else {
+      if (a1 && a1.value) parts.push(nameOf(a1.value) || "");
+      if (a2 && a2.value && a2.value !== (a1 && a1.value)) parts.push(nameOf(a2.value) || "");
+    }
+    var agreeN = rule ? 0 : state.agree.length;
+    var refN = state.refs.length;
+    var line = parts.filter(Boolean).join(" → ");
+    var extra = [];
+    if (!rule && agreeN) extra.push(I("appr.line.agreeN", { n: agreeN }));
+    if (refN) extra.push(I("appr.line.refN", { n: refN }));
+    box.hidden = !line && !extra.length;
+    box.className = "appr-line-preview" + (rule ? " is-rule" : "");
+    box.innerHTML = esc(I("appr.line.preview")) + " <b>" + esc(line || "—") + "</b>" +
+      (extra.length ? ' <span class="appr-line-note">' + esc(extra.join(" · ")) + "</span>" : "");
+  }
+
   function paintRuleHint(form) {
     var box = $("#appr-rule-hint");
     if (!box) return;
@@ -914,12 +966,46 @@
     var amount = amtEl ? amtEl.value : "";
     var rule = ruleFor(form, amount);
     box.hidden = !rule;
-    if (!rule) return;
+    if (!rule) {
+      if (box.innerHTML) box.innerHTML = "";
+      setAgreeEnabled(true);
+      paintLinePreview(form, null);
+      return;
+    }
+    var name = ruleName(rule);
+    var on = !!state.ruleOn;
     box.innerHTML =
-      '<label class="appr-rule-check"><input type="checkbox" id="appr-use-rule"' + (state.ruleOn ? " checked" : "") + "> " +
-      esc(I("appr.rule.hint", { max: money(rule.max_amount), name: nameOf(rule.approver_id) || rule.approver_name || "" })) + "</label>";
+      '<div class="appr-rule-live' + (on ? "" : " is-off") + '">' +
+        '<p class="appr-rule-live-main"><span class="appr-rule-badge">' + esc(I("appr.rule.badge")) + "</span> " +
+          esc(I(on ? "appr.rule.applied" : "appr.rule.off", { name: name })) + "</p>" +
+        '<p class="appr-rule-live-sub">' +
+          esc(I("appr.rule.appliedSub", { max: money(rule.max_amount), amount: money(amount) })) + "</p>" +
+        '<label class="appr-rule-check"><input type="checkbox" id="appr-use-rule"' + (on ? " checked" : "") + "> " +
+          esc(I("appr.rule.toggle")) + "</label>" +
+      "</div>";
     var cb = $("#appr-use-rule");
-    if (cb) cb.addEventListener("change", function () { state.ruleOn = cb.checked; });
+    if (cb) cb.addEventListener("change", function () {
+      state.ruleOn = !!cb.checked;
+      paintRuleHint(form);
+    });
+    setAgreeEnabled(!on);
+    paintLinePreview(form, on ? rule : null);
+  }
+
+  /* 조직도(부서·직책)에서 결재선 한 번에 불러오기 */
+  function fillOrgLine() {
+    rpc("approval_org_line", {}).then(function (r) {
+      if (!r.ok) { setMsg(I("appr.org.fail") + shortErr(r), "err"); return; }
+      var d = r.data || {};
+      var steps = (d.steps || []).filter(function (s) { return (s.kind || "approve") === "approve"; });
+      if (!d.found || !steps.length) { setMsg(I("appr.org.none"), "err"); return; }
+      var a1 = $("#appr-approver-1"), a2 = $("#appr-approver-2");
+      if (a1) a1.value = steps[0].approver_id;
+      if (a2) a2.value = steps[1] ? steps[1].approver_id : "";
+      var names = steps.map(function (s) { return s.approver_name || nameOf(s.approver_id) || ""; });
+      setMsg(I("appr.org.done", { line: names.join(" → ") }), "ok");
+      paintLinePreview(currentForm(), ruleActive() ? currentRule() : null);
+    }).catch(function () { setMsg(I("appr.org.fail"), "err"); });
   }
 
   var attachCtl = null;
@@ -1133,6 +1219,10 @@
             '<label class="appr-f"><span class="appr-f-label" data-i18n="appr.form.approver2"></span>' +
               '<select id="appr-approver-2"></select></label>' +
           "</div>" +
+          '<div class="appr-line-actions">' +
+            '<button type="button" class="btn btn-ghost btn-sm" id="appr-org-line" data-i18n="appr.org.btn"></button>' +
+            '<span class="appr-hint" data-i18n="appr.org.hint"></span>' +
+          "</div>" +
           '<div class="appr-pick"><span class="appr-f-label" data-i18n="appr.form.agree"></span>' +
             '<div class="appr-pick-list" id="appr-agree-pick"></div>' +
             '<p class="appr-hint" data-i18n="appr.form.agreeHint"></p></div>' +
@@ -1140,6 +1230,7 @@
             '<div class="appr-pick-list" id="appr-ref-pick"></div>' +
             '<p class="appr-hint" data-i18n="appr.form.refHint"></p></div>' +
         "</div>" +
+        '<p class="appr-line-preview" id="appr-line-preview" hidden></p>' +
         '<div class="appr-compose-foot">' +
           '<span class="spacer"></span>' +
           '<button type="button" class="btn btn-ghost btn-sm" id="appr-form-cancel" data-i18n="appr.cancel"></button>' +
@@ -1168,6 +1259,14 @@
     });
     $("#appr-draft").addEventListener("click", function () { submitCompose(false); });
     $("#appr-save").addEventListener("click", function () { submitCompose(true); });
+    var orgBtn = $("#appr-org-line");
+    if (orgBtn) orgBtn.addEventListener("click", fillOrgLine);
+    ["#appr-approver-1", "#appr-approver-2"].forEach(function (sel) {
+      var el = $(sel);
+      if (el) el.addEventListener("change", function () {
+        paintLinePreview(currentForm(), ruleActive() ? currentRule() : null);
+      });
+    });
     var q = $("#appr-q");
     if (q) q.addEventListener("input", function () { state.q = q.value; paintList(); });
     [["#appr-filter-form", "fForm"], ["#appr-filter-status", "fStatus"],

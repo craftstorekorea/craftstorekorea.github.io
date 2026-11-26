@@ -6983,6 +6983,7 @@
      v4.0 — 결재 관리 (public.approval_forms · approval_docs · approval_steps · approval_logs)
      ============================================================ */
   var APPR = { forms: [], docs: [], steps: {}, logs: {}, rules: [], delegates: [], people: [],
+               ruleEditing: null,
                loaded: false, editing: null, doc: null, missingV41: false };
   var APPR_STATUS = { draft: "임시저장", pending: "결재 중", approved: "승인 완료", rejected: "반려", canceled: "회수" };
   var APPR_STEP = { waiting: "대기", pending: "결재 대기", approved: "승인", rejected: "반려" };
@@ -7358,8 +7359,12 @@
         "<td>" + esc(apprPersonName(r.approver_id)) + "</td>" +
         "<td>" + esc(r.note || "") + "</td>" +
         '<td><input type="checkbox" class="appr-rule-active"' + (r.active !== false ? " checked" : "") + "></td>" +
-        '<td class="cms-actions"><button type="button" class="rowlink appr-rule-del">삭제</button></td></tr>';
+        '<td class="cms-actions"><button type="button" class="rowlink appr-rule-edit">수정</button>' +
+        '<button type="button" class="rowlink appr-rule-del">삭제</button></td></tr>';
     }).join("");
+    [].forEach.call(body.querySelectorAll(".appr-rule-edit"), function (b) {
+      b.addEventListener("click", function () { apprRuleEdit(b.closest("tr").getAttribute("data-id")); });
+    });
     [].forEach.call(body.querySelectorAll(".appr-rule-active"), function (cb) {
       cb.addEventListener("change", function () {
         var id = cb.closest("tr").getAttribute("data-id");
@@ -7388,16 +7393,36 @@
     var amount = max ? max.value.trim() : "";
     if (!amount || Number(amount) < 0) { apprMsg("금액 상한을 적어 주세요.", "err"); return; }
     if (!approver || !approver.value) { apprMsg("전결 결재자를 골라 주세요.", "err"); return; }
-    sb.from("approval_rules").insert({
+    var body = {
       form_code: form.value, max_amount: Number(amount), approver_id: approver.value,
       approver_name: apprPersonName(approver.value),
-      note: ($("#appr-rule-note").value || "").trim(), active: true
-    }).then(function (res) {
-      if (res.error) { apprMsg("추가하지 못했습니다: " + res.error.message, "err"); return; }
-      apprMsg("전결 규정을 추가했습니다.", "ok");
+      note: ($("#appr-rule-note").value || "").trim()
+    };
+    var q = APPR.ruleEditing
+      ? sb.from("approval_rules").update(body).eq("id", APPR.ruleEditing)
+      : sb.from("approval_rules").insert(body);
+    q.then(function (res) {
+      if (res.error) { apprMsg((APPR.ruleEditing ? "수정하지 못했습니다: " : "추가하지 못했습니다: ") + res.error.message, "err"); return; }
+      apprMsg(APPR.ruleEditing ? "전결 규정을 수정했습니다." : "전결 규정을 추가했습니다.", "ok");
+      APPR.ruleEditing = null;
       if (max) max.value = "";
+      var note = $("#appr-rule-note"); if (note) note.value = "";
+      var add = $("#appr-rule-add"); if (add) add.textContent = "규정 추가";
       loadApprV41();
     });
+  }
+
+  function apprRuleEdit(id) {
+    var r = null;
+    for (var i = 0; i < APPR.rules.length; i++) if (APPR.rules[i].id === id) r = APPR.rules[i];
+    if (!r) return;
+    APPR.ruleEditing = id;
+    if ($("#appr-rule-form")) $("#appr-rule-form").value = r.form_code || "";
+    if ($("#appr-rule-max")) $("#appr-rule-max").value = r.max_amount == null ? "" : r.max_amount;
+    if ($("#appr-rule-approver")) $("#appr-rule-approver").value = r.approver_id || "";
+    if ($("#appr-rule-note")) $("#appr-rule-note").value = r.note || "";
+    var add = $("#appr-rule-add"); if (add) add.textContent = "규정 수정";
+    apprMsg("고친 뒤 ‘규정 수정’을 눌러 주세요.", "ok");
   }
 
   function renderApprDelegates() {

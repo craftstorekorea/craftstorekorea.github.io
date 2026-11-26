@@ -485,6 +485,7 @@
     mode: null, built: false, booted: false, loading: false, missing: false, probing: false,
     projects: [], project: null, members: [], people: [], org: [], showArchived: false,
     issues: [], comments: {}, relations: {}, approvals: {}, checklist: {},
+    invites: [], claimed: 0,
     view: "list", q: "", fAssignee: "", fStatus: "", fPriority: "", fFrom: "", fTo: "",
     cal: "", sel: {}, detail: null, projEditing: null, error: ""
   };
@@ -523,6 +524,14 @@
     return null;
   }
   function rmIsAdminTask() { return !!state.rmAdmin; }
+  /* v10.13 — 로그인한 회원(등급 1 포함)은 자기 프로젝트를 만들 수 있습니다(RLS projects_insert_member). */
+  function rmCanCreateProject() {
+    if (rmIsAdminTask()) return true;
+    var prof = window.CRAFT_AUTH && window.CRAFT_AUTH.profile ? window.CRAFT_AUTH.profile() : null;
+    if (!prof) return false;
+    var g = prof.member_grade == null ? 1 : parseInt(prof.member_grade, 10);
+    return isNaN(g) ? true : g >= 1;
+  }
   function rmCanEdit() {
     var r = rmRole();
     return (r === "manager") || rmIsAdminTask();
@@ -661,6 +670,7 @@
         '<button type="button" class="btn btn-primary btn-sm" id="rm-new">+ ' + esc(rmI("new")) + "</button>" +
       "</div>" +
       '<div class="rm-notice" id="rm-notice" hidden></div>' +
+      '<p class="rm-viewonly" id="rm-viewonly" hidden></p>' +
       '<div class="rm-filters">' +
         '<select id="rm-f-assignee" class="rm-sel"></select>' +
         '<select id="rm-f-status" class="rm-sel"></select>' +
@@ -880,6 +890,27 @@
     return rpc("is_admin").catch(function () { return { ok: false, data: false }; });
   }
 
+  /* v10.13 — 내 이메일로 온 프로젝트 초대를 멤버로 받습니다(#/tasks 를 열 때 한 번). */
+  function rmClaimInvites() {
+    return rpc("project_invite_claim").then(function (r) {
+      var n = (r && r.ok && r.data && Number(r.data.claimed || 0)) || 0;
+      if (!n) return 0;
+      RM.claimed = n;
+      return rmLoadProjects().then(function () {
+        return RM.project ? rmLoadMembers() : null;
+      }).then(function () { return n; });
+    }).catch(function () { return 0; });
+  }
+  function rmLoadInvites() {
+    RM.invites = [];
+    if (!RM.project || !rmCanEdit()) return Promise.resolve();
+    return request("project_invites?select=*&project_id=eq." + encodeURIComponent(RM.project) +
+                   "&status=eq.pending&order=created_at.asc").then(function (r) {
+      RM.invites = (r.ok && Array.isArray(r.data)) ? r.data : [];
+      return r;
+    }).catch(function () { RM.invites = []; });
+  }
+
   function rmLoad() {
     if (!signedIn()) return Promise.resolve();
     RM.loading = true;
@@ -894,6 +925,10 @@
       RM.loading = false;
       rmFillSelects();
       rmRender();
+      if (RM.claimed) {
+        rmMsg(rmI("inviteClaimed", { n: RM.claimed }), "ok");
+        RM.claimed = 0;
+      }
     });
   }
 
@@ -911,6 +946,8 @@
             "</span><code>supabase/16_v41_approvals_redmine.sql</code>";
         }
       }
+      return rmClaimInvites();
+    }).then(function () {
       return rmLoad();
     }).then(function () {
       var m = /issue=([^&]+)/.exec(String(location.hash || ""));
@@ -1040,9 +1077,23 @@
     var mb = $("#rm-members");
     if (mb) mb.hidden = !rmCanEdit();
     var pn = $("#rm-project-new");
-    if (pn) pn.hidden = !(rmIsAdminTask() || ((window.CRAFT_AUTH && window.CRAFT_AUTH.profile && window.CRAFT_AUTH.profile() || {}).member_grade >= 2));
+    if (pn) pn.hidden = !rmCanCreateProject();
     var pe = $("#rm-project-edit");
     if (pe) pe.hidden = !rmCanEdit();
+    rmPaintViewer();
+  }
+
+  /* v10.13 — 뷰어는 읽기 전용 안내를 띄우고, 쓰기 단추는 숨깁니다(DB 도 project_can_write 로 막습니다). */
+  function rmPaintViewer() {
+    var vo = $("#rm-viewonly");
+    if (!vo) return;
+    var isViewer = rmRole() === "viewer";
+    vo.hidden = !isViewer;
+    if (isViewer) {
+      vo.innerHTML = '<span class="rm-vbadge">' + esc(rmI("viewerBadge")) + "</span>" + esc(rmI("viewerHint"));
+    } else {
+      vo.innerHTML = "";
+    }
   }
 
   function rmBindRows() {
@@ -1865,9 +1916,11 @@
       if (!r.ok) { rmMsg(rmErr(r), "err"); return; }
       var row = Array.isArray(r.data) ? r.data[0] : r.data;
       if (!row || !row.id) { rmMsg(rmI("fail"), "err"); return; }
-      return request("project_members", { method: "POST", prefer: "return=representation",
+      return request("project_members?on_conflict=project_id,user_id", {
+        method: "POST", prefer: "return=representation,resolution=ignore-duplicates",
         body: { project_id: row.id, user_id: uid, role: "manager" } }).then(function (m) {
-        if (!m.ok) rmMsg(rmErr(m), "err");
+        /* v10.13 — DB 트리거(projects_owner_member)가 이미 매니저로 넣습니다. 중복(409)은 무시합니다. */
+        if (!m.ok && !/duplicate|23505|409/i.test(String((m.data && m.data.message) || m.text || ""))) rmMsg(rmErr(m), "err");
         RM.project = row.id;
         $("#rm-project-form").hidden = true;
         RM.projEditing = null;
@@ -1936,27 +1989,48 @@
     if (!rmCanEdit()) { rmMsg(rmI("noPerm"), "err"); return; }
     var modal = $("#rm-members-modal");
     modal.hidden = false;
+    rmLoadInvites().then(rmPaintMembers).catch(rmPaintMembers);
+  }
+
+  function rmPaintMembers() {
+    var modal = $("#rm-members-modal");
+    if (!modal || modal.hidden) return;
     var body = $("#rm-members-body");
+    if (!body) return;
     var p = rmProject();
+    var roleOpts = function (cur) {
+      return RM_ROLES.map(function (r) {
+        return '<option value="' + r + '"' + (cur === r ? " selected" : "") + ">" + esc(rmI("role." + r)) + "</option>";
+      }).join("");
+    };
     body.innerHTML =
       '<div class="rm-d-head"><div><h3>' + esc(rmI("members")) + "</h3>" +
         '<p class="rm-d-meta">' + esc(p ? p.key + " · " + p.name : "") + "</p></div>" +
         '<button type="button" class="tasks-x" id="rm-m-close" aria-label="close">×</button></div>' +
+      '<p class="rm-rolehint">' + esc(rmI("roleHint")) + "</p>" +
       '<div id="rm-m-list">' + (RM.members.length ? RM.members.map(function (m) {
         return '<div class="rm-m-row" data-uid="' + esc(m.user_id) + '"><span>' + esc(rmName(m.user_id) || m.user_id) + "</span>" +
-          '<select class="rm-sel rm-m-role">' + RM_ROLES.map(function (r) {
-            return '<option value="' + r + '"' + (m.role === r ? " selected" : "") + ">" + esc(rmI("role." + r)) + "</option>";
-          }).join("") + "</select>" +
+          '<select class="rm-sel rm-m-role">' + roleOpts(m.role) + "</select>" +
           '<button type="button" class="mini danger rm-m-del">' + esc(rmI("remove")) + "</button></div>";
       }).join("") : '<p class="rm-empty sm">' + esc(rmI("noMembers")) + "</p>") + "</div>" +
       '<div class="rm-inline"><select id="rm-m-add">' +
         '<option value="">' + esc(rmI("addMember")) + "</option>" +
         RM.people.filter(function (x) { return !RM.members.some(function (m) { return m.user_id === x.id; }); })
           .map(function (x) { return '<option value="' + esc(x.id) + '">' + esc(x.name) + "</option>"; }).join("") +
-      '</select><select id="rm-m-role-new" class="rm-sel">' + RM_ROLES.map(function (r) {
-        return '<option value="' + r + '">' + esc(rmI("role." + r)) + "</option>";
-      }).join("") + '</select><button type="button" class="btn btn-primary btn-sm" id="rm-m-add-btn">' +
-        esc(rmI("add")) + "</button></div>";
+      '</select><select id="rm-m-role-new" class="rm-sel">' + roleOpts("member") +
+      '</select><button type="button" class="btn btn-primary btn-sm" id="rm-m-add-btn">' +
+        esc(rmI("add")) + "</button></div>" +
+      '<div class="rm-inline"><input type="email" id="rm-m-invite" autocomplete="off" spellcheck="false" placeholder="' +
+        esc(rmI("invitePh")) + '"><select id="rm-m-invite-role" class="rm-sel">' + roleOpts("member") +
+      '</select><button type="button" class="btn btn-ghost btn-sm" id="rm-m-invite-btn">' +
+        esc(rmI("inviteBtn")) + "</button></div>" +
+      '<div class="rm-invites"><h4>' + esc(rmI("inviteList")) + " (" + RM.invites.length + ")</h4>" +
+        (RM.invites.length ? RM.invites.map(function (inv) {
+          return '<div class="rm-m-row" data-inv="' + esc(inv.id) + '"><span>' + esc(inv.email) +
+            ' · ' + esc(rmI("role." + (inv.role || "member"))) + ' <span class="rm-vbadge">' + esc(rmI("pendingInvite")) + "</span></span>" +
+            '<button type="button" class="mini danger rm-inv-del">' + esc(rmI("inviteCancel")) + "</button></div>";
+        }).join("") : '<p class="rm-empty sm">' + esc(rmI("inviteList")) + " 0</p>") +
+      "</div>";
 
     $("#rm-m-close").addEventListener("click", function () { modal.hidden = true; });
     [].forEach.call(body.querySelectorAll(".rm-m-role"), function (s) {
@@ -1968,6 +2042,7 @@
           if (!r.ok) { rmMsg(rmErr(r), "err"); return; }
           for (var i = 0; i < RM.members.length; i++) if (RM.members[i].user_id === row.getAttribute("data-uid")) RM.members[i].role = s.value;
           rmMsg(rmI("saved"), "ok");
+          rmRender();
         });
       });
     });
@@ -1986,11 +2061,44 @@
     if (ab) ab.addEventListener("click", function () {
       var uid = $("#rm-m-add").value;
       if (!uid) return;
-      request("project_members", { method: "POST", prefer: "return=representation",
-        body: { project_id: RM.project, user_id: uid, role: $("#rm-m-role-new").value } }).then(function (r) {
+      request("project_members?on_conflict=project_id,user_id",
+        { method: "POST", prefer: "return=representation,resolution=ignore-duplicates",
+          body: { project_id: RM.project, user_id: uid, role: $("#rm-m-role-new").value } }).then(function (r) {
         if (!r.ok) { rmMsg(rmErr(r), "err"); return; }
         rmLoad().then(function () { rmOpenMembers(); });
       });
+    });
+    var ib = $("#rm-m-invite-btn");
+    if (ib) ib.addEventListener("click", function () {
+      rmInviteEmail($("#rm-m-invite").value, $("#rm-m-invite-role").value || "member");
+    });
+    var ie = $("#rm-m-invite");
+    if (ie) ie.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); rmInviteEmail(ie.value, $("#rm-m-invite-role").value || "member"); }
+    });
+    [].forEach.call(body.querySelectorAll(".rm-inv-del"), function (b) {
+      b.addEventListener("click", function () {
+        var row = b.closest(".rm-m-row");
+        request("project_invites?id=eq." + encodeURIComponent(row.getAttribute("data-inv")),
+                { method: "DELETE", prefer: "return=minimal" }).then(function () {
+          RM.invites = RM.invites.filter(function (x) { return x.id !== row.getAttribute("data-inv"); });
+          rmPaintMembers();
+        });
+      });
+    });
+  }
+
+  /* v10.13 — 이메일 초대: 그 이메일로 로그인하면 project_invite_claim 이 멤버로 등록합니다. */
+  function rmInviteEmail(email, role) {
+    email = String(email || "").trim().toLowerCase();
+    if (!email) { rmMsg(rmI("inviteNeed"), "err"); return; }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { rmMsg(rmI("inviteBad"), "err"); return; }
+    request("project_invites", { method: "POST", prefer: "return=representation",
+      body: { project_id: RM.project, email: email, role: role, invited_by: rmMe() } }).then(function (r) {
+      if (!r.ok) { rmMsg(/duplicate|23505|409/i.test(String((r.data && r.data.message) || r.text || ""))
+        ? rmI("inviteBad") : rmErr(r), "err"); return; }
+      rmMsg(rmI("inviteDone", { email: email, role: rmI("role." + role) }), "ok");
+      rmLoadInvites().then(rmPaintMembers);
     });
   }
 

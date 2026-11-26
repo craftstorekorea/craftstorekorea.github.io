@@ -144,7 +144,8 @@
     built: false, loaded: false, loading: false, missing: false, booted: false,
     sec: "org", period: "week",
     org: [], issues: [], people: [], projects: [], templates: [], checklist: [],
-    rules: [], forms: [], docs: [], steps: [], audit: [], report: null,
+    rules: [], fastRules: [], forms: [], docs: [], steps: [], audit: [], report: null,
+    useRule: true, suggested: null,
     editRole: null, editTmpl: null, detailIssue: null, rec: null, sel: {},
     deadlineFilter: "", recurOnly: false, msg: ""
   };
@@ -293,6 +294,7 @@
 
     app.addEventListener("click", appClick);
     app.addEventListener("change", appChange);
+    app.addEventListener("input", appInput);
     app.addEventListener("submit", appSubmit);
     $("#wp-modal").addEventListener("click", function (e) {
       if (e.target && e.target.id === "wp-modal") closeModal();
@@ -345,7 +347,8 @@
         request("approval_docs?select=*&order=created_at.desc&limit=500"),
         request("approval_steps?select=*&order=doc_id.asc,step_order.asc&limit=3000"),
         request("audit_logs?select=created_at,actor_email,action,target_table,target_id,detail&target_table=eq.issues&order=created_at.desc&limit=200"),
-        rpc("is_admin")
+        rpc("is_admin"),
+        request("approval_rules?select=*&order=form_code.asc,max_amount.asc")
       ]).then(function (res) {
         S.org = Array.isArray(res[0].data) ? res[0].data : [];
         S.issues = Array.isArray(res[1].data) ? res[1].data : [];
@@ -359,6 +362,7 @@
         S.steps = Array.isArray(res[9].data) ? res[9].data : [];
         S.audit = Array.isArray(res[10].data) ? res[10].data : [];
         S.isAdmin = !!(res[11] && res[11].data === true);
+        S.fastRules = Array.isArray(res[12].data) ? res[12].data : [];
         S.loaded = true;
         S.loading = false;
         return loadReport();
@@ -930,6 +934,28 @@
     var inbox = S.docs.filter(function (d) { return !!myTurn(d); });
     box.innerHTML =
       '<section class="panel panel-wide">' +
+        '<div class="panel-head"><h2>전결 규정</h2><span class="panel-tag">양식 · 금액 상한 · 전결권자</span></div>' +
+        '<p class="cms-hint">금액이 상한 이하이면 상신할 때 결재선이 <b>전결권자 한 명</b>으로 실제 대체됩니다(합의·중간 승인은 대체, 참조는 유지). 줄에서 바로 켜고 끄거나 고치고 지울 수 있습니다.</p>' +
+        (S.fastRules.length ? '<div class="wp-tablewrap"><table class="admin-table wp-table"><thead><tr>' +
+          "<th>양식</th><th>금액 상한</th><th>전결권자</th><th>비고</th><th>상태</th><th></th>" +
+          "</tr></thead><tbody>" + S.fastRules.map(fastRuleRow).join("") + "</tbody></table></div>"
+          : '<p class="wp-empty">아직 전결 규정이 없습니다. 아래에서 첫 규정을 저장해 보세요.</p>') +
+        '<form id="wp-fr-form" class="wp-grid-form" novalidate>' +
+          '<input type="hidden" id="wp-fr-id">' +
+          '<label class="cms-field"><span>양식</span><select id="wp-fr-code"></select></label>' +
+          '<label class="cms-field"><span>금액 상한(원)</span><input id="wp-fr-max" type="number" min="0" step="1000" placeholder="예: 300000"></label>' +
+          '<label class="cms-field"><span>전결권자</span><select id="wp-fr-pick"></select></label>' +
+          '<label class="cms-field"><span>비고</span><input id="wp-fr-note" maxlength="160" placeholder="예: 30만원 이하 팀장 전결"></label>' +
+          '<div class="wp-formfoot wp-span2">' +
+            '<label class="wp-check"><input type="checkbox" id="wp-fr-active" checked> 사용</label>' +
+            '<span class="spacer"></span>' +
+            '<button type="button" class="btn btn-ghost btn-sm" data-wp-act="fr-reset">새로 입력</button>' +
+            '<button type="submit" class="btn btn-primary btn-sm">전결 규정 저장</button>' +
+          "</div>" +
+        "</form>" +
+      "</section>" +
+
+      '<section class="panel panel-wide">' +
         '<div class="panel-head"><h2>조건부 결재선 규칙</h2><span class="panel-tag">양식 · 금액</span></div>' +
         '<p class="cms-hint">양식과 금액 구간에 맞는 결재선을 규칙으로 저장합니다. 기안할 때 ‘결재선 추천’을 누르면 이 규칙이 먼저 적용됩니다(전결 규정이 걸리면 전결이 우선).</p>' +
         (S.rules.length ? '<div class="wp-tablewrap"><table class="admin-table wp-table"><thead><tr>' +
@@ -962,12 +988,15 @@
               '<label class="cms-field"><span>양식</span><select id="wp-d-form"></select></label>' +
               '<label class="cms-field"><span>금액</span><input id="wp-d-amount" type="number" min="0" step="1000" placeholder="금액이 없으면 비워 두세요"></label>' +
             "</div>" +
+            '<p class="wp-rule-live" id="wp-d-rule-tip" hidden></p>' +
             '<label class="cms-field"><span>제목</span><input id="wp-d-title" maxlength="200" placeholder="예: 11월 인쇄비 지출"></label>' +
             '<label class="cms-field"><span>본문</span><textarea id="wp-d-body" rows="3" placeholder="내용을 적어 주세요"></textarea></label>' +
             '<div class="wp-line">' +
               '<button type="button" class="btn btn-ghost btn-sm" data-wp-act="recommend">결재선 추천</button>' +
-              '<span class="wp-rec" id="wp-d-rec-box">규칙에 맞는 결재선을 찾으면 여기에 표시됩니다.</span>' +
+              '<button type="button" class="btn btn-ghost btn-sm" data-wp-act="org-line">조직도 결재선</button>' +
+              '<span class="wp-rec" id="wp-d-rec-box">규칙·조직도에 맞는 결재선을 찾으면 여기에 표시됩니다.</span>' +
             "</div>" +
+            '<p class="wp-line-preview" id="wp-d-line" hidden></p>' +
             '<div class="cms-grid2">' +
               '<label class="cms-field"><span>1차 결재자</span><select id="wp-d-a1"></select></label>' +
               '<label class="cms-field"><span>최종 결재자</span><select id="wp-d-a2"></select></label>' +
@@ -1028,7 +1057,148 @@
         return '<option value="' + esc(it.id) + '">' + esc(issueLabel(it)) + "</option>";
       }).join("");
     }
+    var fc = $("#wp-fr-code");
+    if (fc) {
+      fc.innerHTML = S.forms.map(function (f) {
+        return '<option value="' + esc(f.code) + '">' + esc(f.name || f.code) + "</option>";
+      }).join("");
+    }
+    var fp = $("#wp-fr-pick");
+    if (fp) fp.innerHTML = opts(S.people);
     S.sel = {};
+    paintDraftTip();
+  }
+
+  /* ---------- 전결 규정(approval_rules) 줄과 저장 ---------- */
+  function fastRuleRow(r) {
+    return "<tr>" +
+      "<td>" + esc(formName(r.form_code) || r.form_code || "—") + "</td>" +
+      "<td>" + esc(money(r.max_amount) + "원 이하") + "</td>" +
+      "<td>" + esc(nameOf(r.approver_id) || r.approver_name || "—") + "</td>" +
+      "<td>" + esc(r.note || "") + "</td>" +
+      '<td><label class="wp-check"><input type="checkbox" class="wp-fr-active" data-id="' + esc(r.id) + '"' +
+        (r.active !== false ? " checked" : "") + "> " + (r.active !== false ? "사용" : "꺼짐") + "</label></td>" +
+      '<td class="right">' +
+        '<button type="button" class="btn btn-ghost btn-sm" data-wp-act="fr-edit" data-id="' + esc(r.id) + '">수정</button>' +
+        '<button type="button" class="btn btn-ghost btn-sm danger" data-wp-act="fr-del" data-id="' + esc(r.id) + '">삭제</button>' +
+      "</td>" +
+    "</tr>";
+  }
+
+  function fastRuleEdit(id) {
+    var r = S.fastRules.filter(function (x) { return x.id === id; })[0];
+    if (!r) return;
+    $("#wp-fr-id").value = r.id;
+    $("#wp-fr-code").value = r.form_code || "";
+    $("#wp-fr-max").value = r.max_amount == null ? "" : r.max_amount;
+    $("#wp-fr-pick").value = r.approver_id || "";
+    $("#wp-fr-note").value = r.note || "";
+    $("#wp-fr-active").checked = r.active !== false;
+    msg("전결 규정을 불러왔습니다. 고친 뒤 ‘전결 규정 저장’을 눌러 주세요.");
+  }
+
+  function fastRuleSave() {
+    var id = $("#wp-fr-id").value || "";
+    var code = $("#wp-fr-code").value || "";
+    var max = $("#wp-fr-max").value;
+    var aid = $("#wp-fr-pick").value;
+    if (!code) { msg("양식을 골라 주세요.", "err"); return; }
+    if (max === "" || Number(max) < 0) { msg("금액 상한을 적어 주세요.", "err"); return; }
+    if (!aid) { msg("전결권자를 골라 주세요.", "err"); return; }
+    var body = { form_code: code, max_amount: Number(max), approver_id: aid,
+      approver_name: nameOf(aid) || "", note: ($("#wp-fr-note").value || "").trim(),
+      active: !!$("#wp-fr-active").checked };
+    var req = id
+      ? request("approval_rules?id=eq." + encodeURIComponent(id), { method: "PATCH", body: body, prefer: "return=representation" })
+      : request("approval_rules", { method: "POST", body: body, prefer: "return=representation" });
+    req.then(function (r) {
+      if (!r.ok) { msg(fail(r), "err"); return; }
+      msg(id ? "전결 규정을 수정했습니다." : "전결 규정을 저장했습니다.", "ok");
+      $("#wp-fr-id").value = "";
+      load(true);
+    });
+  }
+
+  function fastRuleDelete(id) {
+    if (!window.confirm("이 전결 규정을 지울까요? (적용 중인 결재선이 바뀝니다)")) return;
+    request("approval_rules?id=eq." + encodeURIComponent(id), { method: "DELETE" }).then(function (r) {
+      if (!r.ok) { msg(fail(r), "err"); return; }
+      msg("전결 규정을 지웠습니다.", "ok");
+      load(true);
+    });
+  }
+
+  /* ---------- 기안 화면의 전결 안내 · 실제 결재선 ---------- */
+  function draftFormCode() {
+    var sel = $("#wp-d-form");
+    var opt = sel && sel.options[sel.selectedIndex];
+    return opt ? (opt.getAttribute("data-code") || "") : "";
+  }
+  function draftAmount() {
+    var el = $("#wp-d-amount");
+    var v = el ? String(el.value || "").trim() : "";
+    if (v === "") return null;
+    var n = Number(v);
+    return isNaN(n) ? null : n;
+  }
+  function fastRuleFor(code, amount) {
+    if (amount == null) return null;
+    var list = (S.fastRules || []).filter(function (r) {
+      return r.active !== false && r.approver_id && r.form_code === code && amount <= Number(r.max_amount);
+    });
+    list.sort(function (a, b) { return Number(a.max_amount) - Number(b.max_amount); });
+    return list[0] || null;
+  }
+  function paintDraftTip() {
+    var tip = $("#wp-d-rule-tip");
+    if (!tip) return;
+    var rule = fastRuleFor(draftFormCode(), draftAmount());
+    if (!rule) { tip.hidden = true; tip.innerHTML = ""; }
+    else {
+      tip.hidden = false;
+      tip.className = "wp-rule-live" + (S.useRule ? "" : " is-off");
+      tip.innerHTML =
+        '<b>전결 조건 적용됨:</b> ' + esc(nameOf(rule.approver_id) || rule.approver_name || "") +
+        " 님 <b>단독 결재선</b>으로 상신됩니다" +
+        '<span class="wp-meta">' + esc(money(draftAmount()) + "원 ≤ 상한 " + money(rule.max_amount) + "원 · 합의·중간 승인 대체, 참조 유지") + "</span>" +
+        '<label class="wp-check"><input type="checkbox" id="wp-d-use-rule"' + (S.useRule ? " checked" : "") + "> 전결 규정 적용</label>";
+      var cb = $("#wp-d-use-rule");
+      if (cb) cb.addEventListener("change", function () { S.useRule = !!cb.checked; paintDraftTip(); paintDraftLine(); });
+    }
+    paintDraftLine();
+  }
+  function paintDraftLine() {
+    var box = $("#wp-d-line");
+    if (!box) return;
+    var rule = S.useRule ? fastRuleFor(draftFormCode(), draftAmount()) : null;
+    var a1 = $("#wp-d-a1"), a2 = $("#wp-d-a2");
+    var parts = [];
+    if (rule) parts.push((nameOf(rule.approver_id) || rule.approver_name || "") + " (전결 단독)");
+    else {
+      if (a1 && a1.value) parts.push(nameOf(a1.value) || "");
+      if (a2 && a2.value && a2.value !== a1.value) parts.push(nameOf(a2.value) || "");
+    }
+    var line = parts.filter(Boolean).join(" → ");
+    box.hidden = !line;
+    box.className = "wp-line-preview" + (rule ? " is-rule" : "");
+    box.innerHTML = "실제 결재선: <b>" + esc(line || "—") + (rule ? "</b> · 전결 규정이 결재선을 대체합니다" : "</b>");
+  }
+
+  function orgLine() {
+    rpc("approval_org_line", {}).then(function (r) {
+      if (!r.ok) { msg(fail(r), "err"); return; }
+      var d = r.data || {};
+      var steps = (d.steps || []).filter(function (s) { return (s.kind || "approve") === "approve"; });
+      if (!d.found || !steps.length) {
+        msg((d.note || "조직도에 직책이 없습니다.") + " /admin → 업무·결재 Pro 조직도에서 부서·직책을 먼저 등록해 주세요.", "err");
+        return;
+      }
+      if ($("#wp-d-a1")) $("#wp-d-a1").value = steps[0].approver_id;
+      if ($("#wp-d-a2")) $("#wp-d-a2").value = steps[1] ? steps[1].approver_id : "";
+      var names = steps.map(function (s) { return s.approver_name || nameOf(s.approver_id) || ""; });
+      msg("조직도에서 " + names.join(" → ") + " 결재선을 불러왔습니다.", "ok");
+      paintDraftLine();
+    });
   }
 
   function ruleRow(r) {
@@ -1113,30 +1283,39 @@
   }
 
   function recommend() {
-    var sel = $("#wp-d-form");
-    var opt = sel && sel.options[sel.selectedIndex];
-    var code = opt ? opt.getAttribute("data-code") : "";
-    var amount = $("#wp-d-amount").value;
-    rpc("approval_recommend", { p_form_code: code, p_amount: amount === "" ? null : Number(amount) })
-      .then(function (r) {
-        if (!r.ok) { msg(fail(r), "err"); return; }
+    var code = draftFormCode();
+    var amt = draftAmount();
+    var call = function () {
+      return rpc("approval_line_suggest", { p_form_code: code, p_amount: amt, p_dept: null });
+    };
+    call().then(function (r) {
+      if (r.status === 404 && /approval_line_suggest|function/i.test(r.text || "")) {
+        /* v10.12 이전 DB — 조건부 결재선 규칙만으로 추천합니다. */
+        return rpc("approval_recommend", { p_form_code: code, p_amount: amt });
+      }
+      return r;
+    }).then(function (r) {
+        if (!r || !r.ok) { msg(fail(r), "err"); return; }
         var d = r.data || {};
         var box = $("#wp-d-rec-box");
         if (!d.found) {
-          if (box) box.textContent = "조건에 맞는 규칙이 없습니다. 결재자를 직접 골라 주세요.";
+          if (box) box.textContent = d.note || "조건에 맞는 규칙이 없습니다. 결재자를 직접 골라 주세요.";
           S.rec = null;
+          paintDraftTip();
           return;
         }
         S.rec = d;
         var steps = (d.steps || []).filter(function (s) { return (s.kind || "approve") === "approve"; });
+        var label = d.source === "delegate" ? "전결" : d.source === "org" ? "조직도" : "규칙";
         if (box) {
-          box.innerHTML = '<span class="wp-tag">추천</span> ' + steps.map(function (s) {
+          box.innerHTML = '<span class="wp-tag">' + esc(label) + "</span> " + steps.map(function (s) {
             return esc(s.approver_name || nameOf(s.approver_id) || "");
           }).join(" → ") + (d.note ? ' <span class="wp-meta">' + esc(d.note) + "</span>" : "");
         }
         if (steps[0] && $("#wp-d-a1")) $("#wp-d-a1").value = steps[0].approver_id;
-        if (steps[1] && $("#wp-d-a2")) $("#wp-d-a2").value = steps[1].approver_id;
-        if (steps[0] && !$("#wp-d-a2").value) $("#wp-d-a2").value = "";
+        if ($("#wp-d-a2")) $("#wp-d-a2").value = steps[1] ? steps[1].approver_id : "";
+        if (d.source === "delegate") { S.useRule = true; }
+        paintDraftTip();
       });
   }
 
@@ -1160,14 +1339,15 @@
       p_form_id: formId, p_title: title, p_body: $("#wp-d-body").value || "",
       p_fields: fields, p_steps: steps, p_submit: true,
       p_linked_task_id: taskId, p_task_target_status: $("#wp-d-target").value || "resolved",
-      p_use_rule: true
+      p_use_rule: S.useRule !== false
     }).then(function (r) {
       if (!r.ok) { msg(fail(r), "err"); return; }
       var d = r.data || {};
-      msg("기안을 상신했습니다 · " + (d.doc_no || "") + (taskId ? " · 일감 연결" : ""), "ok");
+      msg("기안을 상신했습니다 · " + (d.doc_no || "") + (d.rule_replaced ? " · 전결 단독 결재선" : "") + (taskId ? " · 일감 연결" : ""), "ok");
       $("#wp-d-title").value = "";
       $("#wp-d-body").value = "";
       $("#wp-d-amount").value = "";
+      S.useRule = true;
       load(true);
     });
   }
@@ -1346,6 +1526,16 @@
     var id = t.getAttribute("data-id");
 
     if (act === "org-edit") { orgPick(id); return; }
+    if (act === "fr-edit") { fastRuleEdit(id); return; }
+    if (act === "fr-del") { fastRuleDelete(id); return; }
+    if (act === "fr-reset") {
+      $("#wp-fr-id").value = "";
+      $("#wp-fr-max").value = "";
+      $("#wp-fr-note").value = "";
+      $("#wp-fr-active").checked = true;
+      return;
+    }
+    if (act === "org-line") { orgLine(); return; }
     if (act === "org-reset") { S.editRole = null; fillOrgForm(null); return; }
     if (act === "recommend") { recommend(); return; }
     if (act === "rule-reset") {
@@ -1384,9 +1574,28 @@
     if (act === "report-print") { printReport(); return; }
   }
 
+  function appInput(e) {
+    var t = e.target;
+    if (!t || !t.id) return;
+    if (t.id === "wp-d-amount") paintDraftTip();
+  }
+
   function appChange(e) {
     var t = e.target;
     var act = t.getAttribute && t.getAttribute("data-wp-act");
+    if (t.id === "wp-d-form") { paintDraftTip(); return; }
+    if (t.id === "wp-d-a1" || t.id === "wp-d-a2") { paintDraftLine(); return; }
+    if (t.classList && t.classList.contains("wp-fr-active")) {
+      var id = t.getAttribute("data-id");
+      request("approval_rules?id=eq." + encodeURIComponent(id), {
+        method: "PATCH", prefer: "return=representation", body: { active: !!t.checked }
+      }).then(function (r) {
+        if (!r.ok) { msg(fail(r), "err"); return; }
+        msg("전결 규정을 " + (t.checked ? "켰" : "껐") + "습니다.", "ok");
+        load(true);
+      });
+      return;
+    }
     if (act === "recur-set") { recurSet(t.getAttribute("data-id"), t.value); return; }
     if (act === "cl-toggle") { clToggle(t.getAttribute("data-id"), t.checked); return; }
     if (t.id === "wp-cl-issue") {
@@ -1416,6 +1625,7 @@
       return;
     }
     if (f.id === "wp-rule-form") { e.preventDefault(); ruleSave(); return; }
+    if (f.id === "wp-fr-form") { e.preventDefault(); fastRuleSave(); return; }
     if (f.id === "wp-draft-form") { e.preventDefault(); draftSubmit(); return; }
     if (f.id === "wp-batch-form") { e.preventDefault(); return; }
   }

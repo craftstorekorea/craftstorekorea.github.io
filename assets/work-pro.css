@@ -117,6 +117,10 @@
 #tab-workpro .wp-line{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
 #tab-workpro .wp-rec{font-size:.82rem;color:var(--ink-2)}
 #tab-workpro .wp-meta{color:var(--ink-3,#7a736a);font-size:.76rem}
+#tab-workpro .wp-rule-live{margin:8px 0;padding:10px 12px;border:1px solid #D6CDEB;border-left:4px solid #6B5BA8;background:#F7F5FC;border-radius:10px;font-size:.84rem;color:#3C3168;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#tab-workpro .wp-rule-live.is-off{border-color:#E2E4EA;border-left-color:#9AA0AE;background:#F7F8FA;color:#5A5F6E}
+#tab-workpro .wp-line-preview{margin:4px 0 10px;padding:7px 10px;border-radius:8px;background:#F3F5F9;border:1px dashed #D7DCE6;font-size:.8rem;color:#3B4050}
+#tab-workpro .wp-line-preview.is-rule{background:#F7F5FC;border-color:#D6CDEB;color:#4B3F7A}
 #tab-workpro .wp-mini{
   border:1px solid var(--line-2,#e3ded6);background:var(--card,#fff);border-radius:8px;
   padding:4px 6px;font-size:.8rem;font-family:inherit;color:inherit;
