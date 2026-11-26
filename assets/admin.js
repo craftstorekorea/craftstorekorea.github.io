@@ -4701,6 +4701,8 @@
     var body = $("#tasks-admin-table tbody");
     if (!body) return;
     var rows = tasksVisible();
+    var stmp = $("#tasks-stamp");
+    if (stmp) stmp.textContent = "일감 " + adminIssues.length + "건 · 프로젝트 " + adminProjects.length + "개";
     var tag = $("#tasks-admin-count");
     if (tag) tag.textContent = rows.length === adminIssues.length
       ? "전체 " + adminIssues.length + "건" : rows.length + " / " + adminIssues.length + "건";
