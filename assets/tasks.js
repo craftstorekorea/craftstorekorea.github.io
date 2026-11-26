@@ -626,6 +626,18 @@
     return addDays(ymdStr, -((w + 6) % 7));  // 월요일 시작
   }
 
+  /* 폼을 열 때 첫 칸에 초점을 줍니다 — 단, 사용자가 이미 다른 칸에 입력 중이면 건드리지 않습니다. */
+  function rmFocusIfIdle(sel, formSel) {
+    setTimeout(function () {
+      var el = $(sel), form = formSel ? $(formSel) : null;
+      if (!el || !form) return;
+      var a = document.activeElement;
+      if (a && a !== document.body && form.contains(a) && a !== el) return;
+      if (a && a !== document.body && !form.contains(a)) return;
+      try { el.focus(); } catch (e) { /* noop */ }
+    }, 40);
+  }
+
   /* ------- 화면 뼈대 ------- */
   function rmBuild() {
     var app = $("#tasks-app");
@@ -1337,8 +1349,9 @@
         '<label class="rm-f"><span>' + esc(rmI("assignee")) + "</span>" +
           '<select id="rm-d-assignee"' + (canEdit ? "" : " disabled") + ">" +
             rmAssigneeOptions(it.assignee_id) + "</select></label>" +
-        '<label class="rm-f"><span>' + esc(rmI("progress")) + ' <b id="rm-d-pv">' + (Number(it.progress) || 0) + "%</b></span>" +
-          '<input type="range" min="0" max="100" step="5" id="rm-d-progress" value="' + (Number(it.progress) || 0) + '"' + editable + "></label>" +
+        '<label class="rm-f"><span>' + esc(rmI("progress")) + ' <b id="rm-d-pv">' + rmProgressPct(it) + "%</b></span>" +
+          '<input type="range" min="0" max="100" step="5" id="rm-d-progress" value="' + rmProgressPct(it) + '"' +
+            (rmChecklistOf(it.id).length ? " disabled" : editable) + "></label>" +
         '<label class="rm-f"><span>' + esc(rmI("starts")) + '</span><input type="date" id="rm-d-starts" value="' + esc(ymd(it.starts_on)) + '"' + editable + "></label>" +
         '<label class="rm-f"><span>' + esc(rmI("due")) + '</span><input type="date" id="rm-d-due" value="' + esc(ymd(it.due_on)) + '"' + editable + "></label>" +
         '<label class="rm-f"><span>' + esc(rmI("estimate")) + '</span><input type="number" step="0.5" id="rm-d-est" value="' + esc(it.estimated_hours == null ? "" : it.estimated_hours) + '"' + editable + "></label>" +
@@ -1565,6 +1578,8 @@
     var list = rmAttachList(it).slice();
     if (att && att.fileId && !list.some(function (a) { return a && a.fileId === att.fileId; })) list.push(att);
     body.attachments = list;
+    /* 체크리스트가 있으면 진행률은 체크리스트가 정합니다 — 저장할 때 덮어쓰지 않습니다. */
+    if (rmChecklistOf(it.id).length) delete body.progress;
     /* v10.12 — 상태 전이 정리: 완료면 진행률 100, 100%면 해결로 올립니다. */
     if (body.status === "closed") {
       body.progress = 100;
@@ -1590,6 +1605,12 @@
     return (RM.checklist[id] || []).slice().sort(function (a, b) {
       return (a.sort_order || 0) - (b.sort_order || 0);
     });
+  }
+  function rmProgressPct(it) {
+    var items = rmChecklistOf(it.id);
+    if (!items.length) return Number(it.progress) || 0;
+    var done = items.filter(function (c) { return c.done; }).length;
+    return Math.round(done * 100 / items.length);
   }
   function rmChecklistHtml(it) {
     var items = rmChecklistOf(it.id);
@@ -1708,7 +1729,7 @@
     $("#rm-spent").value = it && it.spent_hours != null ? it.spent_hours : "";
     form.hidden = false;
     rmMsg("");
-    setTimeout(function () { var f = $("#rm-subject"); if (f) f.focus(); }, 30);
+    rmFocusIfIdle("#rm-subject", "#rm-form");
   }
   function rmSaveForm(e) {
     if (e) e.preventDefault();
@@ -1801,7 +1822,7 @@
     if (del) del.hidden = !p;
     f.hidden = false;
     rmMsg("");
-    setTimeout(function () { var x = $("#rm-p-key"); if (x) x.focus(); }, 30);
+    rmFocusIfIdle("#rm-p-key", "#rm-project-form");
   }
   function rmSaveProject(e) {
     if (e) e.preventDefault();
