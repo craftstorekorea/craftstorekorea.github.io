@@ -483,10 +483,10 @@
      ================================================================== */
   var RM = {
     mode: null, built: false, booted: false, loading: false, missing: false, probing: false,
-    projects: [], project: null, members: [], people: [],
-    issues: [], comments: {}, relations: {}, approvals: {},
+    projects: [], project: null, members: [], people: [], org: [], showArchived: false,
+    issues: [], comments: {}, relations: {}, approvals: {}, checklist: {},
     view: "list", q: "", fAssignee: "", fStatus: "", fPriority: "", fFrom: "", fTo: "",
-    cal: "", sel: {}, detail: null, error: ""
+    cal: "", sel: {}, detail: null, projEditing: null, error: ""
   };
   var RM_TRACKERS = ["task", "bug", "feature", "support"];
   var RM_PRIOS = ["low", "normal", "high", "urgent"];
@@ -538,6 +538,62 @@
     return it && (it.assignee_id === uid || it.author_id === uid);
   }
 
+  /* ------- v10.12 — 담당 고르기: 프로젝트 멤버 · 조직도 · 전체 회원 ------- */
+  function rmIsMember(uid) {
+    if (!uid) return false;
+    for (var i = 0; i < RM.members.length; i++) if (RM.members[i].user_id === uid) return true;
+    return false;
+  }
+  function rmAssigneeGroups() {
+    var seen = {}, groups = [];
+    function push(label, rows) {
+      var items = [];
+      rows.forEach(function (r) {
+        if (!r || !r.id || seen[r.id]) return;
+        seen[r.id] = 1;
+        items.push({ id: r.id, name: r.name || r.id, sub: r.sub || "" });
+      });
+      if (items.length) groups.push({ label: label, items: items });
+    }
+    push(rmI("gMember"), RM.members.map(function (m) {
+      return { id: m.user_id, name: rmName(m.user_id), sub: rmI("role." + (m.role || "member")) };
+    }));
+    push(rmI("gOrg"), (RM.org || []).map(function (o) {
+      return { id: o.user_id, name: o.name || o.email || o.user_id,
+               sub: [o.dept, o.title].filter(Boolean).join(" · ") };
+    }));
+    push(rmI("gAll"), RM.people.map(function (p) { return { id: p.id, name: p.name || p.id }; }));
+    return groups;
+  }
+  function rmAssigneeOptions(cur, emptyLabel) {
+    var groups = rmAssigneeGroups();
+    var has = false;
+    var html = '<option value="">' + esc(emptyLabel || rmI("assigneeNone")) + "</option>";
+    groups.forEach(function (g) {
+      html += '<optgroup label="' + esc(g.label) + '">' + g.items.map(function (x) {
+        if (String(cur || "") === String(x.id)) has = true;
+        return '<option value="' + esc(x.id) + '"' + (String(cur || "") === String(x.id) ? " selected" : "") + ">" +
+          esc(x.name) + (x.sub ? " · " + esc(x.sub) : "") + "</option>";
+      }).join("") + "</optgroup>";
+    });
+    /* 명단에 없는 담당(프로필 없는 계정)도 그대로 보여 줍니다. */
+    if (cur && !has) html += '<option value="' + esc(cur) + '" selected>' + esc(cur) + "</option>";
+    return html;
+  }
+  /* 멤버가 아닌 담당을 고르면 프로젝트 멤버로 더해 줍니다(매니저·관리자만 가능). */
+  function rmEnsureMember(projectId, uid) {
+    if (!projectId || !uid || rmIsMember(uid) || !rmCanEdit()) return Promise.resolve(false);
+    return request("project_members", { method: "POST", prefer: "return=representation",
+      body: { project_id: projectId, user_id: uid, role: "member" } }).then(function (r) {
+      if (!r.ok) return false;
+      return rmLoadMembers().then(function () {
+        rmFillSelects();
+        rmMsg(rmI("asgAdded"), "ok");
+        return true;
+      });
+    }).catch(function () { return false; });
+  }
+
   function rmMsg(text, kind) {
     var el = $("#rm-msg");
     if (!el) return;
@@ -581,6 +637,8 @@
         '<label class="rm-project-pick"><span class="sr-only">' + esc(rmI("project")) + "</span>" +
           '<select id="rm-project"></select></label>' +
         '<button type="button" class="btn btn-ghost btn-sm" id="rm-project-new">' + esc(rmI("projectNew")) + "</button>" +
+        '<button type="button" class="btn btn-ghost btn-sm" id="rm-project-edit">' + esc(rmI("projectEdit")) + "</button>" +
+        '<button type="button" class="btn btn-ghost btn-sm" id="rm-arch-toggle" aria-pressed="false" hidden></button>' +
         '<button type="button" class="btn btn-ghost btn-sm" id="rm-members">' + esc(rmI("members")) + "</button>" +
         '<span class="spacer"></span>' +
         '<div class="rm-views" role="group">' +
@@ -638,20 +696,26 @@
         "</div>" +
       "</form>" +
       '<form class="rm-form" id="rm-project-form" hidden novalidate>' +
-        '<div class="rm-form-head"><h3>' + esc(rmI("projectNew")) + "</h3>" +
+        '<div class="rm-form-head"><h3 id="rm-project-form-title">' + esc(rmI("projectNew")) + "</h3>" +
           '<button type="button" class="tasks-x" id="rm-project-x" aria-label="close">×</button></div>' +
         '<div class="rm-form-grid">' +
           '<label class="rm-f"><span>' + esc(rmI("key")) + '</span><input id="rm-p-key" maxlength="16" placeholder="SBP"></label>' +
           '<label class="rm-f rm-f-wide"><span>' + esc(rmI("name")) + '</span><input id="rm-p-name" maxlength="120"></label>' +
           '<label class="rm-f"><span>' + esc(rmI("starts")) + '</span><input type="date" id="rm-p-starts"></label>' +
           '<label class="rm-f"><span>' + esc(rmI("due")) + '</span><input type="date" id="rm-p-ends"></label>' +
+          '<label class="rm-f"><span>' + esc(rmI("projectStatus")) + '</span><select id="rm-p-status"></select></label>' +
           '<label class="rm-f rm-f-wide"><span>' + esc(rmI("description")) + '</span><textarea id="rm-p-desc" rows="2"></textarea></label>' +
         "</div>" +
-        '<div class="rm-form-foot"><span class="spacer"></span>' +
+        '<div class="rm-form-foot">' +
+          '<button type="button" class="btn btn-ghost btn-sm danger" id="rm-project-del" hidden>' + esc(rmI("projectDelete")) + "</button>" +
+          '<span class="spacer"></span>' +
           '<button type="button" class="btn btn-ghost btn-sm" id="rm-project-cancel">' + esc(rmI("cancel")) + "</button>" +
           '<button type="submit" class="btn btn-primary btn-sm" id="rm-project-save">' + esc(rmI("create")) + "</button>" +
         "</div>" +
       "</form>" +
+      '<div class="rm-modal" id="rm-del-modal" hidden role="dialog" aria-modal="true">' +
+        '<div class="rm-modal-card"><div class="rm-modal-body" id="rm-del-body"></div></div>' +
+      "</div>" +
       '<div class="rm-modal" id="rm-members-modal" hidden role="dialog" aria-modal="true">' +
         '<div class="rm-modal-card"><div class="rm-modal-body" id="rm-members-body"></div></div>' +
       "</div>";
@@ -661,7 +725,14 @@
       RM.sel = {};
       rmLoad();
     });
-    $("#rm-project-new").addEventListener("click", rmOpenProjectForm);
+    $("#rm-project-new").addEventListener("click", function () { rmOpenProjectForm(false); });
+    $("#rm-project-edit").addEventListener("click", function () { rmOpenProjectForm(true); });
+    $("#rm-arch-toggle").addEventListener("click", function () {
+      RM.showArchived = !RM.showArchived;
+      rmFillSelects();
+      rmRender();
+    });
+    $("#rm-project-del").addEventListener("click", rmOpenProjectDelete);
     $("#rm-project-x").addEventListener("click", function () { $("#rm-project-form").hidden = true; });
     $("#rm-project-cancel").addEventListener("click", function () { $("#rm-project-form").hidden = true; });
     $("#rm-project-form").addEventListener("submit", rmSaveProject);
@@ -694,10 +765,14 @@
     $("#rm-members-modal").addEventListener("click", function (e) {
       if (e.target && e.target.id === "rm-members-modal") $("#rm-members-modal").hidden = true;
     });
+    $("#rm-del-modal").addEventListener("click", function (e) {
+      if (e.target && e.target.id === "rm-del-modal") $("#rm-del-modal").hidden = true;
+    });
     document.addEventListener("keydown", function (e) {
       if (e.key !== "Escape") return;
       if (!$("#rm-modal").hidden) { $("#rm-modal").hidden = true; RM.detail = null; }
       else if (!$("#rm-members-modal").hidden) $("#rm-members-modal").hidden = true;
+      else if (!$("#rm-del-modal").hidden) $("#rm-del-modal").hidden = true;
       else if (!$("#rm-form").hidden) $("#rm-form").hidden = true;
       else if (!$("#rm-project-form").hidden) $("#rm-project-form").hidden = true;
     });
@@ -706,10 +781,22 @@
   function rmFillSelects() {
     var pj = $("#rm-project");
     if (pj) {
-      pj.innerHTML = RM.projects.map(function (p) {
-        return '<option value="' + esc(p.id) + '">' + esc(p.key + " · " + p.name) + "</option>";
+      /* 보관한 프로젝트는 기본으로 숨기고, 지금 보고 있는 프로젝트만 예외로 남깁니다. */
+      var list = RM.projects.filter(function (p) {
+        return RM.showArchived || p.status !== "archived" || p.id === RM.project;
+      });
+      pj.innerHTML = list.map(function (p) {
+        return '<option value="' + esc(p.id) + '">' + esc(p.key + " · " + p.name) +
+          (p.status === "archived" ? " (" + esc(rmI("archived")) + ")" : "") + "</option>";
       }).join("") || '<option value="">' + esc(rmI("noProject")) + "</option>";
       if (RM.project) pj.value = RM.project;
+    }
+    var at = $("#rm-arch-toggle");
+    if (at) {
+      var nArch = RM.projects.filter(function (p) { return p.status === "archived"; }).length;
+      at.hidden = !nArch;
+      at.textContent = (RM.showArchived ? rmI("hideArchived") : rmI("showArchived")) + " " + nArch;
+      at.setAttribute("aria-pressed", RM.showArchived ? "true" : "false");
     }
     var opt = function (v, label) { return '<option value="' + esc(v) + '">' + esc(label) + "</option>"; };
     var fa = $("#rm-f-assignee");
@@ -728,7 +815,9 @@
     if (bs) bs.innerHTML = RM_STATUSES.map(function (s) { return opt(s, rmI("st." + s)); }).join("");
     var ba = $("#rm-bulk-assignee");
     if (ba) ba.innerHTML = opt("", rmI("assigneeNone")) +
-      RM.members.map(function (m) { return opt(m.user_id, rmName(m.user_id) || m.user_id); }).join("");
+      RM.members.map(function (m) { return opt(m.user_id, rmName(m.user_id) || m.user_id); }).join("") +
+      RM.people.filter(function (p) { return !rmIsMember(p.id); })
+        .map(function (p) { return opt(p.id, p.name || p.id); }).join("");
   }
 
   /* ------- 읽기 ------- */
@@ -737,7 +826,8 @@
       if (!r.ok) { RM.missing = true; return r; }
       RM.projects = Array.isArray(r.data) ? r.data : [];
       if (!RM.project || !RM.projects.some(function (p) { return p.id === RM.project; })) {
-        RM.project = RM.projects.length ? RM.projects[0].id : null;
+        var firstOpen = RM.projects.filter(function (p) { return p.status !== "archived"; })[0];
+        RM.project = firstOpen ? firstOpen.id : (RM.projects[0] ? RM.projects[0].id : null);
       }
       return r;
     });
@@ -748,6 +838,16 @@
       RM.members = (r.ok && Array.isArray(r.data)) ? r.data : [];
       return r;
     });
+  }
+  /* 조직도(org_roles) — v10.1 표가 없으면 비워 둡니다(담당 고르기는 전체 회원으로 계속 동작). */
+  function rmLoadOrg() {
+    /* active 여과는 화면에서 합니다(모의 서버·구버전 표와 무관하게 같은 결과). */
+    return request("org_roles?select=user_id,name,dept,title,active&order=sort_order.asc").then(function (r) {
+      RM.org = (r.ok && Array.isArray(r.data)) ? r.data.filter(function (o) {
+        return !!(o && o.user_id) && o.active !== false;
+      }) : [];
+      return r;
+    }).catch(function () { RM.org = []; });
   }
   function rmLoadIssues() {
     if (!RM.project) { RM.issues = []; return Promise.resolve(); }
@@ -764,15 +864,19 @@
     });
   }
   function rp() { return rpc("approval_people"); }
+  function rmIsAdminNow() {
+    return rpc("is_admin").catch(function () { return { ok: false, data: false }; });
+  }
 
   function rmLoad() {
     if (!signedIn()) return Promise.resolve();
     RM.loading = true;
     rmMsg("");
-    return Promise.all([rp(), rmLoadMembers()]).then(function (res) {
+    return Promise.all([rp(), rmLoadMembers(), rmLoadOrg(), rmIsAdminNow()]).then(function (res) {
       var r = res[0];
       RM.people = (r.ok && Array.isArray(r.data)) ? r.data : [];
-      rpc("is_admin").then(function (x) { state.rmAdmin = !!(x.ok && x.data === true); }).catch(function () {});
+      /* v10.12 — 관리자 여부를 기다린 뒤에 그립니다(권한 버튼이 잠깐 숨는 경합 제거). */
+      state.rmAdmin = !!(res[3] && res[3].ok && res[3].data === true);
       return rmLoadIssues();
     }).then(function () {
       RM.loading = false;
@@ -852,9 +956,31 @@
     return '<span class="rm-pill is-' + esc(kind) + "-" + esc(v) + '">' + esc(rmI(kind + "." + v)) + "</span>";
   }
 
+  function rmProgOptions(cur) {
+    var steps = [0, 25, 50, 75, 100];
+    cur = Number(cur) || 0;
+    if (steps.indexOf(cur) < 0) steps.push(cur);
+    steps.sort(function (a, b) { return a - b; });
+    return steps.map(function (n) {
+      return '<option value="' + n + '"' + (n === cur ? " selected" : "") + ">" + n + "%</option>";
+    }).join("");
+  }
+
   function rmRow(it, depth) {
     var selected = !!RM.sel[it.id];
     var late = it.due_on && ymd(it.due_on) < todayKST() && !["closed", "resolved"].includes(it.status);
+    var canEdit = rmCanEditIssue(it);
+    /* v10.12 — 목록에서 바로 상태·진행률을 바꿉니다(권한이 있으면 고르는 칸, 없으면 배지·막대). */
+    var stCell = canEdit
+      ? '<select class="rm-st-in" data-id="' + esc(it.id) + '" aria-label="' + esc(rmI("status")) + '">' +
+          RM_STATUSES.map(function (s) {
+            return '<option value="' + s + '"' + (it.status === s ? " selected" : "") + ">" + esc(rmI("st." + s)) + "</option>";
+          }).join("") + "</select>"
+      : rmPill("st", it.status);
+    var progCell = canEdit
+      ? '<select class="rm-prog-in" data-id="' + esc(it.id) + '" aria-label="' + esc(rmI("progress")) + '">' +
+          rmProgOptions(it.progress) + "</select>"
+      : '<span class="rm-prog"><i style="width:' + (Number(it.progress) || 0) + '%"></i></span>';
     return '<div class="rm-row' + (selected ? " is-sel" : "") + (late ? " is-late" : "") + '" data-id="' + esc(it.id) + '"' +
       ' style="--depth:' + (depth || 0) + '" tabindex="0">' +
       '<label class="rm-check"><input type="checkbox" class="rm-sel-box"' + (selected ? " checked" : "") + ' ' +
@@ -862,8 +988,7 @@
       '<span class="rm-no">#' + esc(it.issue_no) + "</span>" +
       '<span class="rm-twisty' + (rmChildren(it.id).length ? " has-kids" : "") + '">' + (depth ? "↳" : "") + "</span>" +
       '<span class="rm-subject">' + esc(it.subject) + "</span>" +
-      rmPill("tracker", it.tracker) + rmPill("prio", it.priority) + rmPill("st", it.status) +
-      '<span class="rm-prog"><i style="width:' + (Number(it.progress) || 0) + '%"></i></span>' +
+      rmPill("tracker", it.tracker) + rmPill("prio", it.priority) + stCell + progCell +
       '<span class="rm-assignee">' + esc(rmName(it.assignee_id) || "—") + "</span>" +
       '<span class="rm-due' + (late ? " is-late" : "") + '">' + esc(ymd(it.due_on) || "—") + "</span>" +
       "</div>";
@@ -904,18 +1029,31 @@
     if (mb) mb.hidden = !rmCanEdit();
     var pn = $("#rm-project-new");
     if (pn) pn.hidden = !(rmIsAdminTask() || ((window.CRAFT_AUTH && window.CRAFT_AUTH.profile && window.CRAFT_AUTH.profile() || {}).member_grade >= 2));
+    var pe = $("#rm-project-edit");
+    if (pe) pe.hidden = !rmCanEdit();
   }
 
   function rmBindRows() {
     [].forEach.call($$("#rm-list .rm-row"), function (row) {
       var id = row.getAttribute("data-id");
       row.addEventListener("click", function (e) {
-        if (e.target && e.target.closest(".rm-check")) return;
+        if (e.target && e.target.closest(".rm-check,select,input,button")) return;
         rmOpenIssue(id);
       });
       row.addEventListener("keydown", function (e) {
+        if (e.target && e.target.closest("select,input,button")) return;
         if (e.key === "Enter" || e.key === " ") { e.preventDefault(); rmOpenIssue(id); }
       });
+      var st = row.querySelector(".rm-st-in");
+      if (st) {
+        st.addEventListener("click", function (e) { e.stopPropagation(); });
+        st.addEventListener("change", function () { rmInlinePatch(id, { status: st.value }); });
+      }
+      var pg = row.querySelector(".rm-prog-in");
+      if (pg) {
+        pg.addEventListener("click", function (e) { e.stopPropagation(); });
+        pg.addEventListener("change", function () { rmInlinePatch(id, { progress: Number(pg.value) || 0 }); });
+      }
       var box = row.querySelector(".rm-sel-box");
       if (box) box.addEventListener("change", function () {
         RM.sel[id] = box.checked;
@@ -927,6 +1065,24 @@
         if (sc) sc.textContent = String(n);
       });
     });
+  }
+
+  /* v10.12 — 목록 인라인 변경(상태·진행률). 완료로 바꾸면 진행률 100, 100%면 해결로 올립니다. */
+  function rmInlinePatch(id, patch) {
+    var it = rmFind(id);
+    if (!it) return;
+    if (patch.status === "closed") patch.progress = 100;
+    if (patch.progress != null && patch.progress >= 100 && !patch.status &&
+        ["new", "in_progress"].indexOf(it.status) >= 0) patch.status = "resolved";
+    request("issues?id=eq." + encodeURIComponent(id), {
+      method: "PATCH", prefer: "return=representation", body: patch
+    }).then(function (r) {
+      if (!r.ok) { rmMsg(rmErr(r), "err"); rmRender(); return; }
+      var row = Array.isArray(r.data) ? r.data[0] : r.data;
+      if (row) for (var i = 0; i < RM.issues.length; i++) if (RM.issues[i].id === row.id) RM.issues[i] = row;
+      rmMsg(rmI("saved"), "ok");
+      rmRender();
+    }).catch(function () { rmMsg(rmI("fail"), "err"); rmRender(); });
   }
 
   /* ------- 간트차트 (외부 라이브러리 0) ------- */
@@ -1125,15 +1281,18 @@
     modal.hidden = false;
     var body = $("#rm-detail");
     body.innerHTML = '<p class="rm-empty">' + esc(rmI("loading")) + "</p>";
-    request("issue_comments?select=*&issue_id=eq." + encodeURIComponent(id) + "&order=created_at.asc").then(function (rc) {
-      RM.comments[id] = (rc.ok && Array.isArray(rc.data)) ? rc.data : [];
-      return request("issue_relations?select=*&or=(from_id.eq." + encodeURIComponent(id) +
-                     ",to_id.eq." + encodeURIComponent(id) + ")");
-    }).then(function (rr) {
-      RM.relations[id] = (rr.ok && Array.isArray(rr.data)) ? rr.data : [];
-      return request("issue_approvals?select=*&issue_id=eq." + encodeURIComponent(id));
-    }).then(function (ra) {
-      var links = (ra.ok && Array.isArray(ra.data)) ? ra.data : [];
+    /* v10.12 — 댓글·관계·결재·확인목록을 한꾸번에 받아 상세를 그립니다. */
+    return Promise.all([
+      request("issue_comments?select=*&issue_id=eq." + encodeURIComponent(id) + "&order=created_at.asc"),
+      request("issue_relations?select=*&or=(from_id.eq." + encodeURIComponent(id) +
+              ",to_id.eq." + encodeURIComponent(id) + ")"),
+      request("issue_approvals?select=*&issue_id=eq." + encodeURIComponent(id)),
+      request("issue_checklist?select=*&issue_id=eq." + encodeURIComponent(id) + "&order=sort_order.asc")
+    ]).then(function (res) {
+      RM.comments[id] = (res[0].ok && Array.isArray(res[0].data)) ? res[0].data : [];
+      RM.relations[id] = (res[1].ok && Array.isArray(res[1].data)) ? res[1].data : [];
+      RM.checklist[id] = (res[3].ok && Array.isArray(res[3].data)) ? res[3].data : [];
+      var links = (res[2].ok && Array.isArray(res[2].data)) ? res[2].data : [];
       RM.approvals[id] = links;
       var ids = links.map(function (l) { return l.doc_id; });
       if (!ids.length) return { ok: true, data: [] };
@@ -1176,8 +1335,8 @@
         '<label class="rm-f"><span>' + esc(rmI("priority")) + "</span>" +
           sel(RM_PRIOS.map(function (p) { return [p, rmI("prio." + p)]; }), it.priority, "rm-d-priority", !canEdit) + "</label>" +
         '<label class="rm-f"><span>' + esc(rmI("assignee")) + "</span>" +
-          sel([["", rmI("assigneeNone")]].concat(RM.members.map(function (m) { return [m.user_id, rmName(m.user_id)]; })),
-              it.assignee_id, "rm-d-assignee", !canEdit) + "</label>" +
+          '<select id="rm-d-assignee"' + (canEdit ? "" : " disabled") + ">" +
+            rmAssigneeOptions(it.assignee_id) + "</select></label>" +
         '<label class="rm-f"><span>' + esc(rmI("progress")) + ' <b id="rm-d-pv">' + (Number(it.progress) || 0) + "%</b></span>" +
           '<input type="range" min="0" max="100" step="5" id="rm-d-progress" value="' + (Number(it.progress) || 0) + '"' + editable + "></label>" +
         '<label class="rm-f"><span>' + esc(rmI("starts")) + '</span><input type="date" id="rm-d-starts" value="' + esc(ymd(it.starts_on)) + '"' + editable + "></label>" +
@@ -1185,8 +1344,11 @@
         '<label class="rm-f"><span>' + esc(rmI("estimate")) + '</span><input type="number" step="0.5" id="rm-d-est" value="' + esc(it.estimated_hours == null ? "" : it.estimated_hours) + '"' + editable + "></label>" +
         '<label class="rm-f"><span>' + esc(rmI("spent")) + '</span><input type="number" step="0.5" id="rm-d-spent" value="' + esc(it.spent_hours == null ? "" : it.spent_hours) + '"' + editable + "></label>" +
       "</div>" +
+      '<p class="rm-note" id="rm-d-asg-note"' + (it.assignee_id && !rmIsMember(it.assignee_id) ? "" : " hidden") + ">" +
+        esc(rmI("asgGuest")) + "</p>" +
       '<div class="rm-d-desc">' + (it.description ? "<p>" + esc(it.description) + "</p>" : "") +
         "<p class=\"rm-d-meta\">" + esc(rmI("author")) + ": " + esc(rmName(it.author_id)) + " · " + esc(ymd(it.created_at)) + "</p></div>" +
+      '<div class="rm-d-cl" id="rm-d-cl-box">' + rmChecklistHtml(it) + "</div>" +
       '<div class="rm-d-attach" id="rm-d-attach-box">' +
         '<div class="rm-d-attach-head"><span>' + esc(rmI("attach")) + '</span>' +
           (canEdit ? '<span class="rm-d-attach-hint">' + esc(rmI("attachHint")) + "</span>" : "") + "</div>" +
@@ -1303,9 +1465,14 @@
     });
   }
   function rmPaintDetailBind(it) {
-    rmBindAttach(it, rmCanEditIssue(it));
-    var head = $("#rm-d-attach-chips");
-    if (head) head.innerHTML = rmAttachChips(it);
+    var canEdit = rmCanEditIssue(it);
+    rmBindAttach(it, canEdit);
+    rmBindAttachRemove(it);
+    rmBindChecklist(it);
+    var asg = $("#rm-d-assignee"), note = $("#rm-d-asg-note");
+    if (asg && note) asg.addEventListener("change", function () {
+      note.hidden = !(asg.value && !rmIsMember(asg.value));
+    });
   }
 
   function rmDocStatus(st) {
@@ -1331,10 +1498,42 @@
   function rmAttachChips(it) {
     var list = rmAttachList(it);
     if (!list.length) return '<span class="rm-empty sm">' + esc(rmI("noAttach")) + "</span>";
-    if (window.SBP_DRIVE && window.SBP_DRIVE.chip) return list.map(function (a) { return window.SBP_DRIVE.chip(a); }).join("");
+    var removable = rmCanEditIssue(it);
+    if (window.SBP_DRIVE && window.SBP_DRIVE.chip) {
+      return list.map(function (a) { return window.SBP_DRIVE.chip(a, { removable: removable }); }).join("");
+    }
     return list.map(function (a) {
       return '<a href="' + esc(a.url) + '" target="_blank" rel="noopener">' + esc(a.name || a.url) + "</a>";
     }).join("");
+  }
+  /* 침의 × — 그 침반만 배열에서 빼고 바로 저장합니다(v10.12 — 여러 장 유지). */
+  function rmBindAttachRemove(it) {
+    var box = $("#rm-d-attach-chips");
+    if (!box) return;
+    [].forEach.call(box.querySelectorAll(".drive-chip"), function (chip, idx) {
+      var x = chip.querySelector("[data-drive-remove]");
+      if (!x) return;
+      x.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var list = rmAttachList(it).slice();
+        if (!list[idx]) return;
+        list.splice(idx, 1);
+        request("issues?id=eq." + encodeURIComponent(it.id), {
+          method: "PATCH", prefer: "return=representation", body: { attachments: list }
+        }).then(function (r) {
+          if (!r.ok) { rmMsg(rmErr(r), "err"); return; }
+          var row = Array.isArray(r.data) ? r.data[0] : r.data;
+          if (row) {
+            it.attachments = row.attachments;
+            for (var i = 0; i < RM.issues.length; i++) if (RM.issues[i].id === row.id) RM.issues[i] = row;
+          } else { it.attachments = list; }
+          box.innerHTML = rmAttachChips(it);
+          rmBindAttachRemove(it);
+          rmMsg(rmI("attachRemoved"), "ok");
+        }).catch(function () { rmMsg(rmI("fail"), "err"); });
+      });
+    });
   }
   function rmBindAttach(it, canEdit) {
     if (!canEdit) return;
@@ -1343,7 +1542,7 @@
     RM.attach = null;
     window.SBP_DRIVE.enhance(inp, {
       placeholderKey: "drive.ph",
-      value: (it.attachments && it.attachments[0]) || "",
+      value: "",
       onChange: function (att) { RM.attach = att; }
     });
   }
@@ -1362,8 +1561,17 @@
     /* 드라이브 첨부 — 입력칸에 링크를 붙였거나 Picker 로 골랐으면 저장 */
     var att = (window.SBP_DRIVE && window.SBP_DRIVE.parse) ? window.SBP_DRIVE.parse($("#rm-d-attach") ? $("#rm-d-attach").value : "") : null;
     if (RM.attach && RM.attach.fileId) att = RM.attach;
-    if (att && att.fileId) body.attachments = [att];
-    if (body.status === "closed") body.closed_at = new Date().toISOString();
+    /* v10.12 — 여러 장을 배열로 쌓습니다(기존 첨부는 그대로). */
+    var list = rmAttachList(it).slice();
+    if (att && att.fileId && !list.some(function (a) { return a && a.fileId === att.fileId; })) list.push(att);
+    body.attachments = list;
+    /* v10.12 — 상태 전이 정리: 완료면 진행률 100, 100%면 해결로 올립니다. */
+    if (body.status === "closed") {
+      body.progress = 100;
+      if (!it.closed_at) body.closed_at = new Date().toISOString();
+    } else if (body.progress >= 100 && ["new", "in_progress"].indexOf(body.status) >= 0) {
+      body.status = "resolved";
+    }
     request("issues?id=eq." + encodeURIComponent(it.id), {
       method: "PATCH", prefer: "return=representation", body: body
     }).then(function (r) {
@@ -1373,9 +1581,101 @@
       rmMsg(rmI("saved"), "ok");
       $("#rm-modal").hidden = true;
       rmRender();
+      if (body.assignee_id && !rmIsMember(body.assignee_id)) rmEnsureMember(it.project_id, body.assignee_id);
     }).catch(function () { rmMsg(rmI("fail"), "err"); });
   }
 
+  /* ------- v10.12 — 확인목록(체크리스트) + 진행률 ------- */
+  function rmChecklistOf(id) {
+    return (RM.checklist[id] || []).slice().sort(function (a, b) {
+      return (a.sort_order || 0) - (b.sort_order || 0);
+    });
+  }
+  function rmChecklistHtml(it) {
+    var items = rmChecklistOf(it.id);
+    var done = items.filter(function (c) { return c.done; }).length;
+    var pct = items.length ? Math.round(done * 100 / items.length) : (Number(it.progress) || 0);
+    var canWrite = rmCanWrite();
+    return '<h3 class="rm-h3">' + esc(rmI("checklist")) +
+        ' <span class="rm-cl-n">' + esc(rmI("clDone", { done: done, total: items.length })) + "</span></h3>" +
+      '<div class="rm-cl-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '">' +
+        '<i style="width:' + Math.max(0, Math.min(100, pct)) + '%"></i><span>' + pct + "%</span></div>" +
+      (items.length
+        ? '<ul class="rm-cl-list">' + items.map(function (c) {
+            return '<li class="' + (c.done ? "is-done" : "") + '">' +
+              '<label><input type="checkbox" class="rm-cl-box" data-cl="' + esc(c.id) + '"' +
+                (c.done ? " checked" : "") + (canWrite ? "" : " disabled") + "> <span>" + esc(c.text) + "</span></label>" +
+              (rmCanEdit() ? '<button type="button" class="mini rm-cl-del" data-cl="' + esc(c.id) +
+                '" aria-label="' + esc(rmI("delete")) + '">×</button>' : "") +
+              "</li>";
+          }).join("") + "</ul>"
+        : '<p class="rm-empty sm">' + esc(rmI("clEmpty")) + "</p>") +
+      (canWrite ? '<div class="rm-inline rm-cl-add"><input type="text" id="rm-cl-text" maxlength="300" placeholder="' +
+        esc(rmI("clAddPh")) + '"><button type="button" class="btn btn-ghost btn-sm" id="rm-cl-add">' +
+        esc(rmI("clAdd")) + "</button></div>" : "");
+  }
+  function rmPaintChecklistBox(it) {
+    var box = $("#rm-d-cl-box");
+    if (!box) return;
+    box.innerHTML = rmChecklistHtml(it);
+    rmBindChecklist(it);
+  }
+  function rmReloadChecklist(it) {
+    return request("issue_checklist?select=*&issue_id=eq." + encodeURIComponent(it.id) + "&order=sort_order.asc")
+      .then(function (r) {
+        RM.checklist[it.id] = (r.ok && Array.isArray(r.data)) ? r.data : [];
+        rmPaintChecklistBox(it);
+        return r;
+      });
+  }
+  function rmBindChecklist(it) {
+    var box = $("#rm-d-cl-box");
+    if (!box) return;
+    [].forEach.call(box.querySelectorAll(".rm-cl-box"), function (b) {
+      b.addEventListener("change", function () {
+        rpc("checklist_toggle", { p_id: b.getAttribute("data-cl"), p_done: !!b.checked }).then(function (r) {
+          if (!r.ok) { rmMsg(rmErr(r), "err"); rmReloadChecklist(it); return; }
+          var d = r.data || {};
+          for (var i = 0; i < (RM.checklist[it.id] || []).length; i++) {
+            var c = RM.checklist[it.id][i];
+            if (c.id === b.getAttribute("data-cl")) c.done = !!b.checked;
+          }
+          if (d.progress != null) it.progress = d.progress;
+          rmPaintChecklistBox(it);
+          rmRender();
+        }).catch(function () { rmMsg(rmI("fail"), "err"); });
+      });
+    });
+    [].forEach.call(box.querySelectorAll(".rm-cl-del"), function (b) {
+      b.addEventListener("click", function () {
+        rpc("checklist_remove", { p_id: b.getAttribute("data-cl") }).then(function (r) {
+          if (!r.ok) { rmMsg(rmErr(r), "err"); return; }
+          if (r.data && r.data.progress != null) it.progress = r.data.progress;
+          rmReloadChecklist(it);
+          rmRender();
+        });
+      });
+    });
+    var add = $("#rm-cl-add"), inp = $("#rm-cl-text");
+    if (add && inp) {
+      var doAdd = function () {
+        var t = (inp.value || "").trim();
+        if (!t) { inp.focus(); return; }
+        add.disabled = true;
+        rpc("checklist_add", { p_issue_id: it.id, p_text: t }).then(function (r) {
+          add.disabled = false;
+          if (!r.ok) { rmMsg(rmErr(r), "err"); return; }
+          if (r.data && r.data.progress != null) it.progress = r.data.progress;
+          rmReloadChecklist(it).then(function () { rmMsg(rmI("added"), "ok"); });
+          rmRender();
+        }).catch(function () { add.disabled = false; rmMsg(rmI("fail"), "err"); });
+      };
+      add.addEventListener("click", doAdd);
+      inp.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); doAdd(); }
+      });
+    }
+  }
   /* ------- 일감 만들기 / 고치기 ------- */
   function rmOpts(list, kind) {
     return list.map(function (v) { return '<option value="' + esc(v) + '">' + esc(rmI(kind + "." + v)) + "</option>"; }).join("");
@@ -1390,10 +1690,7 @@
     $("#rm-tracker").innerHTML = rmOpts(RM_TRACKERS, "tracker");
     $("#rm-priority").innerHTML = rmOpts(RM_PRIOS, "prio");
     $("#rm-status").innerHTML = rmOpts(RM_STATUSES, "st");
-    $("#rm-assignee").innerHTML = '<option value="">' + esc(rmI("assigneeNone")) + "</option>" +
-      RM.members.map(function (m) {
-        return '<option value="' + esc(m.user_id) + '">' + esc(rmName(m.user_id) || m.user_id) + "</option>";
-      }).join("");
+    $("#rm-assignee").innerHTML = rmAssigneeOptions(it ? it.assignee_id : "");
     $("#rm-parent").innerHTML = '<option value="">' + esc(rmI("noParent")) + "</option>" +
       RM.issues.filter(function (x) { return !it || x.id !== it.id; }).map(function (x) {
         return '<option value="' + esc(x.id) + '">#' + esc(x.issue_no) + " " + esc(x.subject) + "</option>";
@@ -1451,6 +1748,7 @@
       $("#rm-form").hidden = true;
       RM.editing = null;
       rmMsg(rmI("saved"), "ok");
+      if (body.assignee_id && !rmIsMember(body.assignee_id)) rmEnsureMember(RM.project, body.assignee_id);
       rmLoad();
     }).catch(function () { if (btn) btn.disabled = false; rmMsg(rmI("fail"), "err"); });
   }
@@ -1475,15 +1773,34 @@
   }
 
   /* ------- 프로젝트 · 멤버 ------- */
-  function rmOpenProjectForm() {
+  function rmOpenProjectForm(edit) {
     var f = $("#rm-project-form");
     if (!f) return;
-    $("#rm-p-key").value = "";
-    $("#rm-p-name").value = "";
-    $("#rm-p-desc").value = "";
-    $("#rm-p-starts").value = todayKST();
-    $("#rm-p-ends").value = "";
+    var p = edit ? rmProject() : null;
+    if (edit) {
+      if (!p) return;
+      if (!rmCanEdit()) { rmMsg(rmI("noPerm"), "err"); return; }
+    }
+    RM.projEditing = p;
+    $("#rm-project-form-title").textContent = p ? rmI("projectEdit") : rmI("projectNew");
+    $("#rm-p-key").value = p ? p.key : "";
+    $("#rm-p-name").value = p ? p.name : "";
+    $("#rm-p-desc").value = p ? (p.description || "") : "";
+    $("#rm-p-starts").value = p ? ymd(p.starts_on) : todayKST();
+    $("#rm-p-ends").value = p ? ymd(p.ends_on) : "";
+    var st = $("#rm-p-status");
+    if (st) {
+      st.innerHTML = '<option value="active">' + esc(rmI("pst.active")) + "</option>" +
+        '<option value="archived">' + esc(rmI("pst.archived")) + "</option>";
+      st.value = p ? (p.status || "active") : "active";
+      st.disabled = !p;
+    }
+    var sv = $("#rm-project-save");
+    if (sv) sv.textContent = p ? rmI("save") : rmI("create");
+    var del = $("#rm-project-del");
+    if (del) del.hidden = !p;
     f.hidden = false;
+    rmMsg("");
     setTimeout(function () { var x = $("#rm-p-key"); if (x) x.focus(); }, 30);
   }
   function rmSaveProject(e) {
@@ -1493,11 +1810,37 @@
     if (!/^[A-Za-z][A-Za-z0-9_-]{1,15}$/.test(key)) { rmMsg(rmI("needKey"), "err"); $("#rm-p-key").focus(); return; }
     if (!name) { rmMsg(rmI("needName"), "err"); $("#rm-p-name").focus(); return; }
     var uid = rmMe();
-    request("projects", { method: "POST", prefer: "return=representation", body: {
+    var pst = $("#rm-p-status") && !$("#rm-p-status").disabled ? $("#rm-p-status").value : "active";
+    var body = {
       key: key, name: name, description: ($("#rm-p-desc").value || "").trim(),
-      status: "active", owner_id: uid,
       starts_on: $("#rm-p-starts").value || null, ends_on: $("#rm-p-ends").value || null
-    } }).then(function (r) {
+    };
+    var editing = RM.projEditing;
+    if (editing) {
+      body.status = pst;
+      request("projects?id=eq." + encodeURIComponent(editing.id),
+              { method: "PATCH", prefer: "return=representation", body: body }).then(function (r) {
+        if (!r.ok) { rmMsg(rmErr(r), "err"); return; }
+        $("#rm-project-form").hidden = true;
+        RM.projEditing = null;
+        return rmLoadProjects().then(function () {
+          /* 보관으로 바꾸면 목록에서 빠지므로 지금 프로젝트를 새로 고릅니다. */
+          var cur = rmProject();
+          if (!cur || (cur.status === "archived" && !RM.showArchived)) {
+            var first = RM.projects.filter(function (p) { return p.status !== "archived"; })[0];
+            if (first) RM.project = first.id;
+          }
+          rmFillSelects();
+          return rmLoad();
+        }).then(function () {
+          rmMsg(pst === "archived" ? rmI("projectArchived") : rmI("projectSaved"), "ok");
+        });
+      }).catch(function () { rmMsg(rmI("fail"), "err"); });
+      return;
+    }
+    body.status = "active";
+    body.owner_id = uid;
+    request("projects", { method: "POST", prefer: "return=representation", body: body }).then(function (r) {
       if (!r.ok) { rmMsg(rmErr(r), "err"); return; }
       var row = Array.isArray(r.data) ? r.data[0] : r.data;
       if (!row || !row.id) { rmMsg(rmI("fail"), "err"); return; }
@@ -1506,12 +1849,65 @@
         if (!m.ok) rmMsg(rmErr(m), "err");
         RM.project = row.id;
         $("#rm-project-form").hidden = true;
+        RM.projEditing = null;
         return rmLoadProjects().then(function () { rmFillSelects(); return rmLoad(); }).then(function () {
           /* v10.11 — rmLoad() 가 시작할 때 rmMsg("") 로 지우므로 성공 안내는 목록을 그린 뒤에 띄웁니다. */
           rmMsg(rmI("projectCreated"), "ok");
         });
       });
     });
+  }
+
+  /* 프로젝트 삭제 — 키를 정확히 입력해야 단추가 열립니다(일감·체크리스트·댓글까지 cascade). */
+  function rmOpenProjectDelete() {
+    var p = rmProject();
+    if (!p) return;
+    if (!rmCanEdit()) { rmMsg(rmI("noPerm"), "err"); return; }
+    var modal = $("#rm-del-modal");
+    if (!modal) return;
+    modal.hidden = false;
+    var n = RM.issues.length;
+    $("#rm-del-body").innerHTML =
+      '<div class="rm-d-head"><div><h3>' + esc(rmI("projectDelete")) + "</h3>" +
+        '<p class="rm-d-meta">' + esc(p.key + " · " + p.name) + "</p></div>" +
+        '<button type="button" class="tasks-x" id="rm-del-x" aria-label="close">×</button></div>' +
+      '<p class="rm-d-warn">' + esc(rmI("delWarn", { n: n })) + "</p>" +
+      '<label class="rm-f"><span>' + esc(rmI("delKeyPh", { key: p.key })) +
+        '</span><input id="rm-del-key" autocomplete="off" spellcheck="false"></label>' +
+      '<div class="rm-d-actions"><span class="spacer"></span>' +
+        '<button type="button" class="btn btn-ghost btn-sm" id="rm-del-cancel">' + esc(rmI("cancel")) + "</button>" +
+        '<button type="button" class="btn btn-ghost btn-sm danger" id="rm-del-go" disabled>' +
+          esc(rmI("projectDelete")) + "</button></div>";
+    var close = function () { modal.hidden = true; };
+    $("#rm-del-x").addEventListener("click", close);
+    $("#rm-del-cancel").addEventListener("click", close);
+    var inp = $("#rm-del-key"), go = $("#rm-del-go");
+    inp.addEventListener("input", function () {
+      go.disabled = (inp.value || "").trim().toUpperCase() !== String(p.key || "").toUpperCase();
+    });
+    inp.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !go.disabled) { e.preventDefault(); go.click(); }
+    });
+    go.addEventListener("click", function () {
+      go.disabled = true;
+      request("projects?id=eq." + encodeURIComponent(p.id), { method: "DELETE", prefer: "return=minimal" })
+        .then(function (r) {
+          if (!r.ok) { rmMsg(rmErr(r), "err"); go.disabled = false; return; }
+          modal.hidden = true;
+          $("#rm-project-form").hidden = true;
+          RM.projEditing = null;
+          RM.project = null;
+          RM.issues = [];
+          RM.checklist = {};
+          return rmLoadProjects().then(function () {
+            var first = RM.projects.filter(function (x) { return x.status !== "archived"; })[0];
+            RM.project = first ? first.id : (RM.projects[0] ? RM.projects[0].id : null);
+            rmFillSelects();
+            return rmLoad();
+          }).then(function () { rmMsg(rmI("projectDeleted"), "ok"); });
+        }).catch(function () { rmMsg(rmI("fail"), "err"); go.disabled = false; });
+    });
+    setTimeout(function () { inp.focus(); }, 40);
   }
 
   function rmOpenMembers() {

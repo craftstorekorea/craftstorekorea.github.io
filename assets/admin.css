@@ -1105,3 +1105,9 @@ tr.owner-row td{background:#FFFAF6}
 }
 #plugin-table .plug-switch em{white-space:nowrap}
 #plugin-table .plug-badge,#plugin-table .plug-tag,#plugin-table .plug-switch em{width:max-content;max-width:100%}
+
+/* v10.12 — 업무 관리(일감) 진행률 막대 */
+.task-prog{display:inline-block;width:56px;height:6px;border-radius:999px;background:var(--bg-2);overflow:hidden;vertical-align:middle}
+.task-prog i{display:block;height:100%;background:var(--accent)}
+.task-issue-act .rowlink{margin-right:4px}
+.task-issue-act{white-space:nowrap}

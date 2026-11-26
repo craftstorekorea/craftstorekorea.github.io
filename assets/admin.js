@@ -4572,10 +4572,33 @@
     });
   }
 
-  /* ---------------- 8. 업무 관리 (public.tasks) ---------------- */
-  var adminTasks = [];
+  /* ---------------- 8. 업무 관리 (public.issues · v10.12) ----------------
+     v10.11 까지는 옛 tasks 표를 읽어 늘 0건으로 보였습니다. v10.12 부터는
+     사이트 #/tasks 와 같은 일감(issues) 표를 씁니다 — 목록·상태 필터·인라인 상태/진행률·
+     새 일감·수정·삭제. 옛 tasks 자료는 접어 둔 ‘이전 업무 보드’에 그대로 남깁니다. */
+  var TASK_ISSUE_ST = { new: "신규", in_progress: "진행", resolved: "해결", feedback: "피드백", closed: "종료", hold: "보류" };
+  var TASK_ISSUE_ORDER = ["new", "in_progress", "feedback", "hold", "resolved", "closed"];
+  var TASK_TRACKER = { task: "일감", bug: "오류", feature: "기능", support: "지원" };
+  var TASK_PRIO2 = { low: "낮음", normal: "보통", high: "높음", urgent: "긴급" };
+  /* 옛 tasks 표(todo·doing·done) — 접어 둔 이전 보드에만 씁니다. */
   var TASK_STATUS = { todo: "할 일", doing: "진행 중", done: "완료" };
   var TASK_PRIO = { low: "낮음", normal: "보통", high: "높음" };
+
+  var adminIssues = [], adminProjects = [], adminPeople = [], adminEditing = null;
+  var adminLegacyTasks = [];
+  var tasksAdminBound = false;
+
+  function adminProj(id) {
+    for (var i = 0; i < adminProjects.length; i++) if (adminProjects[i].id === id) return adminProjects[i];
+    return null;
+  }
+  function adminPerson(id) {
+    if (!id) return "";
+    for (var i = 0; i < adminPeople.length; i++) if (adminPeople[i].id === id) {
+      return adminPeople[i].name || adminPeople[i].id;
+    }
+    return String(id).slice(0, 8);
+  }
 
   /* ---------- v10.1 업무 · 결재 Pro (assets/work-pro.js — 탭을 처음 열 때 지연 로딩) ----------
      조직도·반복 업무·템플릿·조건부 결재선·결재–업무 연동·리포트는 work-pro.js 가 그리고,
@@ -4606,77 +4629,283 @@
     var body = $("#tasks-admin-table tbody");
     if (!sb || !body) return Promise.resolve();
     body.innerHTML = '<tr class="empty-row"><td colspan="8">불러오는 중…</td></tr>';
-    return sb.from("tasks").select("*").order("created_at", { ascending: false }).limit(500).then(function (r) {
-      if (r.error) {
-        body.innerHTML = '<tr class="empty-row"><td colspan="8">불러오지 못했습니다: ' + esc(r.error.message) + "</td></tr>";
+    tasksBindAdmin();
+    return Promise.all([
+      sb.from("projects").select("*").order("key", { ascending: true }),
+      sb.from("issues").select("*").order("issue_no", { ascending: false }).limit(500),
+      sb.rpc("approval_people")
+    ]).then(function (res) {
+      var pErr = res[0] && res[0].error, iErr = res[1] && res[1].error;
+      if (pErr || iErr) {
+        var why = (iErr || pErr).message || "";
+        body.innerHTML = '<tr class="empty-row"><td colspan="8">불러오지 못했습니다: ' + esc(why) +
+          ' — 업무관리 표(16_v41_approvals_redmine.sql)를 먼저 실행해 주세요.</td></tr>';
+        loadLegacyTasks();
         return;
       }
-      adminTasks = r.data || [];
+      adminProjects = res[0].data || [];
+      adminIssues = res[1].data || [];
+      adminPeople = (res[2] && !res[2].error && Array.isArray(res[2].data)) ? res[2].data : [];
       CMS.loaded.tasks = true;
+      fillTasksProjectFilter();
       renderTasksAdmin();
       var st = $("#tasks-stamp");
-      if (st) st.textContent = "전체 " + adminTasks.length + "건";
+      if (st) st.textContent = "일감 " + adminIssues.length + "건 · 프로젝트 " + adminProjects.length + "개";
       var tab = $("#tab-task-count");
-      if (tab) tab.textContent = adminTasks.length ? String(adminTasks.length) : "";
+      if (tab) tab.textContent = adminIssues.length ? String(adminIssues.length) : "";
+      loadLegacyTasks();
+    });
+  }
+
+  function tasksBindAdmin() {
+    if (tasksAdminBound) return;
+    tasksAdminBound = true;
+    var pf = $("#tasks-admin-project");
+    if (pf) pf.addEventListener("change", renderTasksAdmin);
+    var nb = $("#tasks-new");
+    if (nb) nb.addEventListener("click", function () { openTaskForm(null); });
+    var fx = $("#tasks-form-x");
+    if (fx) fx.addEventListener("click", closeTaskForm);
+    var fc = $("#tasks-form-cancel");
+    if (fc) fc.addEventListener("click", closeTaskForm);
+    var ff = $("#tasks-admin-form");
+    if (ff) ff.addEventListener("submit", saveTaskForm);
+  }
+
+  function fillTasksProjectFilter() {
+    var sel = $("#tasks-admin-project");
+    if (!sel) return;
+    var cur = sel.value || "";
+    sel.innerHTML = '<option value="">프로젝트 전체</option>' + adminProjects.map(function (p) {
+      return '<option value="' + esc(p.id) + '">' + esc(p.key + " · " + p.name) +
+        (p.status === "archived" ? " (" + esc("보관") + ")" : "") + "</option>";
+    }).join("");
+    sel.value = cur;
+  }
+
+  function tasksVisible() {
+    var q = ($("#tasks-admin-q") && $("#tasks-admin-q").value || "").trim().toLowerCase();
+    var st = $("#tasks-admin-status") ? $("#tasks-admin-status").value : "";
+    var pid = $("#tasks-admin-project") ? $("#tasks-admin-project").value : "";
+    return adminIssues.filter(function (it) {
+      if (st && it.status !== st) return false;
+      if (pid && it.project_id !== pid) return false;
+      if (!q) return true;
+      var key = (adminProj(it.project_id) || {}).key || "";
+      return ["#" + it.issue_no, it.subject, it.description, adminPerson(it.assignee_id), key]
+        .join(" ").toLowerCase().indexOf(q) >= 0;
     });
   }
 
   function renderTasksAdmin() {
     var body = $("#tasks-admin-table tbody");
     if (!body) return;
-    var q = ($("#tasks-admin-q").value || "").trim().toLowerCase();
-    var st = $("#tasks-admin-status").value;
-    var rows = adminTasks.filter(function (t) {
-      if (st && t.status !== st) return false;
-      if (!q) return true;
-      return [t.title, t.description, t.assignee, t.author_name].join(" ").toLowerCase().indexOf(q) >= 0;
-    });
+    var rows = tasksVisible();
     var tag = $("#tasks-admin-count");
-    if (tag) tag.textContent = rows.length === adminTasks.length ? "전체 " + adminTasks.length + "건" : rows.length + " / " + adminTasks.length + "건";
+    if (tag) tag.textContent = rows.length === adminIssues.length
+      ? "전체 " + adminIssues.length + "건" : rows.length + " / " + adminIssues.length + "건";
     if (!rows.length) {
-      body.innerHTML = '<tr class="empty-row"><td colspan="8">' + (adminTasks.length ? "조건에 맞는 업무가 없습니다." : "아직 등록된 업무가 없습니다. 사이트 #/tasks 에서 회원이 추가합니다.") + "</td></tr>";
+      body.innerHTML = '<tr class="empty-row"><td colspan="8">' +
+        (adminIssues.length ? "조건에 맞는 일감이 없습니다."
+          : "아직 일감이 없습니다. ‘새 일감’으로 첫 일감을 만들거나 사이트 #/tasks 에서 만드세요.") + "</td></tr>";
       return;
     }
-    body.innerHTML = rows.map(function (t) {
-      var opts = Object.keys(TASK_STATUS).map(function (k) {
-        return '<option value="' + k + '"' + (t.status === k ? " selected" : "") + ">" + TASK_STATUS[k] + "</option>";
+    body.innerHTML = rows.map(function (it) {
+      var p = adminProj(it.project_id);
+      var pct = Math.max(0, Math.min(100, Number(it.progress) || 0));
+      var opts = TASK_ISSUE_ORDER.map(function (k) {
+        return '<option value="' + k + '"' + (it.status === k ? " selected" : "") + ">" +
+          esc(TASK_ISSUE_ST[k] || k) + "</option>";
       }).join("");
-      return "<tr>" +
-        '<td data-th="상태"><select class="admin-select task-status-sel" data-id="' + esc(t.id) + '" aria-label="상태 변경">' + opts + "</select></td>" +
-        '<td class="ellip" data-th="제목" title="' + esc(t.title) + '">' + esc(t.title) +
-          (t.description ? '<span class="muted">' + esc(String(t.description).slice(0, 60)) + "</span>" : "") + "</td>" +
-        '<td data-th="우선순위"><span class="badge b-prio p-' + esc(t.priority) + '">' + esc(TASK_PRIO[t.priority] || t.priority) + "</span></td>" +
-        '<td data-th="담당">' + esc(t.assignee || "–") + "</td>" +
-        '<td class="muted" data-th="마감">' + esc(t.due_date ? String(t.due_date).slice(0, 10) : "–") + "</td>" +
-        '<td class="muted" data-th="작성자">' + esc(t.author_name || "–") + "</td>" +
-        '<td class="muted" data-th="수정">' + esc(fmtWhen(t.updated_at || t.created_at)) + "</td>" +
-        '<td><button type="button" class="rowlink task-del" data-id="' + esc(t.id) + '">삭제</button></td>' +
+      return '<tr class="task-issue-row" data-id="' + esc(it.id) + '">' +
+        '<td data-th="프로젝트"><b>' + esc(p ? p.key : "—") + "</b></td>" +
+        '<td class="ellip" data-th="일감" title="' + esc(it.subject) + '">' +
+          '<span class="muted">#' + esc(it.issue_no) + "</span> " + esc(it.subject) +
+          '<span class="muted">' + esc(TASK_TRACKER[it.tracker] || it.tracker) + " · " +
+            esc(TASK_PRIO2[it.priority] || it.priority) + "</span></td>" +
+        '<td data-th="상태"><select class="admin-select task-issue-st" data-id="' + esc(it.id) +
+          '" aria-label="일감 상태">' + opts + "</select></td>" +
+        '<td data-th="진행률"><span class="task-prog"><i style="width:' + pct + '%"></i></span> ' +
+          '<span class="muted">' + pct + "%</span></td>" +
+        '<td data-th="담당">' + esc(adminPerson(it.assignee_id) || "–") + "</td>" +
+        '<td class="muted" data-th="마감">' + esc(it.due_on ? String(it.due_on).slice(0, 10) : "–") + "</td>" +
+        '<td class="muted" data-th="수정">' + esc(fmtWhen(it.updated_at || it.created_at)) + "</td>" +
+        '<td class="task-issue-act"><button type="button" class="rowlink task-issue-edit" data-id="' +
+          esc(it.id) + '">수정</button> ' +
+          '<a class="rowlink" href="/#/tasks?issue=' + encodeURIComponent(it.id) + '" target="_blank" rel="noopener">보드</a> ' +
+          '<button type="button" class="rowlink task-issue-del" data-id="' + esc(it.id) + '">삭제</button></td>' +
         "</tr>";
     }).join("");
-    [].forEach.call(body.querySelectorAll(".task-status-sel"), function (sel) {
+    [].forEach.call(body.querySelectorAll(".task-issue-st"), function (sel) {
       sel.addEventListener("change", function () {
         var id = sel.getAttribute("data-id");
-        sb.from("tasks").update({ status: sel.value }).eq("id", id).then(function (r) {
+        var patch = { status: sel.value };
+        if (sel.value === "closed") patch.progress = 100;
+        sb.from("issues").update(patch).eq("id", id).then(function (r) {
           if (r.error) { cmsMsg("tasks-admin-msg", "바꾸지 못했습니다: " + r.error.message, "err"); return; }
-          for (var i = 0; i < adminTasks.length; i++) if (adminTasks[i].id === id) adminTasks[i].status = sel.value;
+          for (var i = 0; i < adminIssues.length; i++) if (adminIssues[i].id === id) {
+            adminIssues[i].status = sel.value;
+            if (patch.progress != null) adminIssues[i].progress = patch.progress;
+          }
           renderTasksAdmin();
-          cmsMsg("tasks-admin-msg", "업무 상태를 ‘" + (TASK_STATUS[sel.value] || sel.value) + "’(으)로 바꿨습니다.", "ok");
+          cmsMsg("tasks-admin-msg", "일감 상태를 ‘" + (TASK_ISSUE_ST[sel.value] || sel.value) + "’(으)로 바꿨습니다.", "ok");
         });
       });
     });
-    [].forEach.call(body.querySelectorAll(".task-del"), function (b) {
+    [].forEach.call(body.querySelectorAll(".task-issue-edit"), function (b) {
       b.addEventListener("click", function () {
         var id = b.getAttribute("data-id");
-        var row = null;
-        for (var i = 0; i < adminTasks.length; i++) if (adminTasks[i].id === id) row = adminTasks[i];
-        if (!window.confirm("‘" + (row ? row.title : "업무") + "’를 삭제할까요?\n되돌릴 수 없습니다.")) return;
-        sb.from("tasks").delete().eq("id", id).then(function (r) {
+        for (var i = 0; i < adminIssues.length; i++) if (adminIssues[i].id === id) openTaskForm(adminIssues[i]);
+      });
+    });
+    [].forEach.call(body.querySelectorAll(".task-issue-del"), function (b) {
+      b.addEventListener("click", function () {
+        var id = b.getAttribute("data-id"), row = null;
+        for (var i = 0; i < adminIssues.length; i++) if (adminIssues[i].id === id) row = adminIssues[i];
+        if (!row) return;
+        if (!window.confirm("‘" + row.subject + "’ 일감을 삭제할까요?\n하위 일감은 상위 연결만 풀리고, 체크리스트·댓글은 함께 지워집니다.")) return;
+        sb.from("issues").delete().eq("id", id).then(function (r) {
           if (r.error) { cmsMsg("tasks-admin-msg", "삭제하지 못했습니다: " + r.error.message, "err"); return; }
-          adminTasks = adminTasks.filter(function (t) { return t.id !== id; });
+          adminIssues = adminIssues.filter(function (x) { return x.id !== id; });
           renderTasksAdmin();
           var tab = $("#tab-task-count");
-          if (tab) tab.textContent = adminTasks.length ? String(adminTasks.length) : "";
-          cmsMsg("tasks-admin-msg", "업무를 삭제했습니다.", "ok");
+          if (tab) tab.textContent = adminIssues.length ? String(adminIssues.length) : "";
+          cmsMsg("tasks-admin-msg", "일감을 삭제했습니다.", "ok");
+        });
+      });
+    });
+  }
+
+  /* 새 일감 · 수정 — 탭 안의 접이식 폼 */
+  function openTaskForm(it) {
+    var form = $("#tasks-admin-form");
+    if (!form) return;
+    if (!adminProjects.length) {
+      cmsMsg("tasks-admin-msg", "프로젝트가 없습니다. 사이트 #/tasks 에서 먼저 프로젝트를 만들어 주세요.", "err");
+      return;
+    }
+    adminEditing = it || null;
+    $("#tasks-form-title").textContent = it ? "일감 수정 #" + it.issue_no : "새 일감";
+    var ps = $("#taf-project");
+    ps.innerHTML = adminProjects.map(function (p) {
+      return '<option value="' + esc(p.id) + '">' + esc(p.key + " · " + p.name) + "</option>";
+    }).join("");
+    ps.value = it ? it.project_id : adminProjects[0].id;
+    ps.disabled = !!it;
+    $("#taf-subject").value = it ? it.subject : "";
+    $("#taf-desc").value = it ? (it.description || "") : "";
+    var tr = $("#taf-tracker");
+    tr.innerHTML = Object.keys(TASK_TRACKER).map(function (k) {
+      return '<option value="' + k + '">' + esc(TASK_TRACKER[k]) + "</option>";
+    }).join("");
+    tr.value = it ? it.tracker : "task";
+    var pr = $("#taf-priority");
+    pr.innerHTML = Object.keys(TASK_PRIO2).map(function (k) {
+      return '<option value="' + k + '">' + esc(TASK_PRIO2[k]) + "</option>";
+    }).join("");
+    pr.value = it ? it.priority : "normal";
+    var st = $("#taf-status");
+    st.innerHTML = TASK_ISSUE_ORDER.map(function (k) {
+      return '<option value="' + k + '">' + esc(TASK_ISSUE_ST[k]) + "</option>";
+    }).join("");
+    st.value = it ? it.status : "new";
+    var as = $("#taf-assignee");
+    as.innerHTML = '<option value="">— 지정 안 함 —</option>' + adminPeople.map(function (p) {
+      return '<option value="' + esc(p.id) + '">' + esc(p.name || p.id) + "</option>";
+    }).join("");
+    as.value = it ? (it.assignee_id || "") : "";
+    $("#taf-starts").value = it && it.starts_on ? String(it.starts_on).slice(0, 10) : "";
+    $("#taf-due").value = it && it.due_on ? String(it.due_on).slice(0, 10) : "";
+    $("#taf-progress").value = it ? (Number(it.progress) || 0) : 0;
+    var del = $("#tasks-form-del");
+    if (del) del.hidden = !it;
+    form.hidden = false;
+    cmsMsg("tasks-admin-msg", "");
+    setTimeout(function () { var f = $("#taf-subject"); if (f) f.focus(); }, 40);
+  }
+  function closeTaskForm() {
+    var form = $("#tasks-admin-form");
+    if (form) form.hidden = true;
+    adminEditing = null;
+  }
+  function saveTaskForm(e) {
+    if (e) e.preventDefault();
+    var subject = ($("#taf-subject").value || "").trim();
+    if (!subject) { cmsMsg("tasks-admin-msg", "일감 제목을 입력해 주세요.", "err"); $("#taf-subject").focus(); return; }
+    var pct = Math.max(0, Math.min(100, Number($("#taf-progress").value) || 0));
+    var status = $("#taf-status").value;
+    if (status === "closed") pct = 100;
+    else if (pct >= 100 && ["new", "in_progress"].indexOf(status) >= 0) status = "resolved";
+    var body = {
+      subject: subject,
+      description: ($("#taf-desc").value || "").trim(),
+      tracker: $("#taf-tracker").value,
+      priority: $("#taf-priority").value,
+      status: status,
+      progress: pct,
+      assignee_id: $("#taf-assignee").value || null,
+      starts_on: $("#taf-starts").value || null,
+      due_on: $("#taf-due").value || null
+    };
+    var btn = $("#tasks-form-save");
+    if (btn) btn.disabled = true;
+    var req;
+    if (adminEditing) {
+      req = sb.from("issues").update(body).eq("id", adminEditing.id).select();
+    } else {
+      req = sb.rpc("issue_create", {
+        p_project_id: $("#taf-project").value, p_subject: body.subject,
+        p_description: body.description, p_tracker: body.tracker,
+        p_priority: body.priority, p_status: body.status, p_parent_id: null,
+        p_assignee_id: body.assignee_id, p_starts_on: body.starts_on, p_due_on: body.due_on,
+        p_estimated_hours: null, p_spent_hours: null
+      });
+    }
+    Promise.resolve(req).then(function (r) {
+      if (btn) btn.disabled = false;
+      if (r && r.error) { cmsMsg("tasks-admin-msg", "저장하지 못했습니다: " + r.error.message, "err"); return; }
+      var made = adminEditing;
+      closeTaskForm();
+      cmsMsg("tasks-admin-msg", made ? "일감을 고쳤습니다." : "일감을 만들었습니다.", "ok");
+      loadTasksAdmin();
+    }).catch(function (err) {
+      if (btn) btn.disabled = false;
+      cmsMsg("tasks-admin-msg", "저장하지 못했습니다: " + String((err && err.message) || err), "err");
+    });
+  }
+
+  /* 옛 업무 보드(public.tasks) — 자료가 있을 때만 접어서 보여 줍니다. */
+  function loadLegacyTasks() {
+    var wrap = $("#tasks-legacy");
+    var body = $("#tasks-legacy-table tbody");
+    if (!wrap || !body || !sb) return Promise.resolve();
+    return sb.from("tasks").select("*").order("created_at", { ascending: false }).limit(500).then(function (r) {
+      adminLegacyTasks = (r && !r.error && Array.isArray(r.data)) ? r.data : [];
+      wrap.hidden = !adminLegacyTasks.length;
+      var n = $("#tasks-legacy-n");
+      if (n) n.textContent = adminLegacyTasks.length ? String(adminLegacyTasks.length) : "0";
+      if (!adminLegacyTasks.length) { body.innerHTML = ""; return; }
+      body.innerHTML = adminLegacyTasks.map(function (t) {
+        return "<tr>" +
+          '<td data-th="제목">' + esc(t.title || "") + "</td>" +
+          '<td data-th="상태">' + esc(TASK_STATUS[t.status] || t.status || "") + "</td>" +
+          '<td data-th="우선순위">' + esc(TASK_PRIO[t.priority] || t.priority || "") + "</td>" +
+          '<td data-th="담당">' + esc(t.assignee || "–") + "</td>" +
+          '<td class="muted" data-th="작성">' + esc(t.author_name || "–") + "</td>" +
+          '<td class="muted" data-th="수정">' + esc(fmtWhen(t.updated_at || t.created_at)) + "</td>" +
+          '<td><button type="button" class="rowlink task-del" data-id="' + esc(t.id) + '">삭제</button></td>' +
+          "</tr>";
+      }).join("");
+      [].forEach.call(body.querySelectorAll(".task-del"), function (b) {
+        b.addEventListener("click", function () {
+          var id = b.getAttribute("data-id"), row = null;
+          for (var i = 0; i < adminLegacyTasks.length; i++) if (adminLegacyTasks[i].id === id) row = adminLegacyTasks[i];
+          if (!window.confirm("‘" + (row ? row.title : "업무") + "’를 삭제할까요?\n되돌릴 수 없습니다.")) return;
+          sb.from("tasks").delete().eq("id", id).then(function (x) {
+            if (x.error) { cmsMsg("tasks-admin-msg", "삭제하지 못했습니다: " + x.error.message, "err"); return; }
+            loadLegacyTasks();
+            cmsMsg("tasks-admin-msg", "이전 업무를 삭제했습니다.", "ok");
+          });
         });
       });
     });

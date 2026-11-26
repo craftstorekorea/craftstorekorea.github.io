@@ -501,7 +501,7 @@
       "rm.bulkDone": "{n}건을 바꿨습니다.",
       "rm.needSubject": "일감 제목을 입력해 주세요.",
       "rm.attach": "첨부 (Google Drive)",
-      "rm.attachHint": "공유 링크를 붙이면 미리보기가 열립니다.",
+      "rm.attachHint": "공유 링크를 붙이면 미리보기가 열립니다. 여러 개를 붙일 수 있습니다.",
       "rm.attachPh": "https://drive.google.com/file/d/…",
       "rm.noAttach": "첨부 없음",
 
@@ -591,7 +591,32 @@
       "rm.st.closed": "종료",
       "rm.st.hold": "보류",
       "rm.missing.title": "업무관리 표가 아직 없습니다 — 지금은 이전 업무 보드로 동작합니다",
-      "rm.missing.desc": "Supabase SQL Editor 에서 아래 파일을 한 번 실행하면 레드마인형 업무관리가 켜집니다(여러 번 실행해도 안전)."
+      "rm.missing.desc": "Supabase SQL Editor 에서 아래 파일을 한 번 실행하면 레드마인형 업무관리가 켜집니다(여러 번 실행해도 안전).",
+
+      "rm.projectEdit": "프로젝트 설정",
+      "rm.projectStatus": "프로젝트 상태",
+      "rm.pst.active": "운영 중",
+      "rm.pst.archived": "보관",
+      "rm.archived": "보관",
+      "rm.showArchived": "보관 보기",
+      "rm.hideArchived": "보관 숨기기",
+      "rm.projectDelete": "프로젝트 삭제",
+      "rm.projectSaved": "프로젝트 설정을 저장했습니다.",
+      "rm.projectArchived": "프로젝트를 보관했습니다. 목록에서 숨깁니다.",
+      "rm.projectDeleted": "프로젝트를 삭제했습니다.",
+      "rm.delWarn": "이 프로젝트와 일감 {n}건, 체크리스트·댓글·결재 연결이 함께 삭제됩니다. 되돌릴 수 없습니다.",
+      "rm.delKeyPh": "삭제하려면 프로젝트 키 ‘{key}’를 입력하세요.",
+      "rm.checklist": "체크리스트",
+      "rm.clDone": "완료 {done} / 전체 {total}",
+      "rm.clEmpty": "체크리스트 항목이 없습니다.",
+      "rm.clAddPh": "체크리스트 항목 추가",
+      "rm.clAdd": "추가",
+      "rm.gMember": "프로젝트 멤버",
+      "rm.gOrg": "조직도",
+      "rm.gAll": "전체 회원",
+      "rm.asgGuest": "프로젝트 밖 담당자입니다. 저장하면 프로젝트 멤버로도 추가되어 그 사람이 이 일감을 볼 수 있습니다.",
+      "rm.asgAdded": "담당자를 프로젝트 멤버로도 추가했습니다.",
+      "rm.attachRemoved": "첨부를 지웠습니다."
 
     },
     en: {
@@ -1068,7 +1093,7 @@
       "rm.bulkDone": "Updated {n} issues.",
       "rm.needSubject": "Please enter an issue subject.",
       "rm.attach": "Attachments (Google Drive)",
-      "rm.attachHint": "Paste a share link to preview it.",
+      "rm.attachHint": "Paste a share link to preview it. You can attach more than one.",
       "rm.attachPh": "https://drive.google.com/file/d/…",
       "rm.noAttach": "No attachments",
 
@@ -1158,7 +1183,32 @@
       "rm.st.closed": "Closed",
       "rm.st.hold": "On hold",
       "rm.missing.title": "Task tables are not installed — using the previous board",
-      "rm.missing.desc": "Run the SQL below once in the Supabase SQL Editor to turn on Redmine-style tasks (safe to run again)."
+      "rm.missing.desc": "Run the SQL below once in the Supabase SQL Editor to turn on Redmine-style tasks (safe to run again).",
+
+      "rm.projectEdit": "Project settings",
+      "rm.projectStatus": "Project status",
+      "rm.pst.active": "Active",
+      "rm.pst.archived": "Archived",
+      "rm.archived": "archived",
+      "rm.showArchived": "Show archived",
+      "rm.hideArchived": "Hide archived",
+      "rm.projectDelete": "Delete project",
+      "rm.projectSaved": "Project settings saved.",
+      "rm.projectArchived": "Project archived and hidden from the list.",
+      "rm.projectDeleted": "Project deleted.",
+      "rm.delWarn": "This project, its {n} issue(s), checklists, comments and approval links will be deleted. This cannot be undone.",
+      "rm.delKeyPh": "Type the project key ‘{key}’ to delete.",
+      "rm.checklist": "Checklist",
+      "rm.clDone": "{done} of {total} done",
+      "rm.clEmpty": "No checklist items yet.",
+      "rm.clAddPh": "Add a checklist item",
+      "rm.clAdd": "Add",
+      "rm.gMember": "Project members",
+      "rm.gOrg": "Org chart",
+      "rm.gAll": "All members",
+      "rm.asgGuest": "This assignee is outside the project. Saving also adds them as a project member so they can see this issue.",
+      "rm.asgAdded": "Also added the assignee as a project member.",
+      "rm.attachRemoved": "Attachment removed."
 
     }
   };
