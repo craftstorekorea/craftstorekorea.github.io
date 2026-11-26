@@ -8,7 +8,7 @@
    - 인쇄/PDF: @media print 인쇄본(서명란 포함)을 만들어 브라우저 인쇄로 저장합니다.
    - 자료: approval_forms / approval_docs / approval_steps / approval_logs
            + approval_rules(전결) / approval_delegates(대결)
-     쓰기는 서버 함수(RPC)만 — approval_create2 · approval_submit · approval_act2 · approval_withdraw
+     쓰기는 서버 함수(RPC)만 — approval_create3(일감 연결) · approval_create2 · approval_submit · approval_act2 · approval_withdraw
    - SQL(16_v41) 미실행이면 v4.0 결재 그대로 동작하고 새 기능은 안내만 합니다(폴백).
    의존: assets/i18n.js, assets/auth.js(세션·프로필)
 */
@@ -100,6 +100,10 @@
     agree: [],
     refs: [],
     issueId: null,
+    issueTarget: "resolved",
+    issues: [],
+    projects: [],
+    issueLoaded: false,
     ruleOn: true
   };
 
@@ -207,6 +211,35 @@
       return r;
     });
   }
+  /* v10.15 — 기안에 연결할 일감 목록(내가 볼 수 있는 일감 · RLS). */
+  function loadIssues() {
+    return Promise.all([
+      request("issues?select=id,issue_no,subject,status,project_id,due_on,assignee_id&order=updated_at.desc&limit=300"),
+      request("projects?select=id,key,name")
+    ]).then(function (res) {
+      state.issues = Array.isArray(res[0].data) ? res[0].data : [];
+      state.projects = Array.isArray(res[1].data) ? res[1].data : [];
+      state.issueLoaded = true;
+      return res[0];
+    }).catch(function () { state.issues = []; });
+  }
+
+  function issueById(id) {
+    for (var i = 0; i < state.issues.length; i++) if (state.issues[i].id === id) return state.issues[i];
+    return null;
+  }
+  function projectKey(pid) {
+    for (var i = 0; i < state.projects.length; i++) if (state.projects[i].id === pid) return state.projects[i].key || "";
+    return "";
+  }
+  function issueLabel(it) {
+    if (!it) return "";
+    var k = projectKey(it.project_id);
+    return (k ? k + " " : "") + "#" + (it.issue_no || 0) + " · " + (it.subject || "");
+  }
+  function issueStatusKey(st) { return "rm.st." + (st || "new"); }
+  function targetKey(st) { return "appr.link.st." + (st || "resolved"); }
+
   function loadDelegates() {
     return request("approval_delegates?select=*&active=is.true&order=starts_on.desc").then(function (r) {
       if (!r.ok) { state.delegates = []; return r; }
@@ -381,6 +414,9 @@
         (doc.status === "pending" ? '<span class="appr-turn">' + esc(I("appr.waitFor", { step: nextLabel(doc) })) + "</span>" : "") +
         (doc.status === "pending" ? '<span class="appr-progress">' + esc(I("appr.progress", { done: done, total: list.length })) + "</span>" : "") +
         (turn ? '<span class="appr-turn-mine">' + esc(I("appr.turn.mine")) + "</span>" : "") +
+        (doc.linked_task_id ? '<span class="appr-issue-chip">' + esc(I("appr.link.chip", {
+          label: (issueById(doc.linked_task_id) ? issueLabel(issueById(doc.linked_task_id)) : "#" + String(doc.linked_task_id).slice(0, 6))
+        })) + "</span>" : "") +
       "</div>" +
     "</article>";
   }
@@ -558,8 +594,31 @@
       '<span class="appr-log-x">' + esc(label) + "</span>" +
       (l.detail && l.detail.delegate_of ? '<span class="appr-log-c">' + esc(I("appr.kind.delegate")) + "</span>" : "") +
       (adminAct ? '<span class="appr-log-c">' + esc(I("appr.log.adminAct")) + "</span>" : "") +
+      (l.action === "task" && l.detail && l.detail.issue_id
+        ? '<a class="appr-log-c appr-issue-link" href="' + esc("#/tasks?issue=" + encodeURIComponent(l.detail.issue_id)) + '">' +
+          esc(I("appr.link.logNote", {
+            name: l.detail.subject || "", from: I(issueStatusKey(l.detail.from)), to: I(issueStatusKey(l.detail.to))
+          })) + "</a>"
+        : "") +
       (l.comment ? '<span class="appr-log-c">' + esc(l.comment) + "</span>" : "") +
       "</li>";
+  }
+
+  /* v10.15 — 연결된 일감 링크 (#/tasks?issue=…). 목록에 없으면 제목 없이 링크만 그립니다. */
+  function linkedTaskHtml(doc) {
+    if (!doc || !doc.linked_task_id) return '<span class="muted">' + esc(I("appr.link.noneShort")) + '</span>';
+    var it = issueById(doc.linked_task_id);
+    var href = "#/tasks?issue=" + encodeURIComponent(doc.linked_task_id);
+    var text = it ? issueLabel(it) : (I("appr.link.open") + " " + String(doc.linked_task_id).slice(0, 8));
+    var html = '<a class="appr-issue-link" id="appr-issue-link" href="' + esc(href) + '">' + esc(text) + '</a>';
+    if (it) {
+      html += ' <span class="appr-issue-flow">' + esc(I(issueStatusKey(it.status))) + " → " +
+        esc(I(targetKey(doc.task_target_status))) + "</span>";
+    } else {
+      html += ' <span class="appr-issue-flow">' + esc(I("appr.link.afterApprove")) + " " +
+        esc(I(targetKey(doc.task_target_status))) + "</span>";
+    }
+    return html;
   }
 
   function paintDoc() {
@@ -593,6 +652,7 @@
           (doc.status === "pending" ? esc(I("appr.step.n", { n: doc.current_step || 1 })) :
            doc.status === "draft" ? esc(I("appr.meta.draft")) :
            esc(I(statusKey(doc.status)))) + "</dd></div>" +
+        "<div><dt>" + esc(I("appr.link.title")) + "</dt><dd>" + linkedTaskHtml(doc) + "</dd></div>" +
       "</dl>" +
       (rule ? '<p class="appr-rule-note">' + esc(I("appr.rule.appliedNote", {
         max: money(rule.max_amount), amount: money(rule.amount), name: rule.approver_name || ""
@@ -674,6 +734,8 @@
     });
     var pr = $("#appr-print");
     if (pr) pr.addEventListener("click", function () { printDoc(doc); });
+    var il = $("#appr-issue-link");
+    if (il) il.addEventListener("click", function () { box.hidden = true; state.doc = null; clearPrint(); });
   }
 
   function money(n) {
@@ -707,6 +769,9 @@
         "<tr><th>" + esc(I("appr.meta.drafter")) + "</th><td>" + esc(doc.drafter_name || "") + "</td></tr>" +
         "<tr><th>" + esc(I("appr.meta.submitted")) + "</th><td>" +
           esc(doc.submitted_at ? fmtTime(doc.submitted_at) : I("appr.meta.draft")) + "</td></tr>" +
+        (doc.linked_task_id ? "<tr><th>" + esc(I("appr.link.title")) + "</th><td>" +
+          esc((issueById(doc.linked_task_id) ? issueLabel(issueById(doc.linked_task_id)) : doc.linked_task_id) +
+              " → " + I(targetKey(doc.task_target_status))) + "</td></tr>" : "") +
         rows.map(function (r) {
           return "<tr><th>" + esc(r.label) + "</th><td>" + esc(r.value) + "</td></tr>";
         }).join("") +
@@ -749,13 +814,18 @@
   function csvText() {
     var rows = visibleDocs();
     var head = [I("appr.no"), I("appr.csv.form"), I("appr.csv.title"), I("appr.csv.drafter"),
-                I("appr.csv.status"), I("appr.csv.submitted"), I("appr.csv.closed"), I("appr.csv.line")];
+                I("appr.csv.status"), I("appr.csv.submitted"), I("appr.csv.closed"), I("appr.csv.line"),
+                I("appr.link.title")];
     var lines = [head.map(cell).join(",")];
     rows.forEach(function (d) {
       var line = flowSteps(d).sort(function (a, b) { return (a.step_order || 0) - (b.step_order || 0); })
         .map(function (s) { return (s.kind === "agree" ? I("appr.kind.agree") + ":" : "") + (s.approver_name || ""); }).join(" / ");
+      var linked = d.linked_task_id
+        ? ((issueById(d.linked_task_id) ? issueLabel(issueById(d.linked_task_id)) : d.linked_task_id) +
+           " → " + I(targetKey(d.task_target_status)))
+        : "";
       lines.push([d.doc_no, formName(d, false), d.title, d.drafter_name, I(statusKey(d.status)),
-                  fmtDate(d.submitted_at || d.created_at), fmtDate(d.completed_at), line].map(cell).join(","));
+                  fmtDate(d.submitted_at || d.created_at), fmtDate(d.completed_at), line, linked].map(cell).join(","));
     });
     return "\ufeff" + lines.join("\r\n");
   }
@@ -1010,6 +1080,40 @@
 
   var attachCtl = null;
 
+  /* v10.15 — 관련 일감 고르기 + 승인 완료 시 목표 상태 */
+  var TARGETS = ["resolved", "closed", "in_progress", "hold", "new"];
+  function paintIssueLink() {
+    var sel = $("#appr-issue");
+    var tgt = $("#appr-issue-target");
+    var hint = $("#appr-issue-hint");
+    if (!sel || !tgt) return;
+    var open = state.issues.filter(function (it) { return it && it.status !== "closed"; });
+    open.sort(function (a, b) {
+      function rank(s) { return s === "new" || s === "in_progress" || s === "feedback" ? 0 : 1; }
+      return rank(a.status) - rank(b.status) || String(a.due_on || "9999").localeCompare(String(b.due_on || "9999"));
+    });
+    var cur = state.issueId || sel.value || "";
+    sel.innerHTML = '<option value="">' + esc(I("appr.link.none")) + "</option>" +
+      open.map(function (it) {
+        return '<option value="' + esc(it.id) + '"' + (it.id === cur ? " selected" : "") + ">" +
+          esc(issueLabel(it)) + " · " + esc(I(issueStatusKey(it.status))) + "</option>";
+      }).join("");
+    if (!open.length) sel.innerHTML = '<option value="">' + esc(I("appr.link.noIssues")) + "</option>";
+    tgt.innerHTML = TARGETS.map(function (t) {
+      return '<option value="' + t + '"' + ((state.issueTarget || "resolved") === t ? " selected" : "") + ">" +
+        esc(I(targetKey(t))) + "</option>";
+    }).join("");
+    state.issueId = sel.value || null;
+    tgt.disabled = !state.issueId;
+    if (hint) {
+      var it = issueById(state.issueId);
+      hint.textContent = it
+        ? I("appr.link.hintSel", { label: issueLabel(it), from: I(issueStatusKey(it.status)),
+                                   to: I(targetKey(state.issueTarget)) })
+        : I("appr.link.hint");
+    }
+  }
+
   function openCompose(prefill) {
     var form = $("#appr-compose");
     if (!form) return;
@@ -1028,13 +1132,17 @@
     $("#appr-attach").value = "";
     if (attachCtl && attachCtl.set) attachCtl.set(null);
     if (!attachCtl && window.SBP_DRIVE && window.SBP_DRIVE.enhance) {
-      attachCtl = window.SBP_DRIVE.enhance($("#appr-attach"), { placeholderKey: "appr.form.attachPh" });
+      attachCtl = window.SBP_DRIVE.enhance($("#appr-attach"), {
+        placeholderKey: "appr.form.attachPh",
+        meta: { doc_kind: "approval" }
+      });
     }
     $("#appr-approver-1").innerHTML = peopleOptions(null);
     $("#appr-approver-2").innerHTML = peopleOptions(null);
     pickList("agree");
     pickList("ref");
     paintFields();
+    paintIssueLink();
     if (prefill) {
       state.issueId = prefill.issue_id || null;
       if (prefill.form_code) {
@@ -1044,6 +1152,12 @@
       if (prefill.issue_id) {
         var badge = $("#appr-issue-badge");
         if (badge) { badge.hidden = false; badge.textContent = I("appr.fromIssue", { title: prefill.issue_title || "" }); }
+        if ($("#appr-issue")) $("#appr-issue").value = prefill.issue_id;
+        paintIssueLink();
+        if ($("#appr-issue")) {
+          /* 목록에 없던 일감(권한 밖)이면 선택이 비므로, 연결은 그대로 유지합니다. */
+          if ($("#appr-issue").value !== prefill.issue_id && state.issueId === null) state.issueId = prefill.issue_id;
+        }
       }
     } else {
       var badge2 = $("#appr-issue-badge");
@@ -1101,14 +1215,31 @@
     }
     var btn = $("#appr-save");
     if (btn) btn.disabled = true;
+    var linkId = ($("#appr-issue") ? $("#appr-issue").value : "") || state.issueId || null;
+    var linkTarget = ($("#appr-issue-target") ? $("#appr-issue-target").value : "") || state.issueTarget || "resolved";
     var body = {
       p_form_id: d.form_id, p_title: d.title, p_body: d.body,
       p_fields: d.fields, p_steps: d.steps, p_submit: !!send,
       p_use_rule: state.ruleOn
     };
-    if (state.issueId) body.p_issue_id = state.issueId;
-    rpc("approval_create2", body).then(function (r) {
+    if (linkId) body.p_issue_id = linkId;
+    /* v10.15 — 일감을 연결하면 approval_create3 로 상신해 최종 승인 때 상태가 바뀌게 합니다. */
+    var call = linkId
+      ? rpc("approval_create3", {
+          p_form_id: d.form_id, p_title: d.title, p_body: d.body,
+          p_fields: d.fields, p_steps: d.steps, p_submit: !!send,
+          p_use_rule: state.ruleOn, p_linked_task_id: linkId, p_task_target_status: linkTarget
+        })
+      : rpc("approval_create2", body);
+    call.then(function (r) {
       if (btn) btn.disabled = false;
+      if (linkId && r.status === 404 && /approval_create3|function/i.test(r.text || "")) {
+        /* v10.1 이전 DB — 일감 연결(자동 전이)은 없이 링크만 남기고 상신합니다. */
+        return rpc("approval_create2", body).then(function (r2) {
+          if (r2.ok) setMsg(I("appr.link.oldDb"), "warn");
+          return finish(r2);
+        });
+      }
       if (r.status === 404 && /approval_create2|function/i.test(r.text || "")) {
         /* v4.0 함수만 있는 DB — 예전 함수로 떨어뜨립니다(합의·참조 없이 승인선만). */
         var appr = d.steps.filter(function (s) { return s.kind === "approve"; }).map(function (s) { return s.approver_id; });
@@ -1121,7 +1252,8 @@
       function finish(res) {
         if (!res.ok) { setMsg(I("appr.msg.fail") + shortErr(res), "err"); return; }
         closeCompose();
-        setMsg(I(send ? "appr.msg.submitted" : "appr.msg.drafted"), "ok");
+        setMsg(I(send ? "appr.msg.submitted" : "appr.msg.drafted") +
+               (linkId ? " " + I("appr.link.saved", { label: (issueById(linkId) ? issueLabel(issueById(linkId)) : "") }) : ""), "ok");
         state.tab = "mine";
         refreshAll().then(function () {
           var id = res.data && res.data.id;
@@ -1156,7 +1288,9 @@
       return loadPeople().then(function () {
         return loadRules().then(function () {
           paintNotice();
-          return loadDelegates().then(function () { return loadDocs(); });
+          return loadIssues().then(function () {
+            return loadDelegates().then(function () { return loadDocs(); });
+          });
         });
       });
     }).then(function () {
@@ -1206,6 +1340,11 @@
             '<input id="appr-doc-title" maxlength="200" data-i18n-ph="appr.form.titlePh"></label>' +
           '<div class="appr-fieldset" id="appr-fields"></div>' +
           '<div class="appr-rule-hint" id="appr-rule-hint" hidden></div>' +
+          '<label class="appr-f"><span class="appr-f-label" data-i18n="appr.link.title"></span>' +
+            '<select id="appr-issue"></select></label>' +
+          '<label class="appr-f"><span class="appr-f-label" data-i18n="appr.link.target"></span>' +
+            '<select id="appr-issue-target"></select></label>' +
+          '<p class="appr-hint appr-f-wide" id="appr-issue-hint"></p>' +
           '<label class="appr-f appr-f-wide"><span class="appr-f-label" data-i18n="appr.form.attach"></span>' +
             '<input id="appr-attach" type="url" data-i18n-ph="appr.form.attachPh"></label>' +
           '<label class="appr-f appr-f-wide"><span class="appr-f-label" data-i18n="appr.form.body"></span>' +
@@ -1256,6 +1395,16 @@
         for (var i = 0; i < state.forms.length; i++) if (state.forms[i].id === sel.value) form = state.forms[i];
         paintRuleHint(form);
       }
+    });
+    var issueSel = $("#appr-issue");
+    if (issueSel) issueSel.addEventListener("change", function () {
+      state.issueId = issueSel.value || null;
+      paintIssueLink();
+    });
+    var issueTgt = $("#appr-issue-target");
+    if (issueTgt) issueTgt.addEventListener("change", function () {
+      state.issueTarget = issueTgt.value || "resolved";
+      paintIssueLink();
     });
     $("#appr-draft").addEventListener("click", function () { submitCompose(false); });
     $("#appr-save").addEventListener("click", function () { submitCompose(true); });

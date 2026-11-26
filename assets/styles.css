@@ -1721,6 +1721,19 @@ body[data-theme="craft"] .hm-prov{fill:#F1E0CB}
 .appr-msg{margin:0 0 12px;font-size:.86rem;color:var(--ink-2);min-height:1.2em}
 .appr-msg.ok{color:#4C6338}
 .appr-msg.err{color:#A33A2A}
+.appr-msg.warn{color:#8A5316}
+
+/* v10.15 — 결재 ↔ 일감 연결 */
+.appr-issue-link{color:var(--accent-d,#6d5220);font-weight:700;text-decoration:underline;text-underline-offset:2px}
+.appr-issue-link:hover{color:var(--ink)}
+.appr-issue-flow{font-size:.76rem;color:var(--ink-3);margin-left:4px;white-space:nowrap}
+.appr-issue-chip{
+  display:inline-flex;align-items:center;gap:3px;font-size:.72rem;font-weight:700;
+  padding:2px 8px;border-radius:999px;background:var(--accent-s);color:var(--accent-d,#6d5220);
+  border:1px solid #E7DBC4;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+#appr-issue,#appr-issue-target{max-width:100%}
+#appr-issue:disabled,#appr-issue-target:disabled{opacity:.55}
 .appr-list{display:flex;flex-direction:column;gap:10px}
 .appr-card{
   background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;
@@ -2185,7 +2198,9 @@ body.notify-open { overflow: hidden; }
 .drive-input { width: 100%; }
 .drive-bar { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
 .drive-bar .btn { font-size: 12px; padding: 4px 10px; }
-.drive-help { font-size: 11.5px; color: var(--muted, #8b7f75); line-height: 1.4; }
+.drive-help { font-size: 11.5px; color: var(--muted, #8b7f75); line-height: 1.4; flex: 1 1 220px; min-width: 0; }
+.drive-upload-btn[disabled] { opacity: .55; cursor: progress; }
+.drive-file { display: none; }
 .drive-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .drive-chips:empty { display: none; }
 .drive-chip {

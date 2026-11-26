@@ -1607,6 +1607,7 @@
     window.SBP_DRIVE.enhance(inp, {
       placeholderKey: "drive.ph",
       value: "",
+      meta: { doc_kind: "issue", doc_id: it && it.id ? it.id : "" },
       onChange: function (att) { RM.attach = att; }
     });
   }

@@ -7,8 +7,8 @@
         미리보기 주소: drive.google.com/file/d/<id>/preview  (문서·시트·슬라이드는 docs.google.com/…)
      2) Picker — 관리자 [설정 · 연동]에 API 키·앱 ID 가 있으면 'Google Drive에서 선택' 버튼이 동작합니다.
         구글 로그인 세션의 provider token 이 필요하므로, 없으면 다시 동의를 안내합니다.
-     3) 자동 업로드 — drive-upload Edge Function 이 있으면 50MB 넘는 파일도 드라이브 폴더로 올립니다.
-        함수·키가 없으면 조용히 링크 방식을 안내합니다.
+     3) 자동 업로드 — [파일 올리기] 단추가 drive-upload Edge Function 으로 파일을 보냅니다(50MB 넘는 파일도).
+        함수·시크릿·구글 동의가 없으면 무엇이 빠졌는지 그 자리에서 안내하고, 공유 링크 붙이기로 이어집니다.
 
    저장 모양(approval_docs.fields / issues.attachments / posts.attachments)
      {provider:'drive', fileId, name, url, preview, kind:'file'|'folder'|'doc'|'sheet'|'slide'|'form'}
@@ -236,7 +236,11 @@
     bar.innerHTML =
       '<button type="button" class="btn btn-ghost btn-sm drive-pick" data-drive-pick="1">' +
         '<span aria-hidden="true">🔺</span> ' + esc(I("drive.pick")) + "</button>" +
-      '<span class="drive-help">' + esc(I(pickerReady() ? "drive.pickHint" : "drive.pickHintOff")) + "</span>";
+      '<button type="button" class="btn btn-ghost btn-sm drive-upload-btn" data-drive-upload="1">' +
+        '<span aria-hidden="true">📤</span> ' + esc(I("drive.upload")) + "</button>" +
+      '<input type="file" class="drive-file" data-drive-file="1" hidden>' +
+      '<span class="drive-help" data-drive-help="1">' +
+        esc(I(pickerReady() ? "drive.pickHint" : "drive.pickHintOff")) + "</span>";
     var chipBox = document.createElement("div");
     chipBox.className = "drive-chips";
     wrap.appendChild(bar);
@@ -270,13 +274,82 @@
         input.focus();
         return;
       }
+      if (e.target.closest("[data-drive-upload]")) {
+        var fin = wrap.querySelector("[data-drive-file]");
+        if (fin) fin.click();
+        return;
+      }
       if (!e.target.closest("[data-drive-pick]")) return;
+      if (!pickerReady()) {
+        notify(I("drive.needKeysUpload"), "warn");
+        setHelp("drive.pickHintOff");
+        return;
+      }
       openPicker(function (att) {
         if (!att) return;
         set(att, true);
         input.value = att.url;
       });
     });
+
+    /* v10.15 — 파일 올리기: drive-upload 로 보내고, 없으면 무엇이 빠졌는지 안내합니다. */
+    function setHelp(key, vars) {
+      var h = wrap.querySelector("[data-drive-help]");
+      if (h) h.textContent = I(key, vars);
+    }
+    function onFile(e) {
+      var fin = e.target;
+      var file = fin && fin.files && fin.files[0];
+      if (!file) return;
+      if (file.size > 50 * 1024 * 1024) {
+        notify(I("drive.tooBig", { mb: String(Math.round(file.size / 1048576)) }), "warn");
+        fin.value = "";
+        return;
+      }
+      var t = (window.CRAFT_AUTH && window.CRAFT_AUTH.token) ? window.CRAFT_AUTH.token() : "";
+      if (!t) {
+        notify(I("drive.needSignIn"), "warn");
+        fin.value = "";
+        return;
+      }
+      var meta = opts.meta || {};
+      setHelp("drive.uploading", { name: file.name });
+      var btn = wrap.querySelector("[data-drive-upload]");
+      if (btn) btn.disabled = true;
+      upload(file, meta).then(function (res) {
+        if (btn) btn.disabled = false;
+        fin.value = "";
+        if (res && res.ok && res.att) {
+          set(res.att, true);
+          input.value = res.att.url;
+          setHelp("drive.uploaded", { name: res.att.name || file.name });
+          notify(I("drive.uploadDone", { name: res.att.name || file.name }), "ok");
+          return;
+        }
+        var err = String((res && res.error) || "");
+        if (res && res.status === 404) {
+          setHelp("drive.noFunction");
+          notify(I("drive.noFunction"), "warn");
+        } else if (res && res.status === 401) {
+          setHelp("drive.needSignIn");
+          notify(I("drive.needSignIn"), "warn");
+        } else if (/needs_reauth|invalid_grant/.test(err)) {
+          setHelp("drive.needConsent");
+          notify(I("drive.needConsent"), "warn");
+          if (window.CRAFT_AUTH && window.CRAFT_AUTH.openLogin) {
+            window.CRAFT_AUTH.openLogin(I("drive.needConsent"));
+          }
+        } else if (/not_configured|TOKEN_SECRET|501/.test(err)) {
+          setHelp("drive.notConfigured");
+          notify(I("drive.notConfigured"), "warn");
+        } else {
+          setHelp("drive.uploadFail", { err: err.slice(0, 120) });
+          notify(I("drive.uploadFail", { err: err.slice(0, 120) }), "warn");
+        }
+      });
+    }
+    var fileInput = wrap.querySelector("[data-drive-file]");
+    if (fileInput) fileInput.addEventListener("change", onFile);
 
     if (opts.value) {
       var pv = typeof opts.value === "string" ? parse(opts.value) : opts.value;
@@ -372,13 +445,18 @@
       return r.text().then(function (txt) {
         var data = null;
         try { data = txt ? JSON.parse(txt) : null; } catch (e) { data = null; }
-        if (!r.ok) return { ok: false, error: (data && (data.error || data.detail)) || ("HTTP " + r.status) };
+        if (!r.ok) {
+          return {
+            ok: false, status: r.status,
+            error: (data && (data.error || data.detail)) || ("HTTP " + r.status)
+          };
+        }
         return { ok: true, att: {
           provider: "drive", fileId: data.fileId, name: data.name || file.name,
           url: data.url, preview: data.previewUrl, kind: "file"
         } };
       });
-    }).catch(function (e) { return { ok: false, error: String((e && e.message) || e) }; });
+    }).catch(function (e) { return { ok: false, status: 0, error: String((e && e.message) || e) }; });
   }
 
   /* ---------------- 동의 저장 (refresh token → Edge Function) ----------------

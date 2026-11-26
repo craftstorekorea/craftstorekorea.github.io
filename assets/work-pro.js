@@ -145,6 +145,7 @@
     sec: "org", period: "week",
     org: [], issues: [], people: [], projects: [], templates: [], checklist: [],
     rules: [], fastRules: [], forms: [], docs: [], steps: [], audit: [], report: null,
+    reportExt: null, reportExtOk: true,
     useRule: true, suggested: null,
     editRole: null, editTmpl: null, detailIssue: null, rec: null, sel: {},
     deadlineFilter: "", recurOnly: false, msg: ""
@@ -378,10 +379,19 @@
   }
 
   function loadReport() {
-    return rpc("work_report", { p_period: S.period }).then(function (r) {
+    /* v10.15 — 기본 리포트(work_report)와 확장 리포트(work_report_ext)를 함께 읽습니다.
+       36_v1015 SQL 이 아직 없는 DB 에서도 기본 리포트는 그대로 그립니다(폴백). */
+    return Promise.all([
+      rpc("work_report", { p_period: S.period }),
+      rpc("work_report_ext", { p_period: S.period })
+    ]).then(function (res) {
+      var r = res[0] || {};
+      var e = res[1] || {};
       S.report = (r.ok && r.data && typeof r.data === "object") ? r.data : null;
+      S.reportExt = (e.ok && e.data && typeof e.data === "object") ? e.data : null;
+      S.reportExtOk = !!(e.ok && S.reportExt);
       return r;
-    }).catch(function () { S.report = null; });
+    }).catch(function () { S.report = null; S.reportExt = null; S.reportExtOk = false; });
   }
 
   /* ==================================================================
@@ -661,19 +671,19 @@
   function recurRow(it) {
     var d = DEADLINE[deadlineState(it)] || {};
     return "<tr" + (d.cls === "is-over" ? ' class="is-over"' : "") + ">" +
-      '<td class="wp-cell-main"><b>' + esc(issueLabel(it)) + "</b>" +
+      '<td class="wp-cell-main" data-th="일감"><b>' + esc(issueLabel(it)) + "</b>" +
         (it.recur_source_id ? ' <span class="wp-tag">반복</span>' : "") + "</td>" +
-      "<td>" + esc((projOf(it.project_id) || {}).name || "") + "</td>" +
-      "<td>" + esc(nameOf(it.assignee_id) || "—") + "</td>" +
-      "<td>" + esc(ymd(it.due_on) || "—") + " " + deadlineBadge(it) + "</td>" +
-      "<td>" + esc(STATUS[it.status] || it.status) + "</td>" +
-      '<td><select class="wp-mini" data-wp-act="recur-set" data-id="' + esc(it.id) + '" aria-label="반복 규칙">' +
+      '<td data-th="프로젝트">' + esc((projOf(it.project_id) || {}).name || "") + "</td>" +
+      '<td data-th="담당">' + esc(nameOf(it.assignee_id) || "—") + "</td>" +
+      '<td data-th="마감">' + esc(ymd(it.due_on) || "—") + " " + deadlineBadge(it) + "</td>" +
+      '<td data-th="상태">' + esc(STATUS[it.status] || it.status) + "</td>" +
+      '<td data-th="반복"><select class="wp-mini" data-wp-act="recur-set" data-id="' + esc(it.id) + '" aria-label="반복 규칙">' +
         Object.keys(RECUR).map(function (k) {
           return '<option value="' + k + '"' + ((it.recurrence || "none") === k ? " selected" : "") + ">" +
             esc(RECUR[k]) + "</option>";
         }).join("") + "</select></td>" +
-      "<td>" + esc(fmtWhen(it.next_run_at) || "—") + "</td>" +
-      '<td class="right">' + ((it.recurrence && it.recurrence !== "none")
+      '<td data-th="다음 실행">' + esc(fmtWhen(it.next_run_at) || "—") + "</td>" +
+      '<td class="right" data-th="">' + ((it.recurrence && it.recurrence !== "none")
         ? '<button type="button" class="btn btn-ghost btn-sm" data-wp-act="recur-run" data-id="' + esc(it.id) + '">다음 일감 생성</button>'
         : "") + "</td>" +
     "</tr>";
@@ -1072,13 +1082,13 @@
   /* ---------- 전결 규정(approval_rules) 줄과 저장 ---------- */
   function fastRuleRow(r) {
     return "<tr>" +
-      "<td>" + esc(formName(r.form_code) || r.form_code || "—") + "</td>" +
-      "<td>" + esc(money(r.max_amount) + "원 이하") + "</td>" +
-      "<td>" + esc(nameOf(r.approver_id) || r.approver_name || "—") + "</td>" +
-      "<td>" + esc(r.note || "") + "</td>" +
-      '<td><label class="wp-check"><input type="checkbox" class="wp-fr-active" data-id="' + esc(r.id) + '"' +
+      '<td data-th="양식">' + esc(formName(r.form_code) || r.form_code || "—") + "</td>" +
+      '<td data-th="금액 상한">' + esc(money(r.max_amount) + "원 이하") + "</td>" +
+      '<td data-th="전결권자">' + esc(nameOf(r.approver_id) || r.approver_name || "—") + "</td>" +
+      '<td data-th="비고">' + esc(r.note || "") + "</td>" +
+      '<td data-th="상태"><label class="wp-check"><input type="checkbox" class="wp-fr-active" data-id="' + esc(r.id) + '"' +
         (r.active !== false ? " checked" : "") + "> " + (r.active !== false ? "사용" : "꺼짐") + "</label></td>" +
-      '<td class="right">' +
+      '<td class="right" data-th="">' +
         '<button type="button" class="btn btn-ghost btn-sm" data-wp-act="fr-edit" data-id="' + esc(r.id) + '">수정</button>' +
         '<button type="button" class="btn btn-ghost btn-sm danger" data-wp-act="fr-del" data-id="' + esc(r.id) + '">삭제</button>' +
       "</td>" +
@@ -1208,12 +1218,12 @@
     var range = (r.min_amount == null ? "0" : money(r.min_amount)) + " ~ " +
       (r.max_amount == null ? "상한 없음" : money(r.max_amount));
     return "<tr>" +
-      "<td>" + esc(r.form_code ? (formName(r.form_code) || r.form_code) : "모든 양식") + "</td>" +
-      "<td>" + esc(range) + "</td>" +
-      "<td>" + esc(names.join(" → ") || "—") + "</td>" +
-      "<td>" + esc(r.note || "") + "</td>" +
-      '<td>' + (r.active === false ? '<span class="wp-tag is-off">꺼짐</span>' : '<span class="wp-tag">사용</span>') + "</td>" +
-      '<td class="right">' +
+      '<td data-th="양식">' + esc(r.form_code ? (formName(r.form_code) || r.form_code) : "모든 양식") + "</td>" +
+      '<td data-th="금액 구간">' + esc(range) + "</td>" +
+      '<td data-th="결재선">' + esc(names.join(" → ") || "—") + "</td>" +
+      '<td data-th="비고">' + esc(r.note || "") + "</td>" +
+      '<td data-th="상태">' + (r.active === false ? '<span class="wp-tag is-off">꺼짐</span>' : '<span class="wp-tag">사용</span>') + "</td>" +
+      '<td class="right" data-th="">' +
         '<button type="button" class="btn btn-ghost btn-sm" data-wp-act="rule-edit" data-id="' + esc(r.id) + '">수정</button>' +
         '<button type="button" class="btn btn-ghost btn-sm danger" data-wp-act="rule-del" data-id="' + esc(r.id) + '">삭제</button>' +
       "</td>" +
@@ -1222,11 +1232,11 @@
 
   function inboxRow(d) {
     return "<tr>" +
-      '<td><input type="checkbox" class="wp-doc" data-id="' + esc(d.id) + '" aria-label="' + esc(d.doc_no || d.title) + '"></td>' +
-      '<td class="wp-cell-main"><b>' + esc(d.doc_no || "") + "</b> " + esc(d.title || "") +
+      '<td data-th="선택"><input type="checkbox" class="wp-doc" data-id="' + esc(d.id) + '" aria-label="' + esc(d.doc_no || d.title) + '"></td>' +
+      '<td class="wp-cell-main" data-th="문서"><b>' + esc(d.doc_no || "") + "</b> " + esc(d.title || "") +
         '<span class="wp-card-meta">' + esc(formName(d.form_code)) + "</span></td>" +
-      "<td>" + esc(d.drafter_name || nameOf(d.drafter_id) || "") + "</td>" +
-      "<td>" + esc(fmtDate(d.submitted_at)) + "</td>" +
+      '<td data-th="기안자">' + esc(d.drafter_name || nameOf(d.drafter_id) || "") + "</td>" +
+      '<td data-th="상신">' + esc(fmtDate(d.submitted_at)) + "</td>" +
     "</tr>";
   }
 
@@ -1411,17 +1421,216 @@
     var it = issueOf(doc.linked_task_id);
     var applied = doc.status === "approved";
     return "<tr>" +
-      '<td class="wp-cell-main"><b>' + esc(doc.doc_no || "") + "</b> " + esc(doc.title || "") +
+      '<td class="wp-cell-main" data-th="기안"><b>' + esc(doc.doc_no || "") + "</b> " + esc(doc.title || "") +
         '<span class="wp-card-meta">' + esc(formName(doc.form_code)) + "</span></td>" +
-      "<td>" + esc(STATUS[doc.status] || doc.status) + "</td>" +
-      "<td>" + esc(it ? issueLabel(it) : doc.linked_task_id) + "</td>" +
-      "<td>" + esc(it ? (STATUS[it.status] || it.status) : "—") + "</td>" +
-      "<td>" + esc(STATUS[doc.task_target_status] || doc.task_target_status || "") + "</td>" +
-      "<td>" + (applied ? '<span class="wp-badge is-done">반영됨</span>' : '<span class="wp-badge">대기</span>') + "</td>" +
+      '<td data-th="상태">' + esc(STATUS[doc.status] || doc.status) + "</td>" +
+      '<td data-th="연결 일감">' + esc(it ? issueLabel(it) : doc.linked_task_id) + "</td>" +
+      '<td data-th="일감 현재">' + esc(it ? (STATUS[it.status] || it.status) : "—") + "</td>" +
+      '<td data-th="승인 시">' + esc(STATUS[doc.task_target_status] || doc.task_target_status || "") + "</td>" +
+      '<td data-th="반영">' + (applied ? '<span class="wp-badge is-done">반영됨</span>' : '<span class="wp-badge">대기</span>') + "</td>" +
     "</tr>";
   }
 
   /* ---------------- 6) 리포트 ---------------- */
+  /* v10.15 — 확장 리포트(work_report_ext). 담당자별 · 부서별 처리 현황, 마감 준수/지연,
+     일별 번다운, 담당자별 리소스 간트(일정 겹침·워크로드)를 그립니다. */
+  function ext() { return S.reportExt || null; }
+  function pct(part, all) {
+    var a = Number(part || 0), b = Number(all || 0);
+    if (!b) return "—";
+    return String(Math.round((a * 100) / b)) + "%";
+  }
+  function rate(part, all) {
+    var a = Number(part || 0), b = Number(all || 0);
+    if (!b) return 0;
+    return Math.round((a * 100) / b);
+  }
+
+  /* 일별 번다운 — SVG (남은 일감 선 + 그날 완료 막대) */
+  function burndownSvg(series) {
+    var rows = (series || []).filter(function (x) { return x && x.d; });
+    if (rows.length < 2) return "";
+    var W = 720, H = 200, padL = 34, padR = 12, padT = 14, padB = 26;
+    var maxV = 1;
+    rows.forEach(function (x) {
+      maxV = Math.max(maxV, Number(x.open_count || 0), Number(x.created || 0), Number(x.completed || 0));
+    });
+    var n = rows.length;
+    var x = function (i) { return padL + (i * (W - padL - padR)) / Math.max(1, n - 1); };
+    var y = function (v) { return H - padB - (Number(v || 0) * (H - padT - padB)) / maxV; };
+    var line = rows.map(function (r2, i) { return (i ? "L" : "M") + x(i).toFixed(1) + " " + y(r2.open_count).toFixed(1); }).join(" ");
+    var area = line + " L" + x(n - 1).toFixed(1) + " " + (H - padB) + " L" + x(0).toFixed(1) + " " + (H - padB) + " Z";
+    var bars = rows.map(function (r2, i) {
+      var bw = Math.max(2, ((W - padL - padR) / Math.max(1, n - 1)) * 0.34);
+      return '<rect class="wp-bd-done" x="' + (x(i) - bw / 2).toFixed(1) + '" y="' + y(r2.completed).toFixed(1) +
+        '" width="' + bw.toFixed(1) + '" height="' + Math.max(0, H - padB - y(r2.completed)).toFixed(1) + '" rx="1"></rect>';
+    }).join("");
+    var dots = rows.map(function (r2, i) {
+      return '<circle class="wp-bd-dot" cx="' + x(i).toFixed(1) + '" cy="' + y(r2.open_count).toFixed(1) +
+        '" r="2.6"><title>' + esc(fmtDate(r2.d) + " · 남은 " + num(r2.open_count)) + "</title></circle>";
+    }).join("");
+    var grid = [0, 0.5, 1].map(function (t) {
+      var v = Math.round(maxV * t);
+      var yy = y(v);
+      return '<line class="wp-bd-grid" x1="' + padL + '" y1="' + yy.toFixed(1) + '" x2="' + (W - padR) + '" y2="' + yy.toFixed(1) + '"></line>' +
+        '<text class="wp-bd-axis" x="' + (padL - 6) + '" y="' + (yy + 3.5).toFixed(1) + '" text-anchor="end">' + num(v) + "</text>";
+    }).join("");
+    var first = rows[0], last = rows[n - 1];
+    var labels = '<text class="wp-bd-axis" x="' + padL + '" y="' + (H - 8) + '">' + esc(fmtDate(first.d).slice(5)) + "</text>" +
+      '<text class="wp-bd-axis" x="' + (W - padR) + '" y="' + (H - 8) + '" text-anchor="end">' + esc(fmtDate(last.d).slice(5)) + "</text>";
+    return '<svg class="wp-burndown" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' +
+      esc("일별 남은 일감 번다운") + '" preserveAspectRatio="xMidYMid meet">' +
+      grid + bars +
+      '<path class="wp-bd-area" d="' + area + '"></path>' +
+      '<path class="wp-bd-line" d="' + line + '"></path>' + dots + labels + "</svg>";
+  }
+
+  /* 리소스 간트 — 담당자별 줄에 일감 기간 막대. 기간이 겹치면 '겹침'으로 표시합니다. */
+  function ganttRows() {
+    var r = ext();
+    if (!r || !Array.isArray(r.gantt)) return [];
+    var from = ymd(r.from), to = ymd(r.to);
+    var span = Math.max(1, dayNo(to) - dayNo(from) + 1);
+    var byPerson = {};
+    r.gantt.forEach(function (g) {
+      var start = ymd(g.starts_on) || ymd(g.due_on);
+      var end = ymd(g.due_on) || ymd(g.starts_on);
+      if (!start || !end) return;
+      if (dayNo(end) < dayNo(start)) { var tmp = start; start = end; end = tmp; }
+      var s0 = Math.max(dayNo(from), dayNo(start));
+      var s1 = Math.min(dayNo(to), dayNo(end));
+      if (s1 < s0) return;
+      var key = (g.assignee_id || "-") + "|" + (g.assignee || "");
+      var row = byPerson[key] || (byPerson[key] = { name: g.assignee || "(미지정)", dept: g.dept || "", items: [] });
+      row.items.push({
+        id: g.id, no: g.issue_no, subject: g.subject || "", status: g.status, progress: Number(g.progress || 0),
+        left: ((s0 - dayNo(from)) / span) * 100, width: Math.max(1.4, ((s1 - s0 + 1) / span) * 100),
+        start: start, end: end, outside: dayNo(start) < dayNo(from) || dayNo(end) > dayNo(to),
+        est: g.estimated_hours, project: g.project_key || ""
+      });
+    });
+    return Object.keys(byPerson).map(function (k) {
+      var row = byPerson[k];
+      /* 같은 담당자 안에서 기간이 겹치는 일감 수를 셉니다. */
+      row.items.forEach(function (a) {
+        a.overlap = row.items.filter(function (b) {
+          return b !== a && dayNo(b.start) <= dayNo(a.end) && dayNo(b.end) >= dayNo(a.start);
+        }).length;
+      });
+      row.items.sort(function (a, b) { return dayNo(a.start) - dayNo(b.start); });
+      return row;
+    }).sort(function (a, b) { return b.items.length - a.items.length || a.name.localeCompare(b.name); });
+  }
+
+  function ganttBlock() {
+    var r = ext();
+    if (!r) return "";
+    var rows = ganttRows();
+    if (!rows.length) {
+      return '<section class="panel panel-wide wp-report-block">' +
+        '<div class="panel-head"><h2>담당자별 리소스 간트</h2><span class="panel-tag">일정 겹침 · 워크로드</span></div>' +
+        '<p class="wp-empty">이 기간에 시작일·마감일이 있는 미완료 일감이 없습니다.</p></section>';
+    }
+    var total = rows.reduce(function (n, x) { return n + x.items.length; }, 0);
+    var clashes = rows.reduce(function (n, x) { return n + x.items.filter(function (a) { return a.overlap > 0; }).length; }, 0);
+    return '<section class="panel panel-wide wp-report-block">' +
+      '<div class="panel-head"><h2>담당자별 리소스 간트</h2>' +
+        '<span class="panel-tag">일감 ' + num(total) + " · 일정 겹침 " + num(clashes) + "</span></div>" +
+      '<p class="cms-hint wp-nonprint">막대는 일감의 시작일~마감일이고, 채운 부분은 진행률입니다. 같은 담당자의 기간이 겹치면 빗금·‘겹침’ 배지로 표시합니다. 다른 담당자 줄은 서로 겹쳐도 일정 충돌이 아닙니다.</p>' +
+      '<div class="wp-gantt" id="wp-gantt">' +
+        rows.map(function (row) {
+          var busy = row.items.filter(function (a) { return a.overlap > 0; }).length;
+          return '<div class="wp-gantt-row">' +
+            '<div class="wp-gantt-who"><b>' + esc(row.name) + "</b>" +
+              (row.dept ? '<span class="wp-gantt-dept">' + esc(row.dept) + "</span>" : "") +
+              '<span class="wp-gantt-n">' + num(row.items.length) + "건" +
+                (busy ? ' · <em class="wp-gantt-clash">겹침 ' + num(busy) + "</em>" : "") + "</span>" +
+            "</div>" +
+            '<div class="wp-gantt-track">' +
+              '<div class="wp-gantt-axis"><span>' + esc(fmtDate(r.from).slice(5)) + "</span><span>" + esc(fmtDate(r.to).slice(5)) + "</span></div>" +
+              row.items.map(function (a) {
+                var st = a.status === "resolved" ? "완료" : a.status === "in_progress" ? "진행" :
+                         a.status === "hold" ? "보류" : a.status === "feedback" ? "피드백" : "신규";
+                return '<div class="wp-gantt-bar is-' + esc(a.status) + (a.overlap ? " is-clash" : "") + '"' +
+                  ' style="left:' + a.left.toFixed(2) + "%;width:" + Math.min(100 - a.left, a.width).toFixed(2) + '%"' +
+                  ' title="' + esc("#" + num(a.no) + " " + a.subject + " · " + a.start + "~" + a.end + " · " + st + " " + a.progress + "%") + '">' +
+                  '<i style="width:' + Math.max(0, Math.min(100, a.progress)) + '%"></i>' +
+                  '<span>' + esc((a.project ? a.project + " " : "") + "#" + num(a.no) + (a.overlap ? " · 겹침" : "")) + "</span>" +
+                "</div>";
+              }).join("") +
+            "</div>" +
+          "</div>";
+        }).join("") +
+      "</div>" +
+      '<p class="cms-hint wp-print-only">막대 = 일감 기간(시작일~마감일), 진한 부분 = 진행률, ‘겹침’ = 같은 담당자의 일정이 겹침.</p>' +
+    "</section>";
+  }
+
+  function assigneeBlock() {
+    var r = ext();
+    if (!r) {
+      return '<p class="cms-hint wp-ext-missing">담당자별·부서별 현황과 리소스 간트는 <code>supabase/36_v1015_ext_reports.sql</code> 을 실행하면 켜집니다. 지금은 기본 리포트만 보입니다.</p>';
+    }
+    var rows = Array.isArray(r.by_assignee) ? r.by_assignee : [];
+    var depts = Array.isArray(r.by_dept_status) ? r.by_dept_status : [];
+    var dl = r.deadline || {};
+    var doneWithDue = Number(dl.closed_with_due || 0);
+    var okRate = rate(dl.on_time, doneWithDue);
+    return '<div class="wp-report-tables">' +
+      '<div class="wp-grow">' +
+        '<p class="sub-h">담당자별 처리 현황</p>' +
+        '<div class="wp-tablewrap"><table class="admin-table wp-table wp-table-assignee"><thead><tr>' +
+          "<th>담당자</th><th>부서</th><th class=\"right\">완료</th><th class=\"right\">진행</th>" +
+          "<th class=\"right\">지연</th><th class=\"right\">마감 준수</th><th class=\"right\">지연 마감</th>" +
+          "<th class=\"right\">준수율</th><th class=\"right\">평균 소요</th>" +
+        "</tr></thead><tbody>" +
+        (rows.length ? rows.map(function (a) {
+          var due = Number(a.on_time || 0) + Number(a.late || 0);
+          return "<tr><td data-th=\"담당자\"><b>" + esc(a.name || "(미지정)") + "</b></td>" +
+            '<td data-th="부서">' + esc(a.dept || "") + "</td>" +
+            '<td data-th="완료" class="right">' + num(a.done) + "</td>" +
+            '<td data-th="진행" class="right">' + num(a.open_count) + "</td>" +
+            '<td data-th="지연" class="right"' + (Number(a.overdue || 0) ? ' style="color:#b43b2b;font-weight:800"' : "") + ">" + num(a.overdue) + "</td>" +
+            '<td data-th="마감 준수" class="right">' + num(a.on_time) + "</td>" +
+            '<td data-th="지연 마감" class="right">' + num(a.late) + "</td>" +
+            '<td data-th="준수율" class="right">' + esc(pct(a.on_time, due)) + "</td>" +
+            '<td data-th="평균 소요" class="right">' + esc(Number(a.avg_days || 0) ? num(a.avg_days) + "일" : "—") + "</td></tr>";
+        }).join("") : '<tr><td colspan="9" class="wp-empty">자료가 없습니다.</td></tr>') +
+        "</tbody></table></div>" +
+      "</div>" +
+      '<div class="wp-grow">' +
+        '<p class="sub-h">부서별 상태 현황</p>' +
+        '<div class="wp-tablewrap"><table class="admin-table wp-table wp-table-dept"><thead><tr>' +
+          "<th>부서</th><th class=\"right\">신규</th><th class=\"right\">진행</th><th class=\"right\">피드백</th>" +
+          "<th class=\"right\">보류</th><th class=\"right\">해결</th><th class=\"right\">완료</th><th class=\"right\">지연</th>" +
+        "</tr></thead><tbody>" +
+        (depts.length ? depts.map(function (d) {
+          return "<tr><td data-th=\"부서\"><b>" + esc(d.dept || "") + "</b></td>" +
+            '<td data-th="신규" class="right">' + num(d.new_count) + "</td>" +
+            '<td data-th="진행" class="right">' + num(d.doing) + "</td>" +
+            '<td data-th="피드백" class="right">' + num(d.feedback) + "</td>" +
+            '<td data-th="보류" class="right">' + num(d.hold) + "</td>" +
+            '<td data-th="해결" class="right">' + num(d.resolved) + "</td>" +
+            '<td data-th="완료" class="right">' + num(d.closed) + "</td>" +
+            '<td data-th="지연" class="right"' + (Number(d.overdue || 0) ? ' style="color:#b43b2b;font-weight:800"' : "") + ">" + num(d.overdue) + "</td></tr>";
+        }).join("") : '<tr><td colspan="8" class="wp-empty">자료가 없습니다.</td></tr>') +
+        "</tbody></table></div>" +
+      "</div>" +
+    "</div>" +
+    '<div class="wp-kpis wp-kpis-ext">' +
+      kpi("마감 준수율", dueTotal(dl) ? okRate + "%" : "—", "마감일 있는 완료 " + num(doneWithDue) + "건 중 " + num(dl.on_time) + "건") +
+      kpi("지연 마감", num(dl.late) + "건", "평균 " + (Number(dl.avg_late_days || 0) ? num(dl.avg_late_days) + "일 늦음" : "지연 없음")) +
+      kpi("지금 지연 중", num(dl.open_overdue) + "건", "마감 지난 미완료 일감") +
+      kpi("기간 내 완료", num(dl.period_closed) + "건", esc(fmtDate(r.from)) + " ~ " + esc(fmtDate(r.to))) +
+    "</div>" +
+    '<section class="panel panel-wide wp-report-block">' +
+      '<div class="panel-head"><h2>마감 준수 · 번다운</h2><span class="panel-tag">진행 추이</span></div>' +
+      burndownSvg(r.burndown) +
+      '<p class="cms-hint">선 = 그날 저녁에 남아 있던 일감, 막대 = 그날 완료한 일감입니다. 선이 내려가면 일이 줄고 있는 것입니다.</p>' +
+    "</section>";
+  }
+  function dueTotal(dl) { return Number(dl.closed_with_due || 0); }
+
   function paintReport() {
     var box = $("#wp-sec-report");
     if (!box) return;
@@ -1452,22 +1661,27 @@
         '<div class="wp-split">' +
           '<div class="wp-grow">' +
             '<p class="sub-h">부서별 일감</p>' +
-            '<table class="admin-table wp-table"><thead><tr><th>부서</th><th>완료</th><th>미완료</th></tr></thead><tbody>' +
+            '<div class="wp-tablewrap"><table class="admin-table wp-table"><thead><tr><th>부서</th><th class="right">완료</th><th class="right">미완료</th></tr></thead><tbody>' +
             (dept.length ? dept.map(function (d) {
-              return "<tr><td>" + esc(d.dept || "") + "</td><td>" + num(d.done) + "</td><td>" + num(d.open) + "</td></tr>";
+              return '<tr><td data-th="부서">' + esc(d.dept || "") + '</td><td data-th="완료" class="right">' + num(d.done) +
+                '</td><td data-th="미완료" class="right">' + num(d.open) + "</td></tr>";
             }).join("") : '<tr><td colspan="3" class="wp-empty">자료가 없습니다.</td></tr>') +
-            "</tbody></table>" +
+            "</tbody></table></div>" +
           "</div>" +
           '<div class="wp-grow">' +
             '<p class="sub-h">양식별 결재</p>' +
-            '<table class="admin-table wp-table"><thead><tr><th>양식</th><th>상신</th><th>승인</th><th>평균</th></tr></thead><tbody>' +
+            '<div class="wp-tablewrap"><table class="admin-table wp-table"><thead><tr><th>양식</th><th class="right">상신</th><th class="right">승인</th><th class="right">평균</th></tr></thead><tbody>' +
             (forms.length ? forms.map(function (f) {
-              return "<tr><td>" + esc(formName(f.form_code) || f.form_code) + "</td><td>" + num(f.total) +
-                "</td><td>" + num(f.approved) + "</td><td>" + fmtHours(f.avg_hours) + "</td></tr>";
+              return '<tr><td data-th="양식">' + esc(formName(f.form_code) || f.form_code) +
+                '</td><td data-th="상신" class="right">' + num(f.total) +
+                '</td><td data-th="승인" class="right">' + num(f.approved) +
+                '</td><td data-th="평균" class="right">' + fmtHours(f.avg_hours) + "</td></tr>";
             }).join("") : '<tr><td colspan="4" class="wp-empty">자료가 없습니다.</td></tr>') +
-            "</tbody></table>" +
+            "</tbody></table></div>" +
           "</div>" +
         "</div>" +
+        assigneeBlock() +
+        ganttBlock() +
         '<p class="cms-hint">완료 일감은 resolved·closed 로 끝난 일감, 평균 결재 시간은 상신부터 최종 승인까지의 평균입니다. 이전 기간(' +
           esc(fmtDate(r.prev_from)) + " ~ " + esc(fmtDate(r.prev_to)) + ")과 비교합니다.</p>" +
       "</section>";
@@ -1497,6 +1711,39 @@
     (r.by_form || []).forEach(function (f) {
       rows.push([formName(f.form_code) || f.form_code, num(f.total), num(f.approved), fmtHours(f.avg_hours)]);
     });
+    /* v10.15 — 확장 리포트(담당자별 · 부서별 상태 · 마감 준수 · 번다운 · 간트)도 같은 파일에 담습니다. */
+    var e = ext();
+    if (e) {
+      var dl = e.deadline || {};
+      rows.push([], ["마감 준수", "값"],
+        ["마감일 있는 완료", num(dl.closed_with_due)],
+        ["마감 준수", num(dl.on_time)],
+        ["지연 마감", num(dl.late)],
+        ["준수율", pct(dl.on_time, dl.closed_with_due)],
+        ["평균 지연(일)", num(dl.avg_late_days)],
+        ["지금 지연 중", num(dl.open_overdue)],
+        ["기간 내 완료", num(dl.period_closed)]);
+      rows.push([], ["담당자", "부서", "완료", "진행", "지연", "마감 준수", "지연 마감", "준수율", "평균 소요(일)", "미완료 예상시간"]);
+      (e.by_assignee || []).forEach(function (x) {
+        var due = Number(x.on_time || 0) + Number(x.late || 0);
+        rows.push([x.name || "", x.dept || "", num(x.done), num(x.open_count), num(x.overdue),
+          num(x.on_time), num(x.late), pct(x.on_time, due), num(x.avg_days), num(x.open_hours)]);
+      });
+      rows.push([], ["부서", "신규", "진행", "피드백", "보류", "해결", "완료", "지연"]);
+      (e.by_dept_status || []).forEach(function (d) {
+        rows.push([d.dept || "", num(d.new_count), num(d.doing), num(d.feedback), num(d.hold),
+          num(d.resolved), num(d.closed), num(d.overdue)]);
+      });
+      rows.push([], ["날짜", "남은 일감", "신규", "완료"]);
+      (e.burndown || []).forEach(function (b) { rows.push([fmtDate(b.d), num(b.open_count), num(b.created), num(b.completed)]); });
+      rows.push([], ["담당자", "프로젝트", "일감", "시작일", "마감일", "상태", "진행률", "겹침"]);
+      ganttRows().forEach(function (row) {
+        row.items.forEach(function (a) {
+          rows.push([row.name, a.project, "#" + num(a.no) + " " + a.subject, a.start, a.end,
+            STATUS[a.status] || a.status, a.progress + "%", a.overlap ? "겹침 " + a.overlap : ""]);
+        });
+      });
+    }
     var csv = "\ufeff" + rows.map(function (line) {
       return line.map(function (c) { return '"' + String(c == null ? "" : c).replace(/"/g, '""') + '"'; }).join(",");
     }).join("\r\n");

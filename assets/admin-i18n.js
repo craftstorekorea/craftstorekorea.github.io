@@ -1657,7 +1657,27 @@
   "최근 100건입니다. 실패 사유에는 발송 수단이 돌려준 상태·응답 앞부분이 남습니다. no_secret 은 발송 키가 없다는 뜻이고, no_email 은 받는 사람 메일이 없다는 뜻입니다.": "The latest 100 rows. The failure reason keeps the provider status and the start of its response. no_secret means no sending key is configured, and no_email means the recipient has no email address.",
   "GitHub Actions 의 sbpress-daily-jobs.yml 이 매일 08:30(KST)에 ① 마감 D-3/D-1/지연 점검 ② next_run_at 이 도래한 반복 일감 생성을 실행합니다. GitHub 저장소의 Actions 탭에서 Run workflow 로 직접 돌릴 수도 있습니다.": "GitHub Actions (sbpress-daily-jobs.yml) runs every day at 08:30 KST: ① deadline check (D-3, D-1, overdue) ② recurring issues whose next_run_at has come. You can also run it yourself with Run workflow in the repository's Actions tab.",
   "회원은 마이페이지에서 결재·일감·댓글·폼·마감·반복·시스템 알림을 종류별로 켜고 끄고, ‘하루 1회 요약’을 고를 수 있습니다. 관리자 계정도 같은 화면에서 바꿉니다.": "Members choose which kinds to receive on My page — approvals, issues, comments, forms, deadlines, recurring issues and system notices, each on or off — plus the one-a-day digest. Admins use the same screen.",
-  "시크릿을 넣으면 실제 발송": "Sends for real once a secret is set"
+  "시크릿을 넣으면 실제 발송": "Sends for real once a secret is set",
+  "담당자별 처리 현황": "Work handled by assignee",
+  "부서별 상태 현황": "Status by department",
+  "마감 준수 · 번다운": "Deadlines met · burndown",
+  "담당자별 리소스 간트": "Resource gantt by assignee",
+  "진행 추이": "Progress over time",
+  "일정 겹침 · 워크로드": "Schedule clashes · workload",
+  "마감 준수율": "Deadlines met",
+  "지연 마감": "Closed late",
+  "지금 지연 중": "Overdue now",
+  "기간 내 완료": "Completed in period",
+  "마감 준수": "On time",
+  "준수율": "On-time rate",
+  "평균 소요": "Avg. days",
+  "겹침": "Clash",
+  "막대는 일감의 시작일~마감일이고, 채운 부분은 진행률입니다. 같은 담당자의 기간이 겹치면 빗금·‘겹침’ 배지로 표시합니다. 다른 담당자 줄은 서로 겹쳐도 일정 충돌이 아닙니다.": "A bar spans an issue's start and due dates; the filled part is its progress. When one assignee's dates overlap, the bar is hatched and marked “Clash”. Bars on different assignees' rows may overlap without being a scheduling clash.",
+  "선 = 그날 저녁에 남아 있던 일감, 막대 = 그날 완료한 일감입니다. 선이 내려가면 일이 줄고 있는 것입니다.": "The line is how many issues were still open at the end of each day; the bars are issues completed that day. A falling line means the backlog is shrinking.",
+  "막대 = 일감 기간(시작일~마감일), 진한 부분 = 진행률, ‘겹침’ = 같은 담당자의 일정이 겹침.": "Bar = issue dates (start–due), filled part = progress, “Clash” = one assignee's dates overlap.",
+  "이 기간에 시작일·마감일이 있는 미완료 일감이 없습니다.": "No open issue has dates in this period.",
+  "일별 남은 일감 번다운": "Daily burndown of open issues",
+  "담당자별·부서별 현황과 리소스 간트는 supabase/36_v1015_ext_reports.sql 을 실행하면 켜집니다. 지금은 기본 리포트만 보입니다.": "Per-assignee and per-department figures and the resource gantt turn on once supabase/36_v1015_ext_reports.sql has been run. Only the basic report is shown now."
 };
   var RULES = ([
   [
@@ -2567,6 +2587,38 @@
   [
     "^최근 실행 (.+?) · (성공|실패)$",
     "Latest run \\1 · \\2"
+  ],
+  [
+    "^마감일 있는 완료 (\\d+)건 중 (\\d+)건$",
+    "\\2 of \\1 closed with a due date"
+  ],
+  [
+    "^평균 ([\\d.]+)일 늦음$",
+    "\\1 days late on average"
+  ],
+  [
+    "^지연 없음$",
+    "None late"
+  ],
+  [
+    "^마감 지난 미완료 일감$",
+    "Open issues past their due date"
+  ],
+  [
+    "^일감 (\\d+) · 일정 겹침 (\\d+)$",
+    "\\1 issues · \\2 clashes"
+  ],
+  [
+    "^(\\d+)건$",
+    "\\1 issues"
+  ],
+  [
+    "^겹침 (\\d+)$",
+    "Clash \\1"
+  ],
+  [
+    "^(\\d+(?:\\.\\d+)?)일$",
+    "\\1 d"
   ]
 ]).map(function (r) {
     /* 파이썬 쪽 규칙은 \1 로 그룹을 가리킵니다 — JS replace 는 $1 을 씁니다. */
