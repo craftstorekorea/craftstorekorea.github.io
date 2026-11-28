@@ -1677,7 +1677,21 @@
   "막대 = 일감 기간(시작일~마감일), 진한 부분 = 진행률, ‘겹침’ = 같은 담당자의 일정이 겹침.": "Bar = issue dates (start–due), filled part = progress, “Clash” = one assignee's dates overlap.",
   "이 기간에 시작일·마감일이 있는 미완료 일감이 없습니다.": "No open issue has dates in this period.",
   "일별 남은 일감 번다운": "Daily burndown of open issues",
-  "담당자별·부서별 현황과 리소스 간트는 supabase/36_v1015_ext_reports.sql 을 실행하면 켜집니다. 지금은 기본 리포트만 보입니다.": "Per-assignee and per-department figures and the resource gantt turn on once supabase/36_v1015_ext_reports.sql has been run. Only the basic report is shown now."
+  "담당자별·부서별 현황과 리소스 간트는 supabase/36_v1015_ext_reports.sql 을 실행하면 켜집니다. 지금은 기본 리포트만 보입니다.": "Per-assignee and per-department figures and the resource gantt turn on once supabase/36_v1015_ext_reports.sql has been run. Only the basic report is shown now.",
+  "이메일 큐 발송": "Email queue sending",
+  "꺼 두면 알림은 인앱으로만 쌓이고 메일 큐에는 들어가지 않습니다. 켜면 알림이 메일 큐에 들어가 Edge Function notify 가 보냅니다(발송 키가 있을 때).": "While it is off, notifications stay in-app and never enter the mail queue. Turn it on and notifications also enter the mail queue for the notify Edge Function to send (when a sending key is set).",
+  "이메일 큐 발송 (현재: 꺼짐 · 인앱 알림만 사용)": "Email queue sending (now: off · in-app notifications only)",
+  "이메일 큐 발송 (현재: 켜짐 · 알림을 메일로도 보냅니다)": "Email queue sending (now: on · notifications also go by email)",
+  "대기 메일 정리": "Clear waiting mail",
+  "꺼짐 · 인앱 알림만": "Off · in-app only",
+  "꺼짐 · 인앱 알림만 사용": "Off · in-app notifications only",
+  "스위치를 바꾸지 못했습니다: ": "Could not flip the switch: ",
+  "이메일 큐 발송을 켰습니다. 지금부터 알림이 메일 큐에도 쌓입니다.": "Email queue sending is on. From now on notifications also enter the mail queue.",
+  "이메일 큐 발송을 껐습니다. 지금부터는 인앱 알림만 쌓입니다.": "Email queue sending is off. From now on only in-app notifications are created.",
+  "스위치 요청이 실패했습니다: ": "Switch request failed: ",
+  "대기 메일을 정리하지 못했습니다: ": "Could not clear the waiting mail: ",
+  "대기 중인 메일이 없습니다. 큐가 이미 비어 있습니다.": "No mail is waiting; the queue is already empty.",
+  "정리 요청이 실패했습니다: ": "Clear request failed: "
 };
   var RULES = ([
   [
@@ -2619,6 +2633,10 @@
   [
     "^(\\d+(?:\\.\\d+)?)일$",
     "\\1 d"
+  ],
+  [
+    "^(\\d[\\d,]*)건의 대기 메일을 건너뜀으로 정리했습니다\\. 인앱 알림은 그대로 남아 있습니다\\.$",
+    "\\1 waiting messages marked as skipped. In-app notifications stay as they are."
   ]
 ]).map(function (r) {
     /* 파이썬 쪽 규칙은 \1 로 그룹을 가리킵니다 — JS replace 는 $1 을 씁니다. */

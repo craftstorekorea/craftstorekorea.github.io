@@ -1134,3 +1134,14 @@ tr.owner-row td{background:#FFFAF6}
 #ntf-queue-table .ntf-title{max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #ntf-secret-group code{font-size:.78rem}
 #ntf-batch-result{font-size:.8rem;color:var(--ink-2)}
+
+/* v10.16 — 이메일 큐 발송 스위치 */
+.ntf-switch{display:inline-flex;align-items:center;gap:10px;cursor:pointer;font-size:.86rem;font-weight:700;color:var(--ink-2)}
+.ntf-switch input{appearance:none;-webkit-appearance:none;width:42px;height:24px;border-radius:999px;background:var(--line-2);
+  position:relative;cursor:pointer;transition:background .18s ease;flex:none;border:0;margin:0}
+.ntf-switch input::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;
+  box-shadow:0 1px 2px rgba(0,0,0,.18);transition:transform .18s ease}
+.ntf-switch input:checked{background:#1F6B45}
+.ntf-switch input:checked::after{transform:translateX(18px)}
+.ntf-switch input:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.ntf-switch input:disabled{opacity:.55;cursor:progress}

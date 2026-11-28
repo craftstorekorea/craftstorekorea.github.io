@@ -803,10 +803,23 @@
 
       <div class="kpis" id="ntf-kpis">
         <article class="kpi"><p class="kpi-label">메일 발송 수단</p><p class="kpi-value" id="ntf-provider">–</p><p class="kpi-note" id="ntf-provider-note">&nbsp;</p></article>
-        <article class="kpi"><p class="kpi-label">대기 큐</p><p class="kpi-value" id="ntf-queued">–</p><p class="kpi-note">아직 보내지 않은 메일</p></article>
+        <article class="kpi"><p class="kpi-label">대기 큐</p><p class="kpi-value" id="ntf-queued">–</p><p class="kpi-note" id="ntf-queued-note">아직 보내지 않은 메일</p></article>
         <article class="kpi"><p class="kpi-label">오늘 발송</p><p class="kpi-value" id="ntf-sent">–</p><p class="kpi-note" id="ntf-sent-note">1일 상한 –</p></article>
         <article class="kpi"><p class="kpi-label">실패 · 건너뜀</p><p class="kpi-value" id="ntf-failed">–</p><p class="kpi-note" id="ntf-skip-note">–</p></article>
       </div>
+
+      <!-- v10.16 — 이메일 큐 발송 스위치 (기본 꺼짐 · 인앱 알림만) -->
+      <section class="cms-group" id="ntf-mail-group">
+        <div class="cms-group-head"><h2>이메일 큐 발송</h2><span class="panel-tag" id="ntf-mail-state">확인 중</span></div>
+        <p class="cms-hint" id="ntf-mail-hint">꺼 두면 알림은 인앱으로만 쌓이고 메일 큐에는 들어가지 않습니다. 켜면 알림이 메일 큐에 들어가 Edge Function notify 가 보냅니다(발송 키가 있을 때).</p>
+        <div class="cms-toolbar">
+          <label class="ntf-switch">
+            <input type="checkbox" id="ntf-mail-toggle">
+            <span id="ntf-mail-label">이메일 큐 발송 (현재: 꺼짐 · 인앱 알림만 사용)</span>
+          </label>
+          <button type="button" class="btn btn-ghost btn-sm" id="ntf-mail-clear">대기 메일 정리</button>
+        </div>
+      </section>
 
       <section class="cms-group" id="ntf-secret-group">
         <div class="cms-group-head"><h2>메일 시크릿 · 발송 상태</h2><span class="panel-tag" id="ntf-secret-state">확인 중</span></div>

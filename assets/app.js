@@ -248,9 +248,11 @@
      site_contents 의 header_logo_url / header_brand_text / header_menu_items 를 읽어 그립니다.
      값이 없으면 index.html 의 기본 마크·메뉴를 그대로 씁니다. */
   var VIEW_KEYS = (function () {
-    var base = ["home", "workshops", "news", "interview", "archive", "info", "map", "tasks", "approvals", "reserve", "lookup", "sign", "market", "page", "board", "post", "mypage", "search", "offline"];
+    var base = ["home", "workshops", "news", "interview", "archive", "info", "map", "tasks", "desk", "calendar", "approvals", "reserve", "lookup", "sign", "market", "page", "board", "post", "mypage", "search", "offline"];
     return base.filter(function (k) {
       if (k === "map" || k === "tasks" || k === "approvals" || k === "mypage" || k === "reserve" || k === "lookup") return feature(k);
+      /* v10.16 — 내 업무 홈·통합 캘린더는 업무 기능(tasks)과 함께 켜집니다. */
+      if (k === "desk" || k === "calendar") return feature("tasks");
       return true;
     });
   })();
@@ -294,6 +296,8 @@
       var target = String(it.target || "").trim();
       var view = target.replace(/^#\/?/, "").replace(/\/$/, "") || "home";
       if (view === "tasks" && (!on || !feature("tasks"))) return "";   // 로그아웃 상태·기능 끔이면 숨김
+      /* v10.16 — 내 업무 홈·통합 캘린더도 로그인해야 보입니다. */
+      if ((view === "desk" || view === "calendar") && (!on || !feature("tasks"))) return "";
       if (view === "approvals" && (!on || !feature("approvals"))) return "";
       if (view === "map" && !feature("map")) return "";
       if (view === "mypage" && !feature("mypage")) return "";
@@ -340,6 +344,8 @@
     [].forEach.call(document.querySelectorAll("#tabs .tab[data-auth-only]"), function (t) {
       t.hidden = !on;
       if (on && t.getAttribute("data-view") === "tasks") t.textContent = T("nav.tasks");
+      if (on && t.getAttribute("data-view") === "desk") t.textContent = T("desk.nav");
+      if (on && t.getAttribute("data-view") === "calendar") t.textContent = T("cal.nav");
       if (on && t.getAttribute("data-view") === "approvals") t.textContent = T("nav.approvals");
     });
   }
@@ -1864,6 +1870,8 @@
      버튼은 [data-sbp-copy]·[data-sbp-share] 위임 리스너라, 스크립트가 늦게 와도 그 뒤 클릭부터 동작합니다. */
   var LAZY_ROUTES = {
     tasks: ["assets/tasks.js", "assets/drive.js"],
+    desk: ["assets/desk.js"],
+    calendar: ["assets/calendar.js"],
     approvals: ["assets/approvals.js", "assets/drive.js"],
     mypage: ["assets/mypage.js"],
     archive: ["assets/archive.js"],
@@ -1931,6 +1939,8 @@
     info: "지원·공모 정보 — " + BRAND,
     map: "전국 공방 지도 & 등록 게시판 — " + BRAND,
     tasks: "업무 관리 — " + BRAND,
+    desk: "내 업무 — " + BRAND,
+    calendar: "통합 캘린더 — " + BRAND,
     approvals: "전자결재 — " + BRAND,
     page: "페이지 — " + BRAND,
     board: "게시판 — " + BRAND,
@@ -1962,6 +1972,8 @@
     if (r.name === "search") renderSearch(r.arg, r.raw === "search" && !r.arg);
     if (r.name === "mypage" && window.CRAFT_MYPAGE) window.CRAFT_MYPAGE.show();
     if (r.name === "tasks" && window.CRAFT_TASKS) window.CRAFT_TASKS.show();
+    if (r.name === "desk" && window.CRAFT_DESK) window.CRAFT_DESK.show();
+    if (r.name === "calendar" && window.CRAFT_CALENDAR) window.CRAFT_CALENDAR.show();
     if (r.name === "approvals" && window.CRAFT_APPROVALS) window.CRAFT_APPROVALS.show();
     if (r.name === "offline") renderOfflineView(r.arg);
     if (r.name === "reserve" && window.CRAFT_RESERVE) window.CRAFT_RESERVE.showReserve();
@@ -2016,7 +2028,7 @@
       if (v) v.hidden = true;
     }
     if (!feature("map")) offView("map");
-    if (!feature("tasks")) offView("tasks");
+    if (!feature("tasks")) { offView("tasks"); offView("desk"); offView("calendar"); }
     if (!feature("approvals")) offView("approvals");
     if (!feature("mypage")) offView("mypage");
     if (!feature("reserve")) { offView("reserve"); offView("lookup"); }
@@ -2096,6 +2108,8 @@
     if (r.name === "board") renderCustomBoard(r.arg);
     if (r.name === "search") renderSearch(searchState.q, false);
     if (r.name === "tasks" && window.CRAFT_TASKS) window.CRAFT_TASKS.refresh();
+    if (r.name === "desk" && window.CRAFT_DESK) window.CRAFT_DESK.refresh();
+    if (r.name === "calendar" && window.CRAFT_CALENDAR) window.CRAFT_CALENDAR.refresh();
     if (r.name === "approvals" && window.CRAFT_APPROVALS) window.CRAFT_APPROVALS.refresh();
     if (r.name === "mypage" && window.CRAFT_MYPAGE) window.CRAFT_MYPAGE.refresh();
     renderBoardSwitch();

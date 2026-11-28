@@ -85,6 +85,8 @@
       <button class="tab" role="tab" data-view="map" aria-selected="false">지도·게시판</button>
       <button class="tab" role="tab" data-view="reserve" aria-selected="false" data-i18n="rsv.nav">예약·신청</button>
       <button class="tab" role="tab" data-view="tasks" data-auth-only="1" aria-selected="false" hidden>업무 관리</button>
+      <button class="tab" role="tab" data-view="desk" data-auth-only="1" aria-selected="false" hidden>내 업무</button>
+      <button class="tab" role="tab" data-view="calendar" data-auth-only="1" aria-selected="false" hidden>캘린더</button>
       <button class="tab" role="tab" data-view="approvals" data-auth-only="1" aria-selected="false" hidden>전자결재</button>
     </nav>
     <button class="header-search" id="search-open" type="button" aria-label="통합 검색" data-i18n-aria="search.open.aria">
@@ -436,6 +438,40 @@
         </div>
         <div id="tasks-gate"></div>
         <div id="tasks-app" hidden></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ 내 업무 홈 (#/desk) — v10.16 · 로그인 후에만 열립니다 ============ -->
+  <div class="view" id="view-desk" role="tabpanel" aria-labelledby="tab-desk" hidden>
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head row" id="desk-head">
+          <div>
+            <p class="eyebrow" id="desk-eyebrow" data-i18n="desk.eyebrow">내 업무 홈 · My desk</p>
+            <h2 id="desk-title" data-i18n="desk.title">오늘 할 일부터 결재 대기까지 한 화면에서</h2>
+            <p id="desk-desc" data-i18n="desk.desc">내 담당 일감의 진행 상태와 마감, 내 차례가 된 결재 문서, 이번 주 마감 흐름을 한 번에 봅니다. 일감 상태는 여기서 바로 바꾸고, 문서는 누르면 결재 화면으로 넘어갑니다.</p>
+          </div>
+        </div>
+        <div id="desk-gate"></div>
+        <div id="desk-app" hidden></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ 통합 캘린더 (#/calendar) — v10.16 · 로그인 후에만 ============ -->
+  <div class="view" id="view-calendar" role="tabpanel" aria-labelledby="tab-calendar" hidden>
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head row" id="cal-head">
+          <div>
+            <p class="eyebrow" id="cal-eyebrow" data-i18n="cal.eyebrow">통합 캘린더 · Calendar</p>
+            <h2 id="cal-title-head" data-i18n="cal.title">일감 마감과 예약을 한 달력에</h2>
+            <p id="cal-desc" data-i18n="cal.desc">일감 마감일·반복 일감·예약을 월간과 주간으로 겹쳐 봅니다. 마감일은 배지를 다른 날짜로 끌거나(PC) 배지를 눌러 날짜를 골라(모바일·키보드) 바로 옮길 수 있습니다.</p>
+          </div>
+        </div>
+        <div id="cal-gate"></div>
+        <div id="cal-app" hidden></div>
       </div>
     </section>
   </div>

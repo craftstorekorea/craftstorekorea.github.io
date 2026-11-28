@@ -885,7 +885,8 @@
      함수가 아직 배포되지 않았으면 큐·배치 기록만 보여 주고 배포 안내를 띄웁니다. */
   var NTF_KIND = { approval: "결재", issue: "일감", comment: "댓글", form: "폼", deadline: "마감", recur: "반복", system: "시스템" };
   var NTF_ST = { queued: "대기", sending: "보내는 중", sent: "발송", failed: "실패", skipped: "건너뜀" };
-  var NTF = { loaded: false, queue: [], people: {}, runs: [], status: null, fnError: "", busy: false, bound: false };
+  var NTF = { loaded: false, queue: [], people: {}, runs: [], status: null, fnError: "", busy: false, bound: false,
+    mail: { enabled: false, busy: false } };
 
   function ntfMsg(text, kind) {
     var el = $("#ntf-msg");
@@ -931,9 +932,11 @@
         .select("id,job,source,ok,summary,error,started_at,finished_at")
         .order("started_at", { ascending: false }).limit(10),
       sb.from("notify_queue").select("id", { count: "exact", head: true })
-        .eq("status", "sent").gte("sent_at", ntfDayStart())
+        .eq("status", "sent").gte("sent_at", ntfDayStart()),
+      /* v10.16 — 이메일 큐 발송 스위치(site_contents.notify.email_queue_enabled) */
+      sb.from("site_contents").select("key,value").eq("key", "notify.email_queue_enabled")
     ]).then(function (res) {
-      var q = res[0], pf = res[1], runs = res[2], sentToday = res[3];
+      var q = res[0], pf = res[1], runs = res[2], sentToday = res[3], mailRow = res[4];
       var err = q.error || runs.error;
       if (err) {
         NTF.loaded = false;
@@ -950,9 +953,11 @@
         NTF.people[p.id] = { name: p.nickname || "", email: p.email || "" };
       });
       NTF.sentToday = (sentToday && typeof sentToday.count === "number") ? sentToday.count : null;
+      NTF.mail.enabled = ntfMailFlag(mailRow);
       NTF.loaded = true;
       ntfPaintQueue();
       ntfPaintRuns();
+      ntfPaintMail();
       ntfPaintBadge();
       return ntfLoadStatus();
     }).then(function () {
@@ -961,6 +966,77 @@
     }).catch(function (e) {
       if (stamp) stamp.textContent = "오류";
       ntfMsg("알림 자료를 불러오지 못했습니다: " + (e && e.message ? e.message : e), "err");
+    });
+  }
+
+  /* ---------------- v10.16 — 이메일 큐 발송 스위치 ----------------
+     site_contents.notify.email_queue_enabled 가 '1' 이면 메일 큐에 쌓고,
+     '0'(기본)이면 인앱 알림만 남깁니다. 켜고 끄는 것은 RPC notify_set_email_queue 이고
+     서버가 is_admin() 으로 다시 한 번 확인합니다. */
+  function ntfMailFlag(res) {
+    var rows = (res && !res.error && Array.isArray(res.data)) ? res.data : [];
+    for (var i = 0; i < rows.length; i++) {
+      if (String(rows[i].key) === "notify.email_queue_enabled") {
+        var v = String(rows[i].value == null ? "" : rows[i].value).trim().toLowerCase();
+        return v === "1" || v === "true" || v === "on" || v === "yes" || v === "y";
+      }
+    }
+    return false;   /* 값이 없으면 꺼짐 — 서버 함수와 같은 기본값 */
+  }
+
+  function ntfPaintMail() {
+    var on = !!NTF.mail.enabled;
+    var box = $("#ntf-mail-toggle");
+    if (box) { box.checked = on; box.disabled = !!NTF.mail.busy; }
+    var lab = $("#ntf-mail-label");
+    if (lab) {
+      lab.textContent = on
+        ? "이메일 큐 발송 (현재: 켜짐 · 알림을 메일로도 보냅니다)"
+        : "이메일 큐 발송 (현재: 꺼짐 · 인앱 알림만 사용)";
+    }
+    var st = $("#ntf-mail-state");
+    if (st) st.textContent = on ? "켜짐" : "꺼짐 · 인앱 알림만";
+    var qn = $("#ntf-queued-note");
+    if (qn) qn.textContent = on ? "아직 보내지 않은 메일" : "꺼짐 · 인앱 알림만 사용";
+  }
+
+  function ntfSetMail(on) {
+    if (!sb || NTF.mail.busy) return;
+    NTF.mail.busy = true;
+    ntfPaintMail();
+    sb.rpc("notify_set_email_queue", { p_enabled: !!on }).then(function (r) {
+      NTF.mail.busy = false;
+      if (r.error) {
+        ntfPaintMail();
+        ntfMsg("스위치를 바꾸지 못했습니다: " + r.error.message, "err");
+        return;
+      }
+      NTF.mail.enabled = !!r.data;
+      ntfPaintMail();
+      ntfMsg(NTF.mail.enabled
+        ? "이메일 큐 발송을 켰습니다. 지금부터 알림이 메일 큐에도 쌓입니다."
+        : "이메일 큐 발송을 껐습니다. 지금부터는 인앱 알림만 쌓입니다.", "ok");
+      loadNotifyAdmin(true);
+    }).catch(function (e) {
+      NTF.mail.busy = false;
+      ntfPaintMail();
+      ntfMsg("스위치 요청이 실패했습니다: " + (e && e.message ? e.message : e), "err");
+    });
+  }
+
+  function ntfClearQueued() {
+    if (!sb || NTF.busy) return;
+    NTF.busy = true;
+    sb.rpc("notify_queue_skip_queued", {}).then(function (r) {
+      NTF.busy = false;
+      if (r.error) { ntfMsg("대기 메일을 정리하지 못했습니다: " + r.error.message, "err"); return; }
+      var n = Number(r.data || 0);
+      ntfMsg(n ? (num(n) + "건의 대기 메일을 건너뜀으로 정리했습니다. 인앱 알림은 그대로 남아 있습니다.")
+               : "대기 중인 메일이 없습니다. 큐가 이미 비어 있습니다.", "ok");
+      loadNotifyAdmin(true);
+    }).catch(function (e) {
+      NTF.busy = false;
+      ntfMsg("정리 요청이 실패했습니다: " + (e && e.message ? e.message : e), "err");
     });
   }
 
@@ -1184,6 +1260,10 @@
     if (st) st.addEventListener("change", ntfPaintQueue);
     var q = $("#ntf-q-q");
     if (q) q.addEventListener("input", ntfPaintQueue);
+    var mail = $("#ntf-mail-toggle");
+    if (mail) mail.addEventListener("change", function () { ntfSetMail(mail.checked); });
+    var clear = $("#ntf-mail-clear");
+    if (clear) clear.addEventListener("click", ntfClearQueued);
   }
 
   function activateTab(name) {
