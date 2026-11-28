@@ -89,6 +89,15 @@
     });
   }
   /* 서버가 준 idle_hours(경과 시간)로 'n시간 전'을 만듭니다 — 브라우저 시간대와 무관합니다. */
+  function fmtWhenSec(iso) {
+    if (!iso) return "–";
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return String(iso).slice(0, 19).replace("T", " ");
+    return d.toLocaleString("ko-KR", {
+      timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit"
+    });
+  }
   function ago(hours) {
     if (hours == null || hours === "" || isNaN(Number(hours))) return "기록 없음";
     var h = Number(hours);
@@ -451,6 +460,12 @@
       });
   }
 
+  var ISSUE_LABEL = {
+    subject: "제목", description: "설명", status: "상태", progress: "진행률", priority: "우선순위",
+    tracker: "유형", assignee_id: "담당", starts_on: "시작일", due_on: "마감일",
+    estimated_hours: "예상 시간", spent_hours: "실적 시간", parent_id: "상위 일감", closed_at: "종료"
+  };
+
   function loadIssueVersions(id) {
     return rest("issues?select=*&id=eq." + encodeURIComponent(id) + "&limit=1").then(function (rows) {
       var cur = (rows && rows[0]) || {};
@@ -459,10 +474,13 @@
         .then(function (hist) {
           var list = [{ id: "current", label: "지금 (현재 상태)", when: cur.updated_at, data: cur, raw: null }];
           (hist || []).forEach(function (h) {
-            var n = Object.keys(h.changes || {}).length;
+            var keys = Object.keys(h.changes || {});
+            var what = h.action === "insert" ? "생성"
+              : (keys.slice(0, 2).map(function (k) { return ISSUE_LABEL[k] || k; }).join("·") +
+                 (keys.length > 2 ? " 외 " + (keys.length - 2) : ""));
             list.push({
               id: h.id,
-              label: fmtWhen(h.created_at) + " · " + (h.action === "insert" ? "생성" : n + "개 필드 변경"),
+              label: fmtWhenSec(h.created_at) + " · " + what,
               when: h.created_at, data: h.snapshot || {}, raw: h
             });
           });
