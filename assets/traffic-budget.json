@@ -1,6 +1,6 @@
 {
-  "version": "10.16.1",
-  "generatedAt": "2026-11-28T20:29:26+09:00",
+  "version": "10.17",
+  "generatedAt": "2026-11-28T22:08:24+09:00",
   "limits": {
     "budgetBytes": 307200,
     "budgetLabel": "300 KB",

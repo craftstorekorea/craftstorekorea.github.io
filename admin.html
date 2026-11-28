@@ -808,6 +808,107 @@
         <article class="kpi"><p class="kpi-label">실패 · 건너뜀</p><p class="kpi-value" id="ntf-failed">–</p><p class="kpi-note" id="ntf-skip-note">–</p></article>
       </div>
 
+      <!-- v10.17 — 접수 자동 일감 · 알림 문구 템플릿 · 외부 웹훅 -->
+      <section class="cms-group" id="ntf-intake-group">
+        <div class="cms-group-head"><h2>접수 자동 일감</h2><span class="panel-tag" id="ntf-intake-state">확인 중</span></div>
+        <p class="cms-hint">예약·폼이 접수되면 정해 둔 프로젝트에 일감을 만들고 담당자에게 알립니다. 접수 종류마다 켜진 규칙은 하나이며, 규칙이 없으면 일감을 만들지 않습니다.</p>
+        <p class="cms-hint" id="ntf-intake-missing" hidden>접수 규칙 표가 아직 없습니다. supabase/38_v1017_auto_links.sql 을 실행하면 이 카드가 켜집니다.</p>
+        <div class="set-grid set-grid-3">
+          <label class="cms-field"><span>접수 종류</span>
+            <select id="ntf-rule-source" class="admin-select">
+              <option value="reservation">예약 접수</option>
+              <option value="form">폼 접수</option>
+            </select>
+          </label>
+          <label class="cms-field" id="ntf-rule-kind-wrap"><span>폼 종류 <em>폼 접수일 때</em></span>
+            <select id="ntf-rule-kind" class="admin-select">
+              <option value="submit">제보·등록 (submit)</option>
+              <option value="">모든 폼</option>
+              <option value="newsletter">뉴스레터 (newsletter)</option>
+            </select>
+          </label>
+          <label class="cms-field"><span>대상 프로젝트 <em>필수</em></span><select id="ntf-rule-project" class="admin-select"></select></label>
+          <label class="cms-field"><span>기본 담당자 <em>선택</em></span><select id="ntf-rule-assignee" class="admin-select"><option value="">지정 안 함 (관리자에게 알림)</option></select></label>
+          <label class="cms-field"><span>우선순위</span>
+            <select id="ntf-rule-priority" class="admin-select">
+              <option value="low">낮음</option>
+              <option value="normal" selected>보통</option>
+              <option value="high">높음</option>
+              <option value="urgent">긴급</option>
+            </select>
+          </label>
+          <label class="cms-field"><span>유형</span>
+            <select id="ntf-rule-tracker" class="admin-select">
+              <option value="task">일감</option>
+              <option value="support">지원</option>
+              <option value="feature">기능</option>
+              <option value="bug">오류</option>
+            </select>
+          </label>
+          <label class="cms-field"><span>마감 <em>접수일 + n일 · 비우면 없음</em></span><input id="ntf-rule-days" type="number" min="0" max="365" placeholder="예: 3"></label>
+          <label class="cms-check cms-field"><span>알림</span>
+            <span class="cms-check-row"><input type="checkbox" id="ntf-rule-notify" checked><em>담당자(없으면 관리자)에게 인앱 알림</em></span>
+          </label>
+          <label class="cms-check cms-field"><span>사용</span>
+            <span class="cms-check-row"><input type="checkbox" id="ntf-rule-active" checked><em>이 규칙으로 접수 → 일감</em></span>
+          </label>
+        </div>
+        <div class="set-grid">
+          <label class="cms-field"><span>제목 템플릿</span><input id="ntf-rule-title" maxlength="200" value="[접수] {name}"></label>
+          <label class="cms-field"><span>설명 머리말 <em>선택</em></span><input id="ntf-rule-desc" maxlength="400" placeholder="예: 접수 내용을 확인하고 연락해 주세요."></label>
+        </div>
+        <p class="cms-hint">쓸 수 있는 자리: <code>{name}</code> <code>{email}</code> <code>{phone}</code> <code>{code}</code> <code>{date}</code> <code>{time}</code> <code>{form}</code> <code>{page}</code> <code>{summary}</code></p>
+        <div class="backup-actions">
+          <button type="button" class="btn btn-primary btn-sm" id="ntf-rule-save">규칙 저장</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="ntf-rule-reset">새 규칙</button>
+        </div>
+        <p class="cms-toast" id="ntf-rule-msg" role="status" aria-live="polite" hidden></p>
+        <div class="table-wrap">
+          <table class="admin-table" id="ntf-rule-table">
+            <thead><tr><th>접수</th><th>프로젝트</th><th>담당자</th><th>우선순위</th><th>제목 템플릿</th><th>상태</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="cms-group" id="ntf-tpl-group">
+        <div class="cms-group-head"><h2>알림 문구 템플릿</h2><span class="panel-tag" id="ntf-tpl-state">확인 중</span></div>
+        <p class="cms-hint">사건별 인앱 알림 제목·본문과 외부 웹훅 문구를 고칩니다. 보내는 순간에 값을 채우므로 접수·서명 내용이 그대로 들어갑니다.</p>
+        <p class="cms-hint" id="ntf-tpl-missing" hidden>문구 표가 아직 없습니다. supabase/38_v1017_auto_links.sql 을 실행하면 이 카드가 켜집니다.</p>
+        <div class="set-grid set-grid-3">
+          <label class="cms-field"><span>사건</span>
+            <select id="ntf-tpl-event" class="admin-select">
+              <option value="form.submitted">폼 접수 (form.submitted)</option>
+              <option value="reservation.submitted">예약 접수 (reservation.submitted)</option>
+              <option value="esign.signed">전자서명 완료 (esign.signed)</option>
+              <option value="approval.completed">결재 승인 (approval.completed)</option>
+              <option value="approval.rejected">결재 반려 (approval.rejected)</option>
+            </select>
+          </label>
+          <label class="cms-check cms-field"><span>사용</span>
+            <span class="cms-check-row"><input type="checkbox" id="ntf-tpl-active" checked><em>이 사건의 문구를 씁니다</em></span>
+          </label>
+        </div>
+        <div class="set-grid">
+          <label class="cms-field"><span>제목 · 한국어</span><input id="ntf-tpl-title-ko" maxlength="200"></label>
+          <label class="cms-field"><span>Title · English</span><input id="ntf-tpl-title-en" maxlength="200"></label>
+        </div>
+        <div class="set-grid">
+          <label class="cms-field"><span>본문 · 한국어</span><input id="ntf-tpl-body-ko" maxlength="400"></label>
+          <label class="cms-field"><span>Body · English</span><input id="ntf-tpl-body-en" maxlength="400"></label>
+        </div>
+        <div class="set-grid">
+          <label class="cms-field"><span>웹훅 문구 · 한국어 <em>슬랙·디스코드 한 줄</em></span><input id="ntf-tpl-msg-ko" maxlength="400"></label>
+          <label class="cms-field"><span>Webhook text · English</span><input id="ntf-tpl-msg-en" maxlength="400"></label>
+        </div>
+        <p class="cms-hint">자리: <code>{name}</code> <code>{email}</code> <code>{code}</code> <code>{date}</code> <code>{time}</code> <code>{page}</code> <code>{title}</code> <code>{signer}</code> <code>{doc_no}</code> <code>{reason}</code> — 비운 자리는 지워집니다.</p>
+        <div class="backup-actions">
+          <button type="button" class="btn btn-primary btn-sm" id="ntf-tpl-save">문구 저장</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="ntf-tpl-default">기본 문구 채우기</button>
+        </div>
+        <p class="cms-toast" id="ntf-tpl-msg" role="status" aria-live="polite" hidden></p>
+      </section>
+
       <!-- v10.16 — 이메일 큐 발송 스위치 (기본 꺼짐 · 인앱 알림만) -->
       <section class="cms-group" id="ntf-mail-group">
         <div class="cms-group-head"><h2>이메일 큐 발송</h2><span class="panel-tag" id="ntf-mail-state">확인 중</span></div>
@@ -865,6 +966,11 @@
             <tbody></tbody>
           </table>
         </div>
+      </section>
+
+      <!-- v10.17 — 외부 웹훅 카드는 알림·자동화와 설정·연동에서 같은 카드를 씁니다(탭을 열 때 이 자리로 옮겨 붙임) -->
+      <section class="cms-group" id="ntf-hook-group">
+        <div id="ntf-hook-slot"></div>
       </section>
 
       <section class="cms-group" id="ntf-prefs-group">
@@ -1263,11 +1369,29 @@
           <span class="panel-tag">로그인 없이 서명</span>
         </div>
         <p class="cms-hint">만들면 서명자에게 보낼 전용 링크가 한 번 표시됩니다. 링크를 아는 사람은 로그인 없이 서명할 수 있습니다.</p>
+        <p class="cms-hint">서명이 끝나면 연결한 결재를 자동으로 승인하거나 일감 상태를 옮길 수 있습니다(v10.17). 연결하지 않아도 서명은 그대로 남습니다.</p>
         <div class="cms-grid2">
           <label class="cms-field"><span>제목 <em>필수</em></span><input id="esg-f-title" type="text" maxlength="120" placeholder="예: 개인정보 수집·이용 동의서"></label>
           <label class="cms-field"><span>서명자 이름 <em>필수</em></span><input id="esg-f-signer" type="text" maxlength="80" placeholder="예: 홍길동"></label>
           <label class="cms-field"><span>서명자 이메일 <em>선택</em></span><input id="esg-f-email" type="email" maxlength="120" placeholder="name@example.com"></label>
           <label class="cms-field"><span>만료일 <em>선택 · 비우면 계속 열림</em></span><input id="esg-f-expires" type="date"></label>
+        </div>
+        <div class="set-grid set-grid-3" id="esg-f-link">
+          <label class="cms-field"><span>연결 <em>선택 — 서명 완료 뒤 자동 처리</em></span>
+            <select id="esg-f-link-kind" class="admin-select">
+              <option value="none">연결 안 함</option>
+              <option value="approval">결재 문서 (서명하면 승인)</option>
+              <option value="issue">일감 (서명하면 상태 이동)</option>
+            </select>
+          </label>
+          <label class="cms-field"><span>대상 <em>연결했을 때</em></span><select id="esg-f-link-target" class="admin-select"><option value="">— 먼저 연결 종류를 고르세요 —</option></select></label>
+          <label class="cms-field" id="esg-f-link-action-wrap"><span>일감 목표 상태</span>
+            <select id="esg-f-link-action" class="admin-select">
+              <option value="resolved">해결(resolved)</option>
+              <option value="closed">종료(closed)</option>
+              <option value="in_progress">진행(in_progress)</option>
+            </select>
+          </label>
         </div>
         <label class="cms-field"><span>동의서 본문 <em>필수</em></span><textarea id="esg-f-body" rows="6" maxlength="8000" placeholder="동의 내용을 적어 주세요. 줄바꿈은 그대로 인쇄본에 들어갑니다."></textarea></label>
         <div class="esg-checks-head">
@@ -1317,6 +1441,11 @@
           </div>
         </div>
         <p class="esg-d-meta" id="esg-d-meta"></p>
+        <p class="cms-hint" id="esg-d-link"></p>
+        <div class="backup-actions" id="esg-d-linkbox" hidden>
+          <button type="button" class="btn btn-ghost btn-sm" id="esg-d-apply">연결 처리 다시 시도</button>
+          <span class="panel-tag" id="esg-d-linkstate"></span>
+        </div>
         <p class="cms-hint" id="esg-d-tag"></p>
         <div class="esg-body" id="esg-d-body"></div>
         <p class="sub-h">동의 항목</p>
@@ -1465,33 +1594,39 @@
         <div class="backup-actions"><button type="button" class="btn btn-primary btn-sm" id="set-ai-save">저장</button></div>
       </section>
 
-      <section class="panel panel-wide" id="p-set-webhook">
-        <div class="panel-head">
-          <h2>웹훅 (구글 시트 · 슬랙 · 메일)</h2>
+      <!-- ============ 웹훅 (v7.0 · v10.17 확장) ============ -->
+      <div id="set-hook-slot">
+        <section class="cms-group" id="p-set-webhook">
+        <div class="cms-group-head"><h2>외부 웹훅 (슬랙 · 디스코드 · 직접 URL)</h2>
           <div class="panel-tools">
             <span class="panel-tag" id="wh-stamp">–</span>
             <button type="button" class="btn btn-ghost btn-sm" id="wh-drain">대기 전송</button>
             <button type="button" class="btn btn-ghost btn-sm" id="wh-reload">새로고침</button>
           </div>
         </div>
-        <p class="panel-note">이벤트가 생기면 등록한 주소로 JSON 을 보냅니다. 서명은 X-SBPress-Signature: sha256=…(HMAC-SHA256) 이고, 실패하면 3회까지 다시 시도한 뒤 실패로 남깁니다.</p>
+        <p class="cms-hint">이벤트가 생기면 등록한 주소로 JSON 을 보냅니다. 슬랙·디스코드는 한 줄 문구로 감싸 보내고, 직접 URL·구글 시트는 원래 JSON 을 보냅니다. 서명은 X-SBPress-Signature: sha256=…(HMAC-SHA256) 이고, 실패하면 3회까지 다시 시도한 뒤 실패로 남깁니다.</p>
+        <p class="cms-hint">웹훅 배달 행은 접수·서명과 같은 트랜잭션에서 만들어지지 않습니다(안전 봉투) — 주소가 틀렸거나 대상이 죽어 있어도 접수·서명은 그대로 저장됩니다. 실제 전송은 Edge Function webhook-dispatch 가 하고, 없으면 브라우저가 대신 시도합니다.</p>
         <p class="cms-hint" id="wh-missing" hidden>웹훅 표가 아직 없습니다. supabase/19_v70_reservations_webhooks_ai.sql 을 실행하면 이 카드가 켜집니다.</p>
         <div class="set-grid set-grid-3">
           <label class="cms-field"><span>이름 <em>선택</em></span><input id="wh-name" maxlength="80" placeholder="슬랙 알림"></label>
           <label class="cms-field"><span>종류</span>
             <select id="wh-kind" class="admin-select">
-              <option value="google_sheet">구글 시트 (Apps Script)</option>
               <option value="slack">슬랙 Incoming Webhook</option>
+              <option value="discord">디스코드 Webhook</option>
+              <option value="custom">직접 URL (JSON)</option>
+              <option value="google_sheet">구글 시트 (Apps Script)</option>
               <option value="mail">메일 중계</option>
-              <option value="custom">직접 URL</option>
             </select>
           </label>
           <label class="cms-field"><span>이벤트</span>
             <select id="wh-event" class="admin-select">
               <option value="form.submitted">폼 접수 (form.submitted)</option>
-              <option value="approval.completed">결재 완료 (approval.completed)</option>
-              <option value="issue.created">일감 생성 (issue.created)</option>
+              <option value="reservation.submitted">예약 접수 (reservation.submitted)</option>
               <option value="reservation.confirmed">예약 확정 (reservation.confirmed)</option>
+              <option value="esign.signed">전자서명 완료 (esign.signed)</option>
+              <option value="approval.completed">결재 승인 (approval.completed)</option>
+              <option value="approval.rejected">결재 반려 (approval.rejected)</option>
+              <option value="issue.created">일감 생성 (issue.created)</option>
             </select>
           </label>
         </div>
@@ -1515,7 +1650,9 @@
             <tbody></tbody>
           </table>
         </div>
-      </section>
+        </section>
+      </div>
+
       <!-- ============ 도메인 연결 도우미 (v8.0) ============ -->
       <section class="panel panel-wide" id="p-set-domain">
         <div class="panel-head">
@@ -2002,6 +2139,7 @@
 <script src="/assets/webhooks.js"></script>
 <script src="/assets/hub.js"></script>
 <script src="/assets/esign.js"></script>
+<script src="/assets/automation.js"></script>
 <script src="/assets/ai-assist.js"></script>
 <script src="/assets/admin-i18n.js"></script>
 <script src="/assets/plugins.js"></script>

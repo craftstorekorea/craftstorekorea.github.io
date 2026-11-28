@@ -86,7 +86,23 @@
     "esg.filterCanceled": "취소",
     "esg.errSave": "저장하지 못했습니다:",
     "esg.remove": "삭제",
-    "esg.emptyFilter": "이 상태의 요청이 없습니다."
+    "esg.emptyFilter": "이 상태의 요청이 없습니다.",
+    "esg.link": "연결",
+    "esg.linkNone": "연결 안 함",
+    "esg.linkApproval": "결재 문서",
+    "esg.linkIssue": "일감",
+    "esg.linkPickKind": "— 먼저 연결 종류를 고르세요 —",
+    "esg.linkNoTarget": "— 연결할 문서가 없습니다 —",
+    "esg.linkLoading": "연결할 목록을 불러오는 중…",
+    "esg.linkNeedTarget": "연결할 대상을 골라 주세요(또는 연결 안 함으로 두세요).",
+    "esg.linkOn": "연결: {kind} · {target}",
+    "esg.linkApplied": "서명 완료 뒤 자동 처리했습니다({note}).",
+    "esg.linkWaiting": "서명은 끝났지만 연결 처리가 아직입니다 — 다시 시도해 주세요.",
+    "esg.linkRetry": "연결 처리 다시 시도",
+    "esg.linkDone": "연결된 대상을 처리했습니다: {note}",
+    "esg.linkFail": "연결 처리를 마치지 못했습니다: {reason}",
+    "esg.linkNotSigned": "서명이 끝난 뒤에 처리할 수 있습니다.",
+    "esg.linkNoneDoc": "이 요청에는 연결된 결재·일감이 없습니다."
   };
   function A(key, vars) {
     var s = T[key] || key;
@@ -858,7 +874,8 @@
   /* ============================================================================
      관리자 (/admin → 서명 · 동의서)
      ============================================================================ */
-  var AD = { docs: [], signatures: {}, filter: "all", selected: "", tokens: {}, hasTable: true, loaded: false, busy: false };
+  var AD = { docs: [], signatures: {}, filter: "all", selected: "", tokens: {}, hasTable: true, loaded: false, busy: false,
+             links: { approval: [], issue: [] }, linksLoaded: false };
 
   function effStatus(d) {
     if (d.status === "pending" && d.expires_at && new Date(d.expires_at).getTime() <= Date.now()) return "expired";
@@ -895,8 +912,12 @@
     }
     body.innerHTML = list.map(function (d) {
       var st = effStatus(d);
+      var link = (d.link_kind && d.link_kind !== "none")
+        ? '<span class="esg-req">' + (d.link_kind === "approval" ? "↔ " : "↔ #") +
+          esc(d.link_kind === "approval" ? A("esg.linkApproval") : A("esg.linkIssue")) + "</span>"
+        : "";
       return '<tr data-esg-row="' + esc(d.id) + '"' + (d.id === AD.selected ? ' class="is-selected"' : "") + ">" +
-        '<td class="esg-t-title">' + esc(d.title || "") + "</td>" +
+        '<td class="esg-t-title">' + esc(d.title || "") + (link ? " " + link : "") + "</td>" +
         "<td>" + esc(d.signer_name || "") + "</td>" +
         '<td><span class="' + statusClass(st) + '">' + esc(statusLabel(st)) + "</span></td>" +
         "<td>" + esc(d.expires_at ? fmtDate(d.expires_at) : A("esg.noExpire")) + "</td>" +
@@ -917,6 +938,7 @@
       msg("esg-msg", A("esg.needAdmin"), "err");
       return;
     }
+    loadLinkTargets();
     if (AD.loaded && !force) { renderAdminList(); return; }
     msg("esg-msg", A("esg.loading"));
     aRest("esign_docs?select=*&order=created_at.desc&limit=200", "GET", undefined, adminToken())
@@ -966,6 +988,65 @@
     }).filter(Boolean);
   }
 
+  /* ---------------- v10.17 — 연결할 결재·일감 목록 ---------------- */
+  function loadLinkTargets(force) {
+    if (!adminToken()) return;
+    if (AD.linksLoaded && !force) { paintLinkTargets(); return; }
+    var wantApproval = adminToken()
+      ? aRest("approval_docs?select=id,doc_no,title,status&status=in.(pending,draft)&order=updated_at.desc&limit=50", "GET", undefined, adminToken())
+      : Promise.resolve([]);
+    var wantIssue = aRest("issues?select=id,issue_no,subject,status,project_id&status=in.(new,in_progress,feedback,hold)&order=updated_at.desc&limit=50", "GET", undefined, adminToken());
+    Promise.all([wantApproval.catch(function () { return []; }), wantIssue.catch(function () { return []; })])
+      .then(function (out) {
+        AD.links.approval = (out[0] || []).filter(function (x) { return x && x.id; });
+        AD.links.issue = (out[1] || []).filter(function (x) { return x && x.id; });
+        AD.linksLoaded = true;
+        paintLinkTargets();
+      }, function () { AD.linksLoaded = true; paintLinkTargets(); });
+  }
+
+  function linkKindValue() {
+    var sel = $("#esg-f-link-kind");
+    return sel ? String(sel.value || "none") : "none";
+  }
+
+  function paintLinkTargets() {
+    var sel = $("#esg-f-link-target");
+    var kind = linkKindValue();
+    var actionWrap = $("#esg-f-link-action-wrap");
+    if (actionWrap) actionWrap.hidden = kind !== "issue";
+    if (!sel) return;
+    if (kind === "none") {
+      sel.innerHTML = '<option value="">' + esc(A("esg.linkPickKind")) + "</option>";
+      sel.disabled = true;
+      return;
+    }
+    sel.disabled = false;
+    var rows = kind === "approval" ? AD.links.approval : AD.links.issue;
+    if (!rows.length) {
+      sel.innerHTML = '<option value="">' + esc(A("esg.linkNoTarget")) + "</option>";
+      return;
+    }
+    sel.innerHTML = '<option value="">— 고르기 —</option>' + rows.map(function (r) {
+      var label = kind === "approval"
+        ? (r.doc_no ? r.doc_no + " · " : "") + (r.title || "")
+        : "#" + (r.issue_no != null ? r.issue_no : "?") + " " + (r.subject || "");
+      return '<option value="' + esc(r.id) + '">' + esc(label) + "</option>";
+    }).join("");
+  }
+
+  function linkTargetLabel(kind, id) {
+    if (!kind || kind === "none" || !id) return "";
+    var rows = kind === "approval" ? AD.links.approval : AD.links.issue;
+    var hit = rows.filter(function (r) { return String(r.id) === String(id); })[0];
+    if (hit) {
+      return kind === "approval"
+        ? (hit.doc_no ? hit.doc_no + " · " : "") + (hit.title || "")
+        : "#" + (hit.issue_no != null ? hit.issue_no : "?") + " " + (hit.subject || "");
+    }
+    return kind === "approval" ? A("esg.linkApproval") : A("esg.linkIssue");
+  }
+
   function createDoc() {
     if (AD.busy) return;
     var title = String(($("#esg-f-title") || {}).value || "").trim();
@@ -974,11 +1055,14 @@
     var email = String(($("#esg-f-email") || {}).value || "").trim().toLowerCase();
     var expires = String(($("#esg-f-expires") || {}).value || "").trim();
     var checks = readChecks();
+    var linkKind = linkKindValue();
+    var linkTarget = String(($("#esg-f-link-target") || {}).value || "");
     if (!title) { msg("esg-msg", A("esg.needTitle"), "err"); return; }
     if (!body) { msg("esg-msg", A("esg.needBody"), "err"); return; }
     if (!checks.length) { msg("esg-msg", A("esg.needCheck"), "err"); return; }
     if (!signer) { msg("esg-msg", A("esg.needSigner"), "err"); return; }
     if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg("esg-msg", A("esg.badEmail"), "err"); return; }
+    if (linkKind !== "none" && !linkTarget) { msg("esg-msg", A("esg.linkNeedTarget"), "err"); return; }
 
     AD.busy = true;
     var btn = $("#esg-create");
@@ -992,7 +1076,11 @@
           signer_name: signer, signer_email: email,
           token_hash: hs[0], content_sha256: hs[1],
           expires_at: expires ? new Date(expires + "T23:59:59+09:00").toISOString() : null,
-          status: "pending", site_key: String(SC.siteKey || "default")
+          status: "pending", site_key: String(SC.siteKey || "default"),
+          link_kind: linkKind,
+          link_id: linkKind === "none" ? null : linkTarget,
+          link_action: linkKind === "issue"
+            ? String(($("#esg-f-link-action") || {}).value || "resolved") : ""
         };
         return aRest("esign_docs", "POST", row, adminToken()).then(function (res) {
           var saved = (Array.isArray(res) ? res[0] : res) || row;
@@ -1059,6 +1147,7 @@
         "<span>" + esc(A("esg.expires")) + " " + esc(d.expires_at ? fmtDate(d.expires_at) : A("esg.noExpire")) + "</span>";
     }
     var bodyBox = $("#esg-d-body");
+    paintDetailLink(d, st);
     if (bodyBox) bodyBox.innerHTML = esc(String(d.body || "")).replace(/\n/g, "<br>");
     var checksBox = $("#esg-d-checks");
     if (checksBox) {
@@ -1108,6 +1197,68 @@
     if (tag) tag.textContent = AD.tokens[d.id] ? "" : A("esg.linkOnce");
     var panelTop = panel ? panel.getBoundingClientRect().top : 0;
     if (panel && panelTop < 0) panel.scrollIntoView({ block: "start", behavior: "smooth" });
+  }
+
+  /* v10.17 — 상세의 연결 상태와 ‘다시 시도’ */
+  /* 관리자 화면의 언어는 admin-i18n 이 documentElement.lang 에 남깁니다. */
+  function adminEn() {
+    return (document.documentElement.getAttribute("lang") || "ko") === "en";
+  }
+  function L2(ko, en) { return adminEn() ? en : ko; }
+
+  function paintDetailLink(d, st) {
+    var line = $("#esg-d-link");
+    var box = $("#esg-d-linkbox");
+    var state = $("#esg-d-linkstate");
+    var kind = d.link_kind || "none";
+    if (box) box.hidden = true;
+    if (!line) return;
+    if (kind === "none" || !d.link_id) {
+      line.hidden = true;                    /* 연결이 없으면 줄을 감춥니다(문구 번역 부담도 없어집니다) */
+      line.textContent = "";
+      return;
+    }
+    line.hidden = false;
+    var label = linkTargetLabel(kind, d.link_id);
+    var kindText = kind === "approval" ? L2("결재 문서", "approval") : L2("일감", "issue");
+    var text = L2("연결: ", "Linked: ") + kindText + " · " + label;
+    if (d.applied_at) {
+      text += L2(" — 서명 뒤 자동 처리됨(", " — applied after signing (") + (d.apply_note || "applied") + ")";
+    } else if (st === "signed") {
+      text += L2(" — 서명은 끝났지만 연결 처리가 아직입니다.", " — signed, but the linked item has not been processed yet.");
+      if (box) box.hidden = false;
+      if (state) state.textContent = d.apply_note || "";
+    }
+    line.textContent = text;
+  }
+
+  function applyLink() {
+    var d = AD.docs.filter(function (x) { return x.id === AD.selected; })[0];
+    if (!d) return;
+    if (effStatus(d) !== "signed") { msg("esg-msg", A("esg.linkNotSigned"), "err"); return; }
+    var btn = $("#esg-d-apply");
+    if (btn) btn.disabled = true;
+    rpc("esign_apply_link_admin", { p_doc_id: d.id }, adminToken()).then(function (res) {
+      if (btn) btn.disabled = false;
+      var r = res || {};
+      function L(ko, en) { return adminEn() ? en : ko; }
+      if (r.applied) {
+        d.applied_at = new Date().toISOString();
+        d.apply_note = "applied";
+        msg("esg-msg", L("연결된 대상을 처리했습니다: ", "Processed the linked item: ")
+          + ([r.doc_no, r.issue_no, r.status].filter(Boolean).join(" ") || "applied"), "ok");
+      } else if (r.ok) {
+        msg("esg-msg", L("처리할 것이 없습니다: ", "Nothing to process: ") + (r.reason || "applied"), "ok");
+      } else {
+        msg("esg-msg", L("연결 처리를 마치지 못했습니다: ", "Could not process the link: ") + (r.reason || "error"), "err");
+      }
+      AD.loaded = false;
+      loadAdmin(true);
+    }, function (err) {
+      if (btn) btn.disabled = false;
+      msg("esg-msg", (adminEn() ? "Could not process the link: " : "연결 처리를 마치지 못했습니다: ")
+        + String(err.message || ""), "err");
+    });
   }
 
   function detailPayload() {
@@ -1176,7 +1327,14 @@
         return;
       }
       if (t.id === "esg-d-cancel") { cancelDoc(); return; }
+      if (t.id === "esg-d-apply") { applyLink(); return; }
     });
+    var kindSel = $("#esg-f-link-kind");
+    if (kindSel && !kindSel.getAttribute("data-esg-bound")) {
+      kindSel.setAttribute("data-esg-bound", "1");
+      kindSel.addEventListener("change", function () { paintLinkTargets(); });
+    }
+    paintLinkTargets();
     if (!$("#esg-checks") || !$("#esg-checks").children.length) {
       addCheckRow("개인정보 수집·이용에 동의합니다");
       addCheckRow("위 내용을 확인하였으며 이에 동의합니다");

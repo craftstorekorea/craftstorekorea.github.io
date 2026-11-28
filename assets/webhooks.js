@@ -15,8 +15,9 @@
   var KEY = CFG.anonKey || "";
   var MAX_RETRIES = 3;
   var BASE_DELAY = 400;                 // 브라우저 시험 발송용(함수는 800ms)
-  var EVENTS = ["form.submitted", "approval.completed", "issue.created", "reservation.confirmed"];
-  var KINDS = ["google_sheet", "slack", "mail", "custom"];
+  var EVENTS = ["form.submitted", "reservation.submitted", "reservation.confirmed",
+                "esign.signed", "approval.completed", "approval.rejected", "issue.created"];
+  var KINDS = ["slack", "discord", "custom", "google_sheet", "mail"];
 
   /* 관리자 화면은 assets/admin-i18n.js 가 문구를 번역합니다 — 여기서는 한국어 기본 문구를 돌려줍니다. */
   var T = {
@@ -42,9 +43,14 @@
     "wh.errSend": "발송하지 못했습니다:",
     "wh.drained": "대기 {n}건을 처리했습니다.",
     "wh.needFunction": "webhook-dispatch 함수가 배포되지 않았습니다. 함수를 배포하면 서버가 대신 보냅니다.",
-    "wh.kind.sheet": "구글 시트", "wh.kind.slack": "슬랙", "wh.kind.mail": "메일", "wh.kind.custom": "직접 URL",
+    "wh.kind.sheet": "구글 시트", "wh.kind.slack": "슬랙", "wh.kind.discord": "디스코드",
+    "wh.kind.mail": "메일", "wh.kind.custom": "직접 URL",
     "wh.event.form": "폼 접수", "wh.event.approval": "결재 완료",
-    "wh.event.issue": "일감 생성", "wh.event.reservation": "예약 확정"
+    "wh.event.approvalReject": "결재 반려", "wh.event.esign": "전자서명 완료",
+    "wh.event.reservationNew": "예약 접수",
+    "wh.event.issue": "일감 생성", "wh.event.reservation": "예약 확정",
+    "wh.drainedBrowser": "브라우저에서 대기 {n}건을 처리했습니다(실패 {f}건).",
+    "wh.nothing": "대기 중인 웹훅이 없습니다."
   };
   function I(key, vars) {
     var s = T[key] || key;
@@ -102,11 +108,28 @@
   }
 
   function kindLabel(k) {
-    return { google_sheet: I("wh.kind.sheet"), slack: I("wh.kind.slack"), mail: I("wh.kind.mail"), custom: I("wh.kind.custom") }[k] || k;
+    return { google_sheet: I("wh.kind.sheet"), slack: I("wh.kind.slack"), discord: I("wh.kind.discord"),
+             mail: I("wh.kind.mail"), custom: I("wh.kind.custom") }[k] || k;
   }
   function eventLabel(e) {
     return { "form.submitted": I("wh.event.form"), "approval.completed": I("wh.event.approval"),
+             "approval.rejected": I("wh.event.approvalReject"), "esign.signed": I("wh.event.esign"),
+             "reservation.submitted": I("wh.event.reservationNew"),
              "issue.created": I("wh.event.issue"), "reservation.confirmed": I("wh.event.reservation") }[e] || e;
+  }
+
+  /* 슬랙·디스코드는 text/content 한 줄을 받습니다. DB 트리거가 넣은 message 를 씁니다. */
+  function messageOf(payload) {
+    var p = payload || {};
+    var d = (p.data && typeof p.data === "object") ? p.data : p;
+    if (d.message) return String(d.message);
+    var bits = [p.event || "", d.title || d.subject || d.name || d.code || ""];
+    return bits.filter(Boolean).join(" · ");
+  }
+  function bodyFor(hook, payload) {
+    if (hook && hook.kind === "slack") return JSON.stringify({ text: messageOf(payload) });
+    if (hook && hook.kind === "discord") return JSON.stringify({ content: messageOf(payload) });
+    return JSON.stringify(payload || {});
   }
 
   /* ---------------- 목록 ---------------- */
@@ -251,7 +274,7 @@
 
   /* 브라우저 폴백 — 함수가 없을 때 같은 규칙으로 직접 보냅니다(테스트·CORS 허용 대상). */
   function deliverInBrowser(delivery, hook) {
-    var body = JSON.stringify(delivery.payload || {});
+    var body = bodyFor(hook, delivery.payload || {});
     var attempts = 0, lastCode = null, lastBody = "", lastError = "";
     function send() {
       return hmacHex(hook.secret || "", body).then(function (sig) {
@@ -335,6 +358,37 @@
     });
   }
 
+  /* 함수가 없을 때 브라우저가 대기 행을 직접 보냅니다(같은 규칙·같은 이력). */
+  function drainInBrowser() {
+    return rest("webhook_deliveries?select=id,webhook_id,event,payload&status=eq.pending&order=created_at.asc&limit=10")
+      .then(function (rows) {
+        if (!rows || !rows.length) return { n: 0, fail: 0 };
+        return rest("webhooks?select=id,name,kind,url,secret,is_active").then(function (hooks) {
+          var byId = {};
+          (hooks || []).forEach(function (h) { byId[h.id] = h; });
+          var n = 0, fail = 0;
+          var chain = Promise.resolve();
+          rows.forEach(function (row) {
+            chain = chain.then(function () {
+              var hook = byId[row.webhook_id];
+              if (!hook || !hook.is_active) {
+                fail += 1;
+                return rest("webhook_deliveries?id=eq." + encodeURIComponent(row.id), "PATCH", {
+                  status: "failed", error: "webhook_inactive_or_deleted",
+                  delivered_at: new Date().toISOString()
+                });
+              }
+              return deliverInBrowser(row, hook).then(function (res) {
+                n += 1;
+                if (!res.ok) fail += 1;
+              }, function () { fail += 1; });
+            });
+          });
+          return chain.then(function () { return { n: n, fail: fail }; });
+        });
+      });
+  }
+
   function drain() {
     var t = token();
     msg(I("wh.sending"));
@@ -348,7 +402,14 @@
         msg(I("wh.drained", { n: out.d.processed || 0 }), "ok");
         load();
       })
-      .catch(function () { msg(I("wh.needFunction"), "err"); });
+      .catch(function () {
+        /* 함수 미배포 — 브라우저에서 같은 규칙으로 시도합니다. */
+        drainInBrowser().then(function (res) {
+          if (!res.n && !res.fail) { msg(I("wh.nothing"), "ok"); load(); return; }
+          msg(I("wh.drainedBrowser", { n: res.n, f: res.fail }), res.fail ? "err" : "ok");
+          load();
+        }).catch(function () { msg(I("wh.needFunction"), "err"); });
+      });
   }
 
   function wire() {

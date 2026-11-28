@@ -1266,6 +1266,15 @@
     if (clear) clear.addEventListener("click", ntfClearQueued);
   }
 
+  /* v10.17 — 웹훅 카드는 하나만 두고, 연 탭의 자리로 옮겨 붙입니다(같은 id 중복 없음). */
+  function moveHookCard(name) {
+    var card = document.getElementById("p-set-webhook");
+    if (!card) return;
+    var want = name === "notify" ? document.getElementById("ntf-hook-slot")
+      : name === "settings" ? document.getElementById("set-hook-slot") : null;
+    if (want && card.parentNode !== want) want.appendChild(card);
+  }
+
   function activateTab(name) {
     CMS.tab = name;
     [].forEach.call(document.querySelectorAll(".admin-tab"), function (b) {
@@ -1279,6 +1288,9 @@
     if (name === "hub" && window.CRAFT_HUB) window.CRAFT_HUB.load();
     /* v9.0 — 서명 · 동의서 (assets/esign.js) */
     if (name === "esign" && window.CRAFT_ESIGN) window.CRAFT_ESIGN.loadAdmin();
+    /* v10.17 — 접수 자동 일감 · 알림 문구 템플릿 · 외부 웹훅 */
+    if (name === "notify") moveHookCard(name);
+    if (name === "settings") moveHookCard(name);
     if (name === "dash" && !CMS.adminsLoaded) loadAdmins();
     if (name === "dash") { loadAudit(); loadStats(); loadBudget(); loadTraffic(); loadDbUsage(); }
     if (name === "pages") { if (!CMS.loaded.pages) loadPages(); loadPageManager(); }
@@ -1287,7 +1299,12 @@
     if (name === "posts") { if (!CMS.loaded.posts) loadPosts(); loadBoards(); }
     if (name === "tasks") loadTasksAdmin();
     if (name === "workpro") loadWorkPro();
-    if (name === "notify") loadNotifyAdmin();
+    if (name === "notify") {
+      loadNotifyAdmin();
+      /* v10.17 — 접수 자동 일감 · 알림 문구 템플릿 · 외부 웹훅 */
+      if (window.CRAFT_AUTOMATION) window.CRAFT_AUTOMATION.load();
+      if (window.CRAFT_WEBHOOKS) window.CRAFT_WEBHOOKS.load();
+    }
     if (name === "approvals") loadApprovalsAdmin();
     if (name === "media") loadMedia();
     if (name === "comments" && !CMS.loaded.comments) loadComments();
@@ -1297,6 +1314,7 @@
     if (name === "backup") loadBackupCounts();
     if (name === "settings") {
       loadSettings();
+      /* v7.0 — 웹훅 카드(설정 · 연동과 알림 · 자동화에서 같은 카드를 씁니다) */
       if (window.CRAFT_WEBHOOKS) window.CRAFT_WEBHOOKS.load();
       /* v8.0 — 도메인 연결 도우미 */
       if (window.CRAFT_HUB) window.CRAFT_HUB.loadDomain();
@@ -3930,6 +3948,20 @@
     return err && (err.code === "42P01" || err.code === "404" ||
       /does not exist|schema cache|find the table/i.test(String(err.message || "")));
   }
+  /* v10.17 — 표 권한(SELECT)이 없어 거부된 경우(42501)를 안내로 나눕니다. */
+  function rsvDenied(err) {
+    return err && (String(err.code || "") === "42501"
+      || /permission denied for table/i.test(String(err.message || "")));
+  }
+  function showRsvDenied() {
+    var miss = document.getElementById("rsv-missing");
+    if (miss) {
+      miss.hidden = false;
+      miss.innerHTML = '예약 표를 읽을 권한이 없습니다. <code>supabase/38_v1017_auto_links.sql</code> 을 실행하면 관리자에게만 열립니다(일반 회원은 그대로 볼 수 없습니다).';
+    }
+    var list = document.querySelector("#rsv-list tbody");
+    if (list) list.innerHTML = '<tr><td colspan="6" class="wh-empty">예약 표 읽기 권한이 없습니다(38 SQL 실행).</td></tr>';
+  }
 
   function loadReservations() {
     if (!sb) return;
@@ -4035,6 +4067,7 @@
       .then(function (r) {
         if (r.error) {
           if (rsvMissing(r.error)) { showRsvMissing(); return; }
+          if (rsvDenied(r.error)) { showRsvDenied(); return; }
           rsvMsg("신청을 읽지 못했습니다: " + r.error.message, "err");
           RSV.list = [];
         } else RSV.list = r.data || [];
