@@ -1404,8 +1404,8 @@
       if (keys.length > 4) bits.push("…");
       return "<li><b>" + esc(String(h.created_at || "").slice(0, 16).replace("T", " ")) + "</b> " +
         (h.action === "insert" ? esc(rmI("hist.created")) : bits.join(" · ")) +
-        ' <a class="mini rm-hist-diff" href="' + esc(url) + '" target="_blank" rel="noopener">' +
-        esc(rmI("hist.diff")) + "</a></li>";
+        ' <a class="mini rm-hist-diff" href="' + esc(url + "&rev=" + encodeURIComponent(h.id)) +
+        '" target="_blank" rel="noopener">' + esc(rmI("hist.diff")) + "</a></li>";
     }).join("") + "</ul>";
   }
 

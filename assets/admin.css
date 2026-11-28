@@ -1156,7 +1156,7 @@ tr.owner-row td{background:#FFFAF6}
 .sft-badge.is-warn{background:#FDF3E4;border-color:#EBD7B8;color:#8A5A16}
 .sft-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;list-style:none;padding:0;margin:12px 0 6px}
 .sft-stats li{padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-s);background:#fff;font-size:.74rem;color:var(--ink-3);font-weight:700;display:flex;flex-direction:column;gap:3px;min-width:0}
-.sft-stats li b{color:var(--ink);font-size:.9rem;font-weight:800;letter-spacing:-.01em;overflow-wrap:anywhere}
+.sft-stats li b{color:var(--ink);font-size:.9rem;font-weight:800;letter-spacing:-.01em;overflow-wrap:anywhere;word-break:keep-all}
 .sft-log-table{margin:10px 0 0}
 .sft-log-table code{font-size:.72rem}
 .sft-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle;background:var(--ink-3)}

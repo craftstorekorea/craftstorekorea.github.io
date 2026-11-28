@@ -2,7 +2,7 @@
   "name": "SBPress",
   "kind": "core-manifest",
   "version": "10.18",
-  "generatedAt": "2026-11-28T22:43:16+09:00",
+  "generatedAt": "2026-11-28T23:30:12+09:00",
   "generator": "craftstore_site/sync_template.py --manifest",
   "engine": {
     "html": {
@@ -97,7 +97,7 @@
         "strategy": "copy"
       },
       "assets/tasks.js": {
-        "sha256": "efb743b72ce3f0d9f73b8c2ac986ba23404bc059c81b33a841e28f28f41a577e",
+        "sha256": "82988eab7caba12c85af48da8f0a1f4fe7b793d5b00571cefe3a27f6074aac26",
         "strategy": "copy"
       },
       "assets/approvals.js": {
@@ -201,7 +201,7 @@
         "strategy": "copy"
       },
       "assets/safety.js": {
-        "sha256": "a1e7c8c97a18b2ee8aaac647f481d2a07b3ff984aa516577c8fecca70b4da993",
+        "sha256": "ff923f549106ecc36e1fe4450353ccbbdc108c6a544bd2ee7f6f0bbc2038d0dd",
         "strategy": "copy"
       }
     },
@@ -211,7 +211,7 @@
         "strategy": "copy"
       },
       "assets/admin.css": {
-        "sha256": "94e852a2143719895eb09c48f3d43ca3775de5744a9c55e3a6545ef5986d90e8",
+        "sha256": "d1bd6b8e1ecf5c047177ebff583687c93a56ad272e513e5a3676ad5c8dfb98cb",
         "strategy": "copy"
       },
       "assets/static-post.css": {

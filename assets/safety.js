@@ -574,14 +574,26 @@
     });
   }
 
-  function openIssueDiff(id) {
+  /* revId 를 주면 그 이력 직전 상태와 그 이력을 비교하고, 없으면 처음 상태와 지금을 비교합니다. */
+  function openIssueDiff(id, revId) {
     S.src = "issue";
     var srcSel = $("#sft-src");
     if (srcSel) srcSel.value = "issue";
     return loadIssueVersions(id).then(function (list) {
-      paintVersions(Math.min(1, list.length - 1), 0);
-      openDrawer("일감 이력 비교", id + " · " + list[Math.min(1, list.length - 1)].label + " → " + list[0].label);
-      paintDiff("issue", "", list[Math.min(1, list.length - 1)], list[0]);
+      var b = 0, a = Math.max(0, list.length - 1);
+      if (revId) {
+        for (var i = 0; i < list.length; i++) if (String(list[i].id) === String(revId)) { b = i; a = Math.min(i + 1, list.length - 1); break; }
+      }
+      paintVersions(a, b);
+      var tv = "issue:" + encodeURIComponent(id);
+      if (S.targets.issue) {
+        fillTargetSelect();
+        var ts = $("#sft-target");
+        if (ts) ts.value = tv;
+        S.target = tv;
+      }
+      openDrawer("일감 이력 비교", (id + " · " + list[a].label + " → " + list[b].label));
+      paintDiff("issue", "", list[a], list[b]);
     }).catch(function (e) {
       openDrawer("일감 이력 비교", "");
       var box = $("#sft-diff");
@@ -594,16 +606,22 @@
     var q;
     try { q = new URLSearchParams(window.location.search || ""); } catch (e) { return; }
     if (q.get("tab") !== "backup") return;
+    var diff0 = q.get("diff");
+    if (diff0 === "issue") S.src = "issue";
     var tab = $('.admin-tab[data-tab="backup"]');
     if (tab) tab.click();
     load();
-    var diff = q.get("diff");
+    var diff = diff0;
     var id = q.get("id");
+    var rev = q.get("rev") || "";
     if (diff === "issue" && id) {
-      setTimeout(function () { openIssueDiff(id); }, 350);
+      S.src = "issue";
+      var issueSel = $("#sft-src");
+      if (issueSel) issueSel.value = "issue";
+      setTimeout(function () { openIssueDiff(id, rev); }, 500);
     } else if (diff === "doc" && id) {
       var parts = String(id).split(":");
-      if (parts.length === 2) setTimeout(function () { openDocDiff(parts[0], parts[1], q.get("rev") || ""); }, 350);
+      if (parts.length === 2) setTimeout(function () { openDocDiff(parts[0], parts[1], rev); }, 500);
     }
   }
 
@@ -643,7 +661,7 @@
     loadLog();
     if (S.loaded) { if (S.targets[S.src] || S.targets.doc) fillTargetSelect(); return; }
     S.loaded = true;
-    loadTargets("doc").then(function () {
+    loadTargets(S.src).then(function () {
       fillTargetSelect();
       return onTargetChange();
     }).catch(function (e) {
