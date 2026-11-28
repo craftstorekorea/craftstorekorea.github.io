@@ -484,7 +484,7 @@
   var RM = {
     mode: null, built: false, booted: false, loading: false, missing: false, probing: false,
     projects: [], project: null, members: [], people: [], org: [], showArchived: false,
-    issues: [], comments: {}, relations: {}, approvals: {}, checklist: {},
+    issues: [], comments: {}, relations: {}, approvals: {}, checklist: {}, histories: {},
     invites: [], claimed: 0,
     view: "list", q: "", fAssignee: "", fStatus: "", fPriority: "", fFrom: "", fTo: "",
     cal: "", sel: {}, detail: null, projEditing: null, error: ""
@@ -1350,11 +1350,15 @@
       request("issue_relations?select=*&or=(from_id.eq." + encodeURIComponent(id) +
               ",to_id.eq." + encodeURIComponent(id) + ")"),
       request("issue_approvals?select=*&issue_id=eq." + encodeURIComponent(id)),
-      request("issue_checklist?select=*&issue_id=eq." + encodeURIComponent(id) + "&order=sort_order.asc")
+      request("issue_checklist?select=*&issue_id=eq." + encodeURIComponent(id) + "&order=sort_order.asc"),
+      /* v10.18 — 일감 변경 이력(DB 트리거). 없으면 404 로 조용히 넘어갑니다. */
+      request("issue_histories?select=id,action,changes,actor_email,created_at&issue_id=eq." +
+              encodeURIComponent(id) + "&order=created_at.desc&limit=20")
     ]).then(function (res) {
       RM.comments[id] = (res[0].ok && Array.isArray(res[0].data)) ? res[0].data : [];
       RM.relations[id] = (res[1].ok && Array.isArray(res[1].data)) ? res[1].data : [];
       RM.checklist[id] = (res[3].ok && Array.isArray(res[3].data)) ? res[3].data : [];
+      RM.histories[id] = (res[4] && res[4].ok && Array.isArray(res[4].data)) ? res[4].data : [];
       var links = (res[2].ok && Array.isArray(res[2].data)) ? res[2].data : [];
       RM.approvals[id] = links;
       var ids = links.map(function (l) { return l.doc_id; });
@@ -1364,6 +1368,45 @@
       var docs = (rd && rd.ok && Array.isArray(rd.data)) ? rd.data : [];
       rmPaintDetail(it, docs);
     }).catch(function () { rmPaintDetail(it, []); });
+  }
+
+  var RM_HIST_FIELDS = {
+    subject: "제목", description: "설명", status: "상태", progress: "진행률", priority: "우선순위",
+    tracker: "유형", assignee_id: "담당", starts_on: "시작일", due_on: "마감일",
+    estimated_hours: "예상 시간", spent_hours: "실적 시간", parent_id: "상위 일감"
+  };
+  function rmHistValue(k, v) {
+    if (v === null || v === undefined || v === "") return rmI("hist.none");
+    if (k === "status") return rmI("st." + v);
+    if (k === "priority") return rmI("prio." + v);
+    if (k === "tracker") return rmI("tracker." + v);
+    if (k === "assignee_id" || k === "parent_id") return rmName(v) || String(v);
+    if (k === "progress") return v + "%";
+    return String(v);
+  }
+  /* v10.18 — 일감 변경 이력과 ‘비교’ 링크(/admin 백업 · 이력 비교)를 그립니다. */
+  function rmHistHtml(it) {
+    var rows = RM.histories[it.id] || [];
+    var head = '<h3 class="rm-h3">' + esc(rmI("history")) + " (" + rows.length + ")" +
+      ' <a class="mini rm-hist-all" href="/admin?tab=backup&amp;diff=issue&amp;id=' + esc(encodeURIComponent(it.id)) +
+      '" target="_blank" rel="noopener">' + esc(rmI("hist.diff")) + "</a></h3>";
+    if (!rows.length) return head + '<p class="rm-empty sm">' + esc(rmI("hist.none2")) + "</p>";
+    var url = "/admin?tab=backup&diff=issue&id=" + encodeURIComponent(it.id);
+    return head + '<ul class="rm-hist">' + rows.map(function (h) {
+      var ch = h.changes || {};
+      var keys = Object.keys(ch);
+      var bits = [];
+      keys.slice(0, 4).forEach(function (k) {
+        if (k === "description" || k === "subject") { bits.push(esc(rmI("hist." + k))); return; }
+        var c = ch[k] || {};
+        bits.push(esc(RM_HIST_FIELDS[k] || k) + " " + esc(rmHistValue(k, c.from)) + " → " + esc(rmHistValue(k, c.to)));
+      });
+      if (keys.length > 4) bits.push("…");
+      return "<li><b>" + esc(String(h.created_at || "").slice(0, 16).replace("T", " ")) + "</b> " +
+        (h.action === "insert" ? esc(rmI("hist.created")) : bits.join(" · ")) +
+        ' <a class="mini rm-hist-diff" href="' + esc(url) + '" target="_blank" rel="noopener">' +
+        esc(rmI("hist.diff")) + "</a></li>";
+    }).join("") + "</ul>";
   }
 
   function rmPaintDetail(it, docs) {
@@ -1412,6 +1455,7 @@
         esc(rmI("asgGuest")) + "</p>" +
       '<div class="rm-d-desc">' + (it.description ? "<p>" + esc(it.description) + "</p>" : "") +
         "<p class=\"rm-d-meta\">" + esc(rmI("author")) + ": " + esc(rmName(it.author_id)) + " · " + esc(ymd(it.created_at)) + "</p></div>" +
+      rmHistHtml(it) +
       '<div class="rm-d-cl" id="rm-d-cl-box">' + rmChecklistHtml(it) + "</div>" +
       '<div class="rm-d-attach" id="rm-d-attach-box">' +
         '<div class="rm-d-attach-head"><span>' + esc(rmI("attach")) + '</span>' +

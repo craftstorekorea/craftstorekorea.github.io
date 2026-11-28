@@ -1759,7 +1759,56 @@
   "스위치 요청이 실패했습니다: ": "Switch request failed: ",
   "대기 메일을 정리하지 못했습니다: ": "Could not clear the waiting mail: ",
   "대기 중인 메일이 없습니다. 큐가 이미 비어 있습니다.": "No mail is waiting; the queue is already empty.",
-  "정리 요청이 실패했습니다: ": "Clear request failed: "
+  "정리 요청이 실패했습니다: ": "Clear request failed: ",
+  "운영 안전망 · 헬스": "Safety net · health",
+  "매일 08:30(KST) 자동 배치가 DB 에 요청을 보내 Supabase Free 플랜의 7일 무활동 일시정지를 막습니다. 최근 활동이 7일에 가까우면 여기서 알려 드립니다.": "The daily 08:30 KST job sends a request to the database so the Supabase Free plan never pauses after 7 idle days. This card warns you when activity gets close to that limit.",
+  "최근 자동 배치": "Last daily job",
+  "최근 백업": "Last backup",
+  "절전 안전": "Pause safety",
+  "절전 위험": "Pause risk",
+  "표 · 행": "Tables · rows",
+  "주간 자동 백업": "Weekly backup",
+  "헬스 새로고침": "Refresh health",
+  "서버 스냅샷 · 백업 이력": "Server snapshot · backup history",
+  "DB 가 직접 만든 JSON 스냅샷입니다 — 사이트 문구·페이지·게시판·글·일감·프로젝트·전자결재·서명 문서·알림 문구·접수 규칙을 한 파일로 담습니다. 주 1회 GitHub Actions 가 같은 함수를 불러 Artifact 로 90일 보관합니다.": "A JSON snapshot built by the database itself — site text, pages, boards, posts, issues, projects, approvals, signature documents, notification texts and intake rules in one file. Once a week GitHub Actions calls the same function and keeps the artifact for 90 days.",
+  "서버 스냅샷 내려받기": "Download server snapshot",
+  "이력 비교 (Diff)": "Version compare (Diff)",
+  "두 버전을 고르면 바뀐 필드와 본문 줄을 색으로 비교합니다. 글·페이지는 수정 이력(revisions), 일감은 변경 이력(issue_histories)에서 가져옵니다.": "Pick two versions to compare changed fields and body lines by colour. Documents come from revisions and issues from issue_histories.",
+  "이전": "Before",
+  "이후": "After",
+  "비교하기": "Compare",
+  "비교": "Compare",
+  "이력 비교": "Version compare",
+  "문서 (글 · 페이지)": "Document (post · page)",
+  "먼저 자료를 고르세요": "Choose a source first",
+  "이력이 있는 자료가 없습니다": "No item with history yet",
+  "문서는 저장할 때마다 직전 상태가 남습니다. 일감은 상태·진행률·담당·일정이 바뀔 때마다 한 줄 남습니다.": "Each document save keeps the state before it. Each issue change of status, progress, assignee or schedule leaves a row.",
+  "지금 (현재 상태)": "Now (current)",
+  "저장 전": "Before save",
+  "바뀐 필드": "Changed fields",
+  "본문 줄 비교": "Body line diff",
+  "본문 변화 없음": "No body change",
+  "두 버전이 같습니다 — 바뀐 필드나 줄이 없습니다.": "The two versions are identical — no field or line changed.",
+  "비교할 버전이 아직 하나뿐입니다. 문서를 한 번 더 저장하거나 일감을 바꾸면 이력이 쌓입니다.": "Only one version exists. Save the document or change the issue once more to build history.",
+  "필드": "Field",
+  "실행 주체": "Runner",
+  "체크섬": "Checksum",
+  "수동": "Manual",
+  "예약": "Scheduled",
+  "방금": "Just now",
+  "마지막 활동 ": "Last activity ",
+  "7일 안에 DB 요청이 없으면 Free 플랜이 일시정지됩니다. 자동 배치·백업 상태를 확인해 주세요.": "Without a database request within 7 days the Free plan pauses. Check the daily job and backup status.",
+  "월 09:00 KST · 90일 보관": "Mon 09:00 KST · kept 90 days",
+  "아직 백업 이력이 없습니다. 위의 ‘서버 스냅샷 내려받기’나 GitHub Actions 주간 백업이 실행되면 여기에 쌓입니다.": "No backup history yet. It appears here after a server snapshot download or the weekly GitHub Actions backup.",
+  "39_v1018_safety_backup.sql 을 실행하면 백업 이력이 켜집니다.": "Run 39_v1018_safety_backup.sql to enable backup history.",
+  "39_v1018_safety_backup.sql 을 실행하면 헬스 핑이 켜집니다.": "Run 39_v1018_safety_backup.sql to enable the health ping.",
+  "관리자로 로그인해야 스냅샷을 내려받을 수 있습니다.": "Sign in as an admin to download a snapshot.",
+  "DB 에서 스냅샷을 만드는 중…": "Building the snapshot in the database…",
+  "스냅샷이 비어 있습니다.": "The snapshot is empty.",
+  "스냅샷 함수가 없거나 권한이 없습니다. 39_v1018_safety_backup.sql 을 실행해 주세요.": "The snapshot function is missing or not permitted. Run 39_v1018_safety_backup.sql.",
+  "이력을 읽지 못했습니다: ": "Could not read the history: ",
+  "일감 이력 비교": "Issue version compare",
+  "이전(": "Before ("
 };
   var RULES = ([
   [
@@ -2705,6 +2754,62 @@
   [
     "^(\\d[\\d,]*)건의 대기 메일을 건너뜀으로 정리했습니다\\. 인앱 알림은 그대로 남아 있습니다\\.$",
     "\\1 waiting messages marked as skipped. In-app notifications stay as they are."
+  ],
+  [
+    "^(\\d+)개 필드 바뀜$",
+    "\\1 fields changed"
+  ],
+  [
+    "^\\+(\\d+)줄 추가$",
+    "+\\1 lines"
+  ],
+  [
+    "^−(\\d+)줄 삭제$",
+    "−\\1 lines"
+  ],
+  [
+    "^… (\\d+)줄 같음$",
+    "… \\1 unchanged lines"
+  ],
+  [
+    "^(\\d+)개 표 · ([\\d,]+)행$",
+    "\\1 tables · \\2 rows"
+  ],
+  [
+    "^D-(\\d+) / 7일$",
+    "D-\\1 / 7 days"
+  ],
+  [
+    "^절전 안전 · D-(\\d+)$",
+    "Safe · D-\\1"
+  ],
+  [
+    "^절전 위험 · D-(\\d+)$",
+    "At risk · D-\\1"
+  ],
+  [
+    "^(\\d+)개 · ([\\d.]+ [KM]?B)$",
+    "\\1 files · \\2"
+  ],
+  [
+    "^마지막 활동 (.+?) · ([\\d,.]+)시간 지남$",
+    "Last activity \\1 · \\2 h ago"
+  ],
+  [
+    "^(.+?) · (\\d+)개 필드 변경$",
+    "\\1 · \\2 fields changed"
+  ],
+  [
+    "^(.+?) · (\\d+)행$",
+    "\\1 · \\2 rows"
+  ],
+  [
+    "^(.+?) · 체크섬 (.+)$",
+    "\\1 · checksum \\2"
+  ],
+  [
+    "^이전\\((.+?)\\) 과 이후\\((.+?)\\) 를 비교합니다\\.$",
+    "Comparing before (\\1) with after (\\2)."
   ]
 ]).map(function (r) {
     /* 파이썬 쪽 규칙은 \1 로 그룹을 가리킵니다 — JS replace 는 $1 을 씁니다. */

@@ -194,6 +194,8 @@
         setWho(session.user.email || "", true);
         show("state-dash");
         loadAll(force);
+        /* v10.18 — /admin?tab=backup&diff=issue&id=… 로 들어오면 백업 탭의 이력 비교를 바로 엽니다. */
+        try { if (window.CRAFT_SAFETY) window.CRAFT_SAFETY.fromUrl(); } catch (e) { /* noop */ }
         /* /admin#sbp-export 처럼 들어오면 플러그인 탭을 바로 엽니다. */
         try { if (window.SBPress && window.SBPress.openFromHash) window.SBPress.openFromHash(); } catch (e) { /* noop */ }
       });
@@ -1311,7 +1313,11 @@
     if (name === "subscribers") loadSubscribers();
     if (name === "inbox") loadInbox();
     if (name === "reserve") loadReservations();
-    if (name === "backup") loadBackupCounts();
+    if (name === "backup") {
+      loadBackupCounts();
+      /* v10.18 — 운영 안전망 · 백업 이력 · 이력 비교 */
+      if (window.CRAFT_SAFETY) window.CRAFT_SAFETY.load();
+    }
     if (name === "settings") {
       loadSettings();
       /* v7.0 — 웹훅 카드(설정 · 연동과 알림 · 자동화에서 같은 카드를 씁니다) */
@@ -3114,11 +3120,20 @@
         '<div class="rev-what"><strong>' + esc(sn.title || "(제목 없음)") + "</strong><span>" + esc(extra) + "</span>" +
           (sn.subtitle ? "<em>" + esc(sn.subtitle) + "</em>" : "") +
         '</div>' +
-        '<button type="button" class="btn btn-ghost btn-sm rev-restore" data-i="' + i + '">이 버전으로 복원</button>' +
+        '<div class="rev-actions">' +
+          '<button type="button" class="btn btn-ghost btn-sm rev-diff" data-i="' + i + '">비교</button>' +
+          '<button type="button" class="btn btn-ghost btn-sm rev-restore" data-i="' + i + '">이 버전으로 복원</button>' +
+        "</div>" +
         "</article>";
     }).join("");
     [].forEach.call(box.querySelectorAll(".rev-restore"), function (b) {
       b.addEventListener("click", function () { restoreRevision(+b.getAttribute("data-i")); });
+    });
+    [].forEach.call(box.querySelectorAll(".rev-diff"), function (b) {
+      b.addEventListener("click", function () {
+        var rv = revState.rows[+b.getAttribute("data-i")];
+        if (rv && window.CRAFT_SAFETY) window.CRAFT_SAFETY.openDocDiff(revState.type, revState.id, rv.id);
+      });
     });
   }
 

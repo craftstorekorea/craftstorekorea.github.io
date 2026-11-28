@@ -1473,6 +1473,54 @@
       </div>
       <p class="panel-note">Supabase 공개 데이터를 그대로 읽어 담습니다. 백업 파일에는 공개 키·설정이 들어 있으니 <b>공개 저장소에 올리지 마세요</b>.</p>
 
+      <!-- ============ v10.18 운영 안전망 · 서버 스냅샷 · 이력 비교 ============ -->
+      <section class="cms-group sft-card" id="sft-health-group">
+        <div class="sft-head">
+          <h2>운영 안전망 · 헬스</h2>
+          <span class="sft-badge" id="sft-pause-badge">확인 중</span>
+        </div>
+        <p class="cms-hint">매일 08:30(KST) 자동 배치가 DB 에 요청을 보내 Supabase Free 플랜의 7일 무활동 일시정지를 막습니다. 최근 활동이 7일에 가까우면 여기서 알려 드립니다.</p>
+        <ul class="sft-stats">
+          <li><span>최근 자동 배치</span><b id="sft-batch">–</b></li>
+          <li><span>최근 백업</span><b id="sft-last-backup">–</b></li>
+          <li><span>절전 안전</span><b id="sft-pause">–</b></li>
+          <li><span>표 · 행</span><b id="sft-db">–</b></li>
+          <li><span>Storage</span><b id="sft-storage">–</b></li>
+          <li><span>주간 자동 백업</span><b id="sft-weekly">–</b></li>
+        </ul>
+        <div class="backup-actions">
+          <button type="button" class="btn btn-ghost btn-sm" id="sft-reload">헬스 새로고침</button>
+          <span class="cms-hint" id="sft-health-note"></span>
+        </div>
+      </section>
+
+      <section class="cms-group" id="sft-snapshot-group">
+        <h2>서버 스냅샷 · 백업 이력</h2>
+        <p class="cms-hint">DB 가 직접 만든 JSON 스냅샷입니다 — 사이트 문구·페이지·게시판·글·일감·프로젝트·전자결재·서명 문서·알림 문구·접수 규칙을 한 파일로 담습니다. 주 1회 GitHub Actions 가 같은 함수를 불러 Artifact 로 90일 보관합니다.</p>
+        <div class="backup-actions">
+          <button type="button" class="btn btn-primary btn-sm" id="sft-download">서버 스냅샷 내려받기</button>
+          <span class="cms-hint" id="sft-download-note"></span>
+        </div>
+        <p class="cms-toast" id="sft-msg" role="status" aria-live="polite"></p>
+        <table class="admin-table sft-log-table">
+          <thead><tr><th>시각</th><th>실행 주체</th><th class="num">행</th><th class="num">용량</th><th>상태</th><th>체크섬</th></tr></thead>
+          <tbody id="sft-log"><tr class="empty-row"><td colspan="6">불러오는 중…</td></tr></tbody>
+        </table>
+      </section>
+
+      <section class="cms-group" id="sft-diff-group">
+        <h2>이력 비교 (Diff)</h2>
+        <p class="cms-hint">두 버전을 고르면 바뀐 필드와 본문 줄을 색으로 비교합니다. 글·페이지는 수정 이력(revisions), 일감은 변경 이력(issue_histories)에서 가져옵니다.</p>
+        <div class="sft-picks">
+          <label><span>자료</span><select id="sft-src"><option value="doc">문서 (글 · 페이지)</option><option value="issue">일감</option></select></label>
+          <label><span>대상</span><select id="sft-target"><option value="">먼저 자료를 고르세요</option></select></label>
+          <label><span>이전</span><select id="sft-a"></select></label>
+          <label><span>이후</span><select id="sft-b"></select></label>
+          <button type="button" class="btn btn-primary btn-sm" id="sft-compare" disabled>비교하기</button>
+        </div>
+        <p class="cms-hint" id="sft-diff-note">문서는 저장할 때마다 직전 상태가 남습니다. 일감은 상태·진행률·담당·일정이 바뀔 때마다 한 줄 남습니다.</p>
+      </section>
+
       <div class="backup-grid">
         <section class="cms-group" id="backup-export-group">
           <h2>전체 백업 내보내기</h2>
@@ -2119,6 +2167,17 @@
   </div>
 </div>
 
+<div class="rev-drawer sft-drawer" id="sft-drawer" hidden>
+  <div class="rev-panel sft-panel" role="dialog" aria-modal="true" aria-labelledby="sft-drawer-title">
+    <header class="rev-head">
+      <h2 id="sft-drawer-title">이력 비교</h2>
+      <button type="button" class="cms-modal-x" id="sft-drawer-close" aria-label="닫기">×</button>
+    </header>
+    <p class="rev-sub" id="sft-drawer-sub"></p>
+    <div class="sft-diff" id="sft-diff"></div>
+  </div>
+</div>
+
 <footer class="admin-footer">
   <div class="admin-footer-in">
     <span>© 2026 <span data-sbp-brand>전국공방</span> · 관리자</span>
@@ -2140,6 +2199,7 @@
 <script src="/assets/hub.js"></script>
 <script src="/assets/esign.js"></script>
 <script src="/assets/automation.js"></script>
+<script src="/assets/safety.js"></script>
 <script src="/assets/ai-assist.js"></script>
 <script src="/assets/admin-i18n.js"></script>
 <script src="/assets/plugins.js"></script>

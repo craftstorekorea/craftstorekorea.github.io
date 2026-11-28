@@ -2084,6 +2084,11 @@ body[data-theme="craft"] .hm-prov{fill:#F1E0CB}
 .rm-badge.is-ok{background:#EFF4E6;border:1px solid #D6E2C4;color:#455E2C}
 .rm-badge.is-wait{background:#FDF3E4;border:1px solid #EBD7B8;color:#8A5A16}
 .rm-h3{margin:16px 0 7px;font-size:.74rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.rm-h3 .mini{margin-left:auto;text-transform:none;letter-spacing:0;font-size:.72rem;font-weight:700;color:var(--accent);text-decoration:none;border:1px solid var(--line-2);border-radius:999px;padding:2px 9px}
+.rm-hist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:.8rem;color:var(--ink-2)}
+.rm-hist li{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;background:var(--bg-2);border-radius:9px;padding:6px 10px;line-height:1.55}
+.rm-hist li b{font-variant-numeric:tabular-nums;color:var(--ink-3);font-size:.74rem;font-weight:700;flex:0 0 auto}
+.rm-hist .rm-hist-diff{margin-left:auto;color:var(--accent);text-decoration:none;font-size:.72rem;font-weight:800;border:1px solid var(--line-2);border-radius:999px;padding:2px 8px;background:#fff}
 .rm-doc{margin:0 0 6px;font-size:.82rem;color:var(--ink-2)}
 .rm-kids,.rm-rels,.rm-comments{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:.82rem}
 .rm-kids li,.rm-rels li{display:flex;align-items:center;gap:6px;flex-wrap:wrap}

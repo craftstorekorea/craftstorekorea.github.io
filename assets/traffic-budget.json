@@ -1,6 +1,6 @@
 {
-  "version": "10.17",
-  "generatedAt": "2026-11-28T22:08:24+09:00",
+  "version": "10.18",
+  "generatedAt": "2026-11-28T23:14:32+09:00",
   "limits": {
     "budgetBytes": 307200,
     "budgetLabel": "300 KB",
@@ -10,7 +10,7 @@
   },
   "after": {
     "index": "index.html",
-    "totalBytes": 268246,
+    "totalBytes": 268536,
     "resources": [
       {
         "kind": "html",
@@ -22,8 +22,8 @@
       {
         "kind": "css",
         "path": "assets/styles.css",
-        "rawBytes": 160517,
-        "bytes": 32442,
+        "rawBytes": 161307,
+        "bytes": 32568,
         "counted": true
       },
       {
@@ -64,8 +64,8 @@
       {
         "kind": "js",
         "path": "assets/i18n.js",
-        "rawBytes": 82875,
-        "bytes": 23121,
+        "rawBytes": 83588,
+        "bytes": 23285,
         "counted": true
       },
       {
@@ -330,15 +330,15 @@
     "assumedFirstLoads": 1.0,
     "extraPageViews": 2.5,
     "extraPageBytes": 30720,
-    "bytesPerMonth": 10351380000.0,
-    "gbPerMonth": 9.64,
-    "percentOfCap": 9.64,
+    "bytesPerMonth": 10360080000.0,
+    "gbPerMonth": 9.65,
+    "percentOfCap": 9.65,
     "roomGbPerMonth": 100.0
   },
   "gate": {
     "ok": true,
     "budgetBytes": 307200,
-    "usedPercent": 87.3
+    "usedPercent": 87.4
   },
   "note": "텍스트는 gzip -9(= GitHub Pages 전송량), 이미지·폰트는 원본 크기. 첫 방문 1회 기준."
 }
