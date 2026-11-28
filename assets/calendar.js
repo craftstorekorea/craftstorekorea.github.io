@@ -93,7 +93,7 @@
   var C = {
     built: false, loading: false, error: "", loadedFor: "",
     view: "month", cursor: "", items: [], types: { issue: true, recur: true, rsv: true },
-    drag: null, pop: null
+    drag: null, pop: null, suppressClick: false
   };
 
   function calMsg(text, kind) {
@@ -408,7 +408,8 @@
       move(item, addDays(item.date, n * (e.shiftKey ? 7 : 1)), chip);
     });
     chip.addEventListener("click", function (e) {
-      if (C.drag && C.drag.moved) { e.preventDefault(); return; }
+      /* 끌어서 옮긴 직후의 click 은 날짜 고르기 창을 열지 않습니다. */
+      if (C.suppressClick || (C.drag && C.drag.moved)) { e.preventDefault(); return; }
       if (!item) return;
       if (item.kind === "rsv") { openIssue(item); return; }
       openPop(item, chip);
@@ -447,6 +448,8 @@
     d.chip.classList.remove("is-dragging");
     $$(".cal-cell").forEach(function (c) { c.classList.remove("is-over"); });
     if (!d.moved) return;
+    C.suppressClick = true;
+    setTimeout(function () { C.suppressClick = false; }, 400);
     var el = document.elementFromPoint(e.clientX, e.clientY);
     var cell = el && el.closest ? el.closest("[data-day]") : null;
     if (!cell) return;
