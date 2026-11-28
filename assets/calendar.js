@@ -189,6 +189,40 @@
     return { start: start, end: addDays(start, 41) };
   }
 
+  /* ---------------- 예약 ----------------
+     reservations 표에는 이름·이메일·연락처가 있어 authenticated 에게 직접 열지 않았습니다.
+     그래서 먼저 RPC calendar_reservations(개인정보 없이 날짜·시간·건수만, 관리자 전용)를 부르고,
+     함수가 없는 예전 DB 에서는 예전처럼 표를 직접 읽습니다(권한이 있으면). */
+  function loadReservations(r) {
+    return request("rpc/calendar_reservations", { method: "POST", body: { p_from: r.start, p_to: r.end } })
+      .then(function (rr) {
+        if (rr && rr.ok && Array.isArray(rr.data)) {
+          return rr.data.map(function (x) {
+            var n = Number(x.n || 1);
+            return {
+              kind: "rsv", id: "rsv-" + x.day + "-" + (x.time || ""), date: ymd(x.day), no: "",
+              subject: [x.time, I("cal.rsvCount", { n: n })].filter(Boolean).join(" · "),
+              status: x.status, priority: "normal"
+            };
+          });
+        }
+        return null;
+      }, function () { return null; })
+      .then(function (viaRpc) {
+        if (Array.isArray(viaRpc)) return viaRpc;
+        return request("reservations?select=id,code,slot_date,slot_time,name,status&slot_date=gte." + r.start +
+          "&slot_date=lte." + r.end + "&order=slot_date.asc&limit=300").then(function (vr) {
+          return ((vr && vr.ok && Array.isArray(vr.data)) ? vr.data : []).map(function (v) {
+            return {
+              kind: "rsv", id: v.id, date: ymd(v.slot_date), no: v.code || "",
+              subject: [v.slot_time, v.name].filter(Boolean).join(" · ") || I("cal.legend.rsv"),
+              status: v.status, priority: "normal"
+            };
+          });
+        }, function () { return []; });
+      });
+  }
+
   function load(force) {
     paintGate();
     if (!signedIn()) return Promise.resolve();
@@ -205,8 +239,7 @@
         "&due_on=gte." + r.start + "&due_on=lte." + r.end + "&order=due_on.asc&limit=500"),
       request("issues?select=id,issue_no,subject,status,priority,due_on,starts_on,assignee_id,project_id,recurrence,next_run_at" +
         "&recurrence=neq.none&limit=300"),
-      request("reservations?select=id,code,slot_date,slot_time,name,status&slot_date=gte." + r.start +
-        "&slot_date=lte." + r.end + "&order=slot_date.asc&limit=300")
+      loadReservations(r)
     ]).then(function (res) {
       C.loading = false;
       var ir = res[0], rr = res[1], vr = res[2];
@@ -234,14 +267,8 @@
         var d = ymd(it.next_run_at);
         if (d && d >= r.start && d <= r.end) pushIssue(it, "recur", d);
       });
-      ((vr && vr.ok && Array.isArray(vr.data)) ? vr.data : []).forEach(function (v) {
-        var d = ymd(v.slot_date);
-        if (!d) return;
-        items.push({
-          kind: "rsv", id: v.id, date: d, no: v.code || "",
-          subject: [v.slot_time, v.name].filter(Boolean).join(" · ") || I("cal.legend.rsv"),
-          status: v.status, priority: "normal"
-        });
+      (Array.isArray(vr) ? vr : []).forEach(function (v) {
+        if (v && v.date) items.push(v);
       });
       C.items = items;
       C.error = "";

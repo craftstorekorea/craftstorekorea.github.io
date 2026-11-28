@@ -1,6 +1,6 @@
 {
-  "version": "10.16",
-  "generatedAt": "2026-11-28T20:11:50+09:00",
+  "version": "10.16.1",
+  "generatedAt": "2026-11-28T20:19:02+09:00",
   "limits": {
     "budgetBytes": 307200,
     "budgetLabel": "300 KB",
@@ -10,7 +10,7 @@
   },
   "after": {
     "index": "index.html",
-    "totalBytes": 268227,
+    "totalBytes": 268246,
     "resources": [
       {
         "kind": "html",
@@ -64,8 +64,8 @@
       {
         "kind": "js",
         "path": "assets/i18n.js",
-        "rawBytes": 82800,
-        "bytes": 23102,
+        "rawBytes": 82875,
+        "bytes": 23121,
         "counted": true
       },
       {
@@ -330,7 +330,7 @@
     "assumedFirstLoads": 1.0,
     "extraPageViews": 2.5,
     "extraPageBytes": 30720,
-    "bytesPerMonth": 10350810000.0,
+    "bytesPerMonth": 10351380000.0,
     "gbPerMonth": 9.64,
     "percentOfCap": 9.64,
     "roomGbPerMonth": 100.0
