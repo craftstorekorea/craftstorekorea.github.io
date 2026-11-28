@@ -1,0 +1,134 @@
+name: SBPress safety net (health · weekly backup)
+
+# SBPress 운영 안전망 — Supabase Free 플랜(7일 무활동 시 일시정지, 자동 백업 없음)을 대비합니다.
+#
+#   · 매일 08:45 KST  — sbpress_health_ping 으로 DB 에 요청을 보내 절전을 막고 상태를 요약합니다.
+#   · 매주 월 09:00 KST — sbpress_export_snapshot 으로 핵심 운영 데이터 JSON 을 받아
+#                        Actions Artifact 로 90일 보관합니다(저장소에는 남기지 않습니다).
+#   · Actions 탭에서 “Run workflow” 로 직접 돌릴 수도 있습니다(mode: health·backup·both).
+#
+# 필요한 Repository secrets (Settings → Secrets and variables → Actions)
+#   · SBPRESS_JOB_TOKEN — Supabase site_contents 의 automation.job_token 과 같은 값(16자 이상)
+# SUPABASE_URL · SUPABASE_KEY 는 사이트에 공개된 값(publishable key)이라 그대로 둡니다.
+
+on:
+  schedule:
+    - cron: "45 23 * * *"   # 매일 08:45 Asia/Seoul — 헬스 핑
+    - cron: "0 0 * * 1"     # 매주 월요일 09:00 Asia/Seoul — 정기 백업
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "health | backup | both"
+        required: false
+        default: "both"
+        type: choice
+        options: [both, health, backup]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sbpress-safety
+  cancel-in-progress: false
+
+env:
+  SUPABASE_URL: https://haaikrynfrrwcpyuvrrr.supabase.co
+  SUPABASE_KEY: sb_publishable_h_LulYLMWm80M6ZfqMdc9w_jncYNhDe
+  JOB_TOKEN: ${{ secrets.SBPRESS_JOB_TOKEN }}
+
+jobs:
+  health:
+    # 매일 헬스 핑 · 수동 실행(health·both)
+    if: >-
+      github.event.schedule == '45 23 * * *' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.mode != 'backup')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 헬스 핑 (sbpress_health_ping)
+        run: |
+          set -euo pipefail
+          if [ -z "${JOB_TOKEN}" ]; then
+            echo "::error::SBPRESS_JOB_TOKEN secret is not set. Add it in Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          resp=$(curl -sS -w '\n%{http_code}' -X POST "$SUPABASE_URL/rest/v1/rpc/sbpress_health_ping" \
+            -H "apikey: $SUPABASE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_KEY" \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/json" \
+            -d "{\"p_token\":\"$JOB_TOKEN\"}")
+          body=$(printf '%s' "$resp" | sed '$d')
+          code=$(printf '%s' "$resp" | tail -n 1)
+          echo "$body"
+          echo "HTTP $code"
+          if [ "$code" != "200" ]; then echo "::error::sbpress_health_ping returned HTTP $code"; exit 1; fi
+          echo "$body" | jq -e '.ok == true' >/dev/null || { echo "::error::health ping reported ok=false"; exit 1; }
+          {
+            echo "### SBPress health"
+            echo "- 확인 시각: $(echo "$body" | jq -r '.now // ""')"
+            echo "- 최근 자동 배치: $(echo "$body" | jq -r 'if .batch.at then "\(.batch.at) (\(.batch.idle_hours)시간 전)" else "기록 없음" end')"
+            echo "- 최근 백업: $(echo "$body" | jq -r 'if .backup.at then "\(.backup.at) (\(.backup.idle_hours)시간 전 · \(.backup.rows // 0)행)" else "기록 없음" end')"
+            echo "- 표·행: $(echo "$body" | jq -r '"\(.db.tables)개 · \(.db.rows)행"')"
+            echo "- Storage: $(echo "$body" | jq -r '"\(.storage.files)개 · \(.storage.bytes) bytes"')"
+            echo "- Free 절전 안전: $(echo "$body" | jq -r 'if .pause.safe then "안전 (D-\(.pause.days_left))" else "⚠️ 위험 — 7일 안에 DB 요청이 필요합니다" end')"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$(echo "$body" | jq -r '.pause.safe')" != "true" ]; then
+            echo "::warning::Supabase Free 플랜이 곧 절전될 수 있습니다. 자동 배치·백업 실행을 확인하세요."
+          fi
+
+  backup:
+    # 주 1회 정기 백업 · 수동 실행(backup·both)
+    if: >-
+      github.event.schedule == '0 0 * * 1' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.mode != 'health')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 파일 이름 정하기
+        run: echo "SNAP=sbpress-snapshot-$(TZ=Asia/Seoul date +%Y%m%d-%H%M).json" >> "$GITHUB_ENV"
+
+      - name: 스냅샷 만들기 (sbpress_export_snapshot)
+        run: |
+          set -euo pipefail
+          if [ -z "${JOB_TOKEN}" ]; then
+            echo "::error::SBPRESS_JOB_TOKEN secret is not set. Add it in Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          resp=$(curl -sS -w '\n%{http_code}' -X POST "$SUPABASE_URL/rest/v1/rpc/sbpress_export_snapshot" \
+            -H "apikey: $SUPABASE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_KEY" \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/json" \
+            -d "{\"p_token\":\"$JOB_TOKEN\",\"p_source\":\"github-actions\"}")
+          body=$(printf '%s' "$resp" | sed '$d')
+          code=$(printf '%s' "$resp" | tail -n 1)
+          echo "HTTP $code"
+          if [ "$code" != "200" ]; then echo "$body"; echo "::error::sbpress_export_snapshot returned HTTP $code"; exit 1; fi
+          echo "$body" | jq '.' > "$RUNNER_TEMP/$SNAP"
+          echo "저장: $RUNNER_TEMP/$SNAP ($(wc -c < "$RUNNER_TEMP/$SNAP") bytes)"
+          {
+            echo "### SBPress 주간 백업"
+            echo "- 파일: \`$SNAP\`"
+            echo "- 담은 행: $(echo "$body" | jq -r '.row_count')"
+            echo "- 용량: $(echo "$body" | jq -r '.bytes') bytes · 체크섬 \`$(echo "$body" | jq -r '.checksum')\`"
+            echo "- 실행 주체: $(echo "$body" | jq -r '.source') · 이력 ID \`$(echo "$body" | jq -r '.backup_id')\`"
+            echo "- 표별 건수: \`$(echo "$body" | jq -c '.counts')\`"
+            echo "- 보관: 이 Artifact 90일 (백업 이력은 /admin → 백업 · 복원 에도 쌓입니다)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 결과 검사
+        run: |
+          set -euo pipefail
+          jq -e '.format == "sbpress-snapshot" and (.tables | type == "object") and (.row_count >= 0)' \
+            "$RUNNER_TEMP/$SNAP" >/dev/null
+          echo "스냅샷 형식 확인 완료"
+
+      - name: Artifact 로 보관 (90일)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.SNAP }}
+          path: ${{ runner.temp }}/sbpress-snapshot-*.json
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 9
