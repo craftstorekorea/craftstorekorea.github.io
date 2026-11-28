@@ -5,16 +5,8 @@
     <link>https://craftstorekorea.github.io/</link>
     <description>전국 방방곡곡 공방의 이번 주 소식을 소개·뉴스·인터뷰·정보 네 코너로 정리했습니다. 등록된 공방은 지도와 게시판에서 지역·분야로 찾아보세요.</description>
     <language>ko-KR</language>
-    <lastBuildDate>Sat, 21 Nov 2026 09:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 28 Nov 2026 09:00:00 +0000</lastBuildDate>
     <atom:link href="https://craftstorekorea.github.io/rss.xml" rel="self" type="application/rss+xml"/>
-    <item>
-      <title>구미 신라불교초전지 핸드빌딩 원데이클래스</title>
-      <link>https://craftstorekorea.github.io/post/info-07/</link>
-      <guid isPermaLink="false">https://craftstorekorea.github.io/#/post/info-07</guid>
-      <pubDate>Sat, 21 Nov 2026 09:00:00 +0000</pubDate>
-      <category>정보</category>
-      <description>체험비 1만 원, 핸드빌딩으로 그릇을 빚는 하루.</description>
-    </item>
     <item>
       <title>광주 동구 ‘명장·장인과 함께하는 원데이 클래스’</title>
       <link>https://craftstorekorea.github.io/post/info-06/</link>
@@ -24,12 +16,28 @@
       <description>명장·장인에게 직접 배우는 무료 원데이 클래스.</description>
     </item>
     <item>
+      <title>구리 갈매 아이&amp;유거리 골목형상점가 무료 원데이클래스</title>
+      <link>https://craftstorekorea.github.io/post/info-10/</link>
+      <guid isPermaLink="false">https://craftstorekorea.github.io/#/post/info-10</guid>
+      <pubDate>Sat, 21 Nov 2026 09:00:00 +0000</pubDate>
+      <category>정보</category>
+      <description>골목형상점가에서 상시로 열리는 무료 원데이 클래스.</description>
+    </item>
+    <item>
       <title>화성시 공예문화관 전통공예 특강</title>
       <link>https://craftstorekorea.github.io/post/info-05/</link>
       <guid isPermaLink="false">https://craftstorekorea.github.io/#/post/info-05</guid>
       <pubDate>Sat, 21 Nov 2026 09:00:00 +0000</pubDate>
       <category>정보</category>
       <description>초경·닥종이·규방 특강, 수강료 무료.</description>
+    </item>
+    <item>
+      <title>이천 중리동 공방투어 ‘다시, 나의 봄날’</title>
+      <link>https://craftstorekorea.github.io/post/info-04/</link>
+      <guid isPermaLink="false">https://craftstorekorea.github.io/#/post/info-04</guid>
+      <pubDate>Sat, 21 Nov 2026 09:00:00 +0000</pubDate>
+      <category>정보</category>
+      <description>중리동 6개 공방을 잇는 투어 프로그램.</description>
     </item>
     <item>
       <title>2027 KCDF 공예·디자인 공모전시</title>
@@ -56,14 +64,6 @@
       <description>찻사발과 차우림이를 주제로 한 전국 공모전 접수.</description>
     </item>
     <item>
-      <title>이천 중리동 공방투어 ‘다시, 나의 봄날’</title>
-      <link>https://craftstorekorea.github.io/post/info-04/</link>
-      <guid isPermaLink="false">https://craftstorekorea.github.io/#/post/info-04</guid>
-      <pubDate>Sat, 21 Nov 2026 09:00:00 +0000</pubDate>
-      <category>정보</category>
-      <description>중리동 6개 공방을 잇는 투어 프로그램.</description>
-    </item>
-    <item>
       <title>순천 한옥글방 ‘손끝의 계절’ 전통공예 무료 체험</title>
       <link>https://craftstorekorea.github.io/post/info-11/</link>
       <guid isPermaLink="false">https://craftstorekorea.github.io/#/post/info-11</guid>
@@ -88,12 +88,12 @@
       <description>사전예매 시 20% 할인. 핸드메이드 작가와 브랜드가 모이는 연말 페어.</description>
     </item>
     <item>
-      <title>구리 갈매 아이&amp;유거리 골목형상점가 무료 원데이클래스</title>
-      <link>https://craftstorekorea.github.io/post/info-10/</link>
-      <guid isPermaLink="false">https://craftstorekorea.github.io/#/post/info-10</guid>
+      <title>구미 신라불교초전지 핸드빌딩 원데이클래스</title>
+      <link>https://craftstorekorea.github.io/post/info-07/</link>
+      <guid isPermaLink="false">https://craftstorekorea.github.io/#/post/info-07</guid>
       <pubDate>Sat, 21 Nov 2026 09:00:00 +0000</pubDate>
       <category>정보</category>
-      <description>골목형상점가에서 상시로 열리는 무료 원데이 클래스.</description>
+      <description>체험비 1만 원, 핸드빌딩으로 그릇을 빚는 하루.</description>
     </item>
     <item>
       <title>1평 수선 공방에서 로레알·유니클로까지 — ‘비저블 멘딩’</title>
@@ -104,12 +104,12 @@
       <description>해진 옷만 꿰매는 게 아니라 사람 사이의 틈도 메우는 거죠.</description>
     </item>
     <item>
-      <title>안성시·중앙대, 청소년 공예창작 진로캠프 — 학생 3명당 지도자 1명</title>
-      <link>https://craftstorekorea.github.io/post/intro-06/</link>
-      <guid isPermaLink="false">https://craftstorekorea.github.io/#/post/intro-06</guid>
+      <title>시흥 ‘손과 숨의 방’ 도예공방, 우수 봉사자 66명에 하루를 선물</title>
+      <link>https://craftstorekorea.github.io/post/intro-01/</link>
+      <guid isPermaLink="false">https://craftstorekorea.github.io/#/post/intro-01</guid>
       <pubDate>Thu, 19 Nov 2026 09:00:00 +0000</pubDate>
       <category>소개</category>
-      <description>11/18 중앙대 다빈치캠퍼스에서 안성초 4학년이 목공예를 실습했습니다. 문화도시 조성사업과 지역 인재양성체계를 잇는 ‘밀착형 공방 수업’입니다.</description>
+      <description>시흥시자원봉사센터가 11/13·14·17 사흘간 ‘2026 볼런티어 겨울 패키지’를 열었습니다. 61세 이상 우수 봉사자와 명예의 전당 등재자 66명이 연성로 도예공방 ‘손과 숨의 방’에서 흙을 만졌습니다.</description>
     </item>
     <item>
       <title>고창 혜윰공방, 모암마을에 주민과 함께 만든 보자기 그늘막</title>
@@ -128,12 +128,12 @@
       <description>10월 매주 토요일 상2동 카페거리에서 도예·패브릭·액세서리·가죽공예·디퓨저 마켓을 열고, 상시 ‘예술상점’으로 이어갔습니다. 부천예술투어 스탬프 거점이며 투어는 11/30까지입니다.</description>
     </item>
     <item>
-      <title>시흥 ‘손과 숨의 방’ 도예공방, 우수 봉사자 66명에 하루를 선물</title>
-      <link>https://craftstorekorea.github.io/post/intro-01/</link>
-      <guid isPermaLink="false">https://craftstorekorea.github.io/#/post/intro-01</guid>
+      <title>안성시·중앙대, 청소년 공예창작 진로캠프 — 학생 3명당 지도자 1명</title>
+      <link>https://craftstorekorea.github.io/post/intro-06/</link>
+      <guid isPermaLink="false">https://craftstorekorea.github.io/#/post/intro-06</guid>
       <pubDate>Thu, 19 Nov 2026 09:00:00 +0000</pubDate>
       <category>소개</category>
-      <description>시흥시자원봉사센터가 11/13·14·17 사흘간 ‘2026 볼런티어 겨울 패키지’를 열었습니다. 61세 이상 우수 봉사자와 명예의 전당 등재자 66명이 연성로 도예공방 ‘손과 숨의 방’에서 흙을 만졌습니다.</description>
+      <description>11/18 중앙대 다빈치캠퍼스에서 안성초 4학년이 목공예를 실습했습니다. 문화도시 조성사업과 지역 인재양성체계를 잇는 ‘밀착형 공방 수업’입니다.</description>
     </item>
     <item>
       <title>부산진구 20개 공방 연합 전시 《모두의 작업실》</title>
@@ -184,6 +184,14 @@
       <description>11/20~22 코엑스 C홀, 입장 1만 원. 망미장·린보워크샵·소목반 등 지역 공예 브랜드가 참가합니다.</description>
     </item>
     <item>
+      <title>‘금손하우스’, 공예작가 작업 과정 소개부터 공방 예약까지</title>
+      <link>https://craftstorekorea.github.io/post/news-17/</link>
+      <guid isPermaLink="false">https://craftstorekorea.github.io/#/post/news-17</guid>
+      <pubDate>Wed, 18 Nov 2026 09:00:00 +0000</pubDate>
+      <category>뉴스</category>
+      <description>작가의 작업 과정을 보여주고 공방 예약으로 연결하는 공예 플랫폼입니다.</description>
+    </item>
+    <item>
       <title>커피박·사과박 재생가죽으로 매출 10배 — 평택 브라운스킨</title>
       <link>https://craftstorekorea.github.io/post/news-08/</link>
       <guid isPermaLink="false">https://craftstorekorea.github.io/#/post/news-08</guid>
@@ -200,20 +208,20 @@
       <description>2026년 3월 뉴욕 크리스티에서 318만 6,000달러(약 47억 7,000만 원)에, 2023년에는 456만 달러(약 59억 4,000만 원)에 팔렸습니다. 박물관 문화상품 브랜드 뮷즈 매출은 2021년 65.9억 원에서 2025년 413.4억 원으로 커졌습니다.</description>
     </item>
     <item>
-      <title>“공예는 쓰일 때 문화가 되고 산업이 된다”</title>
-      <link>https://craftstorekorea.github.io/post/interview-04/</link>
-      <guid isPermaLink="false">https://craftstorekorea.github.io/#/post/interview-04</guid>
-      <pubDate>Wed, 18 Nov 2026 09:00:00 +0000</pubDate>
-      <category>인터뷰</category>
-      <description>공예는 쓰일 때 문화가 되고, 산업이 된다.</description>
-    </item>
-    <item>
       <title>지역공예 다시 ‘붐’ — 이천·부여·통영, 장인의 도시가 깨어난다</title>
       <link>https://craftstorekorea.github.io/post/news-10/</link>
       <guid isPermaLink="false">https://craftstorekorea.github.io/#/post/news-10</guid>
       <pubDate>Wed, 18 Nov 2026 09:00:00 +0000</pubDate>
       <category>뉴스</category>
       <description>이천도자기축제는 방문 106만 명·판매 37.9억 원, 공방 323곳이 참여했습니다. 부여 123사비공예마을 ‘공예 런케이션’은 조기 마감, 통영메이드는 12월 공예트렌드페어에 섭니다.</description>
+    </item>
+    <item>
+      <title>“공예는 쓰일 때 문화가 되고 산업이 된다”</title>
+      <link>https://craftstorekorea.github.io/post/interview-04/</link>
+      <guid isPermaLink="false">https://craftstorekorea.github.io/#/post/interview-04</guid>
+      <pubDate>Wed, 18 Nov 2026 09:00:00 +0000</pubDate>
+      <category>인터뷰</category>
+      <description>공예는 쓰일 때 문화가 되고, 산업이 된다.</description>
     </item>
     <item>
       <title>25년을 이어온 뜨개집 “끈기가 제일 중요해요”</title>
@@ -224,28 +232,20 @@
       <description>견디는 거죠. 끈기가 제일 중요해요.</description>
     </item>
     <item>
-      <title>‘금손하우스’, 공예작가 작업 과정 소개부터 공방 예약까지</title>
-      <link>https://craftstorekorea.github.io/post/news-17/</link>
-      <guid isPermaLink="false">https://craftstorekorea.github.io/#/post/news-17</guid>
-      <pubDate>Wed, 18 Nov 2026 09:00:00 +0000</pubDate>
-      <category>뉴스</category>
-      <description>작가의 작업 과정을 보여주고 공방 예약으로 연결하는 공예 플랫폼입니다.</description>
-    </item>
-    <item>
-      <title>통영메이드 팝업 ‘전통이 하이엔드가 되다’, 광장시장에서 11/21까지</title>
-      <link>https://craftstorekorea.github.io/post/news-06/</link>
-      <guid isPermaLink="false">https://craftstorekorea.github.io/#/post/news-06</guid>
+      <title>‘공예 9조 시장’, 과제는 생산·유통</title>
+      <link>https://craftstorekorea.github.io/post/news-05/</link>
+      <guid isPermaLink="false">https://craftstorekorea.github.io/#/post/news-05</guid>
       <pubDate>Tue, 17 Nov 2026 09:00:00 +0000</pubDate>
       <category>뉴스</category>
-      <description>나전·누비 장인 8명과 디자이너 3명이 협업한 26종을 선보입니다. 365일장에서 열리는 마감 임박 소식입니다.</description>
+      <description>공진원 진단으로 1인 사업체 64%, 직접 판매 71.7%. 작가와 시장을 잇는 매니지먼트가 필요하다는 지적입니다.</description>
     </item>
     <item>
-      <title>로에베 재단 공예상 최고상에 도예가 박종진 — 이어지는 한국 공예의 세계 무대 수상</title>
-      <link>https://craftstorekorea.github.io/post/news-02/</link>
-      <guid isPermaLink="false">https://craftstorekorea.github.io/#/post/news-02</guid>
+      <title>경기광주 자활센터, 자활사업 30주년 박람회서 수공예·업사이클 생산품 선보여</title>
+      <link>https://craftstorekorea.github.io/post/news-16/</link>
+      <guid isPermaLink="false">https://craftstorekorea.github.io/#/post/news-16</guid>
       <pubDate>Tue, 17 Nov 2026 09:00:00 +0000</pubDate>
       <category>뉴스</category>
-      <description>종이 수천 장에 흙물을 입혀 겹겹이 구운 ‘Strata of Illusion’으로 2026 로에베 재단 공예상 최고상을 받았습니다. 2022년 정다혜 이후 두 번째 한국인 최고상이며, 2024년에는 김희찬이 특별상을 받았습니다.</description>
+      <description>11/17 일산 킨텍스에서 열린 박람회(200개 부스·8,000여 명 참석)에 ‘반희담’ 수공예 사업단과 ‘다시, 봄’ 업사이클링 공방 사업단이 홍보·판매 부스를 열었습니다.</description>
     </item>
   </channel>
 </rss>
